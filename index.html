@@ -204,7 +204,7 @@
             <div data-category="profile" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
                 <div>
                     <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
-                        <img src="palco.webp" alt="Bruna Mandz no Palco" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
+                        <img src="palco.webp" alt="Bruna Mandz no Palco" class="w-full h-full object-contain transition-transform duration-700 hover:scale-105">
                         <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
                         <span class="absolute bottom-4 left-4 bg-zinc-800 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border border-zinc-700">Presença de Palco</span>
                     </div>
@@ -227,7 +227,7 @@
             <div data-category="merch" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
                 <div>
                     <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
-                        <img src="brindes.jpg" alt="Brindes Bruna Mandz" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
+                        <img src="brindes.jpg" alt="Brindes Bruna Mandz" class="w-full h-full object-contain transition-transform duration-700 hover:scale-105">
                         <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
                         <span class="absolute bottom-4 left-4 bg-red-600/20 text-red-400 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border border-red-500/30">Identidade Forte</span>
                     </div>
@@ -249,7 +249,7 @@
             <!-- CARD 4: Space Slideshow -->
             <div data-category="space" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
                 <div>
-                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950 cursor-pointer" onclick="openSpaceModal()">
                         <div id="space-slideshow" class="relative w-full h-full">
                             <img src="1.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-100">
                             <img src="2.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
@@ -519,7 +519,7 @@
     <div id="modal-bruna2" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl relative transform scale-95 transition-all">
             <div class="relative h-64 overflow-hidden">
-                <img src="palco.webp" alt="Bruna Mandz Live Show" class="w-full h-full object-cover">
+                <img src="palco.webp" alt="Bruna Mandz Live Show" class="w-full h-full object-contain">
                 <button onclick="closeModal('modal-bruna2')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all">
                     <i class="fas fa-times"></i>
                 </button>
@@ -533,9 +533,6 @@
                     <p class="text-zinc-300"><strong>Aulas em Grupo:</strong> Dinâmicas de banda coletiva para entrosamento musical.</p>
                     <p class="text-zinc-300"><strong>Ensaios Dinâmicos:</strong> Domine o medo de palco de forma gradual e segura.</p>
                 </div>
-                <button onclick="closeModal('modal-bruna2'); scrollToId('virtual-keyboard');" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
-                    Praticar no Teclado Virtual
-                </button>
             </div>
         </div>
     </div>
@@ -544,7 +541,7 @@
     <div id="modal-items" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl relative transform scale-95 transition-all">
             <div class="relative h-80 overflow-hidden bg-zinc-950">
-                <img src="brindes.jpg" alt="Bruna Mandz Branding Merch" class="w-full h-full object-cover">
+                <img src="brindes.jpg" alt="Bruna Mandz Branding Merch" class="w-full h-full object-contain">
                 <button onclick="closeModal('modal-items')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all">
                     <i class="fas fa-times"></i>
                 </button>
@@ -576,6 +573,29 @@
     </div>
 
     <!-- Modal 4: Fullscreen Drums Video Modal -->
+    <div id="modal-space" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-5xl w-full rounded-3xl overflow-hidden shadow-2xl relative">
+            <button onclick="closeModal('modal-space')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-20">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="relative h-[80vh] bg-zinc-950">
+                <div id="space-modal-slideshow" class="relative w-full h-full">
+                    <img src="1.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-100">
+                    <img src="2.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-0">
+                    <img src="3.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-0">
+                    <img src="4.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-0">
+                    <img src="5.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-0">
+                    <img src="6.jpg" alt="Escola Bruna Mandz" class="space-modal-slide w-full h-full object-contain absolute inset-0 transition-opacity duration-1000 opacity-0">
+                </div>
+            </div>
+            <div class="p-6 text-center">
+                <h4 class="text-2xl font-black text-white mb-2">Nosso Espaço Completo</h4>
+                <p class="text-zinc-400 text-sm">Conheça todos os ambientes da nossa escola de música</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5: Fullscreen Drums Video Modal -->
     <div id="modal-video-drums" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl relative">
             <button onclick="closeModal('modal-video-drums'); pauseDrumsModalVideo();" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-20">
@@ -604,9 +624,9 @@
         }
 
         const phrases = [
-            'Música que conecta. <br>Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.',
-            'O melhor espaço para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Neurodivergentes</span>.',
-            'Canto, Teclado, Bateria <br>& <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Musicoterapia</span>.'
+            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>Música que conecta. <br>Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.',
+            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>O melhor espaço para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Neurodivergentes</span>.',
+            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>Canto, Teclado, Bateria <br>& <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Musicoterapia</span>.'
         ];
         
         let currentPhraseIndex = 0;
@@ -670,6 +690,30 @@
         // Start space slideshow interval (4 seconds per image)
         if (spaceSlides.length > 0) {
             setInterval(cycleSpaceSlides, 4000);
+        }
+
+        // Space Modal Slideshow
+        let currentSpaceModalSlideIndex = 0;
+        const spaceModalSlides = document.querySelectorAll('.space-modal-slide');
+        
+        function cycleSpaceModalSlides() {
+            spaceModalSlides.forEach((slide, index) => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+            
+            currentSpaceModalSlideIndex = (currentSpaceModalSlideIndex + 1) % spaceModalSlides.length;
+            spaceModalSlides[currentSpaceModalSlideIndex].classList.remove('opacity-0');
+            spaceModalSlides[currentSpaceModalSlideIndex].classList.add('opacity-100');
+        }
+        
+        // Start space modal slideshow interval (4 seconds per image)
+        if (spaceModalSlides.length > 0) {
+            setInterval(cycleSpaceModalSlides, 4000);
+        }
+
+        function openSpaceModal() {
+            openModal('modal-space');
         }
 
         // Image Slideshow for Children Photos
