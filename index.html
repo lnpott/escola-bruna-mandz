@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escola de Música Bruna Mandz - Canvas Interativo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter para legibilidade e Montserrat para títulos expressivos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Montserrat:wght=700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome para ícones premium -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0c;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* Custom scrollbar para visual dark premium */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121214;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ef4444;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #dc2626;
+        }
+        /* Efeito de brilho de neon vermelho da marca */
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+        }
+        .neon-glow-strong {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.35);
+        }
+        /* Transições de opacidade e movimento para as frases do Hero */
+        .phrase-transition {
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Transições suaves para os cards do canvas */
+        .canvas-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .canvas-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+        /* Animação de pulso para gravação/ao vivo */
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+        }
+        .live-indicator {
+            animation: pulse-red 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-900 px-4 py-3 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <img src="logo.png" alt="Bruna Mandz" class="h-10 object-contain bg-white rounded-lg p-1">
+            </a>
+
+            <!-- Navigation and Quick Actions -->
+            <nav class="flex items-center gap-4 text-xs font-semibold tracking-wider uppercase">
+                <button onclick="scrollToId('virtual-keyboard')" class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors bg-zinc-900 rounded-md">Experimentar Piano</button>
+                <a href="https://www.instagram.com/escolademusicabrunamandz/" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-full transition-all duration-300 flex items-center gap-2 neon-glow hover:neon-glow-strong">
+                    <i class="fab fa-instagram text-sm"></i> Seguir no Insta
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- TOAST NOTIFICATION SYSTEM -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 translate-y-10 opacity-0 transition-all duration-300 bg-zinc-900 border border-zinc-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-2xl max-w-sm">
+        <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500" id="toast-icon">
+            <i class="fas fa-music"></i>
+        </div>
+        <p class="text-sm font-medium text-zinc-200" id="toast-message">Mensagem de teste</p>
+    </div>
+
+    <!-- HERO INTRO -->
+    <section class="relative px-4 pt-12 pb-12 sm:px-8 overflow-hidden">
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[140px] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left: Text and dynamic fading headings -->
+            <div class="lg:col-span-7 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold uppercase tracking-widest rounded-full mb-6">
+                    <span class="w-2 h-2 rounded-full bg-red-500 live-indicator"></span>
+                    Inclusiva, Terapêutica & Transformadora
+                </div>
+                
+                <!-- Dynamic Heading Container for disappearing/reappearing effect -->
+                <div class="min-h-[140px] sm:min-h-[180px] flex items-center justify-center lg:justify-start">
+                    <h2 id="hero-headline" class="phrase-transition text-4xl sm:text-6xl font-black text-white leading-tight opacity-100 transform translate-y-0">
+                        Música que conecta. <br>
+                        Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.
+                    </h2>
+                </div>
+
+                <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8 mt-4">
+                    Localizada no coração de Itaipuaçu (Maricá), oferecemos um espaço acolhedor e altamente especializado para neurodivergentes, crianças, jovens e adultos descobrirem sua voz na música.
+                </p>
+                <div class="flex flex-wrap justify-center lg:justify-start gap-4">
+                    <button onclick="scrollToId('interactive-canvas')" class="px-6 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold tracking-wide shadow-lg hover:shadow-red-600/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-compass"></i> Começar a Explorar
+                    </button>
+                    <a href="https://wa.me/5521997600704?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20as%20aulas%20de%20música!" target="_blank" rel="noopener noreferrer" class="px-6 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-white rounded-xl font-bold transition-all flex items-center gap-2">
+                        <i class="fab fa-whatsapp text-green-500"></i> Fale com a Gente
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: Beautiful Spotlight Profile Photo of Bruna -->
+            <div class="lg:col-span-5 flex justify-center">
+                <div class="relative group w-72 h-72 sm:w-96 sm:h-96">
+                    <!-- Glow effects in background -->
+                    <div class="absolute -inset-1.5 bg-gradient-to-r from-red-600 to-red-900 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                    <!-- Frame -->
+                    <div class="relative w-full h-full bg-zinc-950 rounded-3xl overflow-hidden border border-zinc-800 flex items-center justify-center">
+                        <div id="hero-slideshow" class="relative w-full h-full">
+                            <img src="1.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-100">
+                            <img src="2.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="3.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="4.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="5.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="6.jpg" alt="Escola Bruna Mandz" class="slideshow-image w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+                        <!-- Bottom Tag -->
+                        <div class="absolute bottom-4 left-4 right-4 bg-zinc-900/90 backdrop-blur-md border border-zinc-800 p-3 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-black text-white uppercase tracking-wider">Escola Bruna Mandz</p>
+                                <p class="text-[10px] text-zinc-400">Sua jornada musical começa aqui</p>
+                            </div>
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 live-indicator"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INTERACTIVE CANVAS SYSTEM -->
+    <main class="px-4 py-8 sm:px-8 max-w-7xl mx-auto w-full flex-grow">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+            <div>
+                <h3 id="interactive-canvas" class="text-2xl sm:text-3xl font-black text-white">Mesa de Exploração Interativa</h3>
+                <p class="text-zinc-500 text-sm mt-1">Clique nas cartas para interagir, ouvir e descobrir nossa escola.</p>
+            </div>
+            <!-- Canvas Filter Controls -->
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterCanvas('all')" id="btn-filter-all" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-red-600 text-white transition-all">Todos</button>
+                <button onclick="filterCanvas('profile')" id="btn-filter-profile" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all">Sobre Bruna</button>
+                <button onclick="filterCanvas('space')" id="btn-filter-space" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all">A Escola</button>
+                <button onclick="filterCanvas('merch')" id="btn-filter-merch" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all">Brindes e Identidade</button>
+            </div>
+        </div>
+
+        <!-- CANVAS GRID LAYOUT -->
+        <div id="canvas-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-500">
+
+            <!-- CARD 1: Profile & Founder (bruna1.jpg) -->
+            <div data-category="profile" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                        <img src="perfil.jpg" alt="Bruna Mandz" class="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider neon-glow">Fundadora & Mentora</span>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-white mb-2">Bruna Mandz</h4>
+                        <p class="text-zinc-400 text-sm leading-relaxed">
+                            Cantora, multi-instrumentista e educadora apaixonada. Bruna idealizou um método de ensino de música inclusivo e acolhedor, onde cada aluno avança em seu próprio compasso e estilo.
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-zinc-800/50 flex justify-between items-center bg-zinc-900/50">
+                    <button onclick="openModal('modal-bruna1')" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider flex items-center gap-1.5 group">
+                        Ver Apresentação <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <span class="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">Metodologia Exclusiva</span>
+                </div>
+            </div>
+
+            <!-- CARD 2: Stages & Performance (bruna2.webp) -->
+            <div data-category="profile" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                        <img src="palco.webp" alt="Bruna Mandz no Palco" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-4 left-4 bg-zinc-800 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border border-zinc-700">Presença de Palco</span>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-white mb-2">Experiência Real</h4>
+                        <p class="text-zinc-400 text-sm leading-relaxed">
+                            Na nossa escola, você não aprende apenas a tocar no quarto. Nós preparamos você para as luzes do palco, estimulando a confiança, o trabalho de banda e a expressão artística em recitais.
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-zinc-800/50 flex justify-between items-center bg-zinc-900/50">
+                    <button onclick="openModal('modal-bruna2')" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider flex items-center gap-1.5 group">
+                        Ver Mais <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <span class="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">Aulas de Performance</span>
+                </div>
+            </div>
+
+            <!-- CARD 3: Brand Identity & Lounge (items.jpg) -->
+            <div data-category="merch" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                        <img src="brindes.jpg" alt="Brindes Bruna Mandz" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-4 left-4 bg-red-600/20 text-red-400 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border border-red-500/30">Identidade Forte</span>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-white mb-2">Brindes & Identidade</h4>
+                        <p class="text-zinc-400 text-sm leading-relaxed">
+                            Nossa comunidade se orgulha de pertencer! Conheça a nossa linha de brindes e produtos oficiais da escola. Da palheta personalizada até mochilas e blocos para compor.
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-zinc-800/50 flex justify-between items-center bg-zinc-900/50">
+                    <button onclick="openModal('modal-items')" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider flex items-center gap-1.5 group">
+                        Ver Catálogo de Itens <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <span class="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">Merchandising Oficial</span>
+                </div>
+            </div>
+
+            <!-- CARD 4: Space Slideshow -->
+            <div data-category="space" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                        <div id="space-slideshow" class="relative w-full h-full">
+                            <img src="1.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-100">
+                            <img src="2.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="3.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="4.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="5.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="6.jpg" alt="Escola Bruna Mandz" class="space-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider neon-glow">Nosso Espaço</span>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-white mb-2">Ambiente Inspirador</h4>
+                        <p class="text-zinc-400 text-sm leading-relaxed">
+                            Conheça nossa escola equipada com iluminação LED moderna, instrumentos de qualidade e um espaço acolhedor projetado para o aprendizado musical.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 5: Neurodivergence & Music Therapy -->
+            <div data-category="space" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
+                        <div id="children-slideshow" class="relative w-full h-full">
+                            <img src="kid3.jpg" alt="Aluno" class="children-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-100">
+                            <img src="6.jpg" alt="Aluno" class="children-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="garoto4.jpg" alt="Aluno" class="children-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="garoto6.jpg" alt="Aluno" class="children-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                            <img src="Garotos.jpg" alt="Alunos" class="children-slide w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 opacity-0">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-4 left-4 bg-purple-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider neon-glow">Metodologia Terapêutica</span>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-white mb-2">Totalmente Inclusivos</h4>
+                        <p class="text-zinc-400 text-sm leading-relaxed">
+                            Somos especializados em acolher e potencializar talentos neurodivergentes. Nosso espaço é planejado e adaptado para ser terapêutico e estimulante, onde a música serve como ponte de cura, autoconhecimento e conexão real.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 6: Localization & Contact -->
+            <div data-category="space" class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between min-h-[400px] relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full blur-2xl pointer-events-none"></div>
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-red-500 mb-6 text-xl shadow-inner">
+                        <i class="fas fa-map-location-dot"></i>
+                    </div>
+                    <span class="bg-red-950/40 text-red-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-red-500/20">Fácil Acesso</span>
+                    <h4 class="text-2xl font-black text-white mt-4 mb-2">Visite Nosso Espaço</h4>
+                    <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                        Estamos localizados bem em frente à Subprefeitura de Itaipuaçu (Maricá), na Sala 202, 2º andar. Venha tomar um café conosco e conhecer nossas salas climatizadas e acusticamente tratadas!
+                    </p>
+                    <div class="text-xs bg-zinc-950/50 border border-zinc-800/80 p-3 rounded-xl flex items-center gap-3">
+                        <i class="fas fa-street-view text-red-500 text-base"></i>
+                        <div>
+                            <p class="text-zinc-200 font-bold">Subprefeitura Itaipuaçu</p>
+                            <p class="text-zinc-500 text-[10px]">Maricá, RJ - Sala 202, 2º Andar</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-zinc-800/50 flex items-center justify-between">
+                    <a href="https://wa.me/5521997600704" target="_blank" rel="noopener noreferrer" class="text-xs font-black text-green-500 hover:text-green-400 uppercase tracking-widest flex items-center gap-1">
+                        Agendar Aula Experimental <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- PLAYABLE VIRTUAL KEYBOARD SECTION -->
+    <section id="virtual-keyboard" class="px-4 py-12 sm:px-8 bg-zinc-900 border-y border-zinc-800 relative">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-2xl sm:text-4xl font-black text-white mb-2">Toque uma Melodia</h3>
+            <p class="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto mb-8">
+                Experimente o nosso teclado interativo desenvolvido com tecnologia de áudio sintetizado em tempo real. Pressione as teclas abaixo para produzir sons!
+            </p>
+
+            <!-- Piano interface wrapper -->
+            <div class="bg-zinc-950 p-4 sm:p-6 rounded-3xl border border-zinc-800 shadow-2xl relative">
+                <!-- Instrument settings -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6 text-xs text-zinc-400 font-medium border-b border-zinc-800/50 pb-4">
+                    <div class="flex items-center gap-3">
+                        <label for="synth-wave" class="uppercase font-bold tracking-wider text-[10px]">Timbre:</label>
+                        <select id="synth-wave" class="bg-zinc-900 border border-zinc-800 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-red-500">
+                            <option value="triangle">Doce (Triangular)</option>
+                            <option value="sine">Suave (Senoidal)</option>
+                            <option value="sawtooth">Brilhante (Dente de Serra)</option>
+                            <option value="square">Clássico Chiptune (Quadrado)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 live-indicator"></span>
+                        <span class="uppercase tracking-widest text-[10px] font-bold">Web Audio Ativo</span>
+                    </div>
+                </div>
+
+                <!-- Actual Piano Keys Container -->
+                <div class="relative flex justify-center w-full min-h-[220px] select-none touch-manipulation">
+                    <!-- White Keys -->
+                    <div class="flex w-full max-w-2xl justify-between relative bg-zinc-950 p-1 rounded-xl">
+                        <button onmousedown="playKey(261.63, 'C4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(261.63, 'C4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
+                        <button onmousedown="playKey(293.66, 'D4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(293.66, 'D4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
+                        <button onmousedown="playKey(329.63, 'E4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(329.63, 'E4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
+                        <button onmousedown="playKey(349.23, 'F4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(349.23, 'F4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
+                        <button onmousedown="playKey(392.00, 'G4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(392.00, 'G4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
+                        <button onmousedown="playKey(440.00, 'A4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(440.00, 'A4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
+                        <button onmousedown="playKey(493.88, 'B4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(493.88, 'B4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
+                        <button onmousedown="playKey(523.25, 'C5')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(523.25, 'C5')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
+                    </div>
+
+                    <!-- Black Keys Absolute Overlay -->
+                    <div class="absolute inset-0 max-w-2xl mx-auto px-1 pointer-events-none flex justify-start">
+                        <!-- C# -->
+                        <button onmousedown="playKey(277.18, 'C#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(277.18, 'C#4')" ontouchend="stopKey()" aria-label="Nota Dó sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 9%;"></button>
+                        <!-- D# -->
+                        <button onmousedown="playKey(311.13, 'D#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(311.13, 'D#4')" ontouchend="stopKey()" aria-label="Nota Ré sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 21%;"></button>
+                        <!-- F# -->
+                        <button onmousedown="playKey(369.99, 'F#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(369.99, 'F#4')" ontouchend="stopKey()" aria-label="Nota Fá sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 47%;"></button>
+                        <!-- G# -->
+                        <button onmousedown="playKey(415.30, 'G#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(415.30, 'G#4')" ontouchend="stopKey()" aria-label="Nota Sol sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 59%;"></button>
+                        <!-- A# -->
+                        <button onmousedown="playKey(466.16, 'A#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(466.16, 'A#4')" ontouchend="stopKey()" aria-label="Nota Lá sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 71%;"></button>
+                    </div>
+                </div>
+
+                <!-- Display played note dynamically -->
+                <div class="mt-6 text-center">
+                    <span class="text-xs uppercase font-bold tracking-wider text-zinc-500">Nota tocada no momento:</span>
+                    <div id="played-note-display" class="text-2xl font-black text-red-500 mt-1 h-8">-</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOCIAL PROOF & INSTAGRAM SECTION -->
+    <section class="px-4 py-12 sm:px-8 max-w-7xl mx-auto w-full">
+        <div class="text-center mb-10">
+            <h3 class="text-2xl sm:text-3xl font-black text-white">Comunidade Bruna Mandz</h3>
+            <p class="text-zinc-500 text-sm mt-1">Conecte, encante, transforme em música.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Feed/Testimonial Card 1 -->
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative">
+                <i class="fab fa-instagram text-red-500 text-2xl absolute top-6 right-6 opacity-30"></i>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-red-500 text-sm border border-zinc-700">MT</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Mariana T.</h4>
+                        <p class="text-[10px] text-zinc-500">Mãe do Lucca (Aluno de Bateria)</p>
+                    </div>
+                </div>
+                <p class="text-zinc-400 text-sm leading-relaxed italic">
+                    "O Lucca é autista e encontrou na bateria uma forma maravilhosa de se comunicar e descarregar energia. A equipe da Bruna tem um acolhimento sem igual em Maricá!"
+                </p>
+            </div>
+
+            <!-- Feed/Testimonial Card 2 -->
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative">
+                <i class="fab fa-instagram text-red-500 text-2xl absolute top-6 right-6 opacity-30"></i>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-red-500 text-sm border border-zinc-700">FS</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Felipe S.</h4>
+                        <p class="text-[10px] text-zinc-500">Aluno de Teclado</p>
+                    </div>
+                </div>
+                <p class="text-zinc-400 text-sm leading-relaxed italic">
+                    "Sempre quis aprender teclado, mas achava que não tinha coordenação. As aulas são dinâmicas, focadas no estilo de música que gosto de ouvir. Recomendo muito!"
+                </p>
+            </div>
+
+            <!-- Feed/Testimonial Card 3 -->
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative">
+                <i class="fab fa-instagram text-red-500 text-2xl absolute top-6 right-6 opacity-30"></i>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-red-500 text-sm border border-zinc-700">BL</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Beatriz L.</h4>
+                        <p class="text-[10px] text-zinc-500">Aluna de Canto</p>
+                    </div>
+                </div>
+                <p class="text-zinc-400 text-sm leading-relaxed italic">
+                    "A Bruna me ensinou a projetar minha voz de uma forma saudável. Além das aulas, a oportunidade de ensaiar em grupo com outros alunos da escola é sensacional!"
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="https://www.instagram.com/escolademusicabrunamandz/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-wider">
+                Ver todo o conteúdo no Instagram <i class="fab fa-instagram text-lg"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-zinc-950 border-t border-zinc-900 py-12 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="text-center md:text-left">
+                <div class="flex items-center gap-3 justify-center md:justify-start group mb-3">
+                    <div class="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center border border-red-500/20 bg-black p-0.5 shadow-lg">
+                        <img src="logo.png" alt="Logo Bruna Mandz" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <h1 class="text-xs font-black tracking-widest text-white uppercase m-0 leading-none">Escola de Música</h1>
+                        <span class="text-[10px] text-red-500 font-bold tracking-widest uppercase m-0 leading-none">Bruna Mandz</span>
+                    </div>
+                </div>
+                <p class="text-zinc-500 text-xs mt-2">© 2026 Escola de Música Bruna Mandz. Todos os direitos reservados.</p>
+                <p class="text-zinc-600 text-[10px] mt-1">Sala 202, Itaipuaçu - Maricá/RJ</p>
+            </div>
+
+            <!-- Social handles & fast connection -->
+            <div class="flex flex-col items-center md:items-end gap-3">
+                <div class="flex items-center gap-4">
+                    <a href="https://www.instagram.com/escolademusicabrunamandz/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500 transition-all">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://wa.me/5521997600704" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-green-500 hover:border-green-500 transition-all">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+                <span class="text-xs text-zinc-500">Desenvolvido com carinho para inspirar gerações.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS FOR ENHANCED CANVAS CONTENT EXPLORATION -->
+
+    <!-- Modal 1: Bruna portrait presentation (Includes apresentacao.mp4) -->
+    <div id="modal-bruna1" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-xl w-full rounded-3xl overflow-hidden shadow-2xl relative transform scale-95 transition-all">
+            <div class="relative h-72 overflow-hidden bg-zinc-950 flex items-center justify-center group/video">
+                <video id="player-intro" class="w-full h-full object-cover" muted loop playsinline>
+                    <source src="apresentacao.mp4" type="video/mp4">
+                </video>
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <button onclick="toggleVideo('player-intro')" aria-label="Reproduzir vídeo" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-xl transition-transform transform hover:scale-110 shadow-lg">
+                        <i id="btn-intro-icon" class="fas fa-play ml-1"></i>
+                    </button>
+                </div>
+                <button onclick="closeModal('modal-bruna1')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-10">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <h4 class="text-2xl font-black text-white mb-2">Conectando através da música</h4>
+                <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                    Bruna Mandz estruturou a escola com base na acessibilidade e no desenvolvimento individualizado. Nosso propósito é fazer da música uma linguagem terapêutica, de autoconhecimento e de pura alegria.
+                </p>
+                <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800/80 mb-4 text-xs space-y-2">
+                    <p class="text-zinc-300"><strong>Inclusão Ativa:</strong> Salas equipadas e acolhedoras para neurodivergentes.</p>
+                    <p class="text-zinc-300"><strong>Metodologia Flexível:</strong> Do nível iniciante absoluto até a performance no palco.</p>
+                </div>
+                <a href="https://wa.me/5521997600704" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
+                    Falar diretamente com a Bruna
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Live singing presentation -->
+    <div id="modal-bruna2" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl relative transform scale-95 transition-all">
+            <div class="relative h-64 overflow-hidden">
+                <img src="palco.webp" alt="Bruna Mandz Live Show" class="w-full h-full object-cover">
+                <button onclick="closeModal('modal-bruna2')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <h4 class="text-2xl font-black text-white mb-2">Presença de Palco & Ensaio de Banda</h4>
+                <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                    Tocar sozinho pode ser divertido, mas a mágica de verdade acontece quando nos conectamos em conjunto. Preparamos recitais regulares com formação de banda para que todos os alunos experimentem a emoção do palco real.
+                </p>
+                <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800/80 mb-4 text-xs space-y-2">
+                    <p class="text-zinc-300"><strong>Aulas em Grupo:</strong> Dinâmicas de banda coletiva para entrosamento musical.</p>
+                    <p class="text-zinc-300"><strong>Ensaios Dinâmicos:</strong> Domine o medo de palco de forma gradual e segura.</p>
+                </div>
+                <button onclick="closeModal('modal-bruna2'); scrollToId('virtual-keyboard');" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
+                    Praticar no Teclado Virtual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Merch Items Presentation -->
+    <div id="modal-items" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl relative transform scale-95 transition-all">
+            <div class="relative h-80 overflow-hidden bg-zinc-950">
+                <img src="brindes.jpg" alt="Bruna Mandz Branding Merch" class="w-full h-full object-cover">
+                <button onclick="closeModal('modal-items')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <h4 class="text-2xl font-black text-white mb-2">Linha Exclusiva de Identidade Visual</h4>
+                <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                    Nossos alunos ganham acesso a um lounge de recepção moderno repleto de brindes exclusivos que representam a cultura vibrante de nossa marca.
+                </p>
+                <div class="grid grid-cols-2 gap-3 text-xs text-zinc-300 mb-6">
+                    <div class="flex items-center gap-2 bg-zinc-950/80 p-2.5 rounded-lg border border-zinc-800/60">
+                        <i class="fas fa-check-circle text-red-500"></i> Pulseiras e Palhetas personalizadas
+                    </div>
+                    <div class="flex items-center gap-2 bg-zinc-950/80 p-2.5 rounded-lg border border-zinc-800/60">
+                        <i class="fas fa-check-circle text-red-500"></i> Copos térmicos de alta qualidade
+                    </div>
+                    <div class="flex items-center gap-2 bg-zinc-950/80 p-2.5 rounded-lg border border-zinc-800/60">
+                        <i class="fas fa-check-circle text-red-500"></i> Copos para ideias de composição
+                    </div>
+                    <div class="flex items-center gap-2 bg-zinc-950/80 p-2.5 rounded-lg border border-zinc-800/60">
+                        <i class="fas fa-check-circle text-red-500"></i> Cartão fidelidade com 10% OFF
+                    </div>
+                </div>
+                <a href="https://wa.me/5521997600704?text=Quero%20visitar%20a%20escola%20e%20saber%20como%20ganhar%20os%20brindes!" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
+                    Fale Conosco e Garanta Sua Matrícula
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Fullscreen Drums Video Modal -->
+    <div id="modal-video-drums" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl relative">
+            <button onclick="closeModal('modal-video-drums'); pauseDrumsModalVideo();" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-20">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="relative h-[65vh] bg-zinc-950">
+                <video id="modal-drums-player" class="w-full h-full object-contain" controls>
+                    <source src="demo.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="p-6">
+                <h4 class="text-xl font-bold text-white">Demonstração das Aulas de Ritmo</h4>
+                <p class="text-zinc-400 text-sm mt-1">Conheça nosso espaço e veja de perto a alegria e a energia dedicada a cada aluno.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT SYSTEM LOGIC -->
+    <script>
+        // Smooth scrolling to section helper
+        function scrollToId(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        const phrases = [
+            'Música que conecta. <br>Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.',
+            'O melhor espaço para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Neurodivergentes</span>.',
+            'Canto, Teclado, Bateria <br>& <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Musicoterapia</span>.'
+        ];
+        
+        let currentPhraseIndex = 0;
+        
+        function cycleHeroPhrases() {
+            const heading = document.getElementById('hero-headline');
+            if (!heading) return;
+            
+            // Step 1: Disappear (Fade out and move slightly)
+            heading.classList.remove('opacity-100', 'translate-y-0');
+            heading.classList.add('opacity-0', '-translate-y-4');
+            
+            // Step 2: Swap Content and Reappear after transition duration (800ms)
+            setTimeout(() => {
+                currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+                heading.innerHTML = phrases[currentPhraseIndex];
+                
+                heading.classList.remove('opacity-0', '-translate-y-4');
+                heading.classList.add('opacity-100', 'translate-y-0');
+            }, 800);
+        }
+        
+        // Start the cycle interval
+        setInterval(cycleHeroPhrases, 5000);
+
+        // Image Slideshow for Hero Section
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slideshow-image');
+        
+        function cycleSlides() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+            
+            currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+            slides[currentSlideIndex].classList.remove('opacity-0');
+            slides[currentSlideIndex].classList.add('opacity-100');
+        }
+        
+        // Start slideshow interval (4 seconds per image)
+        if (slides.length > 0) {
+            setInterval(cycleSlides, 4000);
+        }
+
+        // Image Slideshow for Space Section
+        let currentSpaceSlideIndex = 0;
+        const spaceSlides = document.querySelectorAll('.space-slide');
+        
+        function cycleSpaceSlides() {
+            spaceSlides.forEach((slide, index) => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+            
+            currentSpaceSlideIndex = (currentSpaceSlideIndex + 1) % spaceSlides.length;
+            spaceSlides[currentSpaceSlideIndex].classList.remove('opacity-0');
+            spaceSlides[currentSpaceSlideIndex].classList.add('opacity-100');
+        }
+        
+        // Start space slideshow interval (4 seconds per image)
+        if (spaceSlides.length > 0) {
+            setInterval(cycleSpaceSlides, 4000);
+        }
+
+        // Image Slideshow for Children Photos
+        let currentChildrenSlideIndex = 0;
+        const childrenSlides = document.querySelectorAll('.children-slide');
+        
+        function cycleChildrenSlides() {
+            childrenSlides.forEach((slide, index) => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+            
+            currentChildrenSlideIndex = (currentChildrenSlideIndex + 1) % childrenSlides.length;
+            childrenSlides[currentChildrenSlideIndex].classList.remove('opacity-0');
+            childrenSlides[currentChildrenSlideIndex].classList.add('opacity-100');
+        }
+        
+        // Start children slideshow interval (4 seconds per image)
+        if (childrenSlides.length > 0) {
+            setInterval(cycleChildrenSlides, 4000);
+        }
+
+        // Video Player Toggle Helper
+        function toggleVideo(playerId) {
+            const video = document.getElementById(playerId);
+            const iconId = playerId === 'player-drums' ? 'btn-drums-icon' : 
+                           playerId === 'player-intro' ? 'btn-intro-icon' :
+                           playerId === 'video5' ? 'btn-video5-icon' :
+                           playerId === 'video6' ? 'btn-video6-icon' : null;
+            const icon = iconId ? document.getElementById(iconId) : null;
+
+            if (video && icon) {
+                if (video.paused) {
+                    video.play();
+                    icon.className = "fas fa-pause";
+                    showToast("Vídeo iniciado!");
+                } else {
+                    video.pause();
+                    icon.className = "fas fa-play" + (playerId === 'player-drums' || playerId === 'player-intro' || playerId === 'video5' || playerId === 'video6' ? " ml-1" : "");
+                    showToast("Vídeo pausado.");
+                }
+            }
+        }
+
+        function pauseDrumsModalVideo() {
+            const modalPlayer = document.getElementById('modal-drums-player');
+            if (modalPlayer) {
+                modalPlayer.pause();
+            }
+        }
+
+        // Web Audio API Synthesizer Engine
+        let audioCtx = null;
+        let activeOscillator = null;
+        let activeGainNode = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play Synthesizer Key Function
+        function playKey(frequency, noteName) {
+            initAudio();
+            
+            // Ensure any older sound playing from clicking around fast is cut off
+            if (activeOscillator) {
+                try {
+                    activeOscillator.stop();
+                } catch(e) {}
+            }
+
+            // Get waveform choice
+            const synthWave = document.getElementById('synth-wave').value;
+
+            // Setup Nodes
+            activeOscillator = audioCtx.createOscillator();
+            activeGainNode = audioCtx.createGain();
+
+            activeOscillator.type = synthWave;
+            activeOscillator.frequency.value = frequency;
+
+            // Attack envelope
+            activeGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            activeGainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+
+            activeOscillator.connect(activeGainNode);
+            activeGainNode.connect(audioCtx.destination);
+
+            activeOscillator.start();
+
+            // Render played note to UI visual display
+            document.getElementById('played-note-display').textContent = noteName;
+            
+            // Highlight note playing via sound notification
+            showToast(`Tocando nota ${noteName}`);
+        }
+
+        // Stop Synthesizer Key Function (Decay & Release envelope)
+        function stopKey() {
+            if (activeGainNode && activeOscillator) {
+                const currentGain = activeGainNode.gain;
+                // Decay quickly
+                currentGain.setValueAtTime(currentGain.value, audioCtx.currentTime);
+                currentGain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                
+                const oldOsc = activeOscillator;
+                setTimeout(() => {
+                    try {
+                        oldOsc.stop();
+                    } catch(e) {}
+                }, 300);
+
+                activeOscillator = null;
+                activeGainNode = null;
+            }
+            document.getElementById('played-note-display').textContent = '-';
+        }
+
+        // Canvas interactive categories filter system
+        function filterCanvas(category) {
+            const grid = document.getElementById('canvas-grid');
+            const cards = grid.children;
+            
+            // Reset active button designs
+            const filters = ['all', 'profile', 'space', 'merch'];
+            filters.forEach(f => {
+                const btn = document.getElementById(`btn-filter-${f}`);
+                if (btn) {
+                    if (f === category) {
+                        btn.className = "px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-red-600 text-white transition-all";
+                    } else {
+                        btn.className = "px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all";
+                    }
+                }
+            });
+
+            // Fade and layout adjustment simulation
+            for (let card of cards) {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'all' || cardCat === category) {
+                    card.style.display = 'flex';
+                    card.classList.remove('opacity-0', 'scale-95');
+                    card.classList.add('opacity-100', 'scale-100');
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+            showToast(`Filtrado por: ${category === 'all' ? 'Ver tudo' : category.toUpperCase()}`);
+        }
+
+        // Custom premium toast feedback notifications
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            toast.classList.remove('translate-y-10', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 1800);
+        }
+
+        // Modal triggers
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Mini animation trigger
+                setTimeout(() => {
+                    modal.children[0].classList.remove('scale-95', 'opacity-0');
+                }, 50);
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.children[0].classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 150);
+            }
+        }
+
+        // Dismiss modals clicking outside the visual card box wrapper
+        window.addEventListener('click', function(e) {
+            const modals = ['modal-bruna1', 'modal-bruna2', 'modal-items', 'modal-video-drums'];
+            modals.forEach(mId => {
+                const modal = document.getElementById(mId);
+                if (e.target === modal) {
+                    closeModal(mId);
+                    if (mId === 'modal-video-drums') {
+                        pauseDrumsModalVideo();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
