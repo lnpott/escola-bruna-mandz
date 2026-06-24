@@ -490,12 +490,12 @@
                 <video id="player-intro" class="w-full h-full object-contain" loop playsinline>
                     <source src="apresentacao.mp4" type="video/mp4">
                 </video>
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <div id="intro-play-overlay" class="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <button onclick="toggleVideo('player-intro')" aria-label="Reproduzir vídeo" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-xl transition-transform transform hover:scale-110 shadow-lg">
                         <i id="btn-intro-icon" class="fas fa-play ml-1"></i>
                     </button>
                 </div>
-                <button onclick="closeModal('modal-bruna1')" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-10">
+                <button onclick="closeModal('modal-bruna1'); stopVideo('player-intro');" aria-label="Fechar modal" class="absolute top-4 right-4 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/90 transition-all z-10">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -508,8 +508,8 @@
                     <p class="text-zinc-300"><strong>Inclusão Ativa:</strong> Salas equipadas e acolhedoras para neurodivergentes.</p>
                     <p class="text-zinc-300"><strong>Metodologia Flexível:</strong> Do nível iniciante absoluto até a performance no palco.</p>
                 </div>
-                <a href="https://wa.me/5521997600704" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
-                    Falar diretamente com a Bruna
+                <a href="https://maps.app.goo.gl/hCP3vXHV7LXbgSFd9" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-center font-bold tracking-wide rounded-xl block transition-colors">
+                    Ver Localização no Maps
                 </a>
             </div>
         </div>
@@ -630,9 +630,10 @@
         }
 
         const phrases = [
-            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>Música que conecta. <br>Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.',
-            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>O melhor espaço para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Neurodivergentes</span>.',
-            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-12 mb-2"><br>Canto, Teclado, Bateria <br>& <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Musicoterapia</span>.'
+            'Música que conecta. <br>Ensino que <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Transforma</span>.',
+            'O melhor espaço para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Neurodivergentes</span>.',
+            'Canto, Teclado, Bateria <br>& <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">Musicoterapia</span>.',
+            '<img src="LOGOPRETO.png" alt="Bruna Mandz" class="h-20">'
         ];
         
         let currentPhraseIndex = 0;
@@ -778,10 +779,36 @@
                     video.play();
                     icon.className = "fas fa-pause";
                     showToast("Vídeo iniciado!");
+                    // Hide play overlay for intro video
+                    if (playerId === 'player-intro') {
+                        const overlay = document.getElementById('intro-play-overlay');
+                        if (overlay) {
+                            overlay.style.display = 'none';
+                        }
+                    }
                 } else {
                     video.pause();
                     icon.className = "fas fa-play" + (playerId === 'player-drums' || playerId === 'player-intro' || playerId === 'video5' || playerId === 'video6' ? " ml-1" : "");
                     showToast("Vídeo pausado.");
+                }
+            }
+        }
+
+        function stopVideo(playerId) {
+            const video = document.getElementById(playerId);
+            if (video) {
+                video.pause();
+                video.currentTime = 0;
+                // Show play overlay for intro video
+                if (playerId === 'player-intro') {
+                    const overlay = document.getElementById('intro-play-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                    }
+                    const icon = document.getElementById('btn-intro-icon');
+                    if (icon) {
+                        icon.className = "fas fa-play ml-1";
+                    }
                 }
             }
         }
