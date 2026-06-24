@@ -389,6 +389,19 @@
                 Experimente o nosso teclado interativo desenvolvido com tecnologia de áudio sintetizado em tempo real. Pressione as teclas abaixo para produzir sons!
             </p>
 
+            <!-- Game UI -->
+            <div id="game-ui" class="mb-6 flex flex-wrap items-center justify-center gap-4">
+                <button id="start-game-btn" onclick="startGame()" class="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-full font-bold text-sm transition-all duration-300 neon-glow hover:neon-glow-strong">
+                    Iniciar Jogo - Ode à Alegria
+                </button>
+                <div id="game-level" class="text-xs font-bold text-zinc-400 uppercase tracking-wider hidden">
+                    Nível 1/3
+                </div>
+                <div id="game-counter" class="text-xs font-bold text-zinc-400 uppercase tracking-wider hidden">
+                    0/4
+                </div>
+            </div>
+
             <!-- Piano interface wrapper -->
             <div class="bg-zinc-950 p-4 sm:p-6 rounded-3xl border border-zinc-800 shadow-2xl relative">
                 <!-- Instrument settings -->
@@ -412,14 +425,14 @@
                 <div class="relative flex justify-center w-full min-h-[220px] select-none touch-manipulation">
                     <!-- White Keys -->
                     <div class="flex w-full max-w-2xl justify-between relative bg-zinc-950 p-1 rounded-xl">
-                        <button onmousedown="playKey(261.63, 'C4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(261.63, 'C4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
-                        <button onmousedown="playKey(293.66, 'D4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(293.66, 'D4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
-                        <button onmousedown="playKey(329.63, 'E4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(329.63, 'E4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
-                        <button onmousedown="playKey(349.23, 'F4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(349.23, 'F4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
-                        <button onmousedown="playKey(392.00, 'G4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(392.00, 'G4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
-                        <button onmousedown="playKey(440.00, 'A4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(440.00, 'A4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
-                        <button onmousedown="playKey(493.88, 'B4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(493.88, 'B4')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
-                        <button onmousedown="playKey(523.25, 'C5')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(523.25, 'C5')" ontouchend="stopKey()" class="piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
+                        <button id="key-c" onmousedown="playKey(261.63, 'C4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(261.63, 'C4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
+                        <button id="key-d" onmousedown="playKey(293.66, 'D4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(293.66, 'D4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
+                        <button id="key-e" onmousedown="playKey(329.63, 'E4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(329.63, 'E4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
+                        <button id="key-f" onmousedown="playKey(349.23, 'F4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(349.23, 'F4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
+                        <button id="key-g" onmousedown="playKey(392.00, 'G4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(392.00, 'G4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
+                        <button id="key-a" onmousedown="playKey(440.00, 'A4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(440.00, 'A4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
+                        <button id="key-b" onmousedown="playKey(493.88, 'B4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(493.88, 'B4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
+                        <button id="key-c5" onmousedown="playKey(523.25, 'C5')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(523.25, 'C5')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
                     </div>
 
                     <!-- Black Keys Absolute Overlay -->
@@ -932,44 +945,110 @@
 
         // Web Audio API Synthesizer Engine
         let audioCtx = null;
-        let activeOscillator = null;
+        let activeOscillators = [];
         let activeGainNode = null;
+        let masterGainNode = null;
+        let lowPassFilter = null;
+        let compressor = null;
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create master gain
+                masterGainNode = audioCtx.createGain();
+                masterGainNode.gain.value = 0.4;
+                
+                // Create low-pass filter
+                lowPassFilter = audioCtx.createBiquadFilter();
+                lowPassFilter.type = 'lowpass';
+                lowPassFilter.frequency.value = 5000;
+                lowPassFilter.Q.value = 1;
+                
+                // Create compressor
+                compressor = audioCtx.createDynamicsCompressor();
+                compressor.threshold.value = -24;
+                compressor.knee.value = 30;
+                compressor.ratio.value = 12;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.25;
+                
+                // Connect chain: master -> filter -> compressor -> output
+                masterGainNode.connect(lowPassFilter);
+                lowPassFilter.connect(compressor);
+                compressor.connect(audioCtx.destination);
             }
         }
 
-        // Play Synthesizer Key Function
+        // Get harmonic levels based on frequency (octave-dependent)
+        function getHarmonicLevels(frequency) {
+            if (frequency < 300) {
+                // Lower octave: emphasize fundamental
+                return [1.0, 0.3, 0.15, 0.05];
+            } else if (frequency < 500) {
+                // Mid octave: balanced
+                return [0.8, 0.4, 0.2, 0.1];
+            } else {
+                // Higher octave: more harmonics
+                return [0.6, 0.5, 0.3, 0.15];
+            }
+        }
+
+        // Get ADSR envelope based on frequency
+        function getADSR(frequency) {
+            if (frequency < 300) {
+                return { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 };
+            } else if (frequency < 500) {
+                return { attack: 0.015, decay: 0.25, sustain: 0.35, release: 0.4 };
+            } else {
+                return { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.35 };
+            }
+        }
+
+        // Play Synthesizer Key Function (Multi-oscillator)
         function playKey(frequency, noteName) {
             initAudio();
             
-            // Ensure any older sound playing from clicking around fast is cut off
-            if (activeOscillator) {
-                try {
-                    activeOscillator.stop();
-                } catch(e) {}
-            }
-
-            // Get waveform choice
+            // Stop previous oscillators
+            stopKey();
+            
             const synthWave = document.getElementById('synth-wave').value;
-
-            // Setup Nodes
-            activeOscillator = audioCtx.createOscillator();
+            const harmonicLevels = getHarmonicLevels(frequency);
+            const adsr = getADSR(frequency);
+            
+            // Create individual gain for this note
             activeGainNode = audioCtx.createGain();
-
-            activeOscillator.type = synthWave;
-            activeOscillator.frequency.value = frequency;
-
-            // Attack envelope
-            activeGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            activeGainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
-
-            activeOscillator.connect(activeGainNode);
-            activeGainNode.connect(audioCtx.destination);
-
-            activeOscillator.start();
+            activeGainNode.gain.value = 0;
+            activeGainNode.connect(masterGainNode);
+            
+            // Create 5 oscillators with harmonics
+            const harmonics = [1, 2, 3, 5]; // Fundamental, 2nd, 3rd, 5th harmonics
+            const detuneAmounts = [0, 2, -3, 5]; // Detuning for richness
+            
+            activeOscillators = [];
+            
+            harmonics.forEach((harmonic, index) => {
+                const osc = audioCtx.createOscillator();
+                const oscGain = audioCtx.createGain();
+                
+                osc.type = index === 0 ? 'triangle' : 'sine';
+                osc.frequency.value = frequency * harmonic;
+                osc.detune.value = detuneAmounts[index];
+                
+                oscGain.gain.value = harmonicLevels[index] * 0.3;
+                
+                osc.connect(oscGain);
+                oscGain.connect(activeGainNode);
+                
+                osc.start();
+                activeOscillators.push({ osc, gain: oscGain });
+            });
+            
+            // ADSR envelope
+            const now = audioCtx.currentTime;
+            activeGainNode.gain.setValueAtTime(0, now);
+            activeGainNode.gain.linearRampToValueAtTime(0.4, now + adsr.attack);
+            activeGainNode.gain.linearRampToValueAtTime(adsr.sustain * 0.4, now + adsr.attack + adsr.decay);
 
             // Render played note to UI visual display
             document.getElementById('played-note-display').textContent = noteName;
@@ -978,25 +1057,35 @@
             showToast(`Tocando nota ${noteName}`);
         }
 
-        // Stop Synthesizer Key Function (Decay & Release envelope)
+        // Stop Synthesizer Key Function (Release envelope)
         function stopKey() {
-            if (activeGainNode && activeOscillator) {
-                const currentGain = activeGainNode.gain;
-                // Decay quickly
-                currentGain.setValueAtTime(currentGain.value, audioCtx.currentTime);
-                currentGain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            if (activeGainNode && activeOscillators.length > 0) {
+                const now = audioCtx.currentTime;
+                const frequency = activeOscillators[0].osc.frequency.value;
+                const adsr = getADSR(frequency);
                 
-                const oldOsc = activeOscillator;
+                // Release envelope
+                activeGainNode.gain.cancelScheduledValues(now);
+                activeGainNode.gain.setValueAtTime(activeGainNode.gain.value, now);
+                activeGainNode.gain.exponentialRampToValueAtTime(0.001, now + adsr.release);
+                
+                // Stop oscillators after release
                 setTimeout(() => {
-                    try {
-                        oldOsc.stop();
-                    } catch(e) {}
-                }, 300);
-
+                    activeOscillators.forEach(({ osc }) => {
+                        try {
+                            osc.stop();
+                        } catch(e) {}
+                    });
+                    activeOscillators = [];
+                    activeGainNode = null;
+                }, adsr.release * 1000);
+            } else if (activeOscillator) {
+                // Legacy single oscillator cleanup
+                try {
+                    activeOscillator.stop();
+                } catch(e) {}
                 activeOscillator = null;
-                activeGainNode = null;
             }
-            document.getElementById('played-note-display').textContent = '-';
         }
 
         // Canvas interactive categories filter system
@@ -1085,5 +1174,6 @@
             });
         });
     </script>
+    <script src="game.js"></script>
 </body>
 </html>
