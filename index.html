@@ -7,6 +7,8 @@
     <meta name="author" content="Desenvolvido por [Seu Nome]">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for high-quality piano samples -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <!-- Google Fonts: Inter para legibilidade e Montserrat para títulos expressivos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Montserrat:wght=700;800;900&display=swap" rel="stylesheet">
     <!-- FontAwesome para ícones premium -->
@@ -957,19 +959,19 @@
                 
                 // Create master gain
                 masterGainNode = audioCtx.createGain();
-                masterGainNode.gain.value = 0.4;
+                masterGainNode.gain.value = 0.8;
                 
                 // Create low-pass filter
                 lowPassFilter = audioCtx.createBiquadFilter();
                 lowPassFilter.type = 'lowpass';
-                lowPassFilter.frequency.value = 5000;
+                lowPassFilter.frequency.value = 8000;
                 lowPassFilter.Q.value = 1;
                 
                 // Create compressor
                 compressor = audioCtx.createDynamicsCompressor();
-                compressor.threshold.value = -24;
-                compressor.knee.value = 30;
-                compressor.ratio.value = 12;
+                compressor.threshold.value = -30;
+                compressor.knee.value = 40;
+                compressor.ratio.value = 8;
                 compressor.attack.value = 0.003;
                 compressor.release.value = 0.25;
                 
@@ -977,6 +979,11 @@
                 masterGainNode.connect(lowPassFilter);
                 lowPassFilter.connect(compressor);
                 compressor.connect(audioCtx.destination);
+            }
+            
+            // Resume audio context if suspended (browser requirement)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
         }
 
@@ -1174,6 +1181,7 @@
             });
         });
     </script>
+    <script src="audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

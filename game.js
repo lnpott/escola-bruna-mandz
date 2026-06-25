@@ -143,11 +143,10 @@ function highlightKey(noteId, type) {
     }
 }
 
-// Play note using existing audio system
+// Play note using Tone.js audio system
 function playNote(noteId) {
-    const frequency = NOTE_FREQUENCIES[noteId];
-    if (frequency && typeof window.playKey === 'function') {
-        window.playKey(frequency, noteId.replace('key-', '').toUpperCase());
+    if (typeof window.playNoteTone === 'function') {
+        window.playNoteTone(noteId);
     }
 }
 
