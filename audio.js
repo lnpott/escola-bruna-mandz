@@ -1,90 +1,54 @@
-// audio.js - Piano audio engine
+// audio.js - Piano audio engine (Web Audio)
 
-let piano = null;
-let audioStarted = false;
-let fallbackCtx = null;
+let audioCtx = null;
 
 const keyToNote = {
-    'key-c': 'C4',
-    'key-d': 'D4',
-    'key-e': 'E4',
-    'key-f': 'F4',
-    'key-g': 'G4',
-    'key-a': 'A4',
-    'key-b': 'B4',
-    'key-c5': 'C5'
+    'key-c': 261.63,
+    'key-d': 293.66,
+    'key-e': 329.63,
+    'key-f': 349.23,
+    'key-g': 392,
+    'key-a': 440,
+    'key-b': 493.88,
+    'key-c5': 523.25
 };
 
-const frequencies = {
-    C4: 261.63,
-    D4: 293.66,
-    E4: 329.63,
-    F4: 349.23,
-    G4: 392,
-    A4: 440,
-    B4: 493.88,
-    C5: 523.25
-};
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
 
-async function initPianoAudio() {
-    if (audioStarted) return;
-
-    try {
-        await Tone.start();
-
-        piano = new Tone.Sampler({
-            urls: {
-                C4: 'C4.mp3',
-                D4: 'D4.mp3',
-                E4: 'E4.mp3',
-                F4: 'F4.mp3',
-                G4: 'G4.mp3',
-                A4: 'A4.mp3',
-                B4: 'B4.mp3',
-                C5: 'C5.mp3'
-            },
-            baseUrl: 'https://tonejs.github.io/audio/salamander/',
-            release: 1
-        }).toDestination();
-
-        audioStarted = true;
-    } catch (e) {
-        console.warn('Tone.js indisponível, usando sintetizador:', e);
-        fallbackCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioStarted = true;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
     }
 }
 
-function playFallback(note) {
-    if (!fallbackCtx) return;
+function playFrequency(freq) {
+    initAudio();
 
-    const osc = fallbackCtx.createOscillator();
-    const gain = fallbackCtx.createGain();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-    osc.frequency.value = frequencies[note];
     osc.type = 'triangle';
+    osc.frequency.value = freq;
 
-    gain.gain.setValueAtTime(0.3, fallbackCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, fallbackCtx.currentTime + 0.8);
+    const now = audioCtx.currentTime;
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
     osc.connect(gain);
-    gain.connect(fallbackCtx.destination);
+    gain.connect(audioCtx.destination);
 
-    osc.start();
-    osc.stop(fallbackCtx.currentTime + 0.8);
-}
-
-async function playNote(note) {
-    await initPianoAudio();
-
-    if (piano) {
-        piano.triggerAttackRelease(note, '8n');
-    } else {
-        playFallback(note);
-    }
+    osc.start(now);
+    osc.stop(now + 0.8);
 }
 
 window.playNoteTone = function(keyId) {
-    const note = keyToNote[keyId];
-    if (note) playNote(note);
+    const frequency = keyToNote[keyId];
+
+    if (frequency) {
+        playFrequency(frequency);
+    }
 };
