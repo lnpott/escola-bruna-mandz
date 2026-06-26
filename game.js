@@ -92,6 +92,9 @@ window.demonstrateSequence = function() {
     updateUI();
     
     let delay = 0;
+    // Nível 1: 1000ms (mais lento), Nível 2: 800ms, Nível 3: 600ms (mais rápido)
+    const baseDelay = 1200 - (gameState.currentLevel * 200); 
+    
     sequence.forEach((noteId) => {
         setTimeout(() => {
             if (!gameState.isPlaying) return;
@@ -101,7 +104,7 @@ window.demonstrateSequence = function() {
             showTip(noteId);
             playNote(noteId);
         }, delay);
-        delay += 600;
+        delay += baseDelay;
     });
     setTimeout(() => {
         if (!gameState.isPlaying) return;
@@ -144,9 +147,26 @@ window.handleKeyClick = function (noteId) {
 function highlightKey(noteId, type) {
     const key = document.getElementById(noteId);
     if (!key) return;
+    
+    // Limpar o timeout anterior para evitar conflitos de animação
+    if (key.dataset.timeoutId) {
+        clearTimeout(parseInt(key.dataset.timeoutId));
+    }
+
+    // Remover as classes primeiro para garantir que a animação recomece, mesmo em teclas repetidas
+    key.classList.remove('bg-green-200', 'bg-red-200', 'bg-zinc-300', 'key-pressed');
+    
+    // Forçar reflow para que o navegador processe a remoção antes de adicionar novamente
+    void key.offsetWidth;
+
     key.classList.add(type === 'correct' ? 'bg-green-200' : type === 'wrong' ? 'bg-red-200' : 'bg-zinc-300');
     key.classList.add('key-pressed');
-    setTimeout(() => key.classList.remove('bg-green-200', 'bg-red-200', 'bg-zinc-300', 'key-pressed'), 400);
+    
+    const timeoutId = setTimeout(() => {
+        key.classList.remove('bg-green-200', 'bg-red-200', 'bg-zinc-300', 'key-pressed');
+    }, 400); // 400ms é o tempo que a tecla fica afundada
+    
+    key.dataset.timeoutId = timeoutId;
 }
 
 function playNote(noteId) {
