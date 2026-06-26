@@ -66,6 +66,15 @@
         .live-indicator {
             animation: pulse-red 2s infinite;
         }
+        .piano-key.key-pressed {
+            transform: scale(0.98);
+        }
+        .piano-white-key.key-pressed {
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .piano-black-key.key-pressed {
+            box-shadow: inset 0 4px 12px rgba(239, 68, 68, 0.35);
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 antialiased min-h-screen flex flex-col justify-between">
@@ -387,9 +396,10 @@
     <section id="virtual-keyboard" class="px-4 py-12 sm:px-8 bg-zinc-900 border-y border-zinc-800 relative">
         <div class="max-w-4xl mx-auto text-center">
             <h3 class="text-2xl sm:text-4xl font-black text-white mb-2">Toque uma Melodia</h3>
-            <p class="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto mb-8">
-                Experimente o nosso teclado interativo desenvolvido com tecnologia de áudio sintetizado em tempo real. Pressione as teclas abaixo para produzir sons!
+            <p class="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto mb-4">
+                Experimente o nosso teclado interativo com samples de piano acústico em tempo real. Pressione as teclas abaixo para produzir sons!
             </p>
+            <p id="piano-hint" class="text-zinc-500 text-xs mb-8">Toque uma tecla para carregar o piano</p>
 
             <!-- Game UI -->
             <div id="game-ui" class="mb-6 flex flex-wrap items-center justify-center gap-4">
@@ -409,46 +419,40 @@
                 <!-- Instrument settings -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-6 text-xs text-zinc-400 font-medium border-b border-zinc-800/50 pb-4">
                     <div class="flex items-center gap-3">
-                        <label for="synth-wave" class="uppercase font-bold tracking-wider text-[10px]">Timbre:</label>
-                        <select id="synth-wave" class="bg-zinc-900 border border-zinc-800 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-red-500">
-                            <option value="triangle">Doce (Triangular)</option>
-                            <option value="sine">Suave (Senoidal)</option>
-                            <option value="sawtooth">Brilhante (Dente de Serra)</option>
-                            <option value="square">Clássico Chiptune (Quadrado)</option>
+                        <label for="piano-dynamics" class="uppercase font-bold tracking-wider text-[10px]">Dinâmica:</label>
+                        <select id="piano-dynamics" class="bg-zinc-900 border border-zinc-800 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-red-500">
+                            <option value="soft">Suave</option>
+                            <option value="medium" selected>Médio</option>
+                            <option value="loud">Forte</option>
                         </select>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-red-500 live-indicator"></span>
-                        <span class="uppercase tracking-widest text-[10px] font-bold">Web Audio Ativo</span>
+                        <span id="piano-status-dot" class="w-2 h-2 rounded-full bg-red-500 live-indicator"></span>
+                        <span id="piano-audio-status" class="uppercase tracking-widest text-[10px] font-bold">Toque uma tecla para ativar</span>
                     </div>
                 </div>
 
                 <!-- Actual Piano Keys Container -->
-                <div class="relative flex justify-center w-full min-h-[220px] select-none touch-manipulation">
+                <div id="piano-keys" class="relative flex justify-center w-full min-h-[220px] select-none touch-manipulation">
                     <!-- White Keys -->
                     <div class="flex w-full max-w-2xl justify-between relative bg-zinc-950 p-1 rounded-xl">
-                        <button id="key-c" onmousedown="playKey(261.63, 'C4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(261.63, 'C4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
-                        <button id="key-d" onmousedown="playKey(293.66, 'D4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(293.66, 'D4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
-                        <button id="key-e" onmousedown="playKey(329.63, 'E4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(329.63, 'E4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
-                        <button id="key-f" onmousedown="playKey(349.23, 'F4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(349.23, 'F4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
-                        <button id="key-g" onmousedown="playKey(392.00, 'G4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(392.00, 'G4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
-                        <button id="key-a" onmousedown="playKey(440.00, 'A4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(440.00, 'A4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
-                        <button id="key-b" onmousedown="playKey(493.88, 'B4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(493.88, 'B4')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
-                        <button id="key-c5" onmousedown="playKey(523.25, 'C5')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(523.25, 'C5')" ontouchend="stopKey()" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-colors shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
+                        <button type="button" id="key-c" data-key-id="key-c" data-note="C4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
+                        <button type="button" id="key-d" data-key-id="key-d" data-note="D4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
+                        <button type="button" id="key-e" data-key-id="key-e" data-note="E4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
+                        <button type="button" id="key-f" data-key-id="key-f" data-note="F4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
+                        <button type="button" id="key-g" data-key-id="key-g" data-note="G4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
+                        <button type="button" id="key-a" data-key-id="key-a" data-note="A4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
+                        <button type="button" id="key-b" data-key-id="key-b" data-note="B4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
+                        <button type="button" id="key-c5" data-key-id="key-c5" data-note="C5" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
                     </div>
 
                     <!-- Black Keys Absolute Overlay -->
                     <div class="absolute inset-0 max-w-2xl mx-auto px-1 pointer-events-none flex justify-start">
-                        <!-- C# -->
-                        <button onmousedown="playKey(277.18, 'C#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(277.18, 'C#4')" ontouchend="stopKey()" aria-label="Nota Dó sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 9%;"></button>
-                        <!-- D# -->
-                        <button onmousedown="playKey(311.13, 'D#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(311.13, 'D#4')" ontouchend="stopKey()" aria-label="Nota Ré sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 21%;"></button>
-                        <!-- F# -->
-                        <button onmousedown="playKey(369.99, 'F#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(369.99, 'F#4')" ontouchend="stopKey()" aria-label="Nota Fá sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 47%;"></button>
-                        <!-- G# -->
-                        <button onmousedown="playKey(415.30, 'G#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(415.30, 'G#4')" ontouchend="stopKey()" aria-label="Nota Sol sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 59%;"></button>
-                        <!-- A# -->
-                        <button onmousedown="playKey(466.16, 'A#4')" onmouseup="stopKey()" onmouseleave="stopKey()" ontouchstart="playKey(466.16, 'A#4')" ontouchend="stopKey()" aria-label="Nota Lá sustenido" class="pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-colors border-x border-zinc-950" style="left: 71%;"></button>
+                        <button type="button" id="key-cs" data-key-id="key-cs" data-note="C#4" aria-label="Nota Dó sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 9%;"></button>
+                        <button type="button" id="key-ds" data-key-id="key-ds" data-note="D#4" aria-label="Nota Ré sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 21%;"></button>
+                        <button type="button" id="key-fs" data-key-id="key-fs" data-note="F#4" aria-label="Nota Fá sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 47%;"></button>
+                        <button type="button" id="key-gs" data-key-id="key-gs" data-note="G#4" aria-label="Nota Sol sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 59%;"></button>
+                        <button type="button" id="key-as" data-key-id="key-as" data-note="A#4" aria-label="Nota Lá sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 71%;"></button>
                     </div>
                 </div>
 
@@ -942,156 +946,6 @@
             if (video) {
                 video.currentTime = 0;
                 video.pause();
-            }
-        }
-
-        // Web Audio API Synthesizer Engine
-        let audioCtx = null;
-        let activeOscillators = [];
-        let activeGainNode = null;
-        let masterGainNode = null;
-        let lowPassFilter = null;
-        let compressor = null;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Create master gain
-                masterGainNode = audioCtx.createGain();
-                masterGainNode.gain.value = 0.8;
-                
-                // Create low-pass filter
-                lowPassFilter = audioCtx.createBiquadFilter();
-                lowPassFilter.type = 'lowpass';
-                lowPassFilter.frequency.value = 8000;
-                lowPassFilter.Q.value = 1;
-                
-                // Create compressor
-                compressor = audioCtx.createDynamicsCompressor();
-                compressor.threshold.value = -30;
-                compressor.knee.value = 40;
-                compressor.ratio.value = 8;
-                compressor.attack.value = 0.003;
-                compressor.release.value = 0.25;
-                
-                // Connect chain: master -> filter -> compressor -> output
-                masterGainNode.connect(lowPassFilter);
-                lowPassFilter.connect(compressor);
-                compressor.connect(audioCtx.destination);
-            }
-            
-            // Resume audio context if suspended (browser requirement)
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // Get harmonic levels based on frequency (octave-dependent)
-        function getHarmonicLevels(frequency) {
-            if (frequency < 300) {
-                // Lower octave: emphasize fundamental
-                return [1.0, 0.3, 0.15, 0.05];
-            } else if (frequency < 500) {
-                // Mid octave: balanced
-                return [0.8, 0.4, 0.2, 0.1];
-            } else {
-                // Higher octave: more harmonics
-                return [0.6, 0.5, 0.3, 0.15];
-            }
-        }
-
-        // Get ADSR envelope based on frequency
-        function getADSR(frequency) {
-            if (frequency < 300) {
-                return { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 };
-            } else if (frequency < 500) {
-                return { attack: 0.015, decay: 0.25, sustain: 0.35, release: 0.4 };
-            } else {
-                return { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.35 };
-            }
-        }
-
-        // Play Synthesizer Key Function (Multi-oscillator)
-        function playKey(frequency, noteName) {
-            initAudio();
-            
-            // Stop previous oscillators
-            stopKey();
-            
-            const synthWave = document.getElementById('synth-wave').value;
-            const harmonicLevels = getHarmonicLevels(frequency);
-            const adsr = getADSR(frequency);
-            
-            // Create individual gain for this note
-            activeGainNode = audioCtx.createGain();
-            activeGainNode.gain.value = 0;
-            activeGainNode.connect(masterGainNode);
-            
-            // Create 5 oscillators with harmonics
-            const harmonics = [1, 2, 3, 5]; // Fundamental, 2nd, 3rd, 5th harmonics
-            const detuneAmounts = [0, 2, -3, 5]; // Detuning for richness
-            
-            activeOscillators = [];
-            
-            harmonics.forEach((harmonic, index) => {
-                const osc = audioCtx.createOscillator();
-                const oscGain = audioCtx.createGain();
-                
-                osc.type = index === 0 ? 'triangle' : 'sine';
-                osc.frequency.value = frequency * harmonic;
-                osc.detune.value = detuneAmounts[index];
-                
-                oscGain.gain.value = harmonicLevels[index] * 0.3;
-                
-                osc.connect(oscGain);
-                oscGain.connect(activeGainNode);
-                
-                osc.start();
-                activeOscillators.push({ osc, gain: oscGain });
-            });
-            
-            // ADSR envelope
-            const now = audioCtx.currentTime;
-            activeGainNode.gain.setValueAtTime(0, now);
-            activeGainNode.gain.linearRampToValueAtTime(0.4, now + adsr.attack);
-            activeGainNode.gain.linearRampToValueAtTime(adsr.sustain * 0.4, now + adsr.attack + adsr.decay);
-
-            // Render played note to UI visual display
-            document.getElementById('played-note-display').textContent = noteName;
-            
-            // Highlight note playing via sound notification
-            showToast(`Tocando nota ${noteName}`);
-        }
-
-        // Stop Synthesizer Key Function (Release envelope)
-        function stopKey() {
-            if (activeGainNode && activeOscillators.length > 0) {
-                const now = audioCtx.currentTime;
-                const frequency = activeOscillators[0].osc.frequency.value;
-                const adsr = getADSR(frequency);
-                
-                // Release envelope
-                activeGainNode.gain.cancelScheduledValues(now);
-                activeGainNode.gain.setValueAtTime(activeGainNode.gain.value, now);
-                activeGainNode.gain.exponentialRampToValueAtTime(0.001, now + adsr.release);
-                
-                // Stop oscillators after release
-                setTimeout(() => {
-                    activeOscillators.forEach(({ osc }) => {
-                        try {
-                            osc.stop();
-                        } catch(e) {}
-                    });
-                    activeOscillators = [];
-                    activeGainNode = null;
-                }, adsr.release * 1000);
-            } else if (activeOscillator) {
-                // Legacy single oscillator cleanup
-                try {
-                    activeOscillator.stop();
-                } catch(e) {}
-                activeOscillator = null;
             }
         }
 
