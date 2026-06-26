@@ -227,10 +227,29 @@ window.playNoteTone = function (keyId, options = {}) {
     window.PianoAudio.playKey(keyId, { ...defaults, ...options });
 };
 
+function getFriendlyNoteString(noteName) {
+    const mapping = {
+        'C4': 'Dó (C4)',
+        'C#4': 'Dó# (C#4)',
+        'D4': 'Ré (D4)',
+        'D#4': 'Ré# (D#4)',
+        'E4': 'Mi (E4)',
+        'F4': 'Fá (F4)',
+        'F#4': 'Fá# (F#4)',
+        'G4': 'Sol (G4)',
+        'G#4': 'Sol# (G#4)',
+        'A4': 'Lá (A4)',
+        'A#4': 'Lá# (A#4)',
+        'B4': 'Si (B4)',
+        'C5': 'Dó (C5)',
+    };
+    return mapping[noteName] || noteName;
+}
+
 function updateNoteDisplay(noteName) {
     const display = document.getElementById('played-note-display');
     if (display) {
-        display.textContent = noteName;
+        display.textContent = getFriendlyNoteString(noteName);
     }
 }
 
@@ -297,6 +316,84 @@ function handlePointerUp(event) {
     }
 }
 
+// Computer Keyboard Mapping
+const KEYBOARD_MAP = {
+    'KeyA': 'key-c',
+    'KeyW': 'key-cs',
+    'KeyS': 'key-d',
+    'KeyE': 'key-ds',
+    'KeyD': 'key-e',
+    'KeyF': 'key-f',
+    'KeyT': 'key-fs',
+    'KeyG': 'key-g',
+    'KeyY': 'key-gs',
+    'KeyH': 'key-a',
+    'KeyU': 'key-as',
+    'KeyJ': 'key-b',
+    'KeyK': 'key-c5',
+};
+
+const pressedKeys = new Set();
+
+async function handleKeyDown(event) {
+    // Avoid triggering when focused on input fields
+    if (document.activeElement && (
+        document.activeElement.tagName === 'INPUT' ||
+        document.activeElement.tagName === 'TEXTAREA' ||
+        document.activeElement.tagName === 'SELECT'
+    )) {
+        return;
+    }
+
+    const keyId = KEYBOARD_MAP[event.code];
+    if (!keyId || pressedKeys.has(event.code)) return;
+
+    pressedKeys.add(event.code);
+    event.preventDefault();
+
+    const keyEl = document.getElementById(keyId);
+    if (!keyEl) return;
+
+    await ensureInit();
+
+    const gameState = window.getPianoGameState?.();
+    const inUserTurn =
+        gameState?.isPlaying &&
+        !gameState?.isDemonstrating &&
+        !gameState?.completed;
+
+    if (inUserTurn) {
+        if (typeof window.handleKeyClick === 'function') {
+            window.handleKeyClick(keyId);
+        }
+    } else if (!gameState?.isPlaying || gameState?.completed) {
+        window.PianoAudio.playKey(keyId);
+    } else {
+        return;
+    }
+
+    setKeyPressed(keyEl, true);
+}
+
+function handleKeyUp(event) {
+    const keyId = KEYBOARD_MAP[event.code];
+    if (!keyId) return;
+
+    pressedKeys.delete(event.code);
+    
+    const keyEl = document.getElementById(keyId);
+    if (!keyEl) return;
+
+    setKeyPressed(keyEl, false);
+
+    const gameState = window.getPianoGameState?.();
+    const inFreePlay = !gameState?.isPlaying || gameState?.completed;
+
+    if (inFreePlay) {
+        window.PianoAudio.stopKeyById(keyId);
+    }
+}
+
 function initPianoKeyboard() {
     const container = document.getElementById('piano-keys');
     if (!container) return;
@@ -307,6 +404,10 @@ function initPianoKeyboard() {
     container.addEventListener('pointerup', handlePointerUp);
     container.addEventListener('pointerleave', handlePointerUp);
     container.addEventListener('pointercancel', handlePointerUp);
+
+    // Keyboard support
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 }
 
 document.addEventListener('DOMContentLoaded', initPianoKeyboard);

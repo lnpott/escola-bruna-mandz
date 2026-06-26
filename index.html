@@ -66,14 +66,101 @@
         .live-indicator {
             animation: pulse-red 2s infinite;
         }
+        /* Realistic premium 3D piano keys and effects */
+        .piano-white-key {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9f9fb 85%, #e4e4e7 100%) !important;
+            border-bottom: 6px solid #b5b5ba !important;
+            transition: all 0.08s ease-out !important;
+        }
+        .piano-white-key:hover {
+            background: linear-gradient(to bottom, #f4f4f5 0%, #e4e4e7 85%, #d4d4d8 100%) !important;
+        }
+        .piano-black-key {
+            background: linear-gradient(to bottom, #2d2d30 0%, #18181b 75%, #09090b 100%) !important;
+            border-bottom: 7px solid #000000 !important;
+            border-left: 1px solid #1f1f23 !important;
+            border-right: 1px solid #1f1f23 !important;
+            transition: all 0.08s ease-out !important;
+        }
+        .piano-black-key:hover {
+            background: linear-gradient(to bottom, #3f3f46 0%, #27272a 75%, #18181b 100%) !important;
+        }
+        
+        /* Key pressed animation: translation instead of scale to prevent horizontal gaps */
         .piano-key.key-pressed {
-            transform: scale(0.98);
+            transform: scale(1) !important; 
         }
         .piano-white-key.key-pressed {
-            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(to bottom, #e4e4e7 0%, #d4d4d8 100%) !important;
+            border-bottom: 2px solid #b5b5ba !important;
+            transform: translateY(4px) !important;
+            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.25) !important;
         }
         .piano-black-key.key-pressed {
-            box-shadow: inset 0 4px 12px rgba(239, 68, 68, 0.35);
+            background: linear-gradient(to bottom, #18181b 0%, #09090b 100%) !important;
+            border-bottom: 2px solid #000000 !important;
+            transform: translateY(4px) !important;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(239, 68, 68, 0.4) !important;
+            border-color: #ef4444 !important;
+        }
+
+        /* Pulsing indicator for notes to play */
+        @keyframes expected-glow {
+            0%, 100% {
+                box-shadow: 0 0 8px rgba(239, 68, 68, 0.4), inset 0 -4px 0 rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.5) !important;
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(239, 68, 68, 0.85), inset 0 -4px 0 rgba(239, 68, 68, 0.4);
+                border-color: rgba(239, 68, 68, 0.95) !important;
+            }
+        }
+        .key-expected-highlight {
+            animation: expected-glow 1.4s infinite ease-in-out !important;
+            position: relative;
+        }
+        /* Glowing indicator dot inside the expected key */
+        .key-expected-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ef4444, 0 0 15px #ef4444;
+            z-index: 10;
+        }
+        .piano-black-key.key-expected-highlight::after {
+            bottom: 14px;
+            width: 6px;
+            height: 6px;
+        }
+
+        /* Premium highlight colors for visual feedback (correct, wrong, demo) */
+        .piano-key.bg-green-200 {
+            background: linear-gradient(to bottom, #10b981, #059669) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 18px rgba(16, 185, 129, 0.7) !important;
+            border-bottom: 2px solid #047857 !important;
+            border-color: #047857 !important;
+        }
+        .piano-key.bg-red-200 {
+            background: linear-gradient(to bottom, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 18px rgba(239, 68, 68, 0.7) !important;
+            border-bottom: 2px solid #b91c1c !important;
+            border-color: #b91c1c !important;
+        }
+        /* Blue glow for demonstration mode */
+        .piano-key.bg-zinc-300 {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 18px rgba(59, 130, 246, 0.7) !important;
+            border-bottom: 2px solid #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
         }
     </style>
 </head>
@@ -432,27 +519,102 @@
                     </div>
                 </div>
 
+                <!-- Melody Tracker Container -->
+                <div id="melody-tracker-container" class="mb-6 hidden transition-all duration-300 border-b border-zinc-800/50 pb-6">
+                    <div class="text-xs uppercase font-bold tracking-wider text-zinc-500 mb-3 text-center">
+                        Sequência da Melodia
+                    </div>
+                    <div id="melody-notes" class="flex flex-wrap items-center justify-center gap-2">
+                        <!-- Dynamic notes -->
+                    </div>
+                </div>
+
                 <!-- Actual Piano Keys Container -->
                 <div id="piano-keys" class="relative flex justify-center w-full min-h-[220px] select-none touch-manipulation">
                     <!-- White Keys -->
                     <div class="flex w-full max-w-2xl justify-between relative bg-zinc-950 p-1 rounded-xl">
-                        <button type="button" id="key-c" data-key-id="key-c" data-note="C4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C</button>
-                        <button type="button" id="key-d" data-key-id="key-d" data-note="D4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">D</button>
-                        <button type="button" id="key-e" data-key-id="key-e" data-note="E4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">E</button>
-                        <button type="button" id="key-f" data-key-id="key-f" data-note="F4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">F</button>
-                        <button type="button" id="key-g" data-key-id="key-g" data-note="G4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">G</button>
-                        <button type="button" id="key-a" data-key-id="key-a" data-note="A4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">A</button>
-                        <button type="button" id="key-b" data-key-id="key-b" data-note="B4" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">B</button>
-                        <button type="button" id="key-c5" data-key-id="key-c5" data-note="C5" class="piano-key piano-white-key bg-white hover:bg-zinc-200 active:bg-zinc-300 flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex items-end justify-center pb-4 text-zinc-800 font-black text-xs">C5</button>
+                        <button type="button" id="key-c" data-key-id="key-c" data-note="C4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">C4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">C</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Dó</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">A</span>
+                        </button>
+                        <button type="button" id="key-d" data-key-id="key-d" data-note="D4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">D4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">D</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Ré</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">S</span>
+                        </button>
+                        <button type="button" id="key-e" data-key-id="key-e" data-note="E4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">E4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">E</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Mi</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">D</span>
+                        </button>
+                        <button type="button" id="key-f" data-key-id="key-f" data-note="F4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">F4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">F</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Fá</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">F</span>
+                        </button>
+                        <button type="button" id="key-g" data-key-id="key-g" data-note="G4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">G4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">G</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Sol</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">G</span>
+                        </button>
+                        <button type="button" id="key-a" data-key-id="key-a" data-note="A4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">A4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">A</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Lá</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">H</span>
+                        </button>
+                        <button type="button" id="key-b" data-key-id="key-b" data-note="B4" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">B4</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">B</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Si</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">J</span>
+                        </button>
+                        <button type="button" id="key-c5" data-key-id="key-c5" data-note="C5" class="piano-key piano-white-key flex-1 h-56 rounded-b-lg border-r border-zinc-200 relative transition-all shadow-lg flex flex-col items-center justify-end pb-3 text-zinc-800">
+                            <span class="text-[9px] text-zinc-400 font-semibold leading-none">C5</span>
+                            <span class="text-xs text-zinc-800 font-black leading-none my-1">C5</span>
+                            <span class="text-[9px] text-zinc-500 font-bold leading-none mb-1">Dó</span>
+                            <span class="px-1 py-0.5 bg-zinc-200/50 border border-zinc-300 text-zinc-600 rounded text-[8px] font-mono leading-none mt-1 font-bold">K</span>
+                        </button>
                     </div>
 
                     <!-- Black Keys Absolute Overlay -->
                     <div class="absolute inset-0 max-w-2xl mx-auto px-1 pointer-events-none flex justify-start">
-                        <button type="button" id="key-cs" data-key-id="key-cs" data-note="C#4" aria-label="Nota Dó sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 9%;"></button>
-                        <button type="button" id="key-ds" data-key-id="key-ds" data-note="D#4" aria-label="Nota Ré sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 21%;"></button>
-                        <button type="button" id="key-fs" data-key-id="key-fs" data-note="F#4" aria-label="Nota Fá sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 47%;"></button>
-                        <button type="button" id="key-gs" data-key-id="key-gs" data-note="G#4" aria-label="Nota Sol sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 59%;"></button>
-                        <button type="button" id="key-as" data-key-id="key-as" data-note="A#4" aria-label="Nota Lá sustenido" class="piano-key piano-black-key pointer-events-auto bg-zinc-900 hover:bg-zinc-800 active:bg-red-700 w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950" style="left: 71%;"></button>
+                        <button type="button" id="key-cs" data-key-id="key-cs" data-note="C#4" aria-label="Nota Dó sustenido" class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white" style="left: calc(12.5% - 1rem);">
+                            <span class="text-[8px] text-zinc-500 font-medium leading-none">C#4</span>
+                            <span class="text-[8px] text-zinc-100 font-extrabold leading-none my-0.5">C#</span>
+                            <span class="text-[8px] text-zinc-400 font-bold leading-none mb-1">Dó#</span>
+                            <span class="px-1 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-500 rounded text-[7px] font-mono leading-none font-bold">W</span>
+                        </button>
+                        <button type="button" id="key-ds" data-key-id="key-ds" data-note="D#4" aria-label="Nota Ré sustenido" class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white" style="left: calc(25% - 1rem);">
+                            <span class="text-[8px] text-zinc-500 font-medium leading-none">D#4</span>
+                            <span class="text-[8px] text-zinc-100 font-extrabold leading-none my-0.5">D#</span>
+                            <span class="text-[8px] text-zinc-400 font-bold leading-none mb-1">Ré#</span>
+                            <span class="px-1 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-500 rounded text-[7px] font-mono leading-none font-bold">E</span>
+                        </button>
+                        <button type="button" id="key-fs" data-key-id="key-fs" data-note="F#4" aria-label="Nota Fá sustenido" class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white" style="left: calc(50% - 1rem);">
+                            <span class="text-[8px] text-zinc-500 font-medium leading-none">F#4</span>
+                            <span class="text-[8px] text-zinc-100 font-extrabold leading-none my-0.5">F#</span>
+                            <span class="text-[8px] text-zinc-400 font-bold leading-none mb-1">Fá#</span>
+                            <span class="px-1 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-500 rounded text-[7px] font-mono leading-none font-bold">T</span>
+                        </button>
+                        <button type="button" id="key-gs" data-key-id="key-gs" data-note="G#4" aria-label="Nota Sol sustenido" class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white" style="left: calc(62.5% - 1rem);">
+                            <span class="text-[8px] text-zinc-500 font-medium leading-none">G#4</span>
+                            <span class="text-[8px] text-zinc-100 font-extrabold leading-none my-0.5">G#</span>
+                            <span class="text-[8px] text-zinc-400 font-bold leading-none mb-1">Sol#</span>
+                            <span class="px-1 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-500 rounded text-[7px] font-mono leading-none font-bold">Y</span>
+                        </button>
+                        <button type="button" id="key-as" data-key-id="key-as" data-note="A#4" aria-label="Nota Lá sustenido" class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white" style="left: calc(75% - 1rem);">
+                            <span class="text-[8px] text-zinc-500 font-medium leading-none">A#4</span>
+                            <span class="text-[8px] text-zinc-100 font-extrabold leading-none my-0.5">A#</span>
+                            <span class="text-[8px] text-zinc-400 font-bold leading-none mb-1">Lá#</span>
+                            <span class="px-1 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-500 rounded text-[7px] font-mono leading-none font-bold">U</span>
+                        </button>
                     </div>
                 </div>
 

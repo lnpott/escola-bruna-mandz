@@ -161,6 +161,25 @@ function playFinalSequence() {
     }, delay);
 }
 
+function getNoteFriendlyName(noteId) {
+    const mapping = {
+        'key-c': { name: 'Dó', letter: 'C', syllable: 'Dó' },
+        'key-cs': { name: 'Dó#', letter: 'C#', syllable: 'Dó#' },
+        'key-d': { name: 'Ré', letter: 'D', syllable: 'Ré' },
+        'key-ds': { name: 'Ré#', letter: 'D#', syllable: 'Ré#' },
+        'key-e': { name: 'Mi', letter: 'E', syllable: 'Mi' },
+        'key-f': { name: 'Fá', letter: 'F', syllable: 'Fá' },
+        'key-fs': { name: 'Fá#', letter: 'F#', syllable: 'Fá#' },
+        'key-g': { name: 'Sol', letter: 'G', syllable: 'Sol' },
+        'key-gs': { name: 'Sol#', letter: 'G#', syllable: 'Sol#' },
+        'key-a': { name: 'Lá', letter: 'A', syllable: 'Lá' },
+        'key-as': { name: 'Lá#', letter: 'A#', syllable: 'Lá#' },
+        'key-b': { name: 'Si', letter: 'B', syllable: 'Si' },
+        'key-c5': { name: 'Dó 5', letter: 'C5', syllable: 'Dó' },
+    };
+    return mapping[noteId] || { name: '?', letter: '?', syllable: '?' };
+}
+
 function updateUI() {
     const levelIndicator = document.getElementById('game-level');
     const keyCounter = document.getElementById('game-counter');
@@ -184,6 +203,65 @@ function updateUI() {
 
     if (dynamicsSelect) {
         dynamicsSelect.disabled = gameState.isPlaying;
+    }
+
+    // 1. Reset Expected Highlight on all keys
+    document.querySelectorAll('.piano-key').forEach((key) => {
+        key.classList.remove('key-expected-highlight');
+    });
+
+    // 2. Add expected highlight during user's turn
+    if (gameState.isPlaying && !gameState.isDemonstrating && !gameState.completed) {
+        const sequence = getCurrentLevelSequence();
+        const expectedNote = sequence[gameState.userNoteIndex];
+        const expectedKey = document.getElementById(expectedNote);
+        if (expectedKey) {
+            expectedKey.classList.add('key-expected-highlight');
+        }
+    }
+
+    // 3. Update Melody Tracker
+    const trackerContainer = document.getElementById('melody-tracker-container');
+    const notesContainer = document.getElementById('melody-notes');
+    if (trackerContainer && notesContainer) {
+        if (gameState.isPlaying) {
+            trackerContainer.classList.remove('hidden');
+            const sequence = getCurrentLevelSequence();
+            notesContainer.innerHTML = '';
+            
+            sequence.forEach((noteId, index) => {
+                const noteBadge = document.createElement('div');
+                const noteInfo = getNoteFriendlyName(noteId);
+                
+                let statusClass = '';
+                if (index < gameState.userNoteIndex) {
+                    // Correctly played notes
+                    statusClass = 'bg-green-600/20 border-green-500 text-green-400 font-bold scale-95 shadow-[0_0_10px_rgba(16,185,129,0.2)]';
+                } else if (index === gameState.userNoteIndex) {
+                    // Current active note
+                    if (gameState.isDemonstrating) {
+                        statusClass = 'bg-blue-600/20 border-blue-500 text-blue-400 font-bold animate-pulse scale-105 ring-2 ring-blue-500/30';
+                    } else {
+                        statusClass = 'bg-red-600/25 border-red-500 text-red-400 font-bold scale-110 ring-4 ring-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
+                    }
+                } else {
+                    // Future notes in sequence
+                    statusClass = 'bg-zinc-950 border-zinc-800 text-zinc-500 opacity-60';
+                }
+                
+                noteBadge.className = `px-3 py-1.5 rounded-xl border flex items-center justify-center text-center transition-all duration-300 ${statusClass}`;
+                noteBadge.style.minWidth = '54px';
+                noteBadge.innerHTML = `
+                    <div class="flex flex-col items-center leading-none">
+                        <span class="text-xs font-black">${noteInfo.letter}</span>
+                        <span class="text-[9px] font-medium opacity-80 mt-0.5">${noteInfo.syllable}</span>
+                    </div>
+                `;
+                notesContainer.appendChild(noteBadge);
+            });
+        } else {
+            trackerContainer.classList.add('hidden');
+        }
     }
 }
 
