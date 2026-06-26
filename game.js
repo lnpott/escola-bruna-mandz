@@ -1,8 +1,21 @@
 // Piano Memory Game - Ode à Alegria de Beethoven
 
 const ODE_TO_JOY_SEQUENCE = [
-    'key-e', 'key-e', 'key-f', 'key-g', 'key-g', 'key-f', 'key-e', 'key-d',
-    'key-c', 'key-c', 'key-d', 'key-e', 'key-e', 'key-d', 'key-d',
+    'key-e',
+    'key-e',
+    'key-f',
+    'key-g',
+    'key-g',
+    'key-f',
+    'key-e',
+    'key-d',
+    'key-c',
+    'key-c',
+    'key-d',
+    'key-e',
+    'key-e',
+    'key-d',
+    'key-d',
 ];
 
 let gameState = {
@@ -13,7 +26,9 @@ let gameState = {
     completed: false,
 };
 
-window.getPianoGameState = function () { return { ...gameState }; };
+window.getPianoGameState = function () {
+    return { ...gameState };
+};
 
 function getCurrentLevelSequence() {
     const notesPerLevel = 4;
@@ -34,7 +49,8 @@ function showTip(noteId) {
 function showCongratModal() {
     const modal = document.createElement('div');
     modal.id = 'congrat-modal';
-    modal.className = 'bg-zinc-900 border border-red-500 p-8 rounded-3xl text-white text-center fixed top-1/4 left-1/2 transform -translate-x-1/2 z-50 shadow-2xl';
+    modal.className =
+        'bg-zinc-900 border border-red-500 p-8 rounded-3xl text-white text-center fixed top-1/4 left-1/2 transform -translate-x-1/2 z-50 shadow-2xl';
     modal.innerHTML = ` 
         <h2 class="text-3xl font-black mb-4 text-red-500">Parabéns! 🎉</h2> 
         <p class="mb-6">Você completou a Ode à Alegria com maestria!</p> 
@@ -43,33 +59,59 @@ function showCongratModal() {
     document.body.appendChild(modal);
 }
 
-document.addEventListener('keydown', (e) => { if (e.code === 'Escape') document.getElementById('congrat-modal')?.remove(); });
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape') document.getElementById('congrat-modal')?.remove();
+});
 
 // --- LÓGICA DO JOGO ---
 
 async function startGame() {
     if (window.PianoAudio) await window.PianoAudio.init();
-    gameState = { currentLevel: 1, userNoteIndex: 0, isPlaying: true, isDemonstrating: true, completed: false };
-    
+    gameState = {
+        currentLevel: 1,
+        userNoteIndex: 0,
+        isPlaying: true,
+        isDemonstrating: true,
+        completed: false,
+    };
+
     // UI Updates
     document.getElementById('start-game-btn').classList.add('hidden');
     document.getElementById('replay-demo-btn').classList.remove('hidden');
     document.getElementById('stop-game-btn').classList.remove('hidden');
-    
+
     updateUI();
-    demonstrateSequence();
+    window.demonstrateSequence();
 }
 
-window.stopGame = function() {
-    gameState = { currentLevel: 1, userNoteIndex: 0, isPlaying: false, isDemonstrating: false, completed: false };
+window.startGame = startGame;
+
+window.stopGame = function () {
+    gameState = {
+        currentLevel: 1,
+        userNoteIndex: 0,
+        isPlaying: false,
+        isDemonstrating: false,
+        completed: false,
+    };
     document.getElementById('start-game-btn').classList.remove('hidden');
     document.getElementById('replay-demo-btn').classList.add('hidden');
     document.getElementById('stop-game-btn').classList.add('hidden');
     document.getElementById('game-message').classList.add('hidden');
     document.getElementById('game-level').classList.add('hidden');
     document.getElementById('game-counter').classList.add('hidden');
-    
-    document.querySelectorAll('.piano-key').forEach(k => k.classList.remove('key-expected-highlight', 'key-pressed', 'bg-green-200', 'bg-red-200', 'bg-zinc-300'));
+
+    document
+        .querySelectorAll('.piano-key')
+        .forEach((k) =>
+            k.classList.remove(
+                'key-expected-highlight',
+                'key-pressed',
+                'bg-green-200',
+                'bg-red-200',
+                'bg-zinc-300'
+            )
+        );
 };
 
 function showGameMessage(msg, type) {
@@ -82,37 +124,61 @@ function showGameMessage(msg, type) {
     else if (type === 'wrong') el.classList.add('text-red-400');
 }
 
-window.demonstrateSequence = function() {
+window.demonstrateSequence = async function () {
     if (!gameState.isPlaying) return;
+
+    // Ensure audio engine is ready before scheduling
+    if (window.PianoAudio) await window.PianoAudio.init();
+
     const sequence = getCurrentLevelSequence();
     gameState.isDemonstrating = true;
     gameState.userNoteIndex = 0;
-    
-    showGameMessage("Ouça o exemplo...", "demo");
+
+    showGameMessage('Ouça o exemplo...', 'demo');
     updateUI();
-    
-    let delay = 0;
-    // Nível 1: 1000ms (mais lento), Nível 2: 800ms, Nível 3: 600ms (mais rápido)
-    const baseDelay = 1200 - (gameState.currentLevel * 200); 
-    
-    sequence.forEach((noteId) => {
+
+    // Nível 1: 1000ms, Nível 2: 800ms, Nível 3: 600ms
+    const baseDelay = 1200 - gameState.currentLevel * 200;
+    const baseDelaySec = baseDelay / 1000;
+
+    // Stop any previously running Transport events
+    if (typeof Tone !== 'undefined') {
+        Tone.Transport.cancel();
+        Tone.Transport.stop();
+        Tone.Transport.start();
+    }
+
+    sequence.forEach((noteId, index) => {
+        const offsetSec = index * baseDelaySec;
+        const offsetMs = index * baseDelay;
+
+        // Schedule audio on the audio clock (Tone Transport)
+        if (typeof Tone !== 'undefined') {
+            Tone.Transport.scheduleOnce(() => {
+                if (!gameState.isPlaying) return;
+                if (window.PianoAudio) window.PianoAudio.stopKeyById(noteId);
+                playNote(noteId);
+            }, offsetSec);
+        }
+
+        // Schedule visual feedback on JS timer (aligned to same offsets)
         setTimeout(() => {
             if (!gameState.isPlaying) return;
-            if (window.PianoAudio) window.PianoAudio.stopKeyById(noteId);
-            
             highlightKey(noteId, 'demonstration');
             showTip(noteId);
-            playNote(noteId);
-        }, delay);
-        delay += baseDelay;
+        }, offsetMs);
     });
+
+    // After all notes, hand control back to the player
+    const totalMs = sequence.length * baseDelay;
     setTimeout(() => {
         if (!gameState.isPlaying) return;
+        if (typeof Tone !== 'undefined') Tone.Transport.stop();
         gameState.isDemonstrating = false;
         gameState.userNoteIndex = 0;
-        showGameMessage("Sua vez!", "play");
+        showGameMessage('Sua vez!', 'play');
         updateUI();
-    }, delay);
+    }, totalMs);
 };
 
 window.handleKeyClick = function (noteId) {
@@ -128,7 +194,7 @@ window.handleKeyClick = function (noteId) {
             if (gameState.currentLevel < 3) {
                 gameState.currentLevel++;
                 gameState.userNoteIndex = 0;
-                showGameMessage("Muito bem! Próximo nível...", "play");
+                showGameMessage('Muito bem! Próximo nível...', 'play');
                 setTimeout(window.demonstrateSequence, 1500);
             } else {
                 gameState.completed = true;
@@ -137,7 +203,7 @@ window.handleKeyClick = function (noteId) {
         }
     } else {
         highlightKey(noteId, 'wrong');
-        showGameMessage("Ops! Tente novamente.", "wrong");
+        showGameMessage('Ops! Tente novamente.', 'wrong');
         setTimeout(window.demonstrateSequence, 1500);
         gameState.userNoteIndex = 0;
     }
@@ -147,7 +213,7 @@ window.handleKeyClick = function (noteId) {
 function highlightKey(noteId, type) {
     const key = document.getElementById(noteId);
     if (!key) return;
-    
+
     // Limpar o timeout anterior para evitar conflitos de animação
     if (key.dataset.timeoutId) {
         clearTimeout(parseInt(key.dataset.timeoutId));
@@ -155,17 +221,19 @@ function highlightKey(noteId, type) {
 
     // Remover as classes primeiro para garantir que a animação recomece, mesmo em teclas repetidas
     key.classList.remove('bg-green-200', 'bg-red-200', 'bg-zinc-300', 'key-pressed');
-    
+
     // Forçar reflow para que o navegador processe a remoção antes de adicionar novamente
     void key.offsetWidth;
 
-    key.classList.add(type === 'correct' ? 'bg-green-200' : type === 'wrong' ? 'bg-red-200' : 'bg-zinc-300');
+    key.classList.add(
+        type === 'correct' ? 'bg-green-200' : type === 'wrong' ? 'bg-red-200' : 'bg-zinc-300'
+    );
     key.classList.add('key-pressed');
-    
+
     const timeoutId = setTimeout(() => {
         key.classList.remove('bg-green-200', 'bg-red-200', 'bg-zinc-300', 'key-pressed');
     }, 400); // 400ms é o tempo que a tecla fica afundada
-    
+
     key.dataset.timeoutId = timeoutId;
 }
 
@@ -176,12 +244,12 @@ function playNote(noteId) {
 function updateUI() {
     const levelEl = document.getElementById('game-level');
     const counterEl = document.getElementById('game-counter');
-    
+
     if (levelEl && gameState.isPlaying) {
         levelEl.textContent = `Nível ${gameState.currentLevel}/3`;
         levelEl.classList.remove('hidden');
     }
-    
+
     if (counterEl && gameState.isPlaying) {
         const sequence = getCurrentLevelSequence();
         counterEl.textContent = `${gameState.userNoteIndex}/${sequence.length}`;
@@ -197,21 +265,29 @@ function updateUI() {
     // Scroll Automático
     const sequence = getCurrentLevelSequence();
     const activeKey = document.getElementById(sequence[gameState.userNoteIndex]);
-    if (activeKey) activeKey.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    if (activeKey)
+        activeKey.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
     // Highlight esperado
-    document.querySelectorAll('.piano-key').forEach(k => k.classList.remove('key-expected-highlight'));
+    document
+        .querySelectorAll('.piano-key')
+        .forEach((k) => k.classList.remove('key-expected-highlight'));
     if (!gameState.isDemonstrating && gameState.isPlaying) {
-        document.getElementById(sequence[gameState.userNoteIndex])?.classList.add('key-expected-highlight');
+        document
+            .getElementById(sequence[gameState.userNoteIndex])
+            ?.classList.add('key-expected-highlight');
     }
 }
 
 function getNoteFriendlyName(noteId) {
     const mapping = {
-        'key-c': { letter: 'C', syllable: 'Dó' }, 'key-d': { letter: 'D', syllable: 'Ré' },
-        'key-e': { letter: 'E', syllable: 'Mi' }, 'key-f': { letter: 'F', syllable: 'Fá' },
-        'key-g': { letter: 'G', syllable: 'Sol' }, 'key-a': { letter: 'A', syllable: 'Lá' },
-        'key-b': { letter: 'B', syllable: 'Si' }
+        'key-c': { letter: 'C', syllable: 'Dó' },
+        'key-d': { letter: 'D', syllable: 'Ré' },
+        'key-e': { letter: 'E', syllable: 'Mi' },
+        'key-f': { letter: 'F', syllable: 'Fá' },
+        'key-g': { letter: 'G', syllable: 'Sol' },
+        'key-a': { letter: 'A', syllable: 'Lá' },
+        'key-b': { letter: 'B', syllable: 'Si' },
     };
     return mapping[noteId] || { letter: '?', syllable: '?' };
 }
