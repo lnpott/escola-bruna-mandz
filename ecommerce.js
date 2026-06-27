@@ -1,4 +1,4 @@
-// ecommerce.js
+// ecommerce.js 2
 // Módulo inicial do Merchandising Oficial
 // Integração preparada para gateway real (Mercado Pago/Stripe/etc)
 
