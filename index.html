@@ -9,6 +9,8 @@
         <link rel="manifest" href="manifest.json" />
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Loja Oficial: estilos premium -->
+        <link rel="stylesheet" href="store/store-style.css" />
         <!-- Tone.js for high-quality piano samples -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
         <!-- Google Fonts: Inter para legibilidade e Montserrat para títulos expressivos -->
@@ -445,7 +447,7 @@
                         id="btn-filter-merch"
                         class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
                     >
-                        Brindes e Identidade
+                        🛍️ Loja
                     </button>
                 </div>
             </div>
@@ -551,7 +553,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 3: Brand Identity & Lounge (items.jpg) -->
+                <!-- CARD 3: Loja Oficial -->
                 <div
                     data-category="merch"
                     class="canvas-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between"
@@ -560,23 +562,22 @@
                         <div class="relative h-72 sm:h-80 overflow-hidden bg-zinc-950">
                             <img
                                 src="brindes.jpg"
-                                alt="Brindes Bruna Mandz"
+                                alt="Loja Oficial Bruna Mandz"
                                 class="w-full h-full object-contain transition-transform duration-700 hover:scale-105"
                             />
                             <div
                                 class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"
                             ></div>
                             <span
-                                class="absolute bottom-4 left-4 bg-red-600/20 text-red-400 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border border-red-500/30"
-                                >Identidade Forte</span
+                                class="absolute bottom-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider neon-glow"
+                                >🛍️ Loja Oficial</span
                             >
                         </div>
                         <div class="p-6">
-                            <h4 class="text-xl font-bold text-white mb-2">Brindes & Identidade</h4>
+                            <h4 class="text-xl font-bold text-white mb-2">Loja Oficial</h4>
                             <p class="text-zinc-400 text-sm leading-relaxed">
-                                Nossa comunidade se orgulha de pertencer! Conheça a nossa linha de
-                                brindes e produtos oficiais da escola. Da palheta personalizada até
-                                mochilas e blocos para compor.
+                                Camisetas, canecas, palhetas personalizadas, mochilas e kits exclusivos
+                                da escola. Compre com PIX ou cartão, direto aqui no site!
                             </p>
                         </div>
                     </div>
@@ -584,17 +585,17 @@
                         class="px-6 pb-6 pt-2 border-t border-zinc-800/50 flex justify-between items-center bg-zinc-900/50"
                     >
                         <button
-                            onclick="openModal('modal-items')"
+                            onclick="scrollToId('official-store')"
                             class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider flex items-center gap-1.5 group"
                         >
-                            Ver Catálogo de Itens
+                            Ver a Loja
                             <i
                                 class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"
                             ></i>
                         </button>
                         <span
                             class="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider"
-                            >Merchandising Oficial</span
+                            >PIX & Cartão</span
                         >
                     </div>
                 </div>
@@ -1342,37 +1343,222 @@
         <!-- OFFICIAL STORE SECTION -->
         <section id="official-store" class="px-4 py-12 sm:px-8 bg-zinc-950 border-y border-zinc-800">
             <div class="max-w-7xl mx-auto">
+                <!-- Cabeçalho da loja -->
                 <div class="text-center mb-10">
-                    <span class="text-red-500 text-xs font-black uppercase tracking-[0.3em]">Loja Oficial</span>
-                    <h3 class="text-2xl sm:text-4xl font-black text-white mt-2">Merchandising Bruna Mandz</h3>
+                    <span class="text-red-500 text-xs font-black uppercase tracking-[0.3em]">🛍️ Loja Oficial</span>
+                    <h3 class="text-2xl sm:text-4xl font-black text-white mt-2">Loja Oficial Bruna Mandz</h3>
                     <p class="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto mt-3">
-                        Catálogo, carrinho, checkout local e pagamento preparado para Mercado Pago/Stripe.
-                        Cada pedido também gera XP para conectar loja, piano e jornada do aluno.
+                        Produtos exclusivos da escola com pagamento via <strong class="text-white">PIX</strong> ou <strong class="text-white">Cartão</strong>.
+                        Cada compra gera XP na sua jornada de aluno.
                     </p>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-                    <div id="store-products" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
+                    <!-- Coluna de produtos -->
+                    <div>
+                        <!-- Tabs de categoria -->
+                        <div class="store-tabs">
+                            <button class="store-tab-btn active" data-store-category="todos" onclick="filterStoreCategory('todos')">Todos</button>
+                            <button class="store-tab-btn" data-store-category="roupas" onclick="filterStoreCategory('roupas')"><i class="fas fa-tshirt mr-1"></i>Roupas</button>
+                            <button class="store-tab-btn" data-store-category="acessorios" onclick="filterStoreCategory('acessorios')"><i class="fas fa-guitar mr-1"></i>Acessórios</button>
+                            <button class="store-tab-btn" data-store-category="kits" onclick="filterStoreCategory('kits')"><i class="fas fa-box-open mr-1"></i>Kits</button>
+                        </div>
+                        <!-- Grid de produtos -->
+                        <div id="store-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
+                    </div>
+
+                    <!-- Carrinho lateral -->
                     <aside class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 h-fit sticky top-24">
-                        <div class="flex items-center justify-between gap-4 mb-4">
-                            <h4 class="text-xl font-black text-white">Carrinho</h4>
-                            <a href="admin/admin.html" class="text-xs text-red-400 hover:text-red-300 font-bold">Admin</a>
+                        <div class="flex items-center justify-between gap-4 mb-5">
+                            <h4 class="text-xl font-black text-white flex items-center gap-2">
+                                <i class="fas fa-shopping-cart text-red-500 text-base"></i> Carrinho
+                                <span id="store-cart-badge" class="text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-black">0</span>
+                            </h4>
+                            <a href="admin/admin.html" class="text-xs text-zinc-500 hover:text-red-400 font-bold uppercase tracking-wider">Admin</a>
                         </div>
-                        <div id="store-cart-lines" class="space-y-2 mb-4"></div>
+
+                        <div id="store-cart-lines" class="mb-4 min-h-[60px]"></div>
+
                         <div class="flex items-center justify-between border-t border-zinc-800 pt-4 mb-5">
-                            <span class="text-zinc-400 text-sm font-bold uppercase">Total</span>
-                            <strong id="store-cart-total" class="text-2xl text-white">R$ 0,00</strong>
+                            <span class="text-zinc-400 text-sm font-bold uppercase tracking-wider">Total</span>
+                            <strong id="store-cart-total" class="text-2xl font-black text-white">R$ 0,00</strong>
                         </div>
+
+                        <!-- Botões de checkout -->
                         <div class="grid grid-cols-2 gap-3">
-                            <button data-checkout-method="pix" class="py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black transition-all">PIX</button>
-                            <button data-checkout-method="card" class="py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-black transition-all">Cartão</button>
+                            <button
+                                data-checkout-method="pix"
+                                class="py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black transition-all flex items-center justify-center gap-2 text-sm"
+                            >
+                                <i class="fas fa-qrcode"></i> PIX
+                            </button>
+                            <button
+                                data-checkout-method="card"
+                                class="py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 text-white rounded-xl font-black transition-all flex items-center justify-center gap-2 text-sm"
+                            >
+                                <i class="fas fa-credit-card"></i> Cartão
+                            </button>
                         </div>
-                        <p class="text-[11px] text-zinc-500 mt-4 leading-relaxed">
-                            Primeira versão local: pedidos ficam no navegador e aparecem no painel administrativo.
-                        </p>
+
+                        <div class="mt-4 flex items-center gap-2 text-[11px] text-zinc-600">
+                            <i class="fas fa-shield-alt text-zinc-700"></i>
+                            Compra segura. Pedidos registrados localmente e visíveis no painel Admin.
+                        </div>
                     </aside>
                 </div>
             </div>
         </section>
+
+        <!-- ══ MODAIS DE CHECKOUT ══════════════════════════════════════════════════ -->
+
+        <!-- Modal: Dados do Cliente -->
+        <div id="modal-checkout-customer" class="checkout-modal-overlay hidden">
+            <div class="checkout-modal-box scale-95 opacity-0">
+                <div class="checkout-modal-header">
+                    <h2 class="checkout-modal-title">Seus Dados</h2>
+                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="checkout-modal-body">
+                    <p class="text-zinc-500 text-xs leading-relaxed">Preencha seus dados para finalizar o pedido. Eles ficam salvos apenas no seu navegador.</p>
+                    <div class="checkout-field">
+                        <label for="checkout-name">Nome completo</label>
+                        <input id="checkout-name" class="checkout-input" type="text" placeholder="Seu nome" autocomplete="name" />
+                    </div>
+                    <div class="checkout-field">
+                        <label for="checkout-email">E-mail</label>
+                        <input id="checkout-email" class="checkout-input" type="email" placeholder="seu@email.com" autocomplete="email" />
+                    </div>
+                    <div class="checkout-field">
+                        <label for="checkout-phone">Telefone / WhatsApp</label>
+                        <input id="checkout-phone" class="checkout-input" type="tel" placeholder="(21) 99999-9999" autocomplete="tel" />
+                    </div>
+                    <div id="checkout-customer-error" class="checkout-error hidden"></div>
+                    <button class="checkout-btn-primary" onclick="submitCustomerForm()">
+                        Continuar <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: PIX -->
+        <div id="modal-checkout-pix" class="checkout-modal-overlay hidden">
+            <div class="checkout-modal-box scale-95 opacity-0">
+                <div class="checkout-modal-header">
+                    <h2 class="checkout-modal-title"><i class="fas fa-qrcode text-red-500 mr-2"></i>Pagar com PIX</h2>
+                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="checkout-modal-body">
+                    <div class="pix-qr-wrap">
+                        <img id="pix-qrcode" src="" alt="QR Code PIX" />
+                        <p class="pix-total-label" id="pix-total">R$ 0,00</p>
+                        <p class="text-zinc-500 text-xs" id="pix-order-id"></p>
+                    </div>
+                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">Ou copie a chave PIX</p>
+                    <div class="pix-key-box">
+                        <span class="pix-key-value" id="pix-key"></span>
+                        <button id="pix-copy-btn" class="pix-copy-btn">Copiar Chave</button>
+                    </div>
+                    <p class="pix-instruction">Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br>O pedido é registrado após sua confirmação abaixo.</p>
+                    <p class="text-zinc-600 text-[10px] text-center">Beneficiário: <strong class="text-zinc-400" id="pix-name"></strong></p>
+                    <button id="pix-confirm-btn" class="checkout-btn-primary">
+                        <i class="fas fa-check-circle mr-1"></i> Já efetuei o pagamento
+                    </button>
+                    <button class="checkout-btn-secondary" onclick="closeCheckoutModals()">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Cartão de Crédito -->
+        <div id="modal-checkout-card" class="checkout-modal-overlay hidden">
+            <div class="checkout-modal-box scale-95 opacity-0">
+                <div class="checkout-modal-header">
+                    <h2 class="checkout-modal-title"><i class="fas fa-credit-card text-zinc-400 mr-2"></i>Cartão de Crédito</h2>
+                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="checkout-modal-body">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-zinc-500">Total do pedido:</span>
+                        <strong class="text-white text-base" id="card-total">R$ 0,00</strong>
+                    </div>
+                    <p class="text-zinc-600 text-[10px]" id="card-order-id"></p>
+
+                    <div class="checkout-field">
+                        <label for="card-number">Número do Cartão</label>
+                        <input id="card-number" class="checkout-input" type="text" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" />
+                    </div>
+                    <div class="checkout-field">
+                        <label for="card-holder">Nome no Cartão</label>
+                        <input id="card-holder" class="checkout-input" type="text" placeholder="NOME COMO NO CARTÃO" style="text-transform:uppercase" />
+                    </div>
+                    <div class="checkout-row">
+                        <div class="checkout-field">
+                            <label for="card-expiry">Validade</label>
+                            <input id="card-expiry" class="checkout-input" type="text" placeholder="MM/AA" maxlength="5" inputmode="numeric" />
+                        </div>
+                        <div class="checkout-field">
+                            <label for="card-cvv">CVV</label>
+                            <input id="card-cvv" class="checkout-input" type="text" placeholder="123" maxlength="4" inputmode="numeric" />
+                        </div>
+                    </div>
+                    <div id="checkout-card-error" class="checkout-error hidden"></div>
+
+                    <div class="flex items-center gap-2 text-[11px] text-zinc-600 bg-zinc-900/60 rounded-lg p-2.5 border border-zinc-800">
+                        <i class="fas fa-lock text-zinc-700"></i>
+                        Dados processados com segurança. Integração com Mercado Pago ou Stripe será ativada em breve.
+                    </div>
+
+                    <button id="card-submit-btn" class="checkout-btn-primary">
+                        <i class="fas fa-lock mr-1"></i> Finalizar Compra
+                    </button>
+                    <button class="checkout-btn-secondary" onclick="closeCheckoutModals()">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Pedido Confirmado -->
+        <div id="modal-checkout-success" class="checkout-modal-overlay hidden">
+            <div class="checkout-modal-box scale-95 opacity-0">
+                <div class="checkout-modal-header">
+                    <h2 class="checkout-modal-title">Pedido Registrado!</h2>
+                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="checkout-modal-body">
+                    <div class="success-icon">✓</div>
+                    <p class="text-center text-zinc-300 text-sm font-bold">Seu pedido foi registrado com sucesso!</p>
+                    <div class="success-order-block">
+                        <div class="success-row">
+                            <span>Pedido</span>
+                            <span id="success-order-id" class="font-mono text-red-400"></span>
+                        </div>
+                        <div class="success-row">
+                            <span>Método</span>
+                            <span id="success-method"></span>
+                        </div>
+                        <div class="success-row">
+                            <span>Total</span>
+                            <span id="success-total"></span>
+                        </div>
+                    </div>
+                    <div class="success-xp" id="success-xp">+0 XP</div>
+                    <p class="text-center text-zinc-600 text-xs">O pedido está salvo no seu navegador e visível no painel Admin.</p>
+                    <button class="checkout-btn-primary" onclick="closeCheckoutModals(); scrollToId('official-store')">
+                        <i class="fas fa-store mr-1"></i> Continuar na Loja
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- SOCIAL PROOF & INSTAGRAM SECTION -->
         <section class="px-4 py-12 sm:px-8 max-w-7xl mx-auto w-full">
@@ -2178,6 +2364,7 @@
                 });
             });
         </script>
+        <script type="module" src="store/checkout-modal.js"></script>
         <script type="module" src="store/store.js"></script>
         <script src="audio.js"></script>
         <script src="game.js"></script>
