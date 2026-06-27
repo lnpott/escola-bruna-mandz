@@ -1,71 +1,17 @@
-// ecommerce.js 2
-// Módulo inicial do Merchandising Oficial
-// Integração preparada para gateway real (Mercado Pago/Stripe/etc)
-
-const PRODUCTS = [
-  {
-    id: 1,
-    name: 'Camiseta Oficial Bruna Mandz',
-    price: 59.90,
-    image: 'LOGOPRETO.png'
-  },
-  {
-    id: 2,
-    name: 'Caneca Oficial',
-    price: 34.90,
-    image: 'LOGOPRETO.png'
-  }
-];
-
-let cart = [];
+// Compatibilidade com integrações antigas. A loja 2.0 usa módulos em store/.
+import { PRODUCTS } from './store/products.js';
+import { addToCart, cartTotal, getCart } from './store/cart.js';
 
 window.merchandising = {
-  products: PRODUCTS,
-  cart,
-
-  add(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
-    if (!product) return;
-
-    cart.push(product);
-    this.cart = cart;
-    this.renderCart();
-  },
-
-  total() {
-    return cart.reduce((sum, item) => sum + item.price, 0);
-  },
-
-  checkout(method) {
-    const amount = this.total();
-
-    if (!amount) {
-      alert('Seu carrinho está vazio');
-      return;
-    }
-
-    if (method === 'pix') {
-      this.pixPayment(amount);
-      return;
-    }
-
-    if (method === 'card') {
-      this.cardPayment(amount);
-    }
-  },
-
-  pixPayment(amount) {
-    // Substituir pela API do gateway
-    alert(`PIX iniciado. Valor: R$ ${amount.toFixed(2)}`);
-  },
-
-  cardPayment(amount) {
-    // Substituir pela API do gateway
-    alert(`Pagamento cartão iniciado. Valor: R$ ${amount.toFixed(2)}`);
-  },
-
-  renderCart() {
-    const el = document.querySelector('#cart-total');
-    if (el) el.innerHTML = `R$ ${this.total().toFixed(2)}`;
-  }
+    products: PRODUCTS,
+    get cart() {
+        return getCart();
+    },
+    add(productId) {
+        const product = PRODUCTS.find((entry) => entry.id === String(productId) || entry.id === productId);
+        if (product) addToCart(product);
+    },
+    total() {
+        return cartTotal();
+    },
 };

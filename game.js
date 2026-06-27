@@ -18,6 +18,27 @@ const ODE_TO_JOY_SEQUENCE = [
     'key-d',
 ];
 
+
+const PROGRESS_KEY = 'bruna_student_progress';
+
+function getStudentProgress() {
+    return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{"xp":0,"level":1,"badges":[]}');
+}
+
+function saveStudentProgress(progress) {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    window.dispatchEvent(new CustomEvent('bruna:progress-updated', { detail: progress }));
+}
+
+function awardGameXp(amount, badge) {
+    const progress = getStudentProgress();
+    progress.xp += amount;
+    progress.level = Math.max(1, Math.floor(progress.xp / 100) + 1);
+    if (badge && !progress.badges.includes(badge)) progress.badges.push(badge);
+    saveStudentProgress(progress);
+    if (window.showToast) window.showToast(`+${amount} XP no piano • Nível ${progress.level}`);
+}
+
 let gameState = {
     currentLevel: 1,
     userNoteIndex: 0,
@@ -193,11 +214,13 @@ window.handleKeyClick = function (noteId) {
         if (gameState.userNoteIndex >= sequence.length) {
             if (gameState.currentLevel < 3) {
                 gameState.currentLevel++;
+                awardGameXp(25, 'Pianista Iniciante');
                 gameState.userNoteIndex = 0;
                 showGameMessage('Muito bem! Próximo nível...', 'play');
                 setTimeout(window.demonstrateSequence, 1500);
             } else {
                 gameState.completed = true;
+                awardGameXp(150, 'Ode à Alegria');
                 setTimeout(showCongratModal, 1000);
             }
         }
