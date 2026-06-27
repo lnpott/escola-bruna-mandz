@@ -4,7 +4,9 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Escola de Música Bruna Mandz</title>
-        <meta name="author" content="Desenvolvido por [Seu Nome]" />
+        <meta name="author" content="Desenvolvido por Escola Bruna Mandz" />
+        <meta name="theme-color" content="#ef4444" />
+        <link rel="manifest" href="manifest.json" />
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
         <!-- Tone.js for high-quality piano samples -->
@@ -235,6 +237,18 @@
                     >
                         Experimentar Piano
                     </button>
+                    <button
+                        onclick="scrollToId('official-store')"
+                        class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors bg-zinc-900 rounded-md"
+                    >
+                        Loja Oficial <span id="store-cart-badge" class="ml-1 text-red-400">0</span>
+                    </button>
+                    <a
+                        href="admin/admin.html"
+                        class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors bg-zinc-900 rounded-md"
+                    >
+                        Admin
+                    </a>
                     <a
                         href="https://www.instagram.com/escolademusicabrunamandz/"
                         target="_blank"
@@ -570,10 +584,10 @@
                         class="px-6 pb-6 pt-2 border-t border-zinc-800/50 flex justify-between items-center bg-zinc-900/50"
                     >
                         <button
-                            onclick="openModal('modal-items')"
+                            onclick="scrollToId('official-store')"
                             class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider flex items-center gap-1.5 group"
                         >
-                            Ver Catálogo de Itens
+                            Comprar na Loja Oficial
                             <i
                                 class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"
                             ></i>
@@ -584,6 +598,43 @@
                         >
                     </div>
                 </div>
+
+                <!-- OFFICIAL STORE SECTION INSIDE MERCHANDISING -->
+                <section
+                    id="official-store"
+                    data-category="merch"
+                    class="canvas-card md:col-span-2 lg:col-span-3 bg-zinc-950 border border-red-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl"
+                >
+                    <div class="text-center mb-10">
+                        <span class="text-red-500 text-xs font-black uppercase tracking-[0.3em]">Loja Oficial</span>
+                        <h3 class="text-2xl sm:text-4xl font-black text-white mt-2">Merchandising Bruna Mandz</h3>
+                        <p class="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto mt-3">
+                            Catálogo, carrinho, checkout local e pagamento preparado para Mercado Pago/Stripe.
+                            Cada pedido também gera XP para conectar loja, piano e jornada do aluno.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+                        <div id="store-products" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+                        <aside class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 h-fit sticky top-24">
+                            <div class="flex items-center justify-between gap-4 mb-4">
+                                <h4 class="text-xl font-black text-white">Carrinho</h4>
+                                <a href="admin/admin.html" class="text-xs text-red-400 hover:text-red-300 font-bold">Admin</a>
+                            </div>
+                            <div id="store-cart-lines" class="space-y-2 mb-4"></div>
+                            <div class="flex items-center justify-between border-t border-zinc-800 pt-4 mb-5">
+                                <span class="text-zinc-400 text-sm font-bold uppercase">Total</span>
+                                <strong id="store-cart-total" class="text-2xl text-white">R$ 0,00</strong>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button data-checkout-method="pix" class="py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black transition-all">PIX</button>
+                                <button data-checkout-method="card" class="py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-black transition-all">Cartão</button>
+                            </div>
+                            <p class="text-[11px] text-zinc-500 mt-4 leading-relaxed">
+                                Primeira versão local: pedidos ficam no navegador e aparecem no painel administrativo.
+                            </p>
+                        </aside>
+                    </div>
+                </section>
 
                 <!-- CARD 4: Space Slideshow -->
                 <div
@@ -2128,7 +2179,13 @@
                 });
             });
         </script>
+        <script type="module" src="store/store.js"></script>
         <script src="audio.js"></script>
         <script src="game.js"></script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
+            }
+        </script>
     </body>
 </html>

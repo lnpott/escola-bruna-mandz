@@ -1,0 +1,32 @@
+export const PRODUCTS = [
+    {
+        id: 'camiseta-oficial',
+        name: 'Camiseta Oficial Bruna Mandz',
+        description: 'Camiseta premium da escola para alunos, fãs e apresentações.',
+        price: 59.9,
+        stock: 50,
+        active: true,
+        image: '../LOGOPRETO.png',
+        rewardXp: 60,
+    },
+    {
+        id: 'caneca-oficial',
+        name: 'Caneca Oficial',
+        description: 'Caneca personalizada para acompanhar os estudos musicais.',
+        price: 34.9,
+        stock: 35,
+        active: true,
+        image: '../LOGOPRETO.png',
+        rewardXp: 35,
+    },
+    {
+        id: 'kit-aluno-bruna',
+        name: 'Kit Aluno Bruna Mandz',
+        description: 'Combo com camiseta, caneca e brinde de boas-vindas.',
+        price: 89.9,
+        stock: 20,
+        active: true,
+        image: '../brindes.jpg',
+        rewardXp: 100,
+    },
+];
