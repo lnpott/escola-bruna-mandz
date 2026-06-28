@@ -43,7 +43,9 @@
 .product-card:hover {
     border-color: #3f3f46;
     transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.08);
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(239, 68, 68, 0.08);
 }
 
 /* Imagem do produto */
@@ -580,4 +582,125 @@
     border: 1px solid rgba(245, 158, 11, 0.2);
     border-radius: 0.5rem;
     padding: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHECKOUT OVERLAY — tela cheia, isolado do resto do site.
+   Só fecha pelo botão X (#checkout-close-btn). Nunca fecha clicando fora,
+   evitando o bug de "clicou em outra coisa e travou no meio do pagamento".
+═══════════════════════════════════════════════════════════════════════════ */
+.checkout-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: #09090b;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.checkout-overlay-inner {
+    position: relative;
+    min-height: 100%;
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 4.5rem 1.25rem 3rem;
+    display: flex;
+    flex-direction: column;
+}
+.checkout-close-btn {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 10010;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid #27272a;
+    background: #18181b;
+    color: #e4e4e7;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.checkout-close-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+.checkout-step {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    animation: checkoutStepIn 0.25s ease;
+}
+.checkout-step.hidden {
+    display: none;
+}
+@keyframes checkoutStepIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.checkout-step-title {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 0.25rem;
+}
+.checkout-step-subtitle {
+    color: #71717a;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-top: -0.5rem;
+}
+
+/* Confirmação ao tentar fechar durante pagamento em andamento */
+.checkout-close-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.checkout-close-confirm-box {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    max-width: 22rem;
+    width: 100%;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+    text-align: center;
+}
+.checkout-close-confirm-box p {
+    color: #e4e4e7;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+}
+.checkout-close-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+    .checkout-overlay-inner {
+        padding-top: 5.5rem;
+    }
+    .checkout-close-confirm-actions {
+        flex-direction: row-reverse;
+    }
 }
