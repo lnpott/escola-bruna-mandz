@@ -32,6 +32,8 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 10 | Correção de erro de deploy (`vercel.json` runtime inválido) | ✅ Corrigido |
 | 11 | Investigação "teclado não funciona" pós-migração Vercel (hipótese de ordem de scripts) | ⚠️ Não era a causa real — ver Etapa 12 |
 | 12 | **Causa real**: `audio.js`/`game.js`/imagens davam 404 (faltava pasta `public/`) | ✅ Corrigido |
+| 13 | `game.js`: erro de sintaxe (`export` inválido em script clássico) | ✅ Corrigido |
+| 14 | Checkout PIX: credenciais Mercado Pago "live" sendo usadas em teste | ⏳ Ação necessária no painel do Mercado Pago |
 
 ---
 
@@ -490,8 +492,77 @@ válidas e foram mantidas.
 - ✅ ESLint e `node --check` sem erros em `store/products.js`
 
 ### Status
-- [ ] Fazer commit/push e testar no navegador real — confirmar que os 404s
-  desaparecem e que `startGame is not defined` não ocorre mais
+- [x] Testado pelo usuário — 404s resolvidos e o site carrega corretamente.
+  Dois novos problemas apareceram no teste de checkout real, tratados nas
+  Etapas 13 e 14 a seguir
+
+---
+
+## ✅ ETAPA 13 — `game.js`: `Uncaught SyntaxError: Unexpected token 'export'`
+
+Durante o teste de checkout, o console mostrou:
+```
+game.js:321 Uncaught SyntaxError: Unexpected token 'export'
+```
+
+### Causa
+O arquivo `public/game.js` (carregado via `<script src="/game.js">`, **sem**
+`type="module"`) tinha uma linha adicionada em algum momento fora desta
+sessão:
+```js
+export { startGame, stopGame, demonstrateSequence, handleKeyClick };
+```
+A sintaxe `export` só é válida em scripts do tipo `module`. Em um script
+clássico, isso é um erro de sintaxe que **impede o arquivo inteiro de
+executar** — ou seja, nenhuma função do jogo do piano (`startGame`,
+`handleKeyClick`, etc.) chegava a ser definida, o que também explica por que
+o botão "Iniciar jogo" não funcionava.
+
+Foi encontrada também uma duplicação: `document.addEventListener('DOMContentLoaded',
+initPianoKeyboard)` estava presente tanto em `audio.js` (onde a função é
+definida — correto) quanto em `game.js` (onde a função não existe, e que
+além disso registraria os listeners de teclado do piano duas vezes).
+
+### Correção aplicada
+- `public/game.js` — removida a linha `export { ... }`
+- `public/game.js` — removida a chamada duplicada de
+  `initPianoKeyboard` (mantida apenas em `audio.js`)
+
+### Validação
+- ✅ `node --check public/game.js` confirma sintaxe válida
+
+---
+
+## ⏳ ETAPA 14 — Checkout PIX: `Unauthorized use of live credentials`
+
+Ao testar o checkout PIX, o Mercado Pago retornou:
+```
+error: 'unauthorized'
+message: 'Unauthorized use of live credentials'
+status: 401
+```
+
+### Causa (configuração no Mercado Pago, não é bug de código)
+A aplicação criada no Mercado Pago não gerou um par de credenciais de teste
+com prefixo `TEST-` — a aba "Credenciais de teste" do painel mostrou os
+**mesmos valores** (`APP_USR-...`) que a aba de produção. Isso significa
+que `MERCADO_PAGO_ACCESS_TOKEN`, configurado na Vercel, é uma credencial
+de **produção** (live), e o Mercado Pago bloqueia o uso de credenciais live
+em contextos de simulação/teste.
+
+### O que precisa ser feito (ação do usuário no painel do Mercado Pago)
+A mesma tela de credenciais de teste mostrava um **"Usuário de teste"**
+(`TESTUSER2092481226609368833`). Para testar pagamentos sem usar dinheiro
+real, é necessário simular a compra **logado como esse usuário de teste**
+(não com a conta normal do Mercado Pago) — assim o gateway aceita usar as
+credenciais em modo de simulação.
+
+### Status
+- [ ] Fazer login com o usuário de teste do Mercado Pago e repetir o teste
+  de checkout PIX
+- [ ] Se o problema persistir, considerar criar uma aplicação nova no
+  Mercado Pago garantindo que o tipo de integração escolhido gere um par
+  `TEST-...` de credenciais de fato
 
 ---
 
