@@ -126,8 +126,6 @@ export function renderCart() {
     const area = document.querySelector('#store-cart-lines');
     const total = document.querySelector('#store-cart-total');
     const badge = document.querySelector('#store-cart-badge');
-    const checkoutPix = document.querySelector('[data-checkout-method="pix"]');
-    const checkoutCard = document.querySelector('[data-checkout-method="card"]');
 
     if (area) {
         area.innerHTML = cart.length
@@ -172,15 +170,14 @@ export function renderCart() {
     const navBadge = document.querySelector('#nav-cart-badge');
     if (navBadge) navBadge.textContent = count;
 
-    // Desabilitar botões de checkout se carrinho estiver vazio
+    // Desabilitar botão de checkout se carrinho estiver vazio
     const disabled = !cart.length;
-    [checkoutPix, checkoutCard].forEach((btn) => {
-        if (btn) {
-            btn.disabled = disabled;
-            btn.classList.toggle('opacity-50', disabled);
-            btn.classList.toggle('cursor-not-allowed', disabled);
-        }
-    });
+    const startBtn = document.getElementById('checkout-start-btn');
+    if (startBtn) {
+        startBtn.disabled = disabled;
+        startBtn.classList.toggle('opacity-40', disabled);
+        startBtn.classList.toggle('cursor-not-allowed', disabled);
+    }
 }
 
 // ─── Event listeners ──────────────────────────────────────────────────────────
@@ -262,10 +259,9 @@ document.addEventListener('click', (event) => {
         return;
     }
 
-    // Checkout
-    const checkoutBtn = event.target.closest('[data-checkout-method]');
-    if (checkoutBtn) {
-        openCheckoutFlow(checkoutBtn.dataset.checkoutMethod);
+    // Checkout — agora um botão único
+    if (event.target.closest('#checkout-start-btn')) {
+        openCheckoutFlow();
     }
 });
 
