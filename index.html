@@ -571,8 +571,8 @@
                         <div class="p-6">
                             <h4 class="text-xl font-bold text-white mb-2">Loja Oficial</h4>
                             <p class="text-zinc-400 text-sm leading-relaxed">
-                                Camisetas, canecas, palhetas personalizadas, mochilas e kits exclusivos
-                                da escola. Compre com PIX ou cartão, direto aqui no site!
+                                Camisetas, canecas, palhetas personalizadas, mochilas e kits
+                                exclusivos da escola. Compre com PIX ou cartão, direto aqui no site!
                             </p>
                         </div>
                     </div>
@@ -1334,17 +1334,25 @@
             </div>
         </section>
 
-
         <!-- OFFICIAL STORE SECTION -->
-        <section id="official-store" class="px-4 py-12 sm:px-8 bg-zinc-950 border-y border-zinc-800">
+        <section
+            id="official-store"
+            class="px-4 py-12 sm:px-8 bg-zinc-950 border-y border-zinc-800"
+        >
             <div class="max-w-7xl mx-auto">
                 <!-- Cabeçalho da loja -->
                 <div class="text-center mb-10">
-                    <span class="text-red-500 text-xs font-black uppercase tracking-[0.3em]">🛍️ Loja Oficial</span>
-                    <h3 class="text-2xl sm:text-4xl font-black text-white mt-2">Loja Oficial Bruna Mandz</h3>
+                    <span class="text-red-500 text-xs font-black uppercase tracking-[0.3em]"
+                        >🛍️ Loja Oficial</span
+                    >
+                    <h3 class="text-2xl sm:text-4xl font-black text-white mt-2">
+                        Loja Oficial Bruna Mandz
+                    </h3>
                     <p class="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto mt-3">
-                        Produtos exclusivos da escola com pagamento via <strong class="text-white">PIX</strong> ou <strong class="text-white">Cartão</strong>.
-                        Cada compra gera XP na sua jornada de aluno.
+                        Produtos exclusivos da escola com pagamento via
+                        <strong class="text-white">PIX</strong> ou
+                        <strong class="text-white">Cartão</strong>. Cada compra gera XP na sua
+                        jornada de aluno.
                     </p>
                 </div>
 
@@ -1353,29 +1361,68 @@
                     <div>
                         <!-- Tabs de categoria -->
                         <div class="store-tabs">
-                            <button class="store-tab-btn active" data-store-category="todos" onclick="filterStoreCategory('todos')">Todos</button>
-                            <button class="store-tab-btn" data-store-category="roupas" onclick="filterStoreCategory('roupas')"><i class="fas fa-tshirt mr-1"></i>Roupas</button>
-                            <button class="store-tab-btn" data-store-category="acessorios" onclick="filterStoreCategory('acessorios')"><i class="fas fa-guitar mr-1"></i>Acessórios</button>
-                            <button class="store-tab-btn" data-store-category="kits" onclick="filterStoreCategory('kits')"><i class="fas fa-box-open mr-1"></i>Kits</button>
+                            <button
+                                class="store-tab-btn active"
+                                data-store-category="todos"
+                                onclick="filterStoreCategory('todos')"
+                            >
+                                Todos
+                            </button>
+                            <button
+                                class="store-tab-btn"
+                                data-store-category="roupas"
+                                onclick="filterStoreCategory('roupas')"
+                            >
+                                <i class="fas fa-tshirt mr-1"></i>Roupas
+                            </button>
+                            <button
+                                class="store-tab-btn"
+                                data-store-category="acessorios"
+                                onclick="filterStoreCategory('acessorios')"
+                            >
+                                <i class="fas fa-guitar mr-1"></i>Acessórios
+                            </button>
+                            <button
+                                class="store-tab-btn"
+                                data-store-category="kits"
+                                onclick="filterStoreCategory('kits')"
+                            >
+                                <i class="fas fa-box-open mr-1"></i>Kits
+                            </button>
                         </div>
                         <!-- Grid de produtos -->
-                        <div id="store-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
+                        <div
+                            id="store-products"
+                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"
+                        ></div>
                     </div>
 
                     <!-- Carrinho lateral -->
-                    <aside class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 h-fit sticky top-24">
+                    <aside
+                        class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 h-fit sticky top-24"
+                    >
                         <div class="flex items-center justify-between gap-4 mb-5">
                             <h4 class="text-xl font-black text-white flex items-center gap-2">
                                 <i class="fas fa-shopping-cart text-red-500 text-base"></i> Carrinho
-                                <span id="store-cart-badge" class="text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-black">0</span>
+                                <span
+                                    id="store-cart-badge"
+                                    class="text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-black"
+                                    >0</span
+                                >
                             </h4>
                         </div>
 
                         <div id="store-cart-lines" class="mb-4 min-h-[60px]"></div>
 
-                        <div class="flex items-center justify-between border-t border-zinc-800 pt-4 mb-5">
-                            <span class="text-zinc-400 text-sm font-bold uppercase tracking-wider">Total</span>
-                            <strong id="store-cart-total" class="text-2xl font-black text-white">R$ 0,00</strong>
+                        <div
+                            class="flex items-center justify-between border-t border-zinc-800 pt-4 mb-5"
+                        >
+                            <span class="text-zinc-400 text-sm font-bold uppercase tracking-wider"
+                                >Total</span
+                            >
+                            <strong id="store-cart-total" class="text-2xl font-black text-white"
+                                >R$ 0,00</strong
+                            >
                         </div>
 
                         <!-- Botões de checkout -->
@@ -1406,75 +1453,96 @@
         <!-- ══ MODAIS DE CHECKOUT ══════════════════════════════════════════════════ -->
 
         <!-- Modal: Dados do Cliente -->
-        <div id="modal-checkout-customer" class="checkout-modal-overlay hidden">
-            <div class="checkout-modal-box scale-95 opacity-0">
-                <div class="checkout-modal-header">
-                    <h2 class="checkout-modal-title">Seus Dados</h2>
-                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="checkout-modal-body">
-                    <p class="text-zinc-500 text-xs leading-relaxed">Preencha seus dados para finalizar o pedido.</p>
+        <!-- ═══════════════════════════════════════════════════════════════
+             CHECKOUT — Overlay único de tela cheia, isolado do site.
+             Só fecha pelo botão X. Se houver pagamento em andamento, pede
+             confirmação antes de fechar. As "etapas" (customer/pix/card/
+             success) são <section> internas, mostradas uma por vez via JS.
+        ═══════════════════════════════════════════════════════════════ -->
+        <div id="checkout-overlay" class="checkout-overlay hidden">
+            <div class="checkout-overlay-inner">
+                <button
+                    id="checkout-close-btn"
+                    class="checkout-close-btn"
+                    aria-label="Fechar checkout"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Etapa: Dados do Cliente -->
+                <section id="checkout-step-customer" class="checkout-step">
+                    <h2 class="checkout-step-title">Seus Dados</h2>
+                    <p class="checkout-step-subtitle">
+                        Preencha seus dados para finalizar o pedido.
+                    </p>
                     <div class="checkout-field">
                         <label for="checkout-name">Nome completo</label>
-                        <input id="checkout-name" class="checkout-input" type="text" placeholder="Seu nome" autocomplete="name" />
+                        <input
+                            id="checkout-name"
+                            class="checkout-input"
+                            type="text"
+                            placeholder="Seu nome"
+                            autocomplete="name"
+                        />
                     </div>
                     <div class="checkout-field">
                         <label for="checkout-email">E-mail</label>
-                        <input id="checkout-email" class="checkout-input" type="email" placeholder="seu@email.com" autocomplete="email" />
+                        <input
+                            id="checkout-email"
+                            class="checkout-input"
+                            type="email"
+                            placeholder="seu@email.com"
+                            autocomplete="email"
+                        />
                     </div>
                     <div class="checkout-field">
                         <label for="checkout-phone">Telefone / WhatsApp</label>
-                        <input id="checkout-phone" class="checkout-input" type="tel" placeholder="(21) 99999-9999" autocomplete="tel" />
+                        <input
+                            id="checkout-phone"
+                            class="checkout-input"
+                            type="tel"
+                            placeholder="(21) 99999-9999"
+                            autocomplete="tel"
+                        />
                     </div>
                     <div id="checkout-customer-error" class="checkout-error hidden"></div>
                     <button class="checkout-btn-primary" onclick="submitCustomerForm()">
                         Continuar <i class="fas fa-arrow-right ml-1"></i>
                     </button>
-                </div>
-            </div>
-        </div>
+                </section>
 
-        <!-- Modal: PIX -->
-        <div id="modal-checkout-pix" class="checkout-modal-overlay hidden">
-            <div class="checkout-modal-box scale-95 opacity-0">
-                <div class="checkout-modal-header">
-                    <h2 class="checkout-modal-title"><i class="fas fa-qrcode text-red-500 mr-2"></i>Pagar com PIX</h2>
-                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="checkout-modal-body">
+                <!-- Etapa: PIX -->
+                <section id="checkout-step-pix" class="checkout-step hidden">
+                    <h2 class="checkout-step-title">
+                        <i class="fas fa-qrcode text-red-500 mr-2"></i>Pagar com PIX
+                    </h2>
                     <div class="pix-qr-wrap">
                         <img id="pix-qrcode" src="" alt="QR Code PIX" />
                         <p class="pix-total-label" id="pix-total">R$ 0,00</p>
                         <p class="text-zinc-500 text-xs" id="pix-order-id"></p>
                     </div>
-                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">Ou copie o código Pix</p>
+                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">
+                        Ou copie o código Pix
+                    </p>
                     <div class="pix-key-box">
                         <span class="pix-key-value" id="pix-key">Gerando código…</span>
                         <button id="pix-copy-btn" class="pix-copy-btn">Copiar Código</button>
                     </div>
-                    <p class="pix-instruction">Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br>A confirmação do pagamento é automática — você pode acompanhar o status do pedido.</p>
-                    <p id="pix-status-line" class="text-zinc-600 text-[10px] text-center">Aguardando confirmação do pagamento…</p>
-                    <button id="pix-confirm-btn" class="checkout-btn-secondary">
-                        Fechar
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <p class="pix-instruction">
+                        Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br />A
+                        confirmação do pagamento é automática — você pode acompanhar o status do
+                        pedido.
+                    </p>
+                    <p id="pix-status-line" class="text-zinc-600 text-[10px] text-center">
+                        Aguardando confirmação do pagamento…
+                    </p>
+                </section>
 
-        <!-- Modal: Cartão de Crédito -->
-        <div id="modal-checkout-card" class="checkout-modal-overlay hidden">
-            <div class="checkout-modal-box scale-95 opacity-0">
-                <div class="checkout-modal-header">
-                    <h2 class="checkout-modal-title"><i class="fas fa-credit-card text-zinc-400 mr-2"></i>Cartão de Crédito</h2>
-                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="checkout-modal-body">
+                <!-- Etapa: Cartão de Crédito -->
+                <section id="checkout-step-card" class="checkout-step hidden">
+                    <h2 class="checkout-step-title">
+                        <i class="fas fa-credit-card text-zinc-400 mr-2"></i>Cartão de Crédito
+                    </h2>
                     <div class="flex items-center justify-between text-xs mb-1">
                         <span class="text-zinc-500">Total do pedido:</span>
                         <strong class="text-white text-base" id="card-total">R$ 0,00</strong>
@@ -1486,30 +1554,22 @@
 
                     <div id="checkout-card-error" class="checkout-error hidden"></div>
 
-                    <div class="flex items-center gap-2 text-[11px] text-zinc-600 bg-zinc-900/60 rounded-lg p-2.5 border border-zinc-800">
+                    <div
+                        class="flex items-center gap-2 text-[11px] text-zinc-600 bg-zinc-900/60 rounded-lg p-2.5 border border-zinc-800"
+                    >
                         <i class="fas fa-lock text-zinc-700"></i>
-                        Pagamento processado diretamente pelo Mercado Pago. Seus dados de cartão não passam pelo nosso servidor.
+                        Pagamento processado diretamente pelo Mercado Pago. Seus dados de cartão não
+                        passam pelo nosso servidor.
                     </div>
+                </section>
 
-                    <button class="checkout-btn-secondary" onclick="closeCheckoutModals()">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal: Pedido Confirmado -->
-        <div id="modal-checkout-success" class="checkout-modal-overlay hidden">
-            <div class="checkout-modal-box scale-95 opacity-0">
-                <div class="checkout-modal-header">
-                    <h2 class="checkout-modal-title">Pedido Registrado!</h2>
-                    <button class="checkout-modal-close" onclick="closeCheckoutModals()" aria-label="Fechar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="checkout-modal-body">
+                <!-- Etapa: Pedido Confirmado -->
+                <section id="checkout-step-success" class="checkout-step hidden">
+                    <h2 class="checkout-step-title">Pedido Registrado!</h2>
                     <div class="success-icon">✓</div>
-                    <p class="text-center text-zinc-300 text-sm font-bold">Seu pedido foi registrado com sucesso!</p>
+                    <p class="text-center text-zinc-300 text-sm font-bold">
+                        Seu pedido foi registrado com sucesso!
+                    </p>
                     <div class="success-order-block">
                         <div class="success-row">
                             <span>Pedido</span>
@@ -1525,10 +1585,27 @@
                         </div>
                     </div>
                     <div class="success-xp" id="success-xp">+0 XP</div>
-                    <p class="text-center text-zinc-600 text-xs" id="success-footer-note">Pedido confirmado.</p>
-                    <button class="checkout-btn-primary" onclick="closeCheckoutModals(); scrollToId('official-store')">
+                    <p class="text-center text-zinc-600 text-xs" id="success-footer-note">
+                        Pedido confirmado.
+                    </p>
+                    <button class="checkout-btn-primary" onclick="closeCheckoutOverlay(true)">
                         <i class="fas fa-store mr-1"></i> Continuar na Loja
                     </button>
+                </section>
+
+                <!-- Confirmação de fechamento durante pagamento em andamento -->
+                <div id="checkout-close-confirm" class="checkout-close-confirm hidden">
+                    <div class="checkout-close-confirm-box">
+                        <p>Tem certeza que quer cancelar o pagamento?</p>
+                        <div class="checkout-close-confirm-actions">
+                            <button id="checkout-close-confirm-yes" class="checkout-btn-secondary">
+                                Sim, cancelar
+                            </button>
+                            <button id="checkout-close-confirm-no" class="checkout-btn-primary">
+                                Continuar pagamento
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2344,7 +2421,9 @@
         <script type="module" src="store/store.js"></script>
         <script>
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
+                window.addEventListener('load', () =>
+                    navigator.serviceWorker.register('/service-worker.js').catch(() => {})
+                );
             }
         </script>
     </body>
