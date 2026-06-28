@@ -1425,25 +1425,18 @@
                             >
                         </div>
 
-                        <!-- Botões de checkout -->
-                        <div class="grid grid-cols-2 gap-3">
-                            <button
-                                data-checkout-method="pix"
-                                class="py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black transition-all flex items-center justify-center gap-2 text-sm"
-                            >
-                                <i class="fas fa-qrcode"></i> PIX
-                            </button>
-                            <button
-                                data-checkout-method="card"
-                                class="py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 text-white rounded-xl font-black transition-all flex items-center justify-center gap-2 text-sm"
-                            >
-                                <i class="fas fa-credit-card"></i> Cartão
-                            </button>
-                        </div>
+                        <!-- Botão único de checkout -->
+                        <button
+                            id="checkout-start-btn"
+                            onclick="openCheckoutFlow()"
+                            class="w-full py-3.5 bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-black transition-all flex items-center justify-center gap-2"
+                        >
+                            <i class="fas fa-lock text-xs"></i> Finalizar Compra
+                        </button>
 
-                        <div class="mt-4 flex items-center gap-2 text-[11px] text-zinc-600">
+                        <div class="mt-3 flex items-center gap-2 text-[11px] text-zinc-600">
                             <i class="fas fa-shield-alt text-zinc-700"></i>
-                            Pagamento processado pelo Mercado Pago (PIX ou Cartão).
+                            Escolha PIX ou Cartão na próxima tela. Processado pelo Mercado Pago.
                         </div>
                     </aside>
                 </div>
@@ -1511,55 +1504,48 @@
                     </button>
                 </section>
 
-                <!-- Etapa: PIX -->
-                <section id="checkout-step-pix" class="checkout-step hidden">
+                <!-- Etapa: Pagamento (PIX + Cartão unificados no Payment Brick) -->
+                <section id="checkout-step-payment" class="checkout-step hidden">
                     <h2 class="checkout-step-title">
-                        <i class="fas fa-qrcode text-red-500 mr-2"></i>Pagar com PIX
+                        <i class="fas fa-lock text-red-500 mr-2"></i>Pagamento
                     </h2>
-                    <div class="pix-qr-wrap">
-                        <img id="pix-qrcode" src="" alt="QR Code PIX" />
-                        <p class="pix-total-label" id="pix-total">R$ 0,00</p>
-                        <p class="text-zinc-500 text-xs" id="pix-order-id"></p>
+
+                    <!-- Total do pedido -->
+                    <div class="flex items-center justify-between mb-4 px-1">
+                        <span class="text-zinc-400 text-sm">Total do pedido</span>
+                        <strong class="text-white text-lg" id="payment-order-total">R$ 0,00</strong>
                     </div>
-                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">
-                        Ou copie o código Pix
-                    </p>
-                    <div class="pix-key-box">
-                        <span class="pix-key-value" id="pix-key">Gerando código…</span>
-                        <button id="pix-copy-btn" class="pix-copy-btn">Copiar Código</button>
+
+                    <!-- Container do Payment Brick (Mercado Pago renderiza aqui) -->
+                    <div id="payment-brick-container"></div>
+
+                    <!-- Erro de pagamento -->
+                    <div id="checkout-payment-error" class="checkout-error hidden"></div>
+
+                    <!-- Resultado do PIX (aparece dinamicamente após submit) -->
+                    <div id="payment-pix-result" class="hidden mt-4">
+                        <div class="pix-qr-wrap">
+                            <img id="payment-pix-qr" src="" alt="QR Code PIX" />
+                        </div>
+                        <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center mt-3">
+                            Ou copie o código PIX
+                        </p>
+                        <div class="pix-key-box mt-2">
+                            <span class="pix-key-value" id="payment-pix-key">Gerando…</span>
+                            <button id="payment-pix-copy" class="pix-copy-btn">Copiar código PIX</button>
+                        </div>
+                        <p class="pix-instruction mt-3">
+                            Abra o app do seu banco → PIX → QR Code ou Copia e Cola.<br />
+                            A confirmação é automática.
+                        </p>
+                        <p id="payment-pix-status" class="text-zinc-500 text-[11px] text-center mt-2">
+                            Aguardando confirmação…
+                        </p>
                     </div>
-                    <p class="pix-instruction">
-                        Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br />A
-                        confirmação do pagamento é automática — você pode acompanhar o status do
-                        pedido.
-                    </p>
-                    <p id="pix-status-line" class="text-zinc-600 text-[10px] text-center">
-                        Aguardando confirmação do pagamento…
-                    </p>
-                </section>
 
-                <!-- Etapa: Cartão de Crédito -->
-                <section id="checkout-step-card" class="checkout-step hidden">
-                    <h2 class="checkout-step-title">
-                        <i class="fas fa-credit-card text-zinc-400 mr-2"></i>Cartão de Crédito
-                    </h2>
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-zinc-500">Total do pedido:</span>
-                        <strong class="text-white text-base" id="card-total">R$ 0,00</strong>
-                    </div>
-                    <p class="text-zinc-600 text-[10px]" id="card-order-id"></p>
-
-                    <!-- O Mercado Pago renderiza o formulário seguro de cartão aqui -->
-                    <div id="card-payment-brick"></div>
-
-                    <div id="checkout-card-error" class="checkout-error hidden"></div>
-
-                    <div
-                        class="flex items-center gap-2 text-[11px] text-zinc-600 bg-zinc-900/60 rounded-lg p-2.5 border border-zinc-800"
-                    >
-                        <i class="fas fa-lock text-zinc-700"></i>
-                        Pagamento processado diretamente pelo Mercado Pago. Seus dados de cartão não
-                        passam pelo nosso servidor.
+                    <div class="flex items-center gap-2 text-[11px] text-zinc-700 mt-4">
+                        <i class="fas fa-shield-alt"></i>
+                        Dados processados com segurança pelo Mercado Pago.
                     </div>
                 </section>
 

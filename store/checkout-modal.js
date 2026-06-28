@@ -1,26 +1,17 @@
 /**
  * checkout-modal.js
- * Checkout da Loja Oficial Bruna Mandz — overlay único de tela cheia,
- * isolado do resto do site, integrado ao Mercado Pago de verdade.
+ * Checkout da Loja Oficial Bruna Mandz — overlay único de tela cheia.
  *
- * Estrutura: um único overlay (#checkout-overlay) com 4 "etapas" internas
- * (<section> mostradas uma por vez): customer → pix|card → success.
+ * FLUXO:
+ *   1. Usuário clica "Finalizar Compra" no carrinho
+ *   2. Overlay abre na etapa "customer" (dados do cliente)
+ *   3. Ao confirmar dados, abre etapa "payment" com o Payment Brick do
+ *      Mercado Pago — PIX e Cartão aparecem juntos em abas, sem precisar
+ *      escolher antes. O usuário troca entre eles livremente dentro do Brick.
+ *   4. Ao confirmar pagamento, vai para etapa "success".
  *
- * Fechamento: SÓ pelo botão X (#checkout-close-btn). Nunca fecha clicando
- * fora — isso elimina o bug de "cliquei em outra coisa durante o pagamento
- * e travou tudo". Se houver um pagamento em andamento (PIX aguardando
- * confirmação, ou Brick de cartão montado) e o usuário clicar no X, pede
- * confirmação antes de fechar.
- *
- * Integração de pagamento:
- *   PIX: chama /api/create-payment → QR Code real do Mercado Pago → faz
- *     polling em /api/order-status até aprovação
- *   Cartão: renderiza o Card Payment Brick oficial do Mercado Pago
- *     (tokenização no navegador, sem coletar número/CVV no nosso servidor)
- *
- * Enquanto MERCADO_PAGO_ACCESS_TOKEN não estiver configurado na Vercel, o
- * backend responde em "modo local" e o fluxo segue normalmente para fins de
- * teste, só sem cobrar nada de verdade.
+ * FECHAMENTO: só pelo botão X. Se houver pagamento em andamento (PIX
+ * aguardando confirmação ou Brick montado), pede confirmação antes de fechar.
  */
 
 import { PAYMENT_CONFIG, getMercadoPagoPublicKey } from './payment-config.js';
@@ -28,34 +19,39 @@ import { buildOrder, clearCart, applyStudentXp, getCart } from './cart.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-// ─── Estado do overlay ─────────────────────────────────────────────────────
+// ─── Estado interno ────────────────────────────────────────────────────────────
 
-let _checkoutMethod = 'pix';
-let _paymentInProgress = false; // true enquanto há PIX pendente ou Brick montado
+let _paymentInProgress = false;
+let _pixPollInterval = null;
+let _paymentBrickController = null;
+let _currentOrder = null;
+let _currentEarnedXp = 0;
+let _selectedMethod = null; // 'pix' | 'credit_card' | 'debit_card' etc.
 
-function setPaymentInProgress(value) {
-    _paymentInProgress = value;
+function setPaymentInProgress(v) {
+    _paymentInProgress = v;
 }
 
-// ─── Controle de etapas (dentro do mesmo overlay) ─────────────────────────
+// ─── Etapas do overlay ────────────────────────────────────────────────────────
 
-const STEP_IDS = {
+const STEPS = {
     customer: 'checkout-step-customer',
-    pix: 'checkout-step-pix',
-    card: 'checkout-step-card',
-    success: 'checkout-step-success',
+    payment:  'checkout-step-payment',
+    success:  'checkout-step-success',
 };
 
-function showStep(stepKey) {
-    Object.values(STEP_IDS).forEach((id) => {
+function showStep(key) {
+    Object.values(STEPS).forEach((id) => {
         const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', id !== STEP_IDS[stepKey]);
+        if (el) el.classList.toggle('hidden', id !== STEPS[key]);
     });
 }
 
+// ─── Abrir / fechar overlay ───────────────────────────────────────────────────
+
 function openOverlay() {
-    const overlay = document.getElementById('checkout-overlay');
-    if (overlay) overlay.classList.remove('hidden');
+    document.getElementById('checkout-overlay')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function hideCloseConfirm() {
@@ -66,10 +62,6 @@ function showCloseConfirm() {
     document.getElementById('checkout-close-confirm')?.classList.remove('hidden');
 }
 
-/**
- * Fecha o overlay de fato (sem perguntar nada). force=true ignora qualquer
- * pagamento em andamento — usado depois de sucesso, ou após confirmação.
- */
 export function closeCheckoutOverlay(force = false) {
     if (_paymentInProgress && !force) {
         showCloseConfirm();
@@ -77,59 +69,56 @@ export function closeCheckoutOverlay(force = false) {
     }
     hideCloseConfirm();
     stopPixPolling();
-    destroyCardBrick();
+    destroyPaymentBrick();
     setPaymentInProgress(false);
-    const overlay = document.getElementById('checkout-overlay');
-    if (overlay) overlay.classList.add('hidden');
-    showStep('customer'); // reseta para a primeira etapa na próxima abertura
+    _currentOrder = null;
+    document.getElementById('checkout-overlay')?.classList.add('hidden');
+    document.body.style.overflow = '';
+    showStep('customer');
 }
 
-// Mantido por compatibilidade com onclicks antigos que possam referenciar isso
+// Compatibilidade com onclicks antigos
 export function closeCheckoutModals() {
     closeCheckoutOverlay(true);
 }
 
-// ─── Fluxo principal ──────────────────────────────────────────────────────────
+// ─── Ponto de entrada ─────────────────────────────────────────────────────────
 
 /**
- * Ponto de entrada: abre o overlay na etapa de dados do cliente.
- * Só é chamado DEPOIS que o usuário já adicionou algo ao carrinho e decidiu
- * comprar — a vitrine de produtos continua normal na página, fora do overlay.
- * @param {'pix'|'card'} method
+ * Abre o overlay. Chamado quando o usuário clica "Finalizar Compra".
+ * Não recebe mais "method" — a escolha PIX/Cartão é feita dentro do Brick.
  */
-export function openCheckoutFlow(method) {
+export function openCheckoutFlow() {
     if (!getCart().length) {
         window.showToast?.('Adicione produtos ao carrinho primeiro!');
         return;
     }
-    _checkoutMethod = method;
     setPaymentInProgress(false);
     showStep('customer');
     openOverlay();
 }
 
-// ─── Etapa: Dados do Cliente ──────────────────────────────────────────────────
+// ─── Etapa 1: Dados do Cliente ────────────────────────────────────────────────
 
 export async function submitCustomerForm() {
-    const name = document.getElementById('checkout-name')?.value.trim();
+    const name  = document.getElementById('checkout-name')?.value.trim();
     const email = document.getElementById('checkout-email')?.value.trim();
     const phone = document.getElementById('checkout-phone')?.value.trim();
 
     if (!name || !email || !phone) {
-        showCheckoutError('customer', 'Por favor, preencha todos os campos.');
+        showError('customer', 'Por favor, preencha todos os campos.');
         return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showCheckoutError('customer', 'E-mail inválido.');
+        showError('customer', 'E-mail inválido.');
         return;
     }
-
-    clearCheckoutError('customer');
+    clearError('customer');
 
     let order, earnedXp;
     try {
         ({ order, earnedXp } = buildOrder({
-            method: _checkoutMethod,
+            method: 'pix', // placeholder, será sobrescrito ao pagar
             customer: { name, email, phone },
         }));
     } catch (err) {
@@ -137,18 +126,204 @@ export async function submitCustomerForm() {
         return;
     }
 
-    if (_checkoutMethod === 'pix') {
-        showStep('pix');
-        openPixModal(order, earnedXp);
-    } else {
-        showStep('card');
-        openCardModal(order, earnedXp);
+    _currentOrder = order;
+    _currentEarnedXp = earnedXp;
+
+    showStep('payment');
+    await openPaymentBrick(order, earnedXp);
+}
+
+// ─── Etapa 2: Payment Brick (PIX + Cartão unificados) ────────────────────────
+
+async function destroyPaymentBrick() {
+    if (_paymentBrickController) {
+        try { await _paymentBrickController.unmount(); } catch { /* ignora */ }
+        _paymentBrickController = null;
+    }
+    // Limpa o container para o próximo uso
+    const container = document.getElementById('payment-brick-container');
+    if (container) container.innerHTML = '';
+}
+
+async function openPaymentBrick(order, earnedXp) {
+    const container = document.getElementById('payment-brick-container');
+    const errorEl   = document.getElementById('checkout-payment-error');
+
+    if (container) container.innerHTML = '';
+    if (errorEl)   errorEl.classList.add('hidden');
+
+    // Atualiza total visível
+    const totalEl = document.getElementById('payment-order-total');
+    if (totalEl) totalEl.textContent = money.format(order.total);
+
+    const publicKey = await getMercadoPagoPublicKey();
+    if (!publicKey) {
+        showError('payment', 'Pagamento não configurado. Entre em contato com a escola.');
+        return;
+    }
+
+    if (typeof window.MercadoPago === 'undefined') {
+        showError('payment', 'SDK do Mercado Pago não carregou. Verifique sua conexão.');
+        return;
+    }
+
+    await destroyPaymentBrick();
+
+    const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
+    const bricksBuilder = mp.bricks();
+
+    try {
+        _paymentBrickController = await bricksBuilder.create(
+            'payment',
+            'payment-brick-container',
+            {
+                initialization: {
+                    amount: order.total,
+                    payer: {
+                        email: document.getElementById('checkout-email')?.value.trim() || '',
+                    },
+                },
+                customization: {
+                    paymentMethods: {
+                        creditCard:  'all',
+                        debitCard:   'all',
+                        ticket:      'none',
+                        bankTransfer: ['pix'],
+                        mercadoPago: 'none', // exige preferenceId, não usamos
+                    },
+                    visual: {
+                        style: {
+                            theme: 'dark',
+                            customVariables: {
+                                baseColor:           '#ef4444',
+                                baseColorFirstVariant: '#dc2626',
+                                baseColorSecondVariant: '#b91c1c',
+                                errorColor:          '#f87171',
+                                textPrimaryColor:    '#f4f4f5',
+                                textSecondaryColor:  '#a1a1aa',
+                                inputBackgroundColor: '#18181b',
+                                inputBorderColor:    '#3f3f46',
+                                formBackgroundColor: '#09090b',
+                                borderRadiusFull:    '12px',
+                                borderRadiusLarge:   '10px',
+                                borderRadiusMedium:  '8px',
+                            },
+                        },
+                    },
+                },
+                callbacks: {
+                    onReady: () => {
+                        setPaymentInProgress(true);
+                    },
+                    onSubmit: async ({ selectedPaymentMethod, formData }) => {
+                        _selectedMethod = selectedPaymentMethod;
+                        clearError('payment');
+
+                        try {
+                            // Determina method para o backend
+                            const method = selectedPaymentMethod === 'bank_transfer'
+                                ? 'pix'
+                                : 'card';
+
+                            // Monta payload correto para cada método
+                            let payload;
+                            if (method === 'pix') {
+                                payload = {
+                                    method: 'pix',
+                                    order: { ..._currentOrder, method: 'pix' },
+                                };
+                            } else {
+                                payload = {
+                                    method: 'card',
+                                    order: { ..._currentOrder, method: 'card' },
+                                    cardToken:       formData.token,
+                                    paymentMethodId: formData.payment_method_id,
+                                    installments:    formData.installments,
+                                    payerEmail:      formData.payer?.email,
+                                };
+                            }
+
+                            const res  = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload),
+                            });
+                            const data = await res.json();
+
+                            if (!res.ok) {
+                                showError('payment', data.error || 'Falha ao processar pagamento.');
+                                return;
+                            }
+
+                            if (data.mode === 'local') {
+                                // Modo teste sem chave configurada
+                                finalizePurchase(earnedXp);
+                                return;
+                            }
+
+                            if (method === 'pix') {
+                                // Para PIX: mostra QR code e inicia polling
+                                showPixResult(data, _currentOrder, earnedXp);
+                            } else {
+                                // Para cartão: resposta síncrona
+                                if (data.status === 'approved') {
+                                    finalizePurchase(earnedXp);
+                                } else if (data.status === 'rejected') {
+                                    showError('payment', 'Pagamento recusado pela operadora. Tente outro cartão.');
+                                } else {
+                                    showError('payment', 'Pagamento em análise. Você será notificado em breve.');
+                                }
+                            }
+                        } catch (err) {
+                            showError('payment', `Erro ao processar: ${err.message}`);
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Payment Brick error:', error);
+                        showError('payment', 'Erro ao carregar formulário de pagamento. Tente recarregar a página.');
+                    },
+                },
+            }
+        );
+    } catch (err) {
+        console.error('Erro ao criar Payment Brick:', err);
+        showError('payment', 'Não foi possível carregar o formulário de pagamento. Tente novamente.');
     }
 }
 
-// ─── Etapa: PIX ────────────────────────────────────────────────────────────────
+// ─── Resultado PIX (QR Code dentro da etapa payment) ─────────────────────────
 
-let _pixPollInterval = null;
+function showPixResult(data, order, earnedXp) {
+    const pixResult = document.getElementById('payment-pix-result');
+    const qrImg     = document.getElementById('payment-pix-qr');
+    const keyEl     = document.getElementById('payment-pix-key');
+    const statusEl  = document.getElementById('payment-pix-status');
+    const copyBtn   = document.getElementById('payment-pix-copy');
+
+    if (pixResult) pixResult.classList.remove('hidden');
+
+    if (qrImg && data.qr_code_base64) {
+        qrImg.src = `data:image/png;base64,${data.qr_code_base64}`;
+        qrImg.alt = `QR Code PIX — Pedido ${order.id}`;
+    }
+    if (keyEl) keyEl.textContent = data.qr_code || '—';
+    if (statusEl) statusEl.textContent = 'Aguardando confirmação do pagamento…';
+
+    if (copyBtn && keyEl) {
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(keyEl.textContent || '').then(() => {
+                window.showToast?.('Código PIX copiado!');
+                copyBtn.textContent = '✓ Copiado!';
+                setTimeout(() => (copyBtn.textContent = 'Copiar código PIX'), 2000);
+            });
+        };
+    }
+
+    setPaymentInProgress(true);
+    startPixPolling(order, earnedXp, statusEl);
+}
+
+// ─── Polling de status PIX ────────────────────────────────────────────────────
 
 function stopPixPolling() {
     if (_pixPollInterval) {
@@ -157,249 +332,77 @@ function stopPixPolling() {
     }
 }
 
-async function openPixModal(order, earnedXp) {
-    const totalEl = document.getElementById('pix-total');
-    const keyEl = document.getElementById('pix-key');
-    const orderEl = document.getElementById('pix-order-id');
-    const qrImg = document.getElementById('pix-qrcode');
-    const statusLine = document.getElementById('pix-status-line');
-
-    if (totalEl) totalEl.textContent = money.format(order.total);
-    if (orderEl) orderEl.textContent = order.id;
-    if (keyEl) keyEl.textContent = 'Gerando código…';
-    if (statusLine) statusLine.textContent = 'Gerando cobrança…';
-
-    try {
-        const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ method: 'pix', order }),
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.error || 'Falha ao gerar cobrança PIX.');
-        }
-
-        if (data.mode === 'local') {
-            // Modo local: ainda não há chave do Mercado Pago configurada.
-            if (keyEl)
-                keyEl.textContent =
-                    '(modo de teste — configure o Mercado Pago para gerar um código real)';
-            if (statusLine) statusLine.textContent = data.message;
-            if (qrImg) qrImg.alt = 'QR Code indisponível em modo local';
-            setPaymentInProgress(false);
-        } else {
-            if (qrImg && data.qr_code_base64) {
-                qrImg.src = `data:image/png;base64,${data.qr_code_base64}`;
-                qrImg.alt = `QR Code PIX - Pedido ${order.id}`;
-            }
-            if (keyEl) keyEl.textContent = data.qr_code || '—';
-            if (statusLine) statusLine.textContent = 'Aguardando confirmação do pagamento…';
-
-            // A partir daqui há um pagamento real pendente — fechar o
-            // overlay agora pede confirmação.
-            setPaymentInProgress(true);
-            startPixPolling(order, earnedXp);
-        }
-
-        const copyBtn = document.getElementById('pix-copy-btn');
-        if (copyBtn) {
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(keyEl?.textContent || '').then(() => {
-                    window.showToast?.('Código PIX copiado!');
-                    copyBtn.textContent = '✓ Copiado!';
-                    setTimeout(() => (copyBtn.textContent = 'Copiar Código'), 2000);
-                });
-            };
-        }
-    } catch (err) {
-        if (statusLine) statusLine.textContent = `Erro: ${err.message}`;
-        window.showToast?.(`Erro ao gerar PIX: ${err.message}`);
-        setPaymentInProgress(false);
-    }
-}
-
-function startPixPolling(order, earnedXp) {
+function startPixPolling(order, earnedXp, statusEl) {
     stopPixPolling();
     let attempts = 0;
     _pixPollInterval = setInterval(async () => {
         attempts += 1;
-        if (attempts > 60) {
-            stopPixPolling(); // ~5 minutos de polling, depois para
+        if (attempts > 72) { // ~6 minutos
+            stopPixPolling();
+            if (statusEl) statusEl.textContent = 'Tempo esgotado. Tente novamente se já pagou.';
             return;
         }
         try {
-            const res = await fetch(`/api/order-status?id=${encodeURIComponent(order.id)}`);
+            const res  = await fetch(`/api/order-status?id=${encodeURIComponent(order.id)}`);
             if (!res.ok) return;
             const data = await res.json();
+
             if (data.status === 'approved') {
                 stopPixPolling();
-                setPaymentInProgress(false);
-                clearCart();
-                applyStudentXp(earnedXp);
-                showStep('success');
-                openSuccessModal(order, earnedXp);
+                finalizePurchase(earnedXp);
             } else if (['rejected', 'cancelled'].includes(data.status)) {
                 stopPixPolling();
                 setPaymentInProgress(false);
-                const statusLine = document.getElementById('pix-status-line');
-                if (statusLine) statusLine.textContent = 'Pagamento não aprovado. Tente novamente.';
+                if (statusEl) statusEl.textContent = 'Pagamento não aprovado. Tente novamente.';
             }
-        } catch {
-            // silenciosamente ignora falhas de rede no polling
-        }
+        } catch { /* ignora falhas de rede no polling */ }
     }, 5000);
 }
 
-// ─── Etapa: Cartão (Mercado Pago Card Payment Brick) ─────────────────────────
+// ─── Finalizar compra (sucesso) ───────────────────────────────────────────────
 
-let _cardBrickController = null;
+function finalizePurchase(earnedXp) {
+    stopPixPolling();
+    setPaymentInProgress(false);
+    clearCart();
+    applyStudentXp(earnedXp);
 
-async function destroyCardBrick() {
-    if (_cardBrickController) {
-        try {
-            await _cardBrickController.unmount();
-        } catch {
-            // ignora
-        }
-        _cardBrickController = null;
-    }
-}
+    const order = _currentOrder;
 
-async function openCardModal(order, earnedXp) {
-    const totalEl = document.getElementById('card-total');
-    const orderEl = document.getElementById('card-order-id');
-    if (totalEl) totalEl.textContent = money.format(order.total);
-    if (orderEl) orderEl.textContent = order.id;
-
-    clearCheckoutError('card');
-
-    const publicKey = await getMercadoPagoPublicKey();
-    const brickContainer = document.getElementById('card-payment-brick');
-
-    if (!publicKey) {
-        if (brickContainer) {
-            brickContainer.innerHTML = `
-                <div class="checkout-error" style="display:block;">
-                    Pagamento por cartão ainda não está configurado
-                    (MERCADO_PAGO_PUBLIC_KEY ausente). Use o PIX por enquanto,
-                    ou configure a chave nas variáveis de ambiente da Vercel.
-                </div>`;
-        }
-        return;
-    }
-
-    if (typeof window.MercadoPago === 'undefined') {
-        if (brickContainer) {
-            brickContainer.innerHTML = `<div class="checkout-error" style="display:block;">SDK do Mercado Pago não carregou. Verifique sua conexão.</div>`;
-        }
-        return;
-    }
-
-    await destroyCardBrick();
-
-    const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
-    const bricksBuilder = mp.bricks();
-
-    setPaymentInProgress(true); // Brick montado = considerar "em andamento"
-
-    _cardBrickController = await bricksBuilder.create('cardPayment', 'card-payment-brick', {
-        initialization: {
-            amount: order.total,
-        },
-        callbacks: {
-            onReady: () => {},
-            onSubmit: async (cardFormData) => {
-                try {
-                    const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            method: 'card',
-                            order,
-                            cardToken: cardFormData.token,
-                            paymentMethodId: cardFormData.payment_method_id,
-                            installments: cardFormData.installments,
-                        }),
-                    });
-                    const data = await res.json();
-
-                    if (!res.ok) {
-                        showCheckoutError('card', data.error || 'Pagamento recusado.');
-                        return;
-                    }
-
-                    if (data.mode === 'local') {
-                        setPaymentInProgress(false);
-                        clearCart();
-                        applyStudentXp(earnedXp);
-                        showStep('success');
-                        openSuccessModal(order, earnedXp);
-                        return;
-                    }
-
-                    if (data.status === 'approved') {
-                        setPaymentInProgress(false);
-                        clearCart();
-                        applyStudentXp(earnedXp);
-                        showStep('success');
-                        openSuccessModal(order, earnedXp);
-                    } else if (data.status === 'rejected') {
-                        showCheckoutError(
-                            'card',
-                            'Pagamento recusado pela operadora. Tente outro cartão.'
-                        );
-                    } else {
-                        showCheckoutError(
-                            'card',
-                            'Pagamento em análise. Você será notificado quando for aprovado.'
-                        );
-                    }
-                } catch (err) {
-                    showCheckoutError('card', `Erro ao processar pagamento: ${err.message}`);
-                }
-            },
-            onError: (error) => {
-                console.error('Erro no Brick de cartão:', error);
-                showCheckoutError('card', 'Erro ao carregar o formulário de cartão.');
-            },
-        },
-    });
-}
-
-// ─── Etapa: Sucesso ───────────────────────────────────────────────────────────
-
-function openSuccessModal(order, earnedXp) {
     const orderIdEl = document.getElementById('success-order-id');
-    const methodEl = document.getElementById('success-method');
-    const xpEl = document.getElementById('success-xp');
-    const totalEl = document.getElementById('success-total');
+    const methodEl  = document.getElementById('success-method');
+    const totalEl   = document.getElementById('success-total');
+    const xpEl      = document.getElementById('success-xp');
 
-    if (orderIdEl) orderIdEl.textContent = order.id;
-    if (methodEl) methodEl.textContent = order.method === 'pix' ? 'PIX' : 'Cartão de Crédito';
-    if (xpEl) xpEl.textContent = `+${earnedXp} XP`;
-    if (totalEl) totalEl.textContent = money.format(order.total);
+    const methodLabel = _selectedMethod === 'bank_transfer'
+        ? 'PIX'
+        : _selectedMethod?.includes('debit')
+            ? 'Cartão de Débito'
+            : 'Cartão de Crédito';
 
-    window.showToast?.(`✅ Pedido ${order.id} confirmado! +${earnedXp} XP`);
+    if (orderIdEl) orderIdEl.textContent = order?.id || '—';
+    if (methodEl)  methodEl.textContent  = methodLabel;
+    if (totalEl)   totalEl.textContent   = money.format(order?.total || 0);
+    if (xpEl)      xpEl.textContent      = `+${earnedXp} XP`;
+
+    showStep('success');
+    window.showToast?.(`✅ Pedido ${order?.id} confirmado! +${earnedXp} XP`);
 }
 
-// ─── Utilitários de validação ─────────────────────────────────────────────────
+// ─── Utilitários de erro ──────────────────────────────────────────────────────
 
-function showCheckoutError(context, message) {
+function showError(context, msg) {
     const el = document.getElementById(`checkout-${context}-error`);
-    if (el) {
-        el.textContent = message;
-        el.classList.remove('hidden');
-    }
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+    window.showToast?.(`Erro: ${msg}`);
 }
 
-function clearCheckoutError(context) {
+function clearError(context) {
     const el = document.getElementById(`checkout-${context}-error`);
     if (el) el.classList.add('hidden');
 }
 
-// ─── Listeners do overlay (botão X + confirmação) ────────────────────────────
+// ─── Listeners ────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('checkout-close-btn')?.addEventListener('click', () => {
@@ -413,8 +416,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Expor para uso inline no HTML
+// Expor para onclicks inline no HTML
 window.closeCheckoutOverlay = closeCheckoutOverlay;
-window.closeCheckoutModals = closeCheckoutModals;
-window.submitCustomerForm = submitCustomerForm;
-window.openCheckoutFlow = openCheckoutFlow;
+window.closeCheckoutModals  = closeCheckoutModals;
+window.submitCustomerForm   = submitCustomerForm;
+window.openCheckoutFlow     = openCheckoutFlow;

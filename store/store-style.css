@@ -704,3 +704,31 @@
         flex-direction: row-reverse;
     }
 }
+
+/* ── Payment Brick container ──────────────────────────────────────────────── */
+
+#payment-brick-container {
+    min-height: 120px;
+}
+
+/* PIX result dentro da etapa payment */
+#payment-pix-result {
+    border-top: 1px solid #27272a;
+    padding-top: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+#payment-pix-result .pix-qr-wrap img {
+    max-width: 200px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 0.75rem;
+    border: 2px solid #27272a;
+    background: #fff;
+    padding: 8px;
+}
+
+/* Total do pedido na etapa de pagamento */
+#payment-order-total {
+    color: #ef4444;
+}
