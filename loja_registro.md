@@ -30,6 +30,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 8 | `api/create-payment.js` — Hooks de integração | ⚠️ Substituído pela Etapa 9 (integração real) |
 | 9 | **Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel** | ✅ Concluído (faltam só as chaves) |
 | 10 | Correção de erro de deploy (`vercel.json` runtime inválido) | ✅ Corrigido |
+| 11 | Investigação "teclado não funciona" pós-migração Vercel | ✅ Correções aplicadas (aguardando confirmação) |
 
 ---
 
@@ -371,6 +372,65 @@ certo de fixar a versão do Node é via `engines.node` no `package.json`.
   reais (Supabase primeiro, Mercado Pago de teste depois)
 
 ---
+
+## ✅ ETAPA 11 — Investigação: "teclado não está ok" após migração para Vercel
+
+Relato: depois da migração para a Vercel, o teclado (piano/teclado físico)
+parou de funcionar como antes.
+
+### Investigação feita
+- Comparado `audio.js`, `game.js` e `index.html` entre a versão testada
+  nesta sessão e o estado atual do GitHub → **idênticos**, nenhuma mudança
+  de conteúdo nesses arquivos desde a Etapa 9
+- Checado `vercel.json` em busca de CSP ou headers que pudessem bloquear o
+  domínio externo de samples de áudio (`tonejs.github.io`) → nenhum header
+  configurado
+- Revisada a lógica de `audio.js`/`game.js` → sem bugs de mapeamento de tecla
+  introduzidos nesta sessão
+
+### Causa raiz mais provável (corrigida)
+Na Etapa 9, o script do SDK do Mercado Pago foi adicionado **antes** de
+`audio.js`/`game.js`, sem `defer`:
+```html
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="audio.js"></script>
+<script src="game.js"></script>
+```
+Como é um script síncrono de um domínio externo, ele podia atrasar ou, em
+condições de rede ruins, interferir na ordem de carregamento dos scripts do
+piano.
+
+### Correções aplicadas (cobrindo múltiplos cenários possíveis)
+1. `index.html` — `audio.js` e `game.js` movidos para **antes** do SDK do
+   Mercado Pago; SDK do MP agora carrega com `defer`
+2. `store/checkout-modal.js` — `closeModal()` agora tira o foco
+   (`blur()`) de qualquer campo dentro do modal antes de escondê-lo. Sem
+   isso, se o foco ficasse "preso" num input do checkout, o handler de
+   teclado físico do piano (`audio.js`) continuaria ignorando teclas mesmo
+   com o modal já fechado
+3. `store/checkout-modal.js` — clicar fora do modal de **cartão**
+   (overlay) agora também destrói o Card Payment Brick do Mercado Pago.
+   Antes, só fechar pelo botão "Cancelar" fazia isso — clicar fora deixava
+   o iframe do Brick "vivo" escondido, podendo reter foco de teclado
+4. Confirmado que nenhum input do checkout tem `readonly`/`disabled`
+   acidental
+
+### Observação
+Não foi possível reproduzir o sintoma exato fora do navegador do usuário,
+então as correções acima cobrem as causas mais prováveis identificadas na
+auditoria do código. Se o problema persistir após estas correções, será
+necessário saber especificamente: (a) o piano na tela não emite som ao
+tocar, (b) o teclado físico do computador (teclas A,W,S,E...) não aciona o
+piano, ou (c) o som soa diferente do esperado — cada um aponta para uma
+causa diferente e mais específica.
+
+### Status
+- [ ] Testar piano (tela e teclado físico) após o próximo deploy
+- [ ] Confirmar se o problema foi resolvido ou se persiste, e em qual cenário exato
+
+---
+
+## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
 A integração já está toda escrita — falta só configurar as contas e colar as chaves:
 

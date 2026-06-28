@@ -34,6 +34,12 @@ function openModal(id) {
 function closeModal(id) {
     const el = document.getElementById(id);
     if (!el) return;
+    // Remove o foco de qualquer campo dentro do modal antes de escondê-lo.
+    // Sem isso, se o foco ficar "preso" num input invisível, o teclado físico
+    // do piano (audio.js) continua sendo ignorado mesmo depois do modal fechar.
+    if (el.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
     el.querySelector('.checkout-modal-box')?.classList.add('scale-95', 'opacity-0');
     setTimeout(() => el.classList.add('hidden'), 200);
 }
@@ -370,7 +376,14 @@ document.addEventListener('click', (e) => {
     ];
     overlays.forEach((id) => {
         const el = document.getElementById(id);
-        if (e.target === el) closeModal(id);
+        if (e.target === el) {
+            closeModal(id);
+            if (id === 'modal-checkout-pix') stopPixPolling();
+            // Importante: destrói o Brick do Mercado Pago ao fechar o modal de
+            // cartão. Sem isso, o iframe do Brick continua "vivo" escondido e
+            // pode reter o foco do teclado mesmo depois do modal fechar.
+            if (id === 'modal-checkout-card') destroyCardBrick();
+        }
     });
 });
 

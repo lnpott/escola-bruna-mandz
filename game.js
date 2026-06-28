@@ -116,11 +116,11 @@ window.stopGame = function () {
         completed: false,
     };
     document.getElementById('start-game-btn').classList.remove('hidden');
-    document.getElementById('replay-demo-btn').classList.add('hidden');
-    document.getElementById('stop-game-btn').classList.add('hidden');
-    document.getElementById('game-message').classList.add('hidden');
-    document.getElementById('game-level').classList.add('hidden');
-    document.getElementById('game-counter').classList.add('hidden');
+    document.getElementById('replay-demo-btn').classList.remove('hidden');
+    document.getElementById('stop-game-btn').classList.remove('hidden');
+    document.getElementById('game-message').classList.remove('hidden');
+    document.getElementById('game-level').classList.remove('hidden');
+    document.getElementById('game-counter').classList.remove('hidden');
 
     document
         .querySelectorAll('.piano-key')
@@ -314,3 +314,9 @@ function getNoteFriendlyName(noteId) {
     };
     return mapping[noteId] || { letter: '?', syllable: '?' };
 }
+
+document.addEventListener('DOMContentLoaded', initPianoKeyboard);
+
+// Certifique-se de que a função startGame seja exportada corretamente
+export { startGame, stopGame, demonstrateSequence, handleKeyClick };
+
