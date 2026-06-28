@@ -315,8 +315,6 @@ function getNoteFriendlyName(noteId) {
     return mapping[noteId] || { letter: '?', syllable: '?' };
 }
 
-document.addEventListener('DOMContentLoaded', initPianoKeyboard);
-
-// Certifique-se de que a função startGame seja exportada corretamente
-export { startGame, stopGame, demonstrateSequence, handleKeyClick };
+// initPianoKeyboard() já é chamada em audio.js no DOMContentLoaded —
+// não duplicar aqui para não registrar os event listeners do piano duas vezes.
 
