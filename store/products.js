@@ -2,7 +2,8 @@ export const PRODUCTS = [
     {
         id: 'camiseta-oficial',
         name: 'Camiseta Oficial Bruna Mandz',
-        description: 'Camiseta premium 100% algodão com logo bordado. Perfeita para shows, aulas e o dia a dia.',
+        description:
+            'Camiseta premium 100% algodão com logo bordado. Perfeita para shows, aulas e o dia a dia.',
         price: 59.9,
         stock: 50,
         active: true,
@@ -18,7 +19,8 @@ export const PRODUCTS = [
     {
         id: 'camiseta-infantil',
         name: 'Camiseta Infantil Bruna Mandz',
-        description: 'Versão infantil da camiseta oficial. Algodão macio, lavagem fácil e muito estilo para os pequenos músicos.',
+        description:
+            'Versão infantil da camiseta oficial. Algodão macio, lavagem fácil e muito estilo para os pequenos músicos.',
         price: 44.9,
         stock: 30,
         active: true,
@@ -34,7 +36,8 @@ export const PRODUCTS = [
     {
         id: 'caneca-oficial',
         name: 'Caneca Oficial',
-        description: 'Caneca de cerâmica 320ml com arte exclusiva da escola. Companheira ideal para as sessões de estudo.',
+        description:
+            'Caneca de cerâmica 320ml com arte exclusiva da escola. Companheira ideal para as sessões de estudo.',
         price: 34.9,
         stock: 35,
         active: true,
@@ -47,7 +50,8 @@ export const PRODUCTS = [
     {
         id: 'palheta-kit',
         name: 'Kit Palhetas Personalizadas (6un)',
-        description: 'Pack com 6 palhetas em diferentes espessuras, todas personalizadas com a logo Bruna Mandz. Ideal para guitarristas e violonistas.',
+        description:
+            'Pack com 6 palhetas em diferentes espessuras, todas personalizadas com a logo Bruna Mandz. Ideal para guitarristas e violonistas.',
         price: 24.9,
         stock: 80,
         active: true,
@@ -61,7 +65,8 @@ export const PRODUCTS = [
     {
         id: 'bloco-composicao',
         name: 'Bloco de Composição Musical',
-        description: 'Bloco A5 com 80 páginas pautadas para cifras, letras e partituras. Capa dura com logo gravada.',
+        description:
+            'Bloco A5 com 80 páginas pautadas para cifras, letras e partituras. Capa dura com logo gravada.',
         price: 29.9,
         stock: 40,
         active: true,
@@ -74,7 +79,8 @@ export const PRODUCTS = [
     {
         id: 'mochila-oficial',
         name: 'Mochila Oficial Bruna Mandz',
-        description: 'Mochila resistente com compartimento para notebook e bolso acolchoado para instrumentos. Logo bordada.',
+        description:
+            'Mochila resistente com compartimento para notebook e bolso acolchoado para instrumentos. Logo bordada.',
         price: 129.9,
         stock: 15,
         active: true,
@@ -88,7 +94,8 @@ export const PRODUCTS = [
     {
         id: 'kit-aluno-bruna',
         name: 'Kit Aluno Bruna Mandz',
-        description: 'O combo completo do aluno: camiseta (à escolha), caneca, kit de palhetas e bloco de composição. Melhor custo-benefício!',
+        description:
+            'O combo completo do aluno: camiseta (à escolha), caneca, kit de palhetas e bloco de composição. Melhor custo-benefício!',
         price: 149.9,
         stock: 20,
         active: true,

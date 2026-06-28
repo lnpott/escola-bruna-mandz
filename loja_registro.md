@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 27/06/2026 — 18:02
+> Última atualização: 27/06/2026 — 23:10
 
 ---
 
@@ -22,12 +22,13 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 |---|---|---|
 | 1 | `store/products.js` — Catálogo expandido | ✅ Concluído |
 | 2 | `store/cart.js` — Funções de carrinho avançadas | ✅ Concluído |
-| 3 | `store/payment-config.js` — Config + chave PIX | ✅ Concluído |
-| 4 | `store/checkout-modal.js` — Fluxo de checkout (NOVO) | ✅ Concluído |
-| 5 | `store/store.js` — Redesign visual da loja | ✅ Concluído |
+| 3 | `store/payment-config.js` — Config + chave PIX | ✅ Concluído (revisado na Etapa 9) |
+| 4 | `store/checkout-modal.js` — Fluxo de checkout (NOVO) | ✅ Concluído (reescrito na Etapa 9) |
+| 5 | `store/store.js` — Redesign visual da loja | ✅ Concluído (pequeno ajuste na Etapa 9) |
 | 6 | `store/store-style.css` — CSS premium | ✅ Concluído |
-| 7 | `index.html` — Renomear seção + novos modais + redesign | ✅ Concluído |
-| 8 | `api/create-payment.js` — Hooks de integração | ✅ Concluído |
+| 7 | `index.html` — Renomear seção + novos modais + redesign | ✅ Concluído (ajustado na Etapa 9) |
+| 8 | `api/create-payment.js` — Hooks de integração | ⚠️ Substituído pela Etapa 9 (integração real) |
+| 9 | **Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel** | ✅ Concluído (faltam só as chaves) |
 
 ---
 
@@ -198,20 +199,171 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 
 ---
 
-## 🔮 Próximos Passos (Pós-Implementação)
+## ✅ ETAPA 9 — Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel
 
-Quando estiver pronto para integrar pagamento de verdade:
+> Esta etapa começou com uma **auditoria do código real do GitHub** (não só deste
+> registro), porque o objetivo passou a ser: deixar o sistema pronto para
+> cobrar de verdade, faltando só colar as chaves do Mercado Pago.
 
-1. **Mercado Pago**: criar conta, gerar `ACCESS_TOKEN` e `PUBLIC_KEY`, plugar em `payment-config.js` e `api/create-payment.js`
-2. **PIX real**: usar SDK do MP para gerar QR Code dinâmico com valor e referência do pedido
-3. **Cartão real**: usar Mercado Pago Checkout Bricks ou Stripe Elements no lugar do formulário atual
-4. **Webhook**: configurar `api/webhook.js` para receber notificações de pagamento aprovado e atualizar status do pedido
-5. **Backend**: hospedar `api/` em um servidor Node.js (Netlify Functions, Vercel, Railway) com as variáveis de ambiente seguras
+### 🔍 Problemas encontrados na auditoria (antes de qualquer mudança)
+
+1. **Pedidos só existiam no `localStorage` do navegador do cliente.** O painel
+   `admin/admin.html` lia o mesmo `localStorage`, então a Bruna nunca veria os
+   pedidos reais — só quem comprou via o próprio navegador.
+2. **O formulário de cartão coletava número, validade e CVV reais e não
+   processava nada** — só validava formato e fingia sucesso. Isso é proibido
+   pelas regras de segurança de cartão (PCI-DSS): dados de cartão não podem
+   passar pelo nosso servidor sem tokenização no navegador.
+3. **A chave PIX (`21997600704`, WhatsApp da escola) estava hardcoded e
+   pública no código-fonte do GitHub.**
+4. **`api/create-payment.js`, `api/payment-provider.js` e `api/webhook.js`**
+   estavam escritos no formato de rota de servidor (Next.js-like), que **não
+   funciona** num deploy puramente estático do Vite — eram só protótipos
+   desconectados, nunca chamados pelo front-end.
+5. Texto "Compra segura. Pedidos registrados localmente..." era exibido ao
+   cliente, dando falsa sensação de segurança.
+6. **Bug de ID duplicado**: `id="store-cart-badge"` existia duas vezes no
+   `index.html` (menu + carrinho lateral), então o badge da loja nunca era
+   atualizado pelo JS (sempre pegava o primeiro elemento).
+7. Painel admin acessível por link visível no menu (`admin/admin.html`), sem
+   nenhuma autenticação.
+8. Encontrado `siteId` de um projeto Netlify (`.netlify/state.json`) já
+   vinculado a este repositório — sinal de que o projeto já foi publicado por
+   lá em algum momento. Vale verificar se esse site antigo ainda está no ar.
+
+### 🏗️ Nova arquitetura implementada
+
+```
+Cliente compra → Front chama /api/create-payment (Vercel Function)
+                      ↓
+              Mercado Pago cria o pagamento (PIX real ou Card Brick)
+                      ↓
+              Pedido salvo no Supabase (tabela orders, status: pending)
+                      ↓
+Mercado Pago aprova → webhook → /api/webhook → atualiza status no Supabase
+                      ↓
+Admin (/painel-x9k2f.html, protegido por senha) → lê pedidos reais do Supabase
+```
+
+### O que foi feito
+
+**Banco de dados (Supabase):**
+- Criado `supabase/schema.sql` com a tabela `orders` (status, método, dados do
+  cliente, itens, total, IDs do Mercado Pago) + índices + RLS habilitado sem
+  política pública (só a Service Role Key do backend acessa)
+
+**Backend (Vercel Functions, pasta `api/`):**
+- `api/create-payment.js` — **reescrito do zero**: cria pagamento real
+  (PIX via Payment API, Cartão via token do Brick) e salva/atualiza o pedido
+  no Supabase. Sem as chaves do Mercado Pago configuradas, responde em
+  "modo local" sem cobrar nada, para permitir testes
+- `api/webhook.js` — **reescrito do zero**: recebe notificação do Mercado
+  Pago, busca o pagamento de novo na API (nunca confia só no corpo da
+  notificação) e atualiza o status do pedido no Supabase
+- `api/admin-orders.js` (NOVO) — lista pedidos do Supabase, protegido por
+  senha (header `x-admin-password`, comparado com `ADMIN_PASSWORD`)
+- `api/order-status.js` (NOVO) — consulta pública só de status + total de UM
+  pedido por ID, usada no polling do PIX (não expõe dados pessoais)
+- `api/config.js` (NOVO) — expõe a Public Key do Mercado Pago ao front em
+  runtime, sem hardcodar no código-fonte
+- `api/_lib/supabase.js` (NOVO) — cliente Supabase compartilhado (Service
+  Role Key, nunca exposta ao navegador)
+- Removidos `api/payment-provider.js` e `api/env.example` (mocks
+  desconectados do fluxo real)
+
+**Front-end:**
+- `store/payment-config.js` — reescrito sem nenhuma chave sensível;
+  busca a Public Key via `/api/config`
+- `store/checkout-modal.js` — **reescrito do zero**:
+  - PIX: chama `/api/create-payment`, exibe QR Code real devolvido pelo
+    Mercado Pago, faz polling em `/api/order-status` até aprovação
+  - Cartão: renderiza o **Card Payment Brick oficial do Mercado Pago**
+    (tokenização no navegador, sem coletar número/CVV no nosso servidor)
+- `store/cart.js` — `createLocalOrder` virou `buildOrder` (monta o pedido sem
+  persistir) + `applyStudentXp` (separado, só aplicado após pagamento
+  confirmado, não antes)
+- `index.html`:
+  - Removidos os 2 links visíveis de admin (menu + carrinho lateral)
+  - Corrigido ID duplicado `store-cart-badge` → `nav-cart-badge` no menu
+  - Modal de cartão: formulário manual trocado por container do Brick
+  - Modal PIX: chave fixa trocada por código copia-e-cola dinâmico + status
+  - Textos de falsa segurança corrigidos
+  - Adicionado script do SDK do Mercado Pago (`sdk.mercadopago.com/js/v2`)
+- `store/store.js` — passa a sincronizar também o badge do menu (`nav-cart-badge`)
+
+**Admin:**
+- Removida a pasta `admin/` antiga (sem autenticação)
+- Criado `painel-x9k2f.html` (NOVO) — rota escondida, tela de login por
+  senha, busca pedidos via `/api/admin-orders`. Sessão da senha fica só em
+  `sessionStorage` da aba (não persiste entre navegadores/dispositivos)
+
+**Deploy / Build:**
+- `vercel.json` (NOVO) — runtime `nodejs20.x` para todas as funções
+- `vite.config.js` — adicionado `painel-x9k2f.html` como entry point extra
+  (sem isso, o Vite não incluía o admin no build de produção)
+- `package.json` — adicionadas dependências `mercadopago` e
+  `@supabase/supabase-js`
+- `.env.example` (NOVO, na raiz) — todas as variáveis necessárias documentadas
+- `service-worker.js` — bump de cache (`v2` → `v3`), rotas `/api/*` nunca são
+  servidas do cache, e versões antigas de cache são limpas automaticamente
+- `eslint.config.js` — corrigido para reconhecer globals de browser e Node
+  separadamente (erro pré-existente, não introduzido nesta etapa)
+- `docs/PUBLICACAO.md` — checklist reescrito para a arquitetura real
+
+### Validações feitas nesta etapa
+- ✅ Sintaxe de todos os arquivos `.js` (`node --check`)
+- ✅ ESLint sem erros em todos os arquivos novos/modificados
+- ✅ Prettier aplicado (formatação consistente com o resto do projeto)
+- ✅ `npm install` resolve sem conflito; confirmado que `Payment`,
+  `MercadoPagoConfig` e `createClient` existem nas versões instaladas
+- ✅ `npm run build` gera `dist/index.html` e `dist/painel-x9k2f.html`
+  corretamente, com CSS/JS com hash
+- ✅ Simulação de chamada a `create-payment.js` e `admin-orders.js` sem
+  variáveis de ambiente reais — comportamento de fallback confirmado
+- ✅ Todos os IDs referenciados pelo JS existem no HTML (checagem automatizada)
+
+### Testado no navegador (pendente — você precisa fazer)
+- [ ] Rodar `npm install` e `npm run dev` localmente
+- [ ] Testar fluxo PIX em modo local (sem chaves) — deve mostrar aviso de modo teste
+- [ ] Criar projeto Supabase e rodar `supabase/schema.sql`
+- [ ] Criar credenciais de TESTE no Mercado Pago e testar PIX/Cartão de verdade
+- [ ] Configurar variáveis de ambiente na Vercel e fazer o primeiro deploy
+- [ ] Acessar `/painel-x9k2f.html` e confirmar que pede senha e mostra pedidos
+
+---
+
+## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
+
+A integração já está toda escrita — falta só configurar as contas e colar as chaves:
+
+1. **Supabase**: criar o projeto (ou usar o já conectado) e rodar
+   `supabase/schema.sql` no SQL Editor
+2. **Mercado Pago**: criar conta de desenvolvedor, pegar credenciais de
+   **teste** primeiro, testar o fluxo completo, só depois trocar para
+   credenciais de **produção**
+3. **Vercel**: conectar o repositório, configurar as variáveis de
+   `.env.example`, fazer o deploy
+4. **Webhook**: configurar a URL `https://seu-dominio.vercel.app/api/webhook`
+   no painel do Mercado Pago
+5. **Verificar o site antigo na Netlify** (`.netlify/state.json` indica que
+   já existiu um deploy lá) — decidir se ele deve ser desativado para não
+   haver duas versões diferentes do site no ar
+6. **Fase futura (não crítica agora)**: editar produtos via painel admin
+   (hoje os produtos continuam fixos em `store/products.js`, só os pedidos
+   passaram a ser dinâmicos via Supabase)
+
+Passo a passo detalhado de configuração está em `docs/PUBLICACAO.md`.
 
 ---
 
 ## 📝 Notas Gerais
 
-- A chave PIX usada como placeholder é `21997600704` (WhatsApp da escola)
-- Todos os pedidos ficam salvos em `localStorage` com chave `bruna_orders` e aparecem no painel Admin (`admin/admin.html`)
-- O sistema de XP é mantido: cada compra adiciona pontos ao aluno (`bruna_student_progress`)
+- A chave PIX antiga (placeholder `21997600704`) foi **removida do código**.
+  A cobrança PIX agora é gerada dinamicamente pelo Mercado Pago a cada
+  pedido — nenhuma chave fica exposta no front-end
+- Pedidos agora são a fonte de verdade no **Supabase** (tabela `orders`),
+  não mais só no `localStorage` do cliente
+- O sistema de XP é mantido, mas agora só é aplicado **após confirmação do
+  pagamento** (antes era aplicado na hora de criar o pedido, mesmo sem pagar)
+- O admin mudou de `admin/admin.html` (sem senha) para `painel-x9k2f.html`
+  (com senha via `ADMIN_PASSWORD`)

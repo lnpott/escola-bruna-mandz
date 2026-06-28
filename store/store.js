@@ -1,5 +1,12 @@
 import { PRODUCTS } from './products.js';
-import { addToCart, removeFromCart, updateQuantity, cartTotal, cartItemCount, getCart } from './cart.js';
+import {
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    cartTotal,
+    cartItemCount,
+    getCart,
+} from './cart.js';
 import { openCheckoutFlow } from './checkout-modal.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -25,7 +32,10 @@ function badgeHtml(product) {
 function variantHtml(product) {
     if (!product.variants?.sizes?.length) return '';
     const options = product.variants.sizes
-        .map((s) => `<button type="button" class="size-btn" data-size="${s}" data-product-id="${product.id}">${s}</button>`)
+        .map(
+            (s) =>
+                `<button type="button" class="size-btn" data-size="${s}" data-product-id="${product.id}">${s}</button>`
+        )
         .join('');
     return `
         <div class="size-selector" data-product-id="${product.id}">
@@ -55,7 +65,9 @@ export function renderProducts() {
         return;
     }
 
-    area.innerHTML = filtered.map((product) => `
+    area.innerHTML = filtered
+        .map(
+            (product) => `
         <article class="product-card" data-product-id="${product.id}">
             <div class="product-img-wrap">
                 <img src="${product.image}" alt="${product.name}" loading="lazy" />
@@ -78,7 +90,9 @@ export function renderProducts() {
                 </p>
             </div>
         </article>
-    `).join('');
+    `
+        )
+        .join('');
 
     // Seleciona o primeiro tamanho por padrão
     area.querySelectorAll('.size-btn').forEach((btn) => {
@@ -117,9 +131,12 @@ export function renderCart() {
 
     if (area) {
         area.innerHTML = cart.length
-            ? cart.map((item) => {
-                  const variantLabel = item.variant ? `<span class="cart-variant">${item.variant}</span>` : '';
-                  return `
+            ? cart
+                  .map((item) => {
+                      const variantLabel = item.variant
+                          ? `<span class="cart-variant">${item.variant}</span>`
+                          : '';
+                      return `
                     <div class="cart-line">
                         <div class="cart-line-info">
                             <span class="cart-line-name">${item.name}${variantLabel}</span>
@@ -139,7 +156,8 @@ export function renderCart() {
                                 title="Remover item">×</button>
                         </div>
                     </div>`;
-              }).join('')
+                  })
+                  .join('')
             : `<div class="cart-empty">
                     <i class="fas fa-shopping-bag text-3xl text-zinc-700 mb-2"></i>
                     <p>Seu carrinho está vazio.</p>
@@ -151,6 +169,8 @@ export function renderCart() {
 
     const count = cartItemCount(cart);
     if (badge) badge.textContent = count;
+    const navBadge = document.querySelector('#nav-cart-badge');
+    if (navBadge) navBadge.textContent = count;
 
     // Desabilitar botões de checkout se carrinho estiver vazio
     const disabled = !cart.length;
@@ -222,11 +242,10 @@ document.addEventListener('click', (event) => {
         const productId = qtyBtn.dataset.productId;
         const variant = qtyBtn.dataset.variant || null;
         const cart = getCart();
-        const item = cart.find(
-            (e) => e.id === productId && (e.variant ?? '') === (variant ?? '')
-        );
+        const item = cart.find((e) => e.id === productId && (e.variant ?? '') === (variant ?? ''));
         if (!item) return;
-        const newQty = qtyBtn.dataset.qtyAction === 'increase' ? item.quantity + 1 : item.quantity - 1;
+        const newQty =
+            qtyBtn.dataset.qtyAction === 'increase' ? item.quantity + 1 : item.quantity - 1;
         updateQuantity(productId, newQty, variant || null);
         renderCart();
         return;

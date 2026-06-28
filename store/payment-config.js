@@ -1,32 +1,35 @@
+// store/payment-config.js
+//
+// Configuração de pagamento do front-end. Nenhuma chave sensível fica aqui.
+//
+// A Public Key do Mercado Pago é buscada em runtime via /api/config (que lê
+// a variável de ambiente MERCADO_PAGO_PUBLIC_KEY na Vercel). A chave PIX real
+// e o Access Token ficam só no backend e nunca chegam ao navegador do cliente.
+
 export const PAYMENT_CONFIG = {
-    provider: 'mercado_pago', // Provedor ativo: 'mercado_pago' | 'stripe'
     methods: {
         pix: true,
         card: true,
     },
-    endpoint: '/api/create-payment',
-
-    // ─── PIX ──────────────────────────────────────────────────────────────────
-    // Chave Pix exibida no modal de pagamento.
-    // Substitua pelo valor real quando for ao ar.
-    pixKey: '21997600704', // Placeholder: número WhatsApp da escola
-    pixName: 'Escola de Música Bruna Mandz',
-    pixCity: 'Maricá',
-
-    // ─── MERCADO PAGO ─────────────────────────────────────────────────────────
-    // Para ativar o Mercado Pago:
-    // 1. Crie uma conta em https://www.mercadopago.com.br/developers
-    // 2. Acesse Credenciais > Produção
-    // 3. Copie a Public Key e insira abaixo
-    // 4. Copie o Access Token e insira em api/create-payment.js (variável de ambiente)
-    mercadoPagoPublicKey: null, // Ex: 'APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-
-    // ─── STRIPE ───────────────────────────────────────────────────────────────
-    // Alternativa ao Mercado Pago para pagamento com cartão.
-    // Para ativar o Stripe:
-    // 1. Crie uma conta em https://dashboard.stripe.com
-    // 2. Acesse Developers > API Keys
-    // 3. Copie a Publishable Key e insira abaixo
-    // 4. Copie a Secret Key e insira em api/create-payment.js (variável de ambiente)
-    stripePublicKey: null, // Ex: 'pk_live_xxxxxxxxxxxxxxxxxxxxxxxx'
+    createPaymentEndpoint: '/api/create-payment',
+    publicConfigEndpoint: '/api/config',
 };
+
+let _cachedPublicKey = null;
+
+/**
+ * Busca a Public Key do Mercado Pago do endpoint /api/config.
+ * Resultado é cacheado em memória durante a sessão da página.
+ */
+export async function getMercadoPagoPublicKey() {
+    if (_cachedPublicKey) return _cachedPublicKey;
+    try {
+        const res = await fetch(PAYMENT_CONFIG.publicConfigEndpoint);
+        const data = await res.json();
+        _cachedPublicKey = data.mercadoPagoPublicKey;
+        return _cachedPublicKey;
+    } catch (err) {
+        console.error('Não foi possível carregar a configuração de pagamento:', err);
+        return null;
+    }
+}

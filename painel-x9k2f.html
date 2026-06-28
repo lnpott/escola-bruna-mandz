@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Painel — Loja Oficial</title>
+        <link rel="stylesheet" href="store/store-style.css" />
+        <style>
+            body { background: #09090b; color: #e4e4e7; font-family: system-ui, sans-serif; }
+            .panel-wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
+            .login-box { max-width: 360px; margin: 80px auto; background: #18181b; border: 1px solid #27272a; border-radius: 16px; padding: 28px; }
+            .login-box input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #3f3f46; background: #09090b; color: #fff; margin: 10px 0; }
+            .login-box button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #dc2626; color: #fff; font-weight: 700; cursor: pointer; }
+            .login-error { color: #f87171; font-size: 12px; margin-top: 6px; min-height: 16px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 20px; }
+            th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #27272a; }
+            th { color: #a1a1aa; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+            .status-pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+            .status-approved { background: #14532d; color: #86efac; }
+            .status-pending { background: #422006; color: #fcd34d; }
+            .status-rejected, .status-cancelled { background: #450a0a; color: #fca5a5; }
+            .status-refunded { background: #1e293b; color: #93c5fd; }
+            .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+            .toolbar button { padding: 8px 14px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 13px; }
+            .empty-state { text-align: center; padding: 40px; color: #71717a; }
+        </style>
+    </head>
+    <body>
+        <!-- Tela de login -->
+        <div id="login-screen" class="login-box">
+            <h2 style="margin:0 0 4px;">Painel — Loja Oficial</h2>
+            <p style="color:#a1a1aa; font-size:13px;">Acesso restrito.</p>
+            <input id="admin-password-input" type="password" placeholder="Senha" autocomplete="current-password" />
+            <div id="login-error" class="login-error"></div>
+            <button id="login-submit">Entrar</button>
+        </div>
+
+        <!-- Painel (oculto até autenticar) -->
+        <div id="panel-screen" class="panel-wrap" style="display:none;">
+            <div class="toolbar">
+                <h1 style="font-size:20px;">Pedidos da Loja</h1>
+                <button id="refresh-btn">Atualizar</button>
+            </div>
+            <div id="orders-area"></div>
+        </div>
+
+        <script>
+            const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            const STORAGE_KEY = 'bruna_admin_session'; // guarda a senha só na sessão do navegador (sessionStorage)
+
+            const loginScreen = document.getElementById('login-screen');
+            const panelScreen = document.getElementById('panel-screen');
+            const ordersArea = document.getElementById('orders-area');
+            const loginError = document.getElementById('login-error');
+
+            function statusLabel(status) {
+                return {
+                    approved: 'Aprovado',
+                    pending: 'Pendente',
+                    rejected: 'Rejeitado',
+                    cancelled: 'Cancelado',
+                    refunded: 'Devolvido',
+                }[status] || status;
+            }
+
+            async function fetchOrders(password) {
+                const res = await fetch('/api/admin-orders', {
+                    headers: { 'x-admin-password': password },
+                });
+                if (res.status === 401) throw new Error('Senha incorreta.');
+                if (!res.ok) throw new Error('Erro ao buscar pedidos.');
+                return res.json();
+            }
+
+            function renderOrders(orders) {
+                if (!orders.length) {
+                    ordersArea.innerHTML = '<div class="empty-state">Nenhum pedido ainda.</div>';
+                    return;
+                }
+                ordersArea.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pedido</th><th>Data</th><th>Cliente</th><th>Método</th>
+                                <th>Total</th><th>Status</th><th>XP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${orders.map((o) => `
+                                <tr>
+                                    <td><strong>${o.id}</strong></td>
+                                    <td>${new Date(o.created_at).toLocaleString('pt-BR')}</td>
+                                    <td>${o.customer_name || '—'}<br><span style="color:#71717a">${o.customer_email || ''}</span></td>
+                                    <td>${(o.method || '').toUpperCase()}</td>
+                                    <td>${money.format(o.total)}</td>
+                                    <td><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
+                                    <td>+${o.earned_xp || 0}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
+            }
+
+            async function loadPanel(password) {
+                try {
+                    const { orders } = await fetchOrders(password);
+                    renderOrders(orders);
+                    loginScreen.style.display = 'none';
+                    panelScreen.style.display = 'block';
+                    sessionStorage.setItem(STORAGE_KEY, password);
+                } catch (err) {
+                    loginError.textContent = err.message;
+                }
+            }
+
+            document.getElementById('login-submit').addEventListener('click', () => {
+                const password = document.getElementById('admin-password-input').value;
+                loadPanel(password);
+            });
+            document.getElementById('admin-password-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') document.getElementById('login-submit').click();
+            });
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                const password = sessionStorage.getItem(STORAGE_KEY);
+                if (password) loadPanel(password);
+            });
+
+            // Tenta usar a senha já guardada nesta aba (não persiste entre sessões/navegadores)
+            const savedPassword = sessionStorage.getItem(STORAGE_KEY);
+            if (savedPassword) loadPanel(savedPassword);
+        </script>
+    </body>
+</html>

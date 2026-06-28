@@ -1,17 +1,22 @@
 /**
  * checkout-modal.js
- * Módulo de fluxo de checkout da Loja Oficial Bruna Mandz.
+ * Módulo de fluxo de checkout da Loja Oficial Bruna Mandz — integrado ao
+ * Mercado Pago de verdade (PIX via Payment API, Cartão via Card Payment Brick).
  *
  * Fluxo:
  *   openCheckoutFlow(method)
  *     → Modal #1: Dados do Cliente  (#modal-checkout-customer)
- *     → Modal #2a PIX:  QR Code + Chave Pix  (#modal-checkout-pix)
- *     → Modal #2b Cartão: Formulário de cartão  (#modal-checkout-card)
+ *     → Modal #2a PIX:  chama /api/create-payment → QR Code real do MP (#modal-checkout-pix)
+ *     → Modal #2b Cartão: Brick do Mercado Pago tokeniza e envia (#modal-checkout-card)
  *     → Modal #3: Sucesso / Confirmação  (#modal-checkout-success)
+ *
+ * Enquanto MERCADO_PAGO_ACCESS_TOKEN não estiver configurado na Vercel, o
+ * backend responde em "modo local" e o fluxo segue normalmente para fins de
+ * teste, só sem cobrar nada de verdade.
  */
 
-import { PAYMENT_CONFIG } from './payment-config.js';
-import { createLocalOrder, getCart, cartTotal } from './cart.js';
+import { PAYMENT_CONFIG, getMercadoPagoPublicKey } from './payment-config.js';
+import { buildOrder, clearCart, applyStudentXp, getCart } from './cart.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -34,8 +39,14 @@ function closeModal(id) {
 }
 
 export function closeCheckoutModals() {
-    ['modal-checkout-customer', 'modal-checkout-pix', 'modal-checkout-card', 'modal-checkout-success']
-        .forEach(closeModal);
+    [
+        'modal-checkout-customer',
+        'modal-checkout-pix',
+        'modal-checkout-card',
+        'modal-checkout-success',
+    ].forEach(closeModal);
+    stopPixPolling();
+    destroyCardBrick();
 }
 
 // ─── Fluxo principal ──────────────────────────────────────────────────────────
@@ -47,8 +58,7 @@ let _checkoutMethod = 'pix';
  * @param {'pix'|'card'} method
  */
 export function openCheckoutFlow(method) {
-    const cart = getCart();
-    if (!cart.length) {
+    if (!getCart().length) {
         window.showToast?.('Adicione produtos ao carrinho primeiro!');
         return;
     }
@@ -58,7 +68,7 @@ export function openCheckoutFlow(method) {
 
 // ─── Modal 1: Dados do Cliente ────────────────────────────────────────────────
 
-export function submitCustomerForm() {
+export async function submitCustomerForm() {
     const name = document.getElementById('checkout-name')?.value.trim();
     const email = document.getElementById('checkout-email')?.value.trim();
     const phone = document.getElementById('checkout-phone')?.value.trim();
@@ -73,168 +83,248 @@ export function submitCustomerForm() {
     }
 
     clearCheckoutError('customer');
-    closeModal('modal-checkout-customer');
 
+    let order, earnedXp;
     try {
-        const { order, earnedXp } = createLocalOrder({
+        ({ order, earnedXp } = buildOrder({
             method: _checkoutMethod,
             customer: { name, email, phone },
-        });
-
-        if (_checkoutMethod === 'pix') {
-            openPixModal(order, earnedXp);
-        } else {
-            openCardModal(order, earnedXp);
-        }
+        }));
     } catch (err) {
         window.showToast?.(`Erro: ${err.message}`);
+        return;
+    }
+
+    closeModal('modal-checkout-customer');
+
+    if (_checkoutMethod === 'pix') {
+        openPixModal(order, earnedXp);
+    } else {
+        openCardModal(order, earnedXp);
     }
 }
 
 // ─── Modal 2a: PIX ────────────────────────────────────────────────────────────
 
-function openPixModal(order, earnedXp) {
+let _pixPollInterval = null;
+
+function stopPixPolling() {
+    if (_pixPollInterval) {
+        clearInterval(_pixPollInterval);
+        _pixPollInterval = null;
+    }
+}
+
+async function openPixModal(order, earnedXp) {
     const totalEl = document.getElementById('pix-total');
     const keyEl = document.getElementById('pix-key');
-    const nameEl = document.getElementById('pix-name');
     const orderEl = document.getElementById('pix-order-id');
     const qrImg = document.getElementById('pix-qrcode');
+    const statusLine = document.getElementById('pix-status-line');
+    const confirmBtn = document.getElementById('pix-confirm-btn');
 
     if (totalEl) totalEl.textContent = money.format(order.total);
-    if (keyEl) keyEl.textContent = PAYMENT_CONFIG.pixKey;
-    if (nameEl) nameEl.textContent = PAYMENT_CONFIG.pixName;
     if (orderEl) orderEl.textContent = order.id;
-
-    // QR Code gerado via API pública (substitua por QR Code real do Mercado Pago)
-    const qrText = encodeURIComponent(
-        `PIX|${PAYMENT_CONFIG.pixKey}|${order.total.toFixed(2)}|${order.id}|${PAYMENT_CONFIG.pixName}`
-    );
-    if (qrImg) {
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrText}&bgcolor=09090b&color=ffffff&margin=10`;
-        qrImg.alt = `QR Code PIX - Pedido ${order.id}`;
-    }
-
-    // Botão de confirmação
-    const confirmBtn = document.getElementById('pix-confirm-btn');
-    if (confirmBtn) {
-        confirmBtn.onclick = () => {
-            closeModal('modal-checkout-pix');
-            openSuccessModal(order, earnedXp);
-        };
-    }
-
-    // Botão de copiar chave
-    const copyBtn = document.getElementById('pix-copy-btn');
-    if (copyBtn) {
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(PAYMENT_CONFIG.pixKey).then(() => {
-                window.showToast?.('Chave PIX copiada!');
-                copyBtn.textContent = '✓ Copiado!';
-                setTimeout(() => (copyBtn.textContent = 'Copiar Chave'), 2000);
-            });
-        };
-    }
+    if (keyEl) keyEl.textContent = 'Gerando código…';
+    if (statusLine) statusLine.textContent = 'Gerando cobrança…';
 
     openModal('modal-checkout-pix');
 
-    // ─── HOOK MERCADO PAGO ─────────────────────────────────────────────────
-    // Quando tiver a integração real, substitua o QR Code acima pelo retornado pela API:
-    //
-    // const mpResponse = await fetch('/api/create-payment', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ method: 'pix', order })
-    // });
-    // const { qr_code_base64, qr_code } = await mpResponse.json();
-    // qrImg.src = `data:image/png;base64,${qr_code_base64}`;
-    // keyEl.textContent = qr_code; // código copia-e-cola
-    // ──────────────────────────────────────────────────────────────────────
+    try {
+        const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ method: 'pix', order }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || 'Falha ao gerar cobrança PIX.');
+        }
+
+        if (data.mode === 'local') {
+            // Modo local: ainda não há chave do Mercado Pago configurada.
+            if (keyEl)
+                keyEl.textContent =
+                    '(modo de teste — configure o Mercado Pago para gerar um código real)';
+            if (statusLine) statusLine.textContent = data.message;
+            if (qrImg) qrImg.alt = 'QR Code indisponível em modo local';
+        } else {
+            if (qrImg && data.qr_code_base64) {
+                qrImg.src = `data:image/png;base64,${data.qr_code_base64}`;
+                qrImg.alt = `QR Code PIX - Pedido ${order.id}`;
+            }
+            if (keyEl) keyEl.textContent = data.qr_code || '—';
+            if (statusLine) statusLine.textContent = 'Aguardando confirmação do pagamento…';
+
+            // Consulta o status do pedido periodicamente até ser aprovado/rejeitado.
+            startPixPolling(order, earnedXp, data.paymentId);
+        }
+
+        const copyBtn = document.getElementById('pix-copy-btn');
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(keyEl?.textContent || '').then(() => {
+                    window.showToast?.('Código PIX copiado!');
+                    copyBtn.textContent = '✓ Copiado!';
+                    setTimeout(() => (copyBtn.textContent = 'Copiar Código'), 2000);
+                });
+            };
+        }
+
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                stopPixPolling();
+                closeModal('modal-checkout-pix');
+            };
+        }
+    } catch (err) {
+        if (statusLine) statusLine.textContent = `Erro: ${err.message}`;
+        window.showToast?.(`Erro ao gerar PIX: ${err.message}`);
+    }
 }
 
-// ─── Modal 2b: Cartão ─────────────────────────────────────────────────────────
+function startPixPolling(order, earnedXp) {
+    stopPixPolling();
+    let attempts = 0;
+    _pixPollInterval = setInterval(async () => {
+        attempts += 1;
+        if (attempts > 60) {
+            stopPixPolling(); // ~5 minutos de polling, depois para
+            return;
+        }
+        try {
+            const res = await fetch(`/api/order-status?id=${encodeURIComponent(order.id)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.status === 'approved') {
+                stopPixPolling();
+                clearCart();
+                applyStudentXp(earnedXp);
+                closeModal('modal-checkout-pix');
+                openSuccessModal(order, earnedXp);
+            } else if (['rejected', 'cancelled'].includes(data.status)) {
+                stopPixPolling();
+                const statusLine = document.getElementById('pix-status-line');
+                if (statusLine) statusLine.textContent = 'Pagamento não aprovado. Tente novamente.';
+            }
+        } catch {
+            // silenciosamente ignora falhas de rede no polling
+        }
+    }, 5000);
+}
 
-function openCardModal(order, earnedXp) {
+// ─── Modal 2b: Cartão (Mercado Pago Card Payment Brick) ──────────────────────
+
+let _cardBrickController = null;
+
+async function destroyCardBrick() {
+    if (_cardBrickController) {
+        try {
+            await _cardBrickController.unmount();
+        } catch {
+            // ignora
+        }
+        _cardBrickController = null;
+    }
+}
+
+async function openCardModal(order, earnedXp) {
     const totalEl = document.getElementById('card-total');
     const orderEl = document.getElementById('card-order-id');
     if (totalEl) totalEl.textContent = money.format(order.total);
     if (orderEl) orderEl.textContent = order.id;
 
-    // Formata número do cartão automaticamente
-    const cardNumber = document.getElementById('card-number');
-    if (cardNumber) {
-        cardNumber.addEventListener('input', () => {
-            let val = cardNumber.value.replace(/\D/g, '').slice(0, 16);
-            cardNumber.value = val.replace(/(.{4})/g, '$1 ').trim();
-        });
-    }
-
-    // Formata validade
-    const cardExpiry = document.getElementById('card-expiry');
-    if (cardExpiry) {
-        cardExpiry.addEventListener('input', () => {
-            let val = cardExpiry.value.replace(/\D/g, '').slice(0, 4);
-            if (val.length >= 3) val = val.slice(0, 2) + '/' + val.slice(2);
-            cardExpiry.value = val;
-        });
-    }
-
-    // Limita CVV a 3 ou 4 dígitos
-    const cardCvv = document.getElementById('card-cvv');
-    if (cardCvv) {
-        cardCvv.addEventListener('input', () => {
-            cardCvv.value = cardCvv.value.replace(/\D/g, '').slice(0, 4);
-        });
-    }
-
-    const submitBtn = document.getElementById('card-submit-btn');
-    if (submitBtn) {
-        submitBtn.onclick = () => submitCardForm(order, earnedXp);
-    }
-
     openModal('modal-checkout-card');
+    clearCheckoutError('card');
 
-    // ─── HOOK MERCADO PAGO / STRIPE ───────────────────────────────────────
-    // Para usar Mercado Pago Checkout Bricks:
-    //   const mp = new MercadoPago(PAYMENT_CONFIG.mercadoPagoPublicKey);
-    //   const bricks = mp.bricks();
-    //   await bricks.create('cardPayment', 'mp-card-form', { ... });
-    //
-    // Para usar Stripe Elements:
-    //   const stripe = Stripe(PAYMENT_CONFIG.stripePublicKey);
-    //   const elements = stripe.elements();
-    //   const cardElement = elements.create('card');
-    //   cardElement.mount('#stripe-card-element');
-    // ──────────────────────────────────────────────────────────────────────
-}
+    const publicKey = await getMercadoPagoPublicKey();
+    const brickContainer = document.getElementById('card-payment-brick');
 
-function submitCardForm(order, earnedXp) {
-    const number = document.getElementById('card-number')?.value.replace(/\s/g, '');
-    const holder = document.getElementById('card-holder')?.value.trim();
-    const expiry = document.getElementById('card-expiry')?.value.trim();
-    const cvv = document.getElementById('card-cvv')?.value.trim();
-
-    if (!number || number.length < 16 || !holder || !expiry || cvv.length < 3) {
-        showCheckoutError('card', 'Por favor, preencha todos os dados do cartão corretamente.');
+    if (!publicKey) {
+        if (brickContainer) {
+            brickContainer.innerHTML = `
+                <div class="checkout-error" style="display:block;">
+                    Pagamento por cartão ainda não está configurado
+                    (MERCADO_PAGO_PUBLIC_KEY ausente). Use o PIX por enquanto,
+                    ou configure a chave nas variáveis de ambiente da Vercel.
+                </div>`;
+        }
         return;
     }
 
-    clearCheckoutError('card');
+    if (typeof window.MercadoPago === 'undefined') {
+        if (brickContainer) {
+            brickContainer.innerHTML = `<div class="checkout-error" style="display:block;">SDK do Mercado Pago não carregou. Verifique sua conexão.</div>`;
+        }
+        return;
+    }
 
-    // ─── HOOK DE INTEGRAÇÃO ───────────────────────────────────────────────
-    // Aqui você enviaria os dados tokenizados para a API de pagamento.
-    // NUNCA envie dados brutos do cartão ao servidor — use o SDK do MP ou Stripe
-    // para tokenizar antes de enviar.
-    //
-    // Exemplo Mercado Pago:
-    //   const cardToken = await mp.createCardToken({ ... });
-    //   await fetch('/api/create-payment', {
-    //     method: 'POST',
-    //     body: JSON.stringify({ method: 'card', token: cardToken.id, order })
-    //   });
-    // ──────────────────────────────────────────────────────────────────────
+    await destroyCardBrick();
 
-    closeModal('modal-checkout-card');
-    openSuccessModal(order, earnedXp);
+    const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
+    const bricksBuilder = mp.bricks();
+
+    _cardBrickController = await bricksBuilder.create('cardPayment', 'card-payment-brick', {
+        initialization: {
+            amount: order.total,
+        },
+        callbacks: {
+            onReady: () => {},
+            onSubmit: async (cardFormData) => {
+                try {
+                    const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            method: 'card',
+                            order,
+                            cardToken: cardFormData.token,
+                            paymentMethodId: cardFormData.payment_method_id,
+                            installments: cardFormData.installments,
+                        }),
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        showCheckoutError('card', data.error || 'Pagamento recusado.');
+                        return;
+                    }
+
+                    if (data.mode === 'local') {
+                        clearCart();
+                        applyStudentXp(earnedXp);
+                        closeModal('modal-checkout-card');
+                        openSuccessModal(order, earnedXp);
+                        return;
+                    }
+
+                    if (data.status === 'approved') {
+                        clearCart();
+                        applyStudentXp(earnedXp);
+                        closeModal('modal-checkout-card');
+                        openSuccessModal(order, earnedXp);
+                    } else if (data.status === 'rejected') {
+                        showCheckoutError(
+                            'card',
+                            'Pagamento recusado pela operadora. Tente outro cartão.'
+                        );
+                    } else {
+                        showCheckoutError(
+                            'card',
+                            'Pagamento em análise. Você será notificado quando for aprovado.'
+                        );
+                    }
+                } catch (err) {
+                    showCheckoutError('card', `Erro ao processar pagamento: ${err.message}`);
+                }
+            },
+            onError: (error) => {
+                console.error('Erro no Brick de cartão:', error);
+                showCheckoutError('card', 'Erro ao carregar o formulário de cartão.');
+            },
+        },
+    });
 }
 
 // ─── Modal 3: Sucesso ─────────────────────────────────────────────────────────
@@ -250,7 +340,7 @@ function openSuccessModal(order, earnedXp) {
     if (xpEl) xpEl.textContent = `+${earnedXp} XP`;
     if (totalEl) totalEl.textContent = money.format(order.total);
 
-    window.showToast?.(`✅ Pedido ${order.id} registrado! +${earnedXp} XP`);
+    window.showToast?.(`✅ Pedido ${order.id} confirmado! +${earnedXp} XP`);
     openModal('modal-checkout-success');
 }
 

@@ -1,142 +1,194 @@
 /**
  * api/create-payment.js
- * Endpoint de criação de pagamento — Loja Oficial Bruna Mandz
+ * Cria um pagamento real no Mercado Pago (PIX ou Cartão) e salva o pedido no Supabase.
  *
- * STATUS ATUAL: Modo local (sem integração real).
- * Para ativar pagamento real, siga as instruções em cada seção abaixo.
+ * Vercel Function — runtime Node (precisamos do SDK oficial do Mercado Pago).
  *
- * Deploy sugerido: Netlify Functions, Vercel Serverless, Railway ou Render.
+ * NOTA SOBRE A VERSÃO DO SDK: este código usa a classe `Payment` do pacote
+ * `mercadopago` (npm), que funciona nas versões 2.x. Há uma versão mais nova
+ * do SDK que usa a classe `Order` em vez de `Payment` para fluxos mais
+ * complexos — se ao instalar você receber avisos de depreciação sobre
+ * `Payment`, consulte https://github.com/mercadopago/sdk-nodejs para o
+ * exemplo atualizado e me avise para eu adaptar este arquivo.
+ *
+ * VARIÁVEIS DE AMBIENTE NECESSÁRIAS (configure na Vercel > Settings > Environment Variables):
+ *   MERCADO_PAGO_ACCESS_TOKEN  → Access Token de produção (Mercado Pago > Credenciais)
+ *   SUPABASE_URL               → URL do projeto Supabase
+ *   SUPABASE_SERVICE_ROLE_KEY  → Service Role Key do Supabase
+ *
+ * ENQUANTO essas variáveis não existirem, o endpoint responde em "modo local"
+ * (sem cobrar nada de verdade) para você poder testar o resto do fluxo.
  */
 
-// ─── VARIÁVEIS DE AMBIENTE (configure no painel do seu host) ──────────────────
-//
-//  MERCADO_PAGO_ACCESS_TOKEN  → Seu Access Token de produção do Mercado Pago
-//  STRIPE_SECRET_KEY          → Sua Secret Key de produção do Stripe
-//  PIX_KEY                    → Chave Pix da escola (telefone, CPF, e-mail ou aleatória)
-//
-// Exemplo de arquivo .env (nunca suba ao GitHub!):
-//   MERCADO_PAGO_ACCESS_TOKEN=APP_USR-xxxx-xxxx-xxxx-xxxx
-//   STRIPE_SECRET_KEY=sk_live_xxxx
-//   PIX_KEY=21997600704
-// ─────────────────────────────────────────────────────────────────────────────
+import { MercadoPagoConfig, Payment } from 'mercadopago';
+import { getSupabase } from './_lib/supabase.js';
 
-export async function POST(request) {
-    let body;
-    try {
-        body = await request.json();
-    } catch {
-        return jsonResponse(400, { error: 'Corpo da requisição inválido.' });
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Método não permitido.' });
     }
 
-    const { method, order } = body;
+    let body = req.body;
+    if (typeof body === 'string') {
+        try {
+            body = JSON.parse(body);
+        } catch {
+            return res.status(400).json({ error: 'Corpo da requisição inválido.' });
+        }
+    }
+
+    const { method, order, cardToken, paymentMethodId, installments } = body || {};
 
     if (!order?.items?.length) {
-        return jsonResponse(400, { error: 'Pedido vazio.' });
+        return res.status(400).json({ error: 'Pedido vazio.' });
     }
     if (!['pix', 'card'].includes(method)) {
-        return jsonResponse(400, { error: 'Método de pagamento inválido.' });
+        return res.status(400).json({ error: 'Método de pagamento inválido.' });
     }
 
-    // ─── MODO LOCAL (padrão enquanto não há integração real) ─────────────────
-    //
-    // Retorna resposta simulada. O pedido já foi salvo no localStorage pelo
-    // módulo store/cart.js (createLocalOrder). Este endpoint será chamado
-    // quando a integração real for ativada.
-    //
-    if (!process.env.MERCADO_PAGO_ACCESS_TOKEN && !process.env.STRIPE_SECRET_KEY) {
-        return jsonResponse(200, {
+    const hasMpToken = Boolean(process.env.MERCADO_PAGO_ACCESS_TOKEN);
+
+    // ─── MODO LOCAL (enquanto as chaves reais não foram configuradas) ────────
+    if (!hasMpToken) {
+        await saveOrderToSupabase({
+            order,
+            method,
+            status: 'pending',
+            mpPaymentId: null,
+            mpStatus: 'local_mode',
+        }).catch((e) => console.error('Supabase (modo local) falhou:', e.message));
+
+        return res.status(200).json({
             mode: 'local',
-            message: 'Pedido registrado localmente. Configure as variáveis de ambiente para pagamento real.',
+            message:
+                'MERCADO_PAGO_ACCESS_TOKEN não configurado. Pedido salvo como pendente. Configure a chave para cobrar de verdade.',
             orderId: order.id,
         });
     }
 
-    // ─── INTEGRAÇÃO MERCADO PAGO ──────────────────────────────────────────────
-    //
-    // Para ativar:
-    // 1. npm install mercadopago
-    // 2. Descomente o bloco abaixo
-    // 3. Configure MERCADO_PAGO_ACCESS_TOKEN no painel do seu host
-    //
-    // if (process.env.MERCADO_PAGO_ACCESS_TOKEN) {
-    //     const { MercadoPagoConfig, Payment } = await import('mercadopago');
-    //     const client = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
-    //     const payment = new Payment(client);
-    //
-    //     if (method === 'pix') {
-    //         const result = await payment.create({
-    //             body: {
-    //                 transaction_amount: order.total,
-    //                 description: `Pedido ${order.id} — Loja Bruna Mandz`,
-    //                 payment_method_id: 'pix',
-    //                 payer: {
-    //                     email: order.customer.email,
-    //                     first_name: order.customer.name.split(' ')[0],
-    //                     last_name: order.customer.name.split(' ').slice(1).join(' '),
-    //                 },
-    //                 external_reference: order.id,
-    //             },
-    //         });
-    //         return jsonResponse(200, {
-    //             qr_code: result.point_of_interaction.transaction_data.qr_code,
-    //             qr_code_base64: result.point_of_interaction.transaction_data.qr_code_base64,
-    //             paymentId: result.id,
-    //             orderId: order.id,
-    //         });
-    //     }
-    //
-    //     if (method === 'card') {
-    //         // Para cartão, o frontend deve tokenizar os dados com o MP.js SDK
-    //         // e enviar apenas o token aqui (body.cardToken)
-    //         const result = await payment.create({
-    //             body: {
-    //                 transaction_amount: order.total,
-    //                 token: body.cardToken,
-    //                 description: `Pedido ${order.id} — Loja Bruna Mandz`,
-    //                 installments: 1,
-    //                 payment_method_id: body.paymentMethodId,
-    //                 payer: { email: order.customer.email },
-    //                 external_reference: order.id,
-    //             },
-    //         });
-    //         return jsonResponse(200, { paymentId: result.id, status: result.status });
-    //     }
-    // }
+    // ─── MODO REAL — MERCADO PAGO ─────────────────────────────────────────────
+    try {
+        const client = new MercadoPagoConfig({
+            accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+        });
+        const payment = new Payment(client);
 
-    // ─── INTEGRAÇÃO STRIPE ────────────────────────────────────────────────────
-    //
-    // Para ativar:
-    // 1. npm install stripe
-    // 2. Descomente o bloco abaixo
-    // 3. Configure STRIPE_SECRET_KEY no painel do seu host
-    //
-    // if (process.env.STRIPE_SECRET_KEY) {
-    //     const Stripe = (await import('stripe')).default;
-    //     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    //
-    //     if (method === 'card') {
-    //         // O frontend cria um PaymentMethod com Stripe.js e envia body.paymentMethodId
-    //         const paymentIntent = await stripe.paymentIntents.create({
-    //             amount: Math.round(order.total * 100), // centavos
-    //             currency: 'brl',
-    //             payment_method: body.paymentMethodId,
-    //             confirm: true,
-    //             metadata: { orderId: order.id },
-    //         });
-    //         return jsonResponse(200, {
-    //             clientSecret: paymentIntent.client_secret,
-    //             status: paymentIntent.status,
-    //         });
-    //     }
-    // }
+        const [firstName, ...rest] = (order.customer?.name || 'Cliente').split(' ');
+        const lastName = rest.join(' ') || 'Bruna Mandz';
 
-    return jsonResponse(501, { error: 'Nenhum provedor de pagamento configurado.' });
+        let mpResult;
+
+        if (method === 'pix') {
+            mpResult = await payment.create({
+                body: {
+                    transaction_amount: Number(order.total),
+                    description: `Pedido ${order.id} — Loja Bruna Mandz`,
+                    payment_method_id: 'pix',
+                    payer: {
+                        email: order.customer?.email,
+                        first_name: firstName,
+                        last_name: lastName,
+                    },
+                    external_reference: order.id,
+                    notification_url: process.env.MP_WEBHOOK_URL || undefined,
+                },
+            });
+
+            await saveOrderToSupabase({
+                order,
+                method,
+                status: 'pending',
+                mpPaymentId: String(mpResult.id),
+                mpStatus: mpResult.status,
+            });
+
+            return res.status(200).json({
+                mode: 'live',
+                orderId: order.id,
+                paymentId: mpResult.id,
+                status: mpResult.status,
+                qr_code: mpResult.point_of_interaction?.transaction_data?.qr_code,
+                qr_code_base64: mpResult.point_of_interaction?.transaction_data?.qr_code_base64,
+            });
+        }
+
+        if (method === 'card') {
+            if (!cardToken) {
+                return res
+                    .status(400)
+                    .json({
+                        error: 'Token do cartão ausente. O Brick do Mercado Pago deve gerá-lo no navegador.',
+                    });
+            }
+
+            mpResult = await payment.create({
+                body: {
+                    transaction_amount: Number(order.total),
+                    token: cardToken,
+                    description: `Pedido ${order.id} — Loja Bruna Mandz`,
+                    installments: installments || 1,
+                    payment_method_id: paymentMethodId,
+                    payer: { email: order.customer?.email },
+                    external_reference: order.id,
+                    notification_url: process.env.MP_WEBHOOK_URL || undefined,
+                },
+            });
+
+            const normalizedStatus =
+                mpResult.status === 'approved'
+                    ? 'approved'
+                    : mpResult.status === 'rejected'
+                      ? 'rejected'
+                      : 'pending';
+
+            await saveOrderToSupabase({
+                order,
+                method,
+                status: normalizedStatus,
+                mpPaymentId: String(mpResult.id),
+                mpStatus: mpResult.status,
+                mpStatusDetail: mpResult.status_detail,
+            });
+
+            return res.status(200).json({
+                mode: 'live',
+                orderId: order.id,
+                paymentId: mpResult.id,
+                status: mpResult.status,
+                statusDetail: mpResult.status_detail,
+            });
+        }
+    } catch (err) {
+        console.error('Erro Mercado Pago:', err);
+        return res
+            .status(502)
+            .json({ error: 'Falha ao criar pagamento no Mercado Pago.', details: err.message });
+    }
 }
 
-// ─── Utilitário de resposta ────────────────────────────────────────────────────
-function jsonResponse(status, body) {
-    return new Response(JSON.stringify(body), {
+// ─── Helper: salva/atualiza o pedido no Supabase ──────────────────────────────
+async function saveOrderToSupabase({
+    order,
+    method,
+    status,
+    mpPaymentId,
+    mpStatus,
+    mpStatusDetail,
+}) {
+    const supabase = getSupabase();
+    const { error } = await supabase.from('orders').upsert({
+        id: order.id,
         status,
-        headers: { 'Content-Type': 'application/json' },
+        method,
+        customer_name: order.customer?.name || null,
+        customer_email: order.customer?.email || null,
+        customer_phone: order.customer?.phone || null,
+        items: order.items,
+        total: order.total,
+        mp_payment_id: mpPaymentId,
+        mp_status: mpStatus,
+        mp_status_detail: mpStatusDetail || null,
+        earned_xp: order.earnedXp || 0,
     });
+    if (error) throw new Error(error.message);
 }
