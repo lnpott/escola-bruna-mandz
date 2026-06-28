@@ -108,4 +108,22 @@ export const PRODUCTS = [
             sizes: ['P', 'M', 'G', 'GG'],
         },
     },
+    // ⚠️ PRODUTO TEMPORÁRIO DE TESTE — REMOVER ANTES DE DIVULGAR A LOJA.
+    // Usado só para validar o fluxo de pagamento PIX/Cartão de ponta a ponta
+    // com valor mínimo, sem arriscar alterar o preço de um produto real.
+    {
+        id: 'teste-pagamento-1real',
+        name: '🧪 TESTE — Não comprar (R$ 1,00)',
+        description:
+            'Produto temporário usado apenas para testar a integração de pagamento. Remover depois do teste.',
+        price: 1.0,
+        stock: 999,
+        active: true,
+        category: 'kits',
+        badge: 'TESTE',
+        badgeColor: 'purple',
+        image: '/LOGOPRETO.png',
+        rewardXp: 1,
+        variants: null,
+    },
 ];
