@@ -29,6 +29,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 7 | `index.html` — Renomear seção + novos modais + redesign | ✅ Concluído (ajustado na Etapa 9) |
 | 8 | `api/create-payment.js` — Hooks de integração | ⚠️ Substituído pela Etapa 9 (integração real) |
 | 9 | **Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel** | ✅ Concluído (faltam só as chaves) |
+| 10 | Correção de erro de deploy (`vercel.json` runtime inválido) | ✅ Corrigido |
 
 ---
 
@@ -332,7 +333,44 @@ Admin (/painel-x9k2f.html, protegido por senha) → lê pedidos reais do Supabas
 
 ---
 
-## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
+## ✅ ETAPA 10 — Correção de erro real de deploy na Vercel
+
+Após o primeiro push para o GitHub e o primeiro deploy na Vercel (com
+variáveis de ambiente ainda como placeholder `"0"`), o deploy **falhou**.
+
+### 🔴 Erro encontrado (confirmado via API da Vercel)
+```
+errorCode: "invalid_function_runtime"
+errorMessage: "Function Runtimes must have a valid version,
+               for example `now-php@1.0.0`."
+errorStep: "buildStep"
+```
+
+### Causa raiz
+O `vercel.json` desta sessão (Etapa 9) usava:
+```json
+"functions": {
+    "api/create-payment.js": { "runtime": "nodejs20.x" }
+}
+```
+A propriedade `runtime` dentro de `functions` no `vercel.json` é destinada a
+runtimes **não-Node** (PHP, Bun, runtimes customizados), no formato
+`nome@versão` (ex: `vercel-php@0.5.2`). Para Node.js — que já é o runtime
+padrão da Vercel — essa propriedade não deve ser usada dessa forma; o jeito
+certo de fixar a versão do Node é via `engines.node` no `package.json`.
+
+### Correção aplicada
+- `vercel.json` — removida a propriedade `functions`/`runtime` por completo
+  (Node.js volta a ser o runtime padrão, sem configuração extra necessária)
+- `package.json` — adicionado `"engines": { "node": "22.x" }` para fixar a
+  versão do Node usada nos builds e funções
+
+### Status
+- [ ] Fazer novo commit/push com a correção e confirmar que o deploy passa
+- [ ] Depois do deploy OK, trocar as variáveis de ambiente "0" pelos valores
+  reais (Supabase primeiro, Mercado Pago de teste depois)
+
+---
 
 A integração já está toda escrita — falta só configurar as contas e colar as chaves:
 
