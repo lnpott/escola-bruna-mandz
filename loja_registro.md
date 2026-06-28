@@ -30,7 +30,8 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 8 | `api/create-payment.js` — Hooks de integração | ⚠️ Substituído pela Etapa 9 (integração real) |
 | 9 | **Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel** | ✅ Concluído (faltam só as chaves) |
 | 10 | Correção de erro de deploy (`vercel.json` runtime inválido) | ✅ Corrigido |
-| 11 | Investigação "teclado não funciona" pós-migração Vercel | ✅ Correções aplicadas (aguardando confirmação) |
+| 11 | Investigação "teclado não funciona" pós-migração Vercel (hipótese de ordem de scripts) | ⚠️ Não era a causa real — ver Etapa 12 |
+| 12 | **Causa real**: `audio.js`/`game.js`/imagens davam 404 (faltava pasta `public/`) | ✅ Corrigido |
 
 ---
 
@@ -425,8 +426,72 @@ piano, ou (c) o som soa diferente do esperado — cada um aponta para uma
 causa diferente e mais específica.
 
 ### Status
-- [ ] Testar piano (tela e teclado físico) após o próximo deploy
-- [ ] Confirmar se o problema foi resolvido ou se persiste, e em qual cenário exato
+- [x] Testado pelo usuário com console do navegador aberto — **causa real
+  diferente da hipótese acima**, encontrada e corrigida na **Etapa 12**
+
+---
+
+## ✅ ETAPA 12 — Causa real encontrada: `audio.js`/`game.js` e imagens davam 404 em produção
+
+Com o console do navegador, o usuário trouxe o erro exato:
+```
+audio.js:1   Failed to load resource: 404
+game.js:1    Failed to load resource: 404
+brindes.jpg:1  Failed to load resource: 404
+LOGOPRETO.png:1  Failed to load resource: 404
+favicon.ico:1  Failed to load resource: 404
+(índice):925 Uncaught ReferenceError: startGame is not defined
+```
+
+### Causa raiz real (confirmada, não só hipótese)
+O Vite só copia para o build de produção (`dist/`) arquivos que estão:
+(a) dentro de uma pasta `public/`, ou (b) referenciados como atributo
+processável no HTML/CSS (`<img src="...">`, `<link href="...">`).
+
+`audio.js`, `game.js`, `manifest.json` e `service-worker.js` estavam soltos
+na raiz do projeto, carregados via `<script src="audio.js">` — isso só
+funciona no modo `vite dev` (que serve a pasta toda), não no build de
+produção. O mesmo valia para `brindes.jpg`/`LOGOPRETO.png` quando
+referenciados como string dinâmica em JS (`store/products.js` e uma string
+de template no `index.html`) — caminhos assim não são reescritos pelo Vite.
+
+**Isso não foi causado pela Etapa 9** — é um problema estrutural que já
+existia antes, só nunca tinha aparecido porque o site nunca tinha sido
+servido via `vite build` de verdade em produção (o Netlify antigo
+provavelmente servia os arquivos brutos sem build).
+
+A Etapa 11 (script do Mercado Pago antes do audio.js, foco preso em modal)
+não era a causa real — mas as correções de robustez aplicadas lá continuam
+válidas e foram mantidas.
+
+### Correção aplicada
+- Criada a pasta `public/` (copiada para a raiz do site em qualquer build
+  Vite, sem hash, sem transformação)
+- Movidos para `public/`: `audio.js`, `game.js`, `manifest.json`,
+  `service-worker.js`
+- Copiados para `public/` (mantidos também na raiz do projeto, pois ainda
+  são usados por `<img>` processado pelo Vite): `brindes.jpg`,
+  `LOGOPRETO.png`, `LOGOPRETOPQNO.png`
+- `store/products.js` — caminhos de imagem corrigidos de `'../brindes.jpg'`
+  para `'/brindes.jpg'` (agora aponta para `public/`)
+- `index.html`:
+  - `<script src="audio.js">` → `<script src="/audio.js">`
+  - `<script src="game.js">` → `<script src="/game.js">`
+  - `<link rel="manifest" href="manifest.json">` → `href="/manifest.json"`
+  - Adicionado `<link rel="icon" type="image/png" href="/LOGOPRETO.png">`
+    (resolve o 404 de `favicon.ico`, que não existia antes)
+  - String JS dinâmica `'<img src="LOGOPRETO.png">'` → `'<img src="/LOGOPRETO.png">'`
+
+### Validações feitas
+- ✅ `npm run build` confirma que todos os 7 arquivos passam a existir em
+  `dist/` na raiz, sem hash (testado com `ls` após build)
+- ✅ Confirmado que os caminhos absolutos sobrevivem ao bundle do
+  `store.js`/`products.js` (`grep` no JS final)
+- ✅ ESLint e `node --check` sem erros em `store/products.js`
+
+### Status
+- [ ] Fazer commit/push e testar no navegador real — confirmar que os 404s
+  desaparecem e que `startGame is not defined` não ocorre mais
 
 ---
 

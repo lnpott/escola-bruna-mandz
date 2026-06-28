@@ -1,0 +1,12 @@
+{
+    "name": "Escola de Música Bruna Mandz",
+    "short_name": "Bruna Mandz",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0b0b0c",
+    "theme_color": "#ef4444",
+    "icons": [
+        { "src": "/LOGOPRETOPQNO.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/LOGOPRETO.png", "sizes": "512x512", "type": "image/png" }
+    ]
+}
