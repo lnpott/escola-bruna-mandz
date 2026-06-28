@@ -10,7 +10,7 @@ export const PRODUCTS = [
         category: 'roupas',
         badge: 'Mais Vendida',
         badgeColor: 'red',
-        image: '../brindes.jpg',
+        image: '/brindes.jpg',
         rewardXp: 60,
         variants: {
             sizes: ['P', 'M', 'G', 'GG'],
@@ -27,7 +27,7 @@ export const PRODUCTS = [
         category: 'roupas',
         badge: 'Infantil',
         badgeColor: 'purple',
-        image: '../brindes.jpg',
+        image: '/brindes.jpg',
         rewardXp: 45,
         variants: {
             sizes: ['2', '4', '6', '8', '10', '12'],
@@ -43,7 +43,7 @@ export const PRODUCTS = [
         active: true,
         category: 'acessorios',
         badge: null,
-        image: '../LOGOPRETO.png',
+        image: '/LOGOPRETO.png',
         rewardXp: 35,
         variants: null,
     },
@@ -58,7 +58,7 @@ export const PRODUCTS = [
         category: 'acessorios',
         badge: 'Novidade',
         badgeColor: 'green',
-        image: '../LOGOPRETO.png',
+        image: '/LOGOPRETO.png',
         rewardXp: 25,
         variants: null,
     },
@@ -72,7 +72,7 @@ export const PRODUCTS = [
         active: true,
         category: 'acessorios',
         badge: null,
-        image: '../LOGOPRETO.png',
+        image: '/LOGOPRETO.png',
         rewardXp: 30,
         variants: null,
     },
@@ -87,7 +87,7 @@ export const PRODUCTS = [
         category: 'roupas',
         badge: 'Premium',
         badgeColor: 'yellow',
-        image: '../brindes.jpg',
+        image: '/brindes.jpg',
         rewardXp: 130,
         variants: null,
     },
@@ -102,10 +102,28 @@ export const PRODUCTS = [
         category: 'kits',
         badge: '🔥 Melhor Valor',
         badgeColor: 'orange',
-        image: '../brindes.jpg',
+        image: '/brindes.jpg',
         rewardXp: 180,
         variants: {
             sizes: ['P', 'M', 'G', 'GG'],
         },
+    },
+    // ⚠️ PRODUTO TEMPORÁRIO DE TESTE — REMOVER ANTES DE DIVULGAR A LOJA.
+    // Usado só para validar o fluxo de pagamento PIX/Cartão de ponta a ponta
+    // com valor mínimo, sem arriscar alterar o preço de um produto real.
+    {
+        id: 'teste-pagamento-1real',
+        name: '🧪 TESTE — Não comprar (R$ 1,00)',
+        description:
+            'Produto temporário usado apenas para testar a integração de pagamento. Remover depois do teste.',
+        price: 1.0,
+        stock: 999,
+        active: true,
+        category: 'kits',
+        badge: 'TESTE',
+        badgeColor: 'purple',
+        image: '/LOGOPRETO.png',
+        rewardXp: 1,
+        variants: null,
     },
 ];
