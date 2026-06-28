@@ -1,0 +1,10 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "functions": {
+        "api/create-payment.js": { "runtime": "nodejs20.x" },
+        "api/webhook.js": { "runtime": "nodejs20.x" },
+        "api/admin-orders.js": { "runtime": "nodejs20.x" },
+        "api/order-status.js": { "runtime": "nodejs20.x" },
+        "api/config.js": { "runtime": "nodejs20.x" }
+    }
+}

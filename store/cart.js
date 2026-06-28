@@ -1,5 +1,4 @@
 const CART_KEY = 'bruna_cart';
-const ORDER_KEY = 'bruna_orders';
 const PROGRESS_KEY = 'bruna_student_progress';
 
 export function getCart() {
@@ -14,8 +13,7 @@ export function saveCart(cart) {
 export function addToCart(product, variant = null) {
     const cart = getCart();
     // Chave única considera produto + variante (tamanho)
-    const matchKey = (entry) =>
-        entry.id === product.id && (entry.variant ?? null) === variant;
+    const matchKey = (entry) => entry.id === product.id && (entry.variant ?? null) === variant;
     const item = cart.find(matchKey);
     if (item) {
         item.quantity += 1;
@@ -59,34 +57,38 @@ export function cartItemCount(cart = getCart()) {
 }
 
 /**
- * Cria um pedido local (localStorage) com dados do cliente e método de pagamento.
+ * Monta o objeto de pedido a partir do carrinho atual e calcula o XP que
+ * será ganho. NÃO limpa o carrinho e NÃO persiste nada — quem chama essa
+ * função decide quando confirmar (depois que o pagamento for criado com
+ * sucesso na API), chamando clearCart() e applyStudentXp() manualmente.
+ *
  * @param {object} options
  * @param {string} options.method - 'pix' | 'card'
  * @param {object} options.customer - { name, email, phone }
  */
-export function createLocalOrder({ method = 'pix', customer = {} } = {}) {
+export function buildOrder({ method = 'pix', customer = {} } = {}) {
     const cart = getCart();
     if (!cart.length) throw new Error('Carrinho vazio');
+
+    const earnedXp = cart.reduce((sum, item) => sum + (item.rewardXp || 10) * item.quantity, 0);
 
     const order = {
         id: `BM-${Date.now().toString().slice(-6)}`,
         createdAt: new Date().toISOString(),
-        status: 'Aguardando pagamento',
         method,
         customer,
         items: cart,
         total: Number(cartTotal(cart).toFixed(2)),
+        earnedXp,
     };
 
-    const orders = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
-    orders.unshift(order);
-    localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+    return { order, earnedXp };
+}
 
-    // Sistema de XP do aluno
-    const earnedXp = cart.reduce(
-        (sum, item) => sum + (item.rewardXp || 10) * item.quantity,
-        0
-    );
+/**
+ * Aplica o XP do pedido ao progresso local do aluno (gamificação, só neste navegador).
+ */
+export function applyStudentXp(earnedXp) {
     const progress = JSON.parse(
         localStorage.getItem(PROGRESS_KEY) || '{"xp":0,"level":1,"badges":[]}'
     );
@@ -96,7 +98,5 @@ export function createLocalOrder({ method = 'pix', customer = {} } = {}) {
         progress.badges.push('Loja Oficial');
     }
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-
-    clearCart();
-    return { order, earnedXp, progress };
+    return progress;
 }

@@ -243,14 +243,8 @@
                         onclick="scrollToId('official-store')"
                         class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors bg-zinc-900 rounded-md"
                     >
-                        Loja Oficial <span id="store-cart-badge" class="ml-1 text-red-400">0</span>
+                        Loja Oficial <span id="nav-cart-badge" class="ml-1 text-red-400">0</span>
                     </button>
-                    <a
-                        href="admin/admin.html"
-                        class="px-3 py-1.5 text-zinc-400 hover:text-white transition-colors bg-zinc-900 rounded-md"
-                    >
-                        Admin
-                    </a>
                     <a
                         href="https://www.instagram.com/escolademusicabrunamandz/"
                         target="_blank"
@@ -1374,7 +1368,6 @@
                                 <i class="fas fa-shopping-cart text-red-500 text-base"></i> Carrinho
                                 <span id="store-cart-badge" class="text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-black">0</span>
                             </h4>
-                            <a href="admin/admin.html" class="text-xs text-zinc-500 hover:text-red-400 font-bold uppercase tracking-wider">Admin</a>
                         </div>
 
                         <div id="store-cart-lines" class="mb-4 min-h-[60px]"></div>
@@ -1402,7 +1395,7 @@
 
                         <div class="mt-4 flex items-center gap-2 text-[11px] text-zinc-600">
                             <i class="fas fa-shield-alt text-zinc-700"></i>
-                            Compra segura. Pedidos registrados localmente e visíveis no painel Admin.
+                            Pagamento processado pelo Mercado Pago (PIX ou Cartão).
                         </div>
                     </aside>
                 </div>
@@ -1421,7 +1414,7 @@
                     </button>
                 </div>
                 <div class="checkout-modal-body">
-                    <p class="text-zinc-500 text-xs leading-relaxed">Preencha seus dados para finalizar o pedido. Eles ficam salvos apenas no seu navegador.</p>
+                    <p class="text-zinc-500 text-xs leading-relaxed">Preencha seus dados para finalizar o pedido.</p>
                     <div class="checkout-field">
                         <label for="checkout-name">Nome completo</label>
                         <input id="checkout-name" class="checkout-input" type="text" placeholder="Seu nome" autocomplete="name" />
@@ -1457,18 +1450,15 @@
                         <p class="pix-total-label" id="pix-total">R$ 0,00</p>
                         <p class="text-zinc-500 text-xs" id="pix-order-id"></p>
                     </div>
-                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">Ou copie a chave PIX</p>
+                    <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center">Ou copie o código Pix</p>
                     <div class="pix-key-box">
-                        <span class="pix-key-value" id="pix-key"></span>
-                        <button id="pix-copy-btn" class="pix-copy-btn">Copiar Chave</button>
+                        <span class="pix-key-value" id="pix-key">Gerando código…</span>
+                        <button id="pix-copy-btn" class="pix-copy-btn">Copiar Código</button>
                     </div>
-                    <p class="pix-instruction">Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br>O pedido é registrado após sua confirmação abaixo.</p>
-                    <p class="text-zinc-600 text-[10px] text-center">Beneficiário: <strong class="text-zinc-400" id="pix-name"></strong></p>
-                    <button id="pix-confirm-btn" class="checkout-btn-primary">
-                        <i class="fas fa-check-circle mr-1"></i> Já efetuei o pagamento
-                    </button>
-                    <button class="checkout-btn-secondary" onclick="closeCheckoutModals()">
-                        Cancelar
+                    <p class="pix-instruction">Abra o app do seu banco → PIX → Pagar com QR Code ou Copia e Cola.<br>A confirmação do pagamento é automática — você pode acompanhar o status do pedido.</p>
+                    <p id="pix-status-line" class="text-zinc-600 text-[10px] text-center">Aguardando confirmação do pagamento…</p>
+                    <button id="pix-confirm-btn" class="checkout-btn-secondary">
+                        Fechar
                     </button>
                 </div>
             </div>
@@ -1490,34 +1480,16 @@
                     </div>
                     <p class="text-zinc-600 text-[10px]" id="card-order-id"></p>
 
-                    <div class="checkout-field">
-                        <label for="card-number">Número do Cartão</label>
-                        <input id="card-number" class="checkout-input" type="text" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" />
-                    </div>
-                    <div class="checkout-field">
-                        <label for="card-holder">Nome no Cartão</label>
-                        <input id="card-holder" class="checkout-input" type="text" placeholder="NOME COMO NO CARTÃO" style="text-transform:uppercase" />
-                    </div>
-                    <div class="checkout-row">
-                        <div class="checkout-field">
-                            <label for="card-expiry">Validade</label>
-                            <input id="card-expiry" class="checkout-input" type="text" placeholder="MM/AA" maxlength="5" inputmode="numeric" />
-                        </div>
-                        <div class="checkout-field">
-                            <label for="card-cvv">CVV</label>
-                            <input id="card-cvv" class="checkout-input" type="text" placeholder="123" maxlength="4" inputmode="numeric" />
-                        </div>
-                    </div>
+                    <!-- O Mercado Pago renderiza o formulário seguro de cartão aqui -->
+                    <div id="card-payment-brick"></div>
+
                     <div id="checkout-card-error" class="checkout-error hidden"></div>
 
                     <div class="flex items-center gap-2 text-[11px] text-zinc-600 bg-zinc-900/60 rounded-lg p-2.5 border border-zinc-800">
                         <i class="fas fa-lock text-zinc-700"></i>
-                        Dados processados com segurança. Integração com Mercado Pago ou Stripe será ativada em breve.
+                        Pagamento processado diretamente pelo Mercado Pago. Seus dados de cartão não passam pelo nosso servidor.
                     </div>
 
-                    <button id="card-submit-btn" class="checkout-btn-primary">
-                        <i class="fas fa-lock mr-1"></i> Finalizar Compra
-                    </button>
                     <button class="checkout-btn-secondary" onclick="closeCheckoutModals()">
                         Cancelar
                     </button>
@@ -1552,7 +1524,7 @@
                         </div>
                     </div>
                     <div class="success-xp" id="success-xp">+0 XP</div>
-                    <p class="text-center text-zinc-600 text-xs">O pedido está salvo no seu navegador e visível no painel Admin.</p>
+                    <p class="text-center text-zinc-600 text-xs" id="success-footer-note">Pedido confirmado.</p>
                     <button class="checkout-btn-primary" onclick="closeCheckoutModals(); scrollToId('official-store')">
                         <i class="fas fa-store mr-1"></i> Continuar na Loja
                     </button>
@@ -2364,6 +2336,7 @@
                 });
             });
         </script>
+        <script src="https://sdk.mercadopago.com/js/v2"></script>
         <script type="module" src="store/checkout-modal.js"></script>
         <script type="module" src="store/store.js"></script>
         <script src="audio.js"></script>
