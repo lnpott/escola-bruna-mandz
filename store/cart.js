@@ -57,6 +57,22 @@ export function cartItemCount(cart = getCart()) {
 }
 
 /**
+ * Gera um ID de pedido único.
+ *
+ * Antes, usava só os últimos 6 dígitos do timestamp em milissegundos
+ * (`Date.now().toString().slice(-6)`), que se repetem a cada ~16,6 minutos —
+ * risco real (ainda que baixo) de colisão entre dois pedidos diferentes,
+ * o que faria o `upsert` por `id` no Supabase sobrescrever um pedido antigo.
+ *
+ * Agora combina timestamp + um sufixo aleatório, eliminando esse risco.
+ */
+function generateOrderId() {
+    const timePart = Date.now().toString().slice(-8);
+    const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `BM-${timePart}-${randomPart}`;
+}
+
+/**
  * Monta o objeto de pedido a partir do carrinho atual e calcula o XP que
  * será ganho. NÃO limpa o carrinho e NÃO persiste nada — quem chama essa
  * função decide quando confirmar (depois que o pagamento for criado com
@@ -73,7 +89,7 @@ export function buildOrder({ method = 'pix', customer = {} } = {}) {
     const earnedXp = cart.reduce((sum, item) => sum + (item.rewardXp || 10) * item.quantity, 0);
 
     const order = {
-        id: `BM-${Date.now().toString().slice(-6)}`,
+        id: generateOrderId(),
         createdAt: new Date().toISOString(),
         method,
         customer,
