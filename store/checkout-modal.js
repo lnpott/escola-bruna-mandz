@@ -25,7 +25,7 @@ let _paymentInProgress = false;
 let _pixPollInterval = null;
 let _paymentBrickController = null;
 let _currentOrder = null;
-let _currentEarnedXp = 0;
+// _currentEarnedXp removido: variável de módulo não utilizada (earnedXp é passado por parâmetro em toda a cadeia)
 let _selectedMethod = null; // 'pix' | 'credit_card' | 'debit_card' etc.
 
 function setPaymentInProgress(v) {
@@ -127,8 +127,6 @@ export async function submitCustomerForm() {
     }
 
     _currentOrder = order;
-    _currentEarnedXp = earnedXp;
-
     showStep('payment');
     await openPaymentBrick(order, earnedXp);
 }
@@ -188,9 +186,9 @@ async function openPaymentBrick(order, earnedXp) {
                     paymentMethods: {
                         creditCard:   'all',
                         debitCard:    'all',
-                        ticket:       'none',
-                        bankTransfer: ['pix'],
-                        mercadoPago:  'none',
+                        // ticket e mercadoPago removidos: conforme doc oficial do MP,
+                        // para desabilitar um método basta não incluir a chave (não usar 'none').
+                        bankTransfer: 'all', // corrigido: era ['pix'], causava erro 422 na API
                     },
                     visual: {
                         style: {
