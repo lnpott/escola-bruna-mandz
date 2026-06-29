@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 29/06/2026 — (Etapa 18)
+> Última atualização: 29/06/2026 — (Etapa 20)
 
 ---
 
@@ -64,6 +64,8 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 16 | Erro persistente "live credentials" — causa real: API errada selecionada no MP | ✅ Resolvido (era "API Orders" em vez de "API Pagamentos") |
 | 17 | **Incidente**: arquivos sobrescritos por outra ferramenta + Reescrita completa do checkout (overlay de tela cheia, fechamento controlado) | ✅ Reescrito — aguardando teste |
 | 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
+| 19 | **Catálogo real** — 7 produtos com imagens definitivas, produto de teste removido | ✅ Concluído |
+| 20 | **Plano do Painel Admin** — diagnóstico do estado atual + roadmap completo de melhorias | ✅ Planejado |
 
 ---
 
@@ -860,6 +862,157 @@ prontas, substituir os placeholders em `store/products.js`.
 - [ ] Imagens dos produtos sendo criadas (em andamento)
 - [ ] Atualizar `store/products.js` com os 13 produtos e imagens reais
 - [ ] Testar checkout com cartão (PIX já validado em produção)
+
+
+---
+
+## ✅ ETAPA 19 — Catálogo real com imagens definitivas
+
+### O que foi feito
+- `store/products.js` reescrito com os **7 produtos reais** aprovados:
+  Pulseira, Palheta, Chaveiro, Copo Térmico, Camisa Clássica, Camisa Minimalista, Camisa Rock
+- Imagens reais adicionadas ao repositório em `public/`:
+  `Pulseira.png`, `Paleta.png`, `Chaveiro.png`, `Copo.png`,
+  `TSHIRT_PREMIUN.png`, `TSHIRT_PRO.png`, `TSHIRT_ROCK.png`
+- Todos os produtos-placeholder (caneca, mochila, kit, bloco) **removidos**
+- Produto de teste `teste-pagamento-1real` **removido**
+- Camisas com variante de tamanho (P/M/G/GG); demais sem variante
+
+### Pendente
+- [ ] Confirmar preços reais com a Bruna (valores atuais são estimativas):
+  Pulseira R$19,90 | Palheta R$9,90 | Chaveiro R$14,90 | Copo R$59,90 | Camisas R$69,90
+
+---
+
+## 📋 ETAPA 20 — Plano do Painel Administrativo
+
+### 20.1 — Diagnóstico do estado atual
+
+O painel (`painel-x9k2f.html`) existe e funciona, mas está na **fase 0**: faz apenas
+uma coisa — listar pedidos numa tabela. Não há nenhuma ação possível sobre eles.
+
+#### O que já existe e funciona
+- Tela de login com senha via header `x-admin-password` (variável `ADMIN_PASSWORD` na Vercel)
+- Tabela de pedidos buscada do Supabase (até 200 registros, ordenados por data)
+- Colunas: ID, Data, Cliente, Método, Total, Status (com pill colorida), XP
+- Botão "Atualizar" para recarregar manualmente
+- URL escondida (`/painel-x9k2f.html`) com `noindex, nofollow`
+
+#### O que NÃO existe e precisa ser construído
+- **Nenhuma ação sobre pedidos** — não dá para mudar status, cancelar, reembolsar
+- **Nenhum resumo ou KPI** — sem totais, sem receita do dia/mês, sem contagem por status
+- **Nenhuma gestão de estoque** — estoques estão fixos em `products.js`, não há como
+  atualizar pelo painel
+- **Nenhuma gestão de produtos** — preços, nomes e imagens só mudam editando o código
+- **Nenhum filtro ou busca** — com muitos pedidos, fica impossível encontrar um específico
+- **Nenhuma exportação** — sem como gerar relatório ou lista para Excel/WhatsApp
+- **Nenhuma notificação** — a Bruna não sabe que chegou um pedido novo sem abrir o painel
+
+---
+
+### 20.2 — Referências de melhores práticas
+
+Com base em pesquisa de mercado (2025–2026):
+
+**Dashboard como nerve center** — Um painel admin eficaz consolida pedidos, estoque,
+pagamentos e analytics numa visão única. O que separa um painel eficaz de um estático é
+a atualização em tempo real: dados ao vivo permitem decisões rápidas em vez de snapshots
+desatualizados.
+
+**Princípio das 4 perspectivas simultâneas** — Mostre resumo do pedido, disponibilidade
+de estoque e opções de ação ao mesmo tempo, com badges coloridas para destacar exceções.
+Quando quem gerencia consegue fazer tudo sem navegar por múltiplas telas, elimina cliques
+desnecessários e tempo de decisão.
+
+**Ações diretas na tabela** — O gestor deve conseguir mudar o status de um pedido,
+marcar como enviado ou emitir reembolso diretamente da lista, sem abrir outra tela.
+
+**Mobile-first para admin** — Em 2025, painéis admin precisam funcionar no celular.
+A Bruna precisa conseguir ver e agir sobre um pedido novo pelo celular, não só pelo
+computador.
+
+**Exportação de dados** — Exportação CSV/Excel para dados de pedidos é considerada
+funcionalidade padrão em painéis admin modernos. Essencial para controle financeiro e
+prestação de contas.
+
+---
+
+### 20.3 — Roadmap de melhorias (priorizado)
+
+As melhorias estão divididas em 3 fases, da mais simples à mais completa.
+Cada fase entrega valor imediato e independe da seguinte para funcionar.
+
+#### 🟥 FASE A — Ações essenciais (implementar primeiro)
+*O painel passa de "visualizador" para "ferramenta de trabalho"*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **A1** | Cards de KPI no topo: total de pedidos, receita do dia, receita do mês, pedidos pendentes | Baixa |
+| **A2** | Botão de ação por pedido: mudar status (Pendente → Aprovado → Enviado → Cancelado) | Média |
+| **A3** | Filtro por status (Todos / Pendente / Aprovado / Cancelado) | Baixa |
+| **A4** | Campo de busca por nome do cliente ou ID do pedido | Baixa |
+| **A5** | Exportar lista atual como CSV (para abrir no Excel ou Google Sheets) | Média |
+
+**Nova API necessária:** `api/update-order-status.js` — recebe `{ orderId, newStatus }`,
+valida senha admin, atualiza no Supabase e retorna o pedido atualizado.
+
+---
+
+#### 🟧 FASE B — Visibilidade proativa (depois da Fase A)
+*A Bruna não precisa mais abrir o painel para saber o que está acontecendo*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **B1** | Auto-refresh do painel a cada 60 segundos (sem precisar clicar "Atualizar") | Baixa |
+| **B2** | Notificação por e-mail quando chega um pedido novo (via Resend ou SendGrid) | Média |
+| **B3** | Detalhe expandido do pedido: mostrar os itens comprados (campo `items` do Supabase) | Média |
+| **B4** | Indicador visual de "pedido novo" (highlight na linha por X minutos após entrada) | Baixa |
+
+**Nova API necessária:** `api/notify-new-order.js` — chamada pelo webhook do MP quando
+`status = approved`, dispara e-mail para o endereço configurado em `NOTIFY_EMAIL`.
+
+---
+
+#### 🟨 FASE C — Gestão de produtos e estoque (fase futura)
+*Elimina a necessidade de editar código para mudar preço ou estoque*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **C1** | Aba "Produtos" — lista os 7 produtos com estoque atual e preço | Alta |
+| **C2** | Editar estoque diretamente pelo painel (campo numérico inline) | Alta |
+| **C3** | Editar preço pelo painel | Alta |
+| **C4** | Ativar/desativar produto (campo `active`) sem editar código | Média |
+
+**Pré-requisito:** mover `products.js` do arquivo estático para uma tabela `products`
+no Supabase, com as mesmas colunas que o objeto atual (`id`, `name`, `price`, `stock`,
+`active`, `image`, etc.). O `store/store.js` passaria a buscar produtos via API em vez
+de importar o arquivo JS.
+
+---
+
+### 20.4 — O que NÃO fazer (armadilhas comuns)
+
+- **Não construir tudo de uma vez** — a Fase A já transforma o painel numa ferramenta
+  real. Fases B e C podem esperar até a loja ter volume de pedidos que justifique.
+- **Não adicionar autenticação complexa agora** — a senha simples via header é adequada
+  para o volume atual. JWT/OAuth só fazem sentido quando houver múltiplos operadores.
+- **Não exibir dados sensíveis desnecessariamente** — telefone e e-mail do cliente devem
+  aparecer só quando necessário (ex: ao expandir o detalhe de um pedido), não na tabela
+  principal que fica aberta na tela.
+- **Não quebrar o mobile** — qualquer melhoria visual deve ser testada no celular antes
+  de ir ao ar. O painel atual não é responsivo e isso precisa mudar na Fase A.
+
+---
+
+### 20.5 — Status e próximos passos
+
+- [x] Diagnóstico do estado atual documentado
+- [x] Referências de melhores práticas pesquisadas e aplicadas ao contexto
+- [x] Roadmap de 3 fases definido e priorizado
+- [ ] **Implementar Fase A** (KPIs + ações + filtro + busca + CSV)
+- [ ] Confirmar com a Bruna quais itens da Fase A têm prioridade máxima
+- [ ] Definir se a notificação por e-mail (Fase B2) é urgente — se sim, pode ser
+      antecipada para a Fase A
 
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
