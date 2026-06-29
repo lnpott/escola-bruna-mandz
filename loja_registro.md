@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 28/06/2026 — 14:40
+> Última atualização: 29/06/2026 — (Etapa 18)
 
 ---
 
@@ -63,6 +63,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 15 | Plano de teste PIX de ponta a ponta + produto temporário de R$1 | ✅ Executado — erro encontrado, ver Etapa 16 |
 | 16 | Erro persistente "live credentials" — causa real: API errada selecionada no MP | ✅ Resolvido (era "API Orders" em vez de "API Pagamentos") |
 | 17 | **Incidente**: arquivos sobrescritos por outra ferramenta + Reescrita completa do checkout (overlay de tela cheia, fechamento controlado) | ✅ Reescrito — aguardando teste |
+| 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
 
 ---
 
@@ -755,6 +756,111 @@ pedir mudanças incrementais em vez de reescritas completas de arquivo.
   corretamente, clicar fora não fecha mais nada
 
 ---
+
+---
+
+## ✅ ETAPA 18 — Correções do Payment Brick + Plano Estratégico + Catálogo Definitivo
+
+### 18.1 — Correções técnicas aplicadas (commit `445b885` e `fa84a9f`)
+
+#### `store/checkout-modal.js`
+- **`bankTransfer: ['pix']` → `bankTransfer: 'all'`** — o array com `'pix'` causava erro
+  422 na API do Mercado Pago. O valor aceito é a string `'all'`
+- **`ticket: 'none'` e `mercadoPago: 'none'` removidos** — conforme documentação oficial
+  do MP, para desabilitar um método basta omitir a chave; usar `'none'` era inválido
+- **`_currentEarnedXp` removido** — variável de módulo declarada mas nunca lida (código
+  morto). O `earnedXp` já circula corretamente por parâmetro em toda a cadeia de callbacks
+
+#### `public/service-worker.js`
+- **`/ecommerce.js` removido da lista de ASSETS** — arquivo legado que não existe em
+  `/public/` e não é carregado pelo HTML. Causava `Failed to execute 'addAll' on 'Cache'`
+  no install do SW, que travava o service worker silenciosamente
+- **Cache bumped para `bruna-mandz-v4`** — força reinstalação do SW no navegador dos
+  visitantes existentes
+
+#### Resultado após correções
+- Payment Brick carregou sem erro 422 ✅
+- QR Code PIX gerado com sucesso após inserir tokens de produção ✅
+- Erros restantes no console são externos/inofensivos:
+  - `cdn.tailwindcss.com` — aviso de CDN em produção (ver item 18.3)
+  - `AudioContext` — Tone.js inicializando antes de interação (comportamento normal)
+  - SVG width/height — bug interno do SDK do MP ao renderizar o QR Code, não é código nosso
+
+---
+
+### 18.2 — Plano estratégico da loja (fonte de verdade para decisões futuras)
+
+A loja **não existe para ser a principal fonte de receita do site**. Seu papel é:
+
+1. **Sinal de credibilidade ("trust signal")** — uma escola com identidade visual
+   coerente, merch com design e checkout funcional transmite seriedade e estrutura
+   profissional. Pais e alunos em potencial percebem isso subconscientemente
+2. **Portfólio para campanhas pagas** — quando a Bruna rodar anúncios no Instagram
+   ou Google, o destino do clique precisa reforçar a qualidade percebida no criativo.
+   Uma loja bem feita converte visitantes em interessados em matrícula
+3. **Loop de pertencimento** — alunos usando o merch e postando nas redes é publicidade
+   orgânica e autêntica, muito mais eficaz que anúncio pago
+
+#### O que a loja deve ter obrigatoriamente
+- **Fotos reais** dos produtos, preferencialmente com alunos usando/segurando os itens
+- **Depoimentos com nome e foto** — não citações anônimas
+- **Checkout sem surpresas** — todos os custos visíveis antes do pagamento (frete, taxas)
+- **Ícones de segurança** visíveis no momento do pagamento (Mercado Pago, PIX, cadeado SSL)
+- **Política de entrega e troca** clara e acessível antes do checkout
+
+#### Roadmap de melhorias (em ordem de prioridade)
+| Prazo | Ação |
+|---|---|
+| Curto (técnico) | Migrar Tailwind do CDN para build local (elimina aviso do console e melhora performance) |
+| Curto (técnico) | Adicionar ícones de pagamento seguro visíveis no checkout |
+| Curto (técnico) | Garantir carregamento < 3 segundos no mobile |
+| Médio (conteúdo) | Substituir placeholders pelas fotos reais dos produtos (em andamento — ver 18.3) |
+| Médio (conteúdo) | Seção de depoimentos de alunos na página da loja |
+| Médio (conteúdo) | Política de entrega e troca visível |
+| Estratégico | Seção "Nossa história" / "Quem é a Bruna Mandz" — humaniza a marca |
+| Estratégico | Integrar feed do Instagram com fotos de alunos diretamente no site |
+| Estratégico | Usar a loja como proof of concept nas campanhas pagas: "escola com estrutura e identidade própria" |
+
+---
+
+### 18.3 — Catálogo definitivo de produtos (13 itens)
+
+Imagens sendo criadas pela Bruna Mandz em paralelo. Assim que as imagens estiverem
+prontas, substituir os placeholders em `store/products.js`.
+
+| # | Produto | Categoria | Variantes esperadas | Status imagem |
+|---|---|---|---|---|
+| 1 | Pulseira | Acessórios | Única | ⏳ Em criação |
+| 2 | Palheta | Acessórios | Única | ⏳ Em criação |
+| 3 | Chaveiro | Acessórios | Única | ⏳ Em criação |
+| 4 | Adesivo Vinil | Acessórios | Única | ⏳ Em criação |
+| 5 | Bloco de anotações | Papelaria | Única | ⏳ Em criação |
+| 6 | Caneta | Papelaria | Única | ⏳ Em criação |
+| 7 | Copo térmico | Acessórios | Única | ⏳ Em criação |
+| 8 | Cordão para crachá | Acessórios | Única | ⏳ Em criação |
+| 9 | Sacochila | Bolsas | Única | ⏳ Em criação |
+| 10 | Marca-página | Papelaria | Única | ⏳ Em criação |
+| 11 | Camisa Clássica | Roupas | P / M / G / GG | ⏳ Em criação |
+| 12 | Camisa Minimalista | Roupas | P / M / G / GG | ⏳ Em criação |
+| 13 | Camisa Rock | Roupas | P / M / G / GG | ⏳ Em criação |
+
+#### Próximo passo quando as imagens estiverem prontas
+1. Nomear os arquivos de imagem de forma padronizada (ex: `pulseira.jpg`,
+   `camisa-classica.jpg`) e colocar em `public/`
+2. Atualizar `store/products.js` com os 13 produtos, apontando para os novos
+   caminhos de imagem e os preços definidos pela Bruna
+3. Definir categorias de filtro na loja (sugestão: Roupas / Acessórios / Papelaria / Bolsas)
+4. Tirar foto de cada produto sendo usado por um aluno (para as fotos secundárias dos cards)
+
+### Status
+- [x] Correções do Payment Brick aplicadas e enviadas ao GitHub
+- [x] Service Worker corrigido
+- [x] Plano estratégico documentado
+- [x] Catálogo de 13 produtos registrado
+- [ ] Imagens dos produtos sendo criadas (em andamento)
+- [ ] Atualizar `store/products.js` com os 13 produtos e imagens reais
+- [ ] Testar checkout com cartão (PIX já validado em produção)
+
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
