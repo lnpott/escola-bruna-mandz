@@ -1148,6 +1148,86 @@ sem quebrar a arquitetura.
 - [x] Botão "Verificar no MP" (B+)
 - [ ] Configurar RESEND_API_KEY e NOTIFY_EMAIL na Vercel
 
+## ✅ ETAPA 23 — Auditoria completa de `api/` e `store/` + correções
+
+### Contexto
+Enquanto se aguardam os dados de acesso da conta Mercado Pago da Bruna para
+o teste real de ponta a ponta (Etapa anterior), foi feita uma auditoria
+completa de todos os arquivos de `api/` e `store/` (enviados via zip),
+revisando cada um por bugs, falhas de segurança e inconsistências.
+
+### 🔴 Bug encontrado e corrigido: notificação por e-mail duplicada
+
+**Causa:** o Mercado Pago reenvia o mesmo webhook várias vezes (comportamento
+oficial documentado, não é falha). O `webhook.js` notificava por e-mail toda
+vez que recebia `status === 'approved'`, sem checar se o pedido **já estava**
+aprovado antes — resultando em múltiplos e-mails para o mesmo pedido.
+
+**Agravante identificado:** no fluxo de **Cartão**, o `create-payment.js` já
+grava `status: 'approved'` no Supabase no momento da aprovação síncrona.
+Segundos depois, o webhook do MP confirma o mesmo pagamento — e, sem a
+correção, isso por si só já disparava um segundo e-mail, mesmo sem nenhum
+reenvio do MP.
+
+**Correção aplicada em `api/webhook.js`:**
+- Antes de atualizar o pedido, busca o status **atual** no Supabase
+- Só notifica por e-mail na **transição** para `approved` (nunca se o pedido
+  já estava aprovado antes desta chamada)
+- Adicionado filtro de tipo de notificação (`type !== 'payment'` é ignorado
+  com `200 OK`, evitando retries inúteis do MP para eventos como
+  `merchant_order`)
+- Passou a usar o helper compartilhado `getSupabase()` (`api/_lib/supabase.js`)
+  em vez de instanciar um client Supabase próprio — elimina duplicação de código
+
+### 🟡 Melhoria aplicada: risco de colisão de ID de pedido
+
+**Causa:** `store/cart.js` gerava o ID do pedido com
+`` `BM-${Date.now().toString().slice(-6)}` `` — usando só os últimos 6
+dígitos do timestamp em milissegundos, que se repetem a cada ~16,6 minutos.
+Em caso de colisão, o `upsert` por `id` no Supabase sobrescreveria
+silenciosamente um pedido anterior.
+
+**Correção aplicada:** nova função `generateOrderId()` combina timestamp +
+sufixo aleatório (ex: `BM-66107551-998R`), eliminando o risco de colisão.
+
+### 🟢 Verificado e confirmado correto (sem alterações necessárias)
+- `api/order-status.js`, `api/update-order-status.js`,
+  `api/verify-mp-payment.js`, `api/admin-orders.js`, `api/config.js`,
+  `api/_lib/supabase.js` — todos com proteção de senha adequada onde
+  necessário, sem dados sensíveis expostos
+- `api/test-notify.js` — **já está protegido** por `x-admin-password`
+  (correção de uma suposição anterior incorreta deste registro)
+- `store/checkout-modal.js`, `store/payment-config.js`, `store/products.js`,
+  `store/store.js` — fluxo de checkout único (overlay) consistente com a
+  Etapa 17, Payment Brick configurado corretamente
+
+### ⏳ Pendências de hardening identificadas (não bloqueantes, fazer depois)
+- `api/webhook.js` não valida a assinatura `x-signature` enviada pelo
+  Mercado Pago — qualquer POST externo com um `paymentId` válido é
+  processado. Risco parcialmente mitigado hoje porque o pagamento é sempre
+  buscado de novo na API real do MP antes de confiar nos dados
+- Confirmado que o zip auditado ainda continha os arquivos órfãos da
+  Etapa 22 (`api/payment-provider.js`, `api/env.example`,
+  `api/test-notify.js`) — indica que a limpeza da Etapa 22 precisa ser
+  revisada/confirmada no repositório real
+
+### Validações feitas
+- ✅ `node --check` em `webhook.js` e `cart.js` corrigidos
+- ✅ Teste manual da função `generateOrderId()` — IDs únicos confirmados
+  mesmo em chamadas no mesmo milissegundo
+
+### Status
+- [x] `api/webhook.js` corrigido
+- [x] `store/cart.js` corrigido
+- [x] Commit e push feitos pelo usuário
+- [ ] Confirmar que o deploy na Vercel passa limpo com as correções
+- [ ] Reconfirmar se os arquivos órfãos da Etapa 22 foram de fato removidos
+  do repositório
+- [ ] Validação de assinatura do webhook (`x-signature`) — pendência de
+  hardening futuro
+- [ ] Seguir com o teste real de ponta a ponta assim que os dados da conta
+  Mercado Pago da Bruna estiverem disponíveis
+
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
