@@ -1253,6 +1253,25 @@ Passo a passo detalhado de configuração está em `docs/PUBLICACAO.md`.
 
 ---
 
+## 🚦 Próximos Passos Imediatos (o que falta AGORA)
+
+1. Continuar o roteiro de teste do painel `/painel-x9k2f.html`: filtro por
+   status, busca, exportar CSV, auto-refresh, detalhe expandido, highlight
+   de pedido novo, botão "Verificar no MP", visualização mobile
+2. Confirmar remoção dos arquivos órfãos ainda pendentes:
+   `api/payment-provider.js`, `api/env.example`
+3. Assim que tiver os dados de acesso da conta Mercado Pago da Bruna:
+   testar o fluxo real de ponta a ponta (PIX de R$1) e confirmar que o
+   e-mail de notificação chega **uma única vez**, sem duplicidade
+4. Planejar a Fase C ampliada do painel admin (gestão de produtos: editar
+   preço, adicionar/remover produto, sinalizar Novo/Descontinuado/Em Falta)
+   — ver detalhes na Etapa 24
+5. Confirmar preços reais dos 7 produtos com a Bruna
+6. Decidir o que fazer com o site antigo na Netlify, se ainda não foi
+   finalizado
+
+Detalhe completo de cada item nas Etapas 20 a 25 abaixo.
+
 ## 📝 Notas Gerais
 
 - A chave PIX antiga (placeholder `21997600704`) foi **removida do código**.
@@ -1264,3 +1283,40 @@ Passo a passo detalhado de configuração está em `docs/PUBLICACAO.md`.
   pagamento** (antes era aplicado na hora de criar o pedido, mesmo sem pagar)
 - O admin mudou de `admin/admin.html` (sem senha) para `painel-x9k2f.html`
   (com senha via `ADMIN_PASSWORD`)
+
+
+
+### Investigação
+Auditado novamente o `api/update-order-status.js` — confirmado correto
+desde a Etapa 23, exige `POST`. A causa real estava no **front-end do
+painel** (`painel-x9k2f.html`), na função `updateOrderStatus()`, com **dois
+problemas de contrato** com a API:
+
+1. **Método errado**: chamava com `method: 'PATCH'`, mas a API só aceita
+   `POST` → causa direta do erro 405
+2. **Campo errado no corpo**: enviava `{ orderId, newStatus: status }`, mas
+   a API espera `{ orderId, status }` — problema que ficaria escondido até
+   ser revelado pela correção do método
+
+Mesmo padrão de causa já visto na Etapa 17: painel e API escritos/ajustados
+em momentos diferentes, sem contrato sincronizado.
+
+### Correção aplicada em `painel-x9k2f.html`
+- `updateOrderStatus()`: `method: 'PATCH'` → `'POST'`
+- Corpo: `{ orderId, newStatus: status }` → `{ orderId, status }`
+- Corrigido também o `favicon.ico 404` (cosmético): adicionado
+  `<link rel="icon" type="image/png" href="/LOGOPRETO.png">` no `<head>`
+
+### Validações feitas
+- ✅ JavaScript embutido extraído e validado com `node --check`
+- ✅ Confirmado que `fetchOrders`, `verifyMpPayment`, exportação CSV e
+  auto-refresh não têm o mesmo problema de contrato — só esta função
+  estava afetada
+
+### Status
+- [x] Bug identificado e corrigido
+- [x] Commit/push da correção
+- [x] Retestado: troca de status funcionando sem erro 405
+- [ ] Continuar o roteiro de teste do painel a partir do item onde parou:
+  filtro por status, busca, exportar CSV, auto-refresh, detalhe expandido,
+  highlight de pedido novo, botão "Verificar no MP", visualização mobile
