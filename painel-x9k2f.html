@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="robots" content="noindex, nofollow" />
+        <link rel="icon" type="image/png" href="/LOGOPRETO.png" />
         <title>Painel — Loja Oficial</title>
         <link rel="stylesheet" href="store/store-style.css" />
         <style>
@@ -190,10 +191,12 @@
             }
 
             async function updateOrderStatus(orderId, status) {
+                // Corrigido: a API api/update-order-status.js exige método POST
+                // (não PATCH) e o campo "status" no corpo (não "newStatus").
                 const res = await fetch('/api/update-order-status', {
-                    method: 'PATCH',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
-                    body: JSON.stringify({ orderId, newStatus: status }),
+                    body: JSON.stringify({ orderId, status }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Erro ao atualizar status.');
