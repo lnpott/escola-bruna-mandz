@@ -7,41 +7,326 @@
         <title>Painel — Loja Oficial</title>
         <link rel="stylesheet" href="store/store-style.css" />
         <style>
-            body { background: #09090b; color: #e4e4e7; font-family: system-ui, sans-serif; }
-            .panel-wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
-            .login-box { max-width: 360px; margin: 80px auto; background: #18181b; border: 1px solid #27272a; border-radius: 16px; padding: 28px; }
-            .login-box input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #3f3f46; background: #09090b; color: #fff; margin: 10px 0; }
-            .login-box button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #dc2626; color: #fff; font-weight: 700; cursor: pointer; }
-            .login-error { color: #f87171; font-size: 12px; margin-top: 6px; min-height: 16px; }
-            table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 20px; }
-            th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #27272a; }
-            th { color: #a1a1aa; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
-            .status-pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
-            .status-approved { background: #14532d; color: #86efac; }
-            .status-pending { background: #422006; color: #fcd34d; }
-            .status-rejected, .status-cancelled { background: #450a0a; color: #fca5a5; }
-            .status-refunded { background: #1e293b; color: #93c5fd; }
-            .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-            .toolbar button { padding: 8px 14px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 13px; }
-            .empty-state { text-align: center; padding: 40px; color: #71717a; }
+            body {
+                background: #09090b;
+                color: #e4e4e7;
+                font-family: system-ui, sans-serif;
+            }
+            .panel-wrap {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 32px 20px 80px;
+            }
+            .login-box {
+                max-width: 360px;
+                margin: 80px auto;
+                background: #18181b;
+                border: 1px solid #27272a;
+                border-radius: 16px;
+                padding: 28px;
+            }
+            .login-box input {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid #3f3f46;
+                background: #09090b;
+                color: #fff;
+                margin: 10px 0;
+            }
+            .login-box button {
+                width: 100%;
+                padding: 10px;
+                border-radius: 8px;
+                border: none;
+                background: #dc2626;
+                color: #fff;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .login-error {
+                color: #f87171;
+                font-size: 12px;
+                margin-top: 6px;
+                min-height: 16px;
+            }
+
+            /* KPIs */
+            .kpi-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+                margin: 20px 0 24px;
+            }
+            .kpi-card {
+                background: #18181b;
+                border: 1px solid #27272a;
+                border-radius: 12px;
+                padding: 16px;
+            }
+            .kpi-label {
+                color: #71717a;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 700;
+            }
+            .kpi-value {
+                font-size: 24px;
+                font-weight: 900;
+                margin-top: 4px;
+                color: #fff;
+            }
+            .kpi-value.warn {
+                color: #fcd34d;
+            }
+            .kpi-value.good {
+                color: #86efac;
+            }
+
+            /* Toolbar */
+            .toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .toolbar-actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .toolbar button {
+                padding: 8px 14px;
+                border-radius: 8px;
+                border: 1px solid #3f3f46;
+                background: #18181b;
+                color: #e4e4e7;
+                cursor: pointer;
+                font-size: 13px;
+            }
+            .toolbar button:hover {
+                background: #27272a;
+            }
+
+            /* Filtros */
+            .filters-bar {
+                display: flex;
+                gap: 10px;
+                margin: 16px 0;
+                flex-wrap: wrap;
+            }
+            .filters-bar input,
+            .filters-bar select {
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid #3f3f46;
+                background: #18181b;
+                color: #e4e4e7;
+                font-size: 13px;
+            }
+            .filters-bar input {
+                flex: 1;
+                min-width: 200px;
+            }
+
+            /* Tabela */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+                margin-top: 12px;
+            }
+            th,
+            td {
+                text-align: left;
+                padding: 8px 10px;
+                border-bottom: 1px solid #27272a;
+                vertical-align: top;
+            }
+            th {
+                color: #a1a1aa;
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 0.05em;
+            }
+            .status-pill {
+                padding: 2px 8px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+            .status-approved {
+                background: #14532d;
+                color: #86efac;
+            }
+            .status-pending {
+                background: #422006;
+                color: #fcd34d;
+            }
+            .status-rejected,
+            .status-cancelled {
+                background: #450a0a;
+                color: #fca5a5;
+            }
+            .status-refunded {
+                background: #1e293b;
+                color: #93c5fd;
+            }
+            .status-select {
+                padding: 4px 8px;
+                border-radius: 6px;
+                border: 1px solid #3f3f46;
+                background: #09090b;
+                color: #e4e4e7;
+                font-size: 12px;
+            }
+            .row-saving {
+                opacity: 0.5;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #71717a;
+            }
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #18181b;
+                border: 1px solid #3f3f46;
+                color: #e4e4e7;
+                padding: 10px 16px;
+                border-radius: 10px;
+                font-size: 13px;
+                z-index: 100;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            }
+
+            /* ─── Responsivo (mobile) ──────────────────────────────────────── */
+            @media (max-width: 720px) {
+                .panel-wrap {
+                    padding: 16px 12px 60px;
+                }
+                .kpi-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 8px;
+                }
+                .kpi-card {
+                    padding: 12px;
+                }
+                .kpi-value {
+                    font-size: 18px;
+                }
+                .toolbar {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .toolbar-actions {
+                    width: 100%;
+                }
+                .toolbar-actions button {
+                    flex: 1;
+                }
+                .filters-bar {
+                    flex-direction: column;
+                }
+                .filters-bar input,
+                .filters-bar select {
+                    width: 100%;
+                }
+
+                /* Tabela → cards em telas pequenas */
+                table,
+                thead {
+                    display: none;
+                }
+                tbody {
+                    display: block;
+                }
+                tr {
+                    display: block;
+                    background: #18181b;
+                    border: 1px solid #27272a;
+                    border-radius: 12px;
+                    padding: 12px;
+                    margin-bottom: 10px;
+                }
+                td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 10px;
+                    border: none;
+                    padding: 6px 0;
+                    text-align: right;
+                }
+                td::before {
+                    content: attr(data-label);
+                    color: #71717a;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    font-weight: 700;
+                    flex-shrink: 0;
+                    text-align: left;
+                }
+                td[data-label='Cliente'] {
+                    align-items: flex-start;
+                    text-align: right;
+                }
+                td[data-label='Ação'] .status-select {
+                    width: 100%;
+                }
+            }
         </style>
     </head>
     <body>
         <!-- Tela de login -->
         <div id="login-screen" class="login-box">
-            <h2 style="margin:0 0 4px;">Painel — Loja Oficial</h2>
-            <p style="color:#a1a1aa; font-size:13px;">Acesso restrito.</p>
-            <input id="admin-password-input" type="password" placeholder="Senha" autocomplete="current-password" />
+            <h2 style="margin: 0 0 4px">Painel — Loja Oficial</h2>
+            <p style="color: #a1a1aa; font-size: 13px">Acesso restrito.</p>
+            <input
+                id="admin-password-input"
+                type="password"
+                placeholder="Senha"
+                autocomplete="current-password"
+            />
             <div id="login-error" class="login-error"></div>
             <button id="login-submit">Entrar</button>
         </div>
 
         <!-- Painel (oculto até autenticar) -->
-        <div id="panel-screen" class="panel-wrap" style="display:none;">
+        <div id="panel-screen" class="panel-wrap" style="display: none">
             <div class="toolbar">
-                <h1 style="font-size:20px;">Pedidos da Loja</h1>
-                <button id="refresh-btn">Atualizar</button>
+                <h1 style="font-size: 20px">Pedidos da Loja</h1>
+                <div class="toolbar-actions">
+                    <button id="export-csv-btn">⬇ Exportar CSV</button>
+                    <button id="refresh-btn">↻ Atualizar</button>
+                </div>
             </div>
+
+            <!-- KPIs -->
+            <div class="kpi-grid" id="kpi-grid"></div>
+
+            <!-- Filtros -->
+            <div class="filters-bar">
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Buscar por nome, e-mail ou ID do pedido…"
+                />
+                <select id="status-filter">
+                    <option value="">Todos os status</option>
+                    <option value="pending">Pendente</option>
+                    <option value="approved">Aprovado</option>
+                    <option value="rejected">Rejeitado</option>
+                    <option value="cancelled">Cancelado</option>
+                    <option value="refunded">Devolvido</option>
+                </select>
+            </div>
+
             <div id="orders-area"></div>
         </div>
 
@@ -49,20 +334,38 @@
             const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
             const STORAGE_KEY = 'bruna_admin_session'; // guarda a senha só na sessão do navegador (sessionStorage)
 
+            const STATUS_LABELS = {
+                approved: 'Aprovado',
+                pending: 'Pendente',
+                rejected: 'Rejeitado',
+                cancelled: 'Cancelado',
+                refunded: 'Devolvido',
+            };
+
             const loginScreen = document.getElementById('login-screen');
             const panelScreen = document.getElementById('panel-screen');
             const ordersArea = document.getElementById('orders-area');
             const loginError = document.getElementById('login-error');
+            const kpiGrid = document.getElementById('kpi-grid');
+            const searchInput = document.getElementById('search-input');
+            const statusFilter = document.getElementById('status-filter');
+
+            let _allOrders = []; // cache local de todos os pedidos carregados
+            let _password = null;
 
             function statusLabel(status) {
-                return {
-                    approved: 'Aprovado',
-                    pending: 'Pendente',
-                    rejected: 'Rejeitado',
-                    cancelled: 'Cancelado',
-                    refunded: 'Devolvido',
-                }[status] || status;
+                return STATUS_LABELS[status] || status;
             }
+
+            function showToast(msg) {
+                const el = document.createElement('div');
+                el.className = 'toast';
+                el.textContent = msg;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 3000);
+            }
+
+            // ─── Fetch de pedidos ──────────────────────────────────────────────────
 
             async function fetchOrders(password) {
                 const res = await fetch('/api/admin-orders', {
@@ -73,9 +376,98 @@
                 return res.json();
             }
 
+            async function updateOrderStatus(orderId, status) {
+                const res = await fetch('/api/update-order-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-password': _password,
+                    },
+                    body: JSON.stringify({ orderId, status }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Erro ao atualizar status.');
+                return data.order;
+            }
+
+            // ─── KPIs ──────────────────────────────────────────────────────────────
+
+            function isSameDay(dateStr, ref) {
+                const d = new Date(dateStr);
+                return (
+                    d.getFullYear() === ref.getFullYear() &&
+                    d.getMonth() === ref.getMonth() &&
+                    d.getDate() === ref.getDate()
+                );
+            }
+
+            function isSameMonth(dateStr, ref) {
+                const d = new Date(dateStr);
+                return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+            }
+
+            function renderKpis(orders) {
+                const now = new Date();
+                const approved = orders.filter((o) => o.status === 'approved');
+
+                const revenueToday = approved
+                    .filter((o) => isSameDay(o.created_at, now))
+                    .reduce((sum, o) => sum + Number(o.total), 0);
+
+                const revenueMonth = approved
+                    .filter((o) => isSameMonth(o.created_at, now))
+                    .reduce((sum, o) => sum + Number(o.total), 0);
+
+                const pendingCount = orders.filter((o) => o.status === 'pending').length;
+                const totalOrders = orders.length;
+
+                kpiGrid.innerHTML = `
+                    <div class="kpi-card">
+                        <div class="kpi-label">Receita Hoje</div>
+                        <div class="kpi-value good">${money.format(revenueToday)}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Receita do Mês</div>
+                        <div class="kpi-value good">${money.format(revenueMonth)}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Pedidos Pendentes</div>
+                        <div class="kpi-value ${pendingCount > 0 ? 'warn' : ''}">${pendingCount}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total de Pedidos</div>
+                        <div class="kpi-value">${totalOrders}</div>
+                    </div>
+                `;
+            }
+
+            // ─── Filtro + busca ────────────────────────────────────────────────────
+
+            function getFilteredOrders() {
+                const search = searchInput.value.trim().toLowerCase();
+                const status = statusFilter.value;
+
+                return _allOrders.filter((o) => {
+                    if (status && o.status !== status) return false;
+                    if (!search) return true;
+                    const haystack = [o.id, o.customer_name, o.customer_email]
+                        .filter(Boolean)
+                        .join(' ')
+                        .toLowerCase();
+                    return haystack.includes(search);
+                });
+            }
+
+            function applyFiltersAndRender() {
+                renderOrders(getFilteredOrders());
+            }
+
+            // ─── Renderização da tabela ────────────────────────────────────────────
+
             function renderOrders(orders) {
                 if (!orders.length) {
-                    ordersArea.innerHTML = '<div class="empty-state">Nenhum pedido ainda.</div>';
+                    ordersArea.innerHTML =
+                        '<div class="empty-state">Nenhum pedido encontrado com esses filtros.</div>';
                     return;
                 }
                 ordersArea.innerHTML = `
@@ -83,29 +475,120 @@
                         <thead>
                             <tr>
                                 <th>Pedido</th><th>Data</th><th>Cliente</th><th>Método</th>
-                                <th>Total</th><th>Status</th><th>XP</th>
+                                <th>Total</th><th>Status</th><th>XP</th><th>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${orders.map((o) => `
-                                <tr>
-                                    <td><strong>${o.id}</strong></td>
-                                    <td>${new Date(o.created_at).toLocaleString('pt-BR')}</td>
-                                    <td>${o.customer_name || '—'}<br><span style="color:#71717a">${o.customer_email || ''}</span></td>
-                                    <td>${(o.method || '').toUpperCase()}</td>
-                                    <td>${money.format(o.total)}</td>
-                                    <td><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
-                                    <td>+${o.earned_xp || 0}</td>
+                            ${orders
+                                .map(
+                                    (o) => `
+                                <tr data-order-row="${o.id}">
+                                    <td data-label="Pedido"><strong>${o.id}</strong></td>
+                                    <td data-label="Data">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
+                                    <td data-label="Cliente">${o.customer_name || '—'}<br><span style="color:#71717a">${o.customer_email || ''}</span></td>
+                                    <td data-label="Método">${(o.method || '').toUpperCase()}</td>
+                                    <td data-label="Total">${money.format(o.total)}</td>
+                                    <td data-label="Status"><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
+                                    <td data-label="XP">+${o.earned_xp || 0}</td>
+                                    <td data-label="Ação">
+                                        <select class="status-select" data-order-id="${o.id}">
+                                            ${Object.keys(STATUS_LABELS)
+                                                .map(
+                                                    (s) =>
+                                                        `<option value="${s}" ${s === o.status ? 'selected' : ''}>${STATUS_LABELS[s]}</option>`
+                                                )
+                                                .join('')}
+                                        </select>
+                                    </td>
                                 </tr>
-                            `).join('')}
+                            `
+                                )
+                                .join('')}
                         </tbody>
                     </table>`;
+
+                // Listener de troca de status por linha
+                ordersArea.querySelectorAll('.status-select').forEach((select) => {
+                    select.addEventListener('change', async (e) => {
+                        const orderId = e.target.dataset.orderId;
+                        const newStatus = e.target.value;
+                        const row = ordersArea.querySelector(`[data-order-row="${orderId}"]`);
+                        row?.classList.add('row-saving');
+                        try {
+                            const updated = await updateOrderStatus(orderId, newStatus);
+                            const idx = _allOrders.findIndex((o) => o.id === orderId);
+                            if (idx !== -1) _allOrders[idx] = updated;
+                            showToast(
+                                `Pedido ${orderId} atualizado para "${statusLabel(newStatus)}".`
+                            );
+                            renderKpis(_allOrders);
+                            applyFiltersAndRender();
+                        } catch (err) {
+                            showToast(`Erro: ${err.message}`);
+                            row?.classList.remove('row-saving');
+                        }
+                    });
+                });
             }
+
+            // ─── Exportar CSV ──────────────────────────────────────────────────────
+
+            function exportCsv() {
+                const orders = getFilteredOrders();
+                if (!orders.length) {
+                    showToast('Nenhum pedido para exportar.');
+                    return;
+                }
+                const header = [
+                    'ID',
+                    'Data',
+                    'Cliente',
+                    'E-mail',
+                    'Telefone',
+                    'Método',
+                    'Total',
+                    'Status',
+                    'XP',
+                ];
+                const rows = orders.map((o) => [
+                    o.id,
+                    new Date(o.created_at).toLocaleString('pt-BR'),
+                    o.customer_name || '',
+                    o.customer_email || '',
+                    o.customer_phone || '',
+                    (o.method || '').toUpperCase(),
+                    Number(o.total).toFixed(2).replace('.', ','),
+                    statusLabel(o.status),
+                    o.earned_xp || 0,
+                ]);
+
+                const csvContent = [header, ...rows]
+                    .map((line) =>
+                        line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';')
+                    )
+                    .join('\r\n');
+
+                // BOM para o Excel reconhecer UTF-8 corretamente com acentos
+                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pedidos-bruna-mandz-${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // ─── Carregamento inicial / login ─────────────────────────────────────
 
             async function loadPanel(password) {
                 try {
                     const { orders } = await fetchOrders(password);
-                    renderOrders(orders);
+                    _allOrders = orders;
+                    _password = password;
+                    renderKpis(_allOrders);
+                    applyFiltersAndRender();
                     loginScreen.style.display = 'none';
                     panelScreen.style.display = 'block';
                     sessionStorage.setItem(STORAGE_KEY, password);
@@ -122,9 +605,11 @@
                 if (e.key === 'Enter') document.getElementById('login-submit').click();
             });
             document.getElementById('refresh-btn').addEventListener('click', () => {
-                const password = sessionStorage.getItem(STORAGE_KEY);
-                if (password) loadPanel(password);
+                if (_password) loadPanel(_password);
             });
+            document.getElementById('export-csv-btn').addEventListener('click', exportCsv);
+            searchInput.addEventListener('input', applyFiltersAndRender);
+            statusFilter.addEventListener('change', applyFiltersAndRender);
 
             // Tenta usar a senha já guardada nesta aba (não persiste entre sessões/navegadores)
             const savedPassword = sessionStorage.getItem(STORAGE_KEY);

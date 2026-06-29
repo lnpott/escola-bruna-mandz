@@ -1,33 +1,28 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 29/06/2026 — (Etapa 18)
+> Última atualização: 29/06/2026 — (Etapa 21)
 
 ---
 
 ## 🚦 Próximos Passos Imediatos (o que falta AGORA)
 
-1. **Sobrescrever os arquivos da Etapa 17** no repositório: `index.html`,
-   `store/store-style.css`, `store/checkout-modal.js`, `store/store.js` —
-   o checkout foi totalmente reescrito como overlay de tela cheia
-2. **Commit + push** das mudanças
-3. **Testar a loja completa**: produtos aparecem na vitrine, adicionar ao
-   carrinho funciona, checkout abre em tela cheia isolada, o X fecha
-   corretamente, e clicar fora NÃO fecha mais nada (bug corrigido)
-4. **Repetir o teste de checkout PIX** com o produto temporário de R$ 1,00,
-   usando um e-mail diferente do e-mail de login no Mercado Pago — agora com
-   as credenciais de teste corretas (API Pagamentos)
-5. **Confirmar que o status muda para "Aprovado"** no site e no painel
-   `/painel-x9k2f.html`
-6. **Remover o produto temporário** `teste-pagamento-1real` de
-   `store/products.js` depois que o teste passar
-7. Testar o **checkout com Cartão** (Brick do Mercado Pago)
-8. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
+1. **Sobrescrever os arquivos da Etapa 21** no repositório: `painel-x9k2f.html`,
+   `api/update-order-status.js` (novo), `store/checkout-modal.js`
+2. **Apagar os arquivos órfãos removidos** nesta etapa (se ainda existirem no
+   seu repositório local): `api/payment-provider.js`, `api/env.example`,
+   pasta `src/`, e o arquivo `correcao-404-public.zip` na raiz
+3. **Commit + push** das mudanças
+4. **Testar o painel `/painel-x9k2f.html`**: KPIs aparecem corretos, trocar
+   o status de um pedido funciona, busca e filtro funcionam, exportar CSV
+   gera arquivo correto, e testar também no celular (modo responsivo)
+5. Decidir com a Bruna se a **Fase B** (auto-refresh + notificação por
+   e-mail + detalhe expandido) é a próxima prioridade, ou se outra coisa é
+   mais urgente
+6. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
    está no ar e desativar, para não haver duas versões diferentes do site)
-9. **Evitar usar outra ferramenta de IA neste repositório sem contexto** —
-   ver recomendação na Etapa 17 (isso já causou uma reescrita quebrada)
 
-Detalhe completo de cada item nas Etapas 14 a 17 abaixo.
+Detalhe completo de cada item nas Etapas 20 e 21 abaixo.
 
 ---
 
@@ -64,6 +59,9 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 16 | Erro persistente "live credentials" — causa real: API errada selecionada no MP | ✅ Resolvido (era "API Orders" em vez de "API Pagamentos") |
 | 17 | **Incidente**: arquivos sobrescritos por outra ferramenta + Reescrita completa do checkout (overlay de tela cheia, fechamento controlado) | ✅ Reescrito — aguardando teste |
 | 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
+| 19 | **Catálogo real** — 7 produtos com imagens definitivas, produto de teste removido | ✅ Concluído |
+| 20 | **Plano do Painel Admin** — diagnóstico do estado atual + roadmap completo de melhorias | ✅ Planejado |
+| 21 | **Fase A do Painel implementada**: KPIs, ação de status inline, filtro, busca, export CSV, mobile responsivo | ✅ Concluído — aguardando teste |
 
 ---
 
@@ -861,6 +859,234 @@ prontas, substituir os placeholders em `store/products.js`.
 - [ ] Atualizar `store/products.js` com os 13 produtos e imagens reais
 - [ ] Testar checkout com cartão (PIX já validado em produção)
 
+
+---
+
+## ✅ ETAPA 19 — Catálogo real com imagens definitivas
+
+### O que foi feito
+- `store/products.js` reescrito com os **7 produtos reais** aprovados:
+  Pulseira, Palheta, Chaveiro, Copo Térmico, Camisa Clássica, Camisa Minimalista, Camisa Rock
+- Imagens reais adicionadas ao repositório em `public/`:
+  `Pulseira.png`, `Paleta.png`, `Chaveiro.png`, `Copo.png`,
+  `TSHIRT_PREMIUN.png`, `TSHIRT_PRO.png`, `TSHIRT_ROCK.png`
+- Todos os produtos-placeholder (caneca, mochila, kit, bloco) **removidos**
+- Produto de teste `teste-pagamento-1real` **removido**
+- Camisas com variante de tamanho (P/M/G/GG); demais sem variante
+
+### Pendente
+- [ ] Confirmar preços reais com a Bruna (valores atuais são estimativas):
+  Pulseira R$19,90 | Palheta R$9,90 | Chaveiro R$14,90 | Copo R$59,90 | Camisas R$69,90
+
+---
+
+## 📋 ETAPA 20 — Plano do Painel Administrativo
+
+### 20.1 — Diagnóstico do estado atual
+
+O painel (`painel-x9k2f.html`) existe e funciona, mas está na **fase 0**: faz apenas
+uma coisa — listar pedidos numa tabela. Não há nenhuma ação possível sobre eles.
+
+#### O que já existe e funciona
+- Tela de login com senha via header `x-admin-password` (variável `ADMIN_PASSWORD` na Vercel)
+- Tabela de pedidos buscada do Supabase (até 200 registros, ordenados por data)
+- Colunas: ID, Data, Cliente, Método, Total, Status (com pill colorida), XP
+- Botão "Atualizar" para recarregar manualmente
+- URL escondida (`/painel-x9k2f.html`) com `noindex, nofollow`
+
+#### O que NÃO existe e precisa ser construído
+- **Nenhuma ação sobre pedidos** — não dá para mudar status, cancelar, reembolsar
+- **Nenhum resumo ou KPI** — sem totais, sem receita do dia/mês, sem contagem por status
+- **Nenhuma gestão de estoque** — estoques estão fixos em `products.js`, não há como
+  atualizar pelo painel
+- **Nenhuma gestão de produtos** — preços, nomes e imagens só mudam editando o código
+- **Nenhum filtro ou busca** — com muitos pedidos, fica impossível encontrar um específico
+- **Nenhuma exportação** — sem como gerar relatório ou lista para Excel/WhatsApp
+- **Nenhuma notificação** — a Bruna não sabe que chegou um pedido novo sem abrir o painel
+
+---
+
+### 20.2 — Referências de melhores práticas
+
+Com base em pesquisa de mercado (2025–2026):
+
+**Dashboard como nerve center** — Um painel admin eficaz consolida pedidos, estoque,
+pagamentos e analytics numa visão única. O que separa um painel eficaz de um estático é
+a atualização em tempo real: dados ao vivo permitem decisões rápidas em vez de snapshots
+desatualizados.
+
+**Princípio das 4 perspectivas simultâneas** — Mostre resumo do pedido, disponibilidade
+de estoque e opções de ação ao mesmo tempo, com badges coloridas para destacar exceções.
+Quando quem gerencia consegue fazer tudo sem navegar por múltiplas telas, elimina cliques
+desnecessários e tempo de decisão.
+
+**Ações diretas na tabela** — O gestor deve conseguir mudar o status de um pedido,
+marcar como enviado ou emitir reembolso diretamente da lista, sem abrir outra tela.
+
+**Mobile-first para admin** — Em 2025, painéis admin precisam funcionar no celular.
+A Bruna precisa conseguir ver e agir sobre um pedido novo pelo celular, não só pelo
+computador.
+
+**Exportação de dados** — Exportação CSV/Excel para dados de pedidos é considerada
+funcionalidade padrão em painéis admin modernos. Essencial para controle financeiro e
+prestação de contas.
+
+---
+
+### 20.3 — Roadmap de melhorias (priorizado)
+
+As melhorias estão divididas em 3 fases, da mais simples à mais completa.
+Cada fase entrega valor imediato e independe da seguinte para funcionar.
+
+#### 🟥 FASE A — Ações essenciais (implementar primeiro)
+*O painel passa de "visualizador" para "ferramenta de trabalho"*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **A1** | Cards de KPI no topo: total de pedidos, receita do dia, receita do mês, pedidos pendentes | Baixa |
+| **A2** | Botão de ação por pedido: mudar status (Pendente → Aprovado → Enviado → Cancelado) | Média |
+| **A3** | Filtro por status (Todos / Pendente / Aprovado / Cancelado) | Baixa |
+| **A4** | Campo de busca por nome do cliente ou ID do pedido | Baixa |
+| **A5** | Exportar lista atual como CSV (para abrir no Excel ou Google Sheets) | Média |
+
+**Nova API necessária:** `api/update-order-status.js` — recebe `{ orderId, newStatus }`,
+valida senha admin, atualiza no Supabase e retorna o pedido atualizado.
+
+---
+
+#### 🟧 FASE B — Visibilidade proativa (depois da Fase A)
+*A Bruna não precisa mais abrir o painel para saber o que está acontecendo*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **B1** | Auto-refresh do painel a cada 60 segundos (sem precisar clicar "Atualizar") | Baixa |
+| **B2** | Notificação por e-mail quando chega um pedido novo (via Resend ou SendGrid) | Média |
+| **B3** | Detalhe expandido do pedido: mostrar os itens comprados (campo `items` do Supabase) | Média |
+| **B4** | Indicador visual de "pedido novo" (highlight na linha por X minutos após entrada) | Baixa |
+
+**Nova API necessária:** `api/notify-new-order.js` — chamada pelo webhook do MP quando
+`status = approved`, dispara e-mail para o endereço configurado em `NOTIFY_EMAIL`.
+
+---
+
+#### 🟨 FASE C — Gestão de produtos e estoque (fase futura)
+*Elimina a necessidade de editar código para mudar preço ou estoque*
+
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **C1** | Aba "Produtos" — lista os 7 produtos com estoque atual e preço | Alta |
+| **C2** | Editar estoque diretamente pelo painel (campo numérico inline) | Alta |
+| **C3** | Editar preço pelo painel | Alta |
+| **C4** | Ativar/desativar produto (campo `active`) sem editar código | Média |
+
+**Pré-requisito:** mover `products.js` do arquivo estático para uma tabela `products`
+no Supabase, com as mesmas colunas que o objeto atual (`id`, `name`, `price`, `stock`,
+`active`, `image`, etc.). O `store/store.js` passaria a buscar produtos via API em vez
+de importar o arquivo JS.
+
+---
+
+### 20.4 — O que NÃO fazer (armadilhas comuns)
+
+- **Não construir tudo de uma vez** — a Fase A já transforma o painel numa ferramenta
+  real. Fases B e C podem esperar até a loja ter volume de pedidos que justifique.
+- **Não adicionar autenticação complexa agora** — a senha simples via header é adequada
+  para o volume atual. JWT/OAuth só fazem sentido quando houver múltiplos operadores.
+- **Não exibir dados sensíveis desnecessariamente** — telefone e e-mail do cliente devem
+  aparecer só quando necessário (ex: ao expandir o detalhe de um pedido), não na tabela
+  principal que fica aberta na tela.
+- **Não quebrar o mobile** — qualquer melhoria visual deve ser testada no celular antes
+  de ir ao ar. O painel atual não é responsivo e isso precisa mudar na Fase A.
+
+---
+
+### 20.5 — Status e próximos passos
+
+- [x] Diagnóstico do estado atual documentado
+- [x] Referências de melhores práticas pesquisadas e aplicadas ao contexto
+- [x] Roadmap de 3 fases definido e priorizado
+- [x] **Fase A implementada** — ver Etapa 21
+- [ ] Confirmar com a Bruna quais itens da Fase A têm prioridade máxima
+- [ ] Definir se a notificação por e-mail (Fase B2) é urgente — se sim, pode ser
+      antecipada para a Fase A
+
+---
+
+## ✅ ETAPA 21 — Implementação da Fase A (painel administrativo)
+
+Implementados todos os 5 itens da Fase A definidos na Etapa 20.3.
+
+### O que foi feito
+
+**Nova API: `api/update-order-status.js`**
+- Recebe `{ orderId, status }`, protegido pela mesma senha admin
+  (`x-admin-password`)
+- Valida que `status` é um dos 5 valores aceitos pela tabela `orders`
+  (`pending`, `approved`, `rejected`, `cancelled`, `refunded`)
+- Atualiza no Supabase via `update().eq('id', orderId)`, retorna o pedido
+  atualizado para o painel refletir a mudança sem precisar recarregar tudo
+
+**`painel-x9k2f.html` — reescrito com todas as features da Fase A:**
+- **A1 — KPIs**: 4 cards no topo (Receita Hoje, Receita do Mês, Pedidos
+  Pendentes, Total de Pedidos). Receita considera só pedidos com
+  `status: 'approved'`; comparação de data feita por ano/mês/dia, não por
+  string, para evitar bugs de fuso horário
+- **A2 — Ação por pedido**: `<select>` de status em cada linha da tabela,
+  ao trocar chama `update-order-status` e atualiza a linha + os KPIs sem
+  recarregar a página inteira
+- **A3 — Filtro por status** e **A4 — busca por nome/e-mail/ID**: ambos
+  client-side, combináveis entre si (busca dentro do status filtrado)
+- **A5 — Exportar CSV**: gera CSV com BOM UTF-8 (para acentos abrirem
+  corretamente no Excel), separador `;`, exporta a lista **já filtrada**
+  (respeita os filtros ativos no momento do clique)
+- **Responsividade mobile** (requisito da Etapa 20.4): abaixo de 720px, a
+  tabela vira uma lista de cards (`<tr>` como card, `<td>` com
+  `data-label` exibido via `::before`); KPIs em grid 2 colunas; toolbar e
+  filtros em coluna única
+
+### Validações feitas
+- ✅ `node --check` em `update-order-status.js` e no `<script>` extraído do painel
+- ✅ ESLint sem erros em `update-order-status.js`
+- ✅ CSS do painel com chaves balanceadas (48/48)
+- ✅ Lógica de KPI testada com dados simulados (receita hoje/mês, contagem
+  de pendentes — todos os valores calculados corretamente)
+- ✅ Lógica de filtro + busca testada isoladamente, incluindo combinação
+  dos dois filtros simultâneos
+- ✅ Escaping de aspas no CSV testado (nomes com aspas duplas não quebram
+  o arquivo)
+- ✅ Todos os IDs referenciados pelo JS existem no HTML (checagem
+  automatizada, tanto no `index.html` quanto no próprio painel)
+- ✅ `npm run build` gera o painel corretamente (23.79 kB)
+- ✅ Prettier aplicado
+
+### Limpeza adicional feita nesta sessão
+Durante a sincronização com o estado mais recente do repositório, foram
+encontrados e removidos arquivos órfãos que não afetavam o funcionamento,
+mas deixavam o projeto mais difícil de manter:
+- `api/payment-provider.js` e `api/env.example` — mocks antigos
+  desconectados, reintroduzidos por engano (provavelmente extração de um
+  zip antigo). O `.env.example` correto já existe na raiz do projeto
+- `src/main.js` e `src/global-bridge.js` — arquivos órfãos com imports
+  quebrados (`./audio.js`/`./game.js`, que vivem em `public/`, não em
+  `src/`); nunca foram referenciados pelo `index.html`, então não
+  quebravam nada, mas eram código morto e confuso
+- `correcao-404-public.zip` — zip de uma entrega antiga, comitado por
+  engano na raiz do repositório
+
+Também foi reaplicada uma pequena melhoria de robustez perdida durante a
+sincronização: a detecção de PIX no `checkout-modal.js` agora checa tanto
+`selectedPaymentMethod === 'bank_transfer'` quanto
+`formData.payment_method_id === 'pix'`, reduzindo o risco de depender de
+um único nome de campo do SDK do Mercado Pago.
+
+### Status
+- [ ] Fazer commit/push e testar o painel no navegador e no celular
+- [ ] Confirmar que mudar o status de um pedido reflete corretamente
+- [ ] Confirmar que o CSV abre certo no Excel/Google Sheets (acentos OK)
+- [ ] Decidir com a Bruna se a Fase B (notificação por e-mail) é prioridade
+  antes de avançar para a Fase C (gestão de produtos)
+
+---
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
