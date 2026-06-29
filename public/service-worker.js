@@ -1,10 +1,9 @@
-const CACHE_NAME = 'bruna-mandz-v3'; // bump de versão: loja agora usa Mercado Pago real
+const CACHE_NAME = 'bruna-mandz-v4'; // bump: removido ecommerce.js (arquivo legado não existe em /public)
 const ASSETS = [
     '/',
     '/index.html',
     '/audio.js',
     '/game.js',
-    '/ecommerce.js',
     '/store/store.js',
     '/store/products.js',
     '/store/cart.js',
