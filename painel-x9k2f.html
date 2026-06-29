@@ -7,316 +7,132 @@
         <title>Painel — Loja Oficial</title>
         <link rel="stylesheet" href="store/store-style.css" />
         <style>
-            body {
-                background: #09090b;
-                color: #e4e4e7;
-                font-family: system-ui, sans-serif;
-            }
-            .panel-wrap {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 32px 20px 80px;
-            }
-            .login-box {
-                max-width: 360px;
-                margin: 80px auto;
-                background: #18181b;
-                border: 1px solid #27272a;
-                border-radius: 16px;
-                padding: 28px;
-            }
-            .login-box input {
-                width: 100%;
-                padding: 10px 12px;
-                border-radius: 8px;
-                border: 1px solid #3f3f46;
-                background: #09090b;
-                color: #fff;
-                margin: 10px 0;
-            }
-            .login-box button {
-                width: 100%;
-                padding: 10px;
-                border-radius: 8px;
-                border: none;
-                background: #dc2626;
-                color: #fff;
-                font-weight: 700;
-                cursor: pointer;
-            }
-            .login-error {
-                color: #f87171;
-                font-size: 12px;
-                margin-top: 6px;
-                min-height: 16px;
-            }
+            body { background: #09090b; color: #e4e4e7; font-family: system-ui, sans-serif; }
+            .panel-wrap { max-width: 1200px; margin: 0 auto; padding: 32px 20px 80px; }
+            .login-box { max-width: 360px; margin: 80px auto; background: #18181b; border: 1px solid #27272a; border-radius: 16px; padding: 28px; }
+            .login-box input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #3f3f46; background: #09090b; color: #fff; margin: 10px 0; }
+            .login-box button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #dc2626; color: #fff; font-weight: 700; cursor: pointer; }
+            .login-error { color: #f87171; font-size: 12px; margin-top: 6px; min-height: 16px; }
 
             /* KPIs */
-            .kpi-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 12px;
-                margin: 20px 0 24px;
-            }
-            .kpi-card {
-                background: #18181b;
-                border: 1px solid #27272a;
-                border-radius: 12px;
-                padding: 16px;
-            }
-            .kpi-label {
-                color: #71717a;
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-weight: 700;
-            }
-            .kpi-value {
-                font-size: 24px;
-                font-weight: 900;
-                margin-top: 4px;
-                color: #fff;
-            }
-            .kpi-value.warn {
-                color: #fcd34d;
-            }
-            .kpi-value.good {
-                color: #86efac;
-            }
+            .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0 24px; }
+            .kpi-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 16px; }
+            .kpi-label { color: #71717a; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+            .kpi-value { font-size: 24px; font-weight: 900; margin-top: 4px; color: #fff; }
+            .kpi-value.warn { color: #fcd34d; }
+            .kpi-value.good { color: #86efac; }
 
             /* Toolbar */
-            .toolbar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            .toolbar-actions {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .toolbar button {
-                padding: 8px 14px;
-                border-radius: 8px;
-                border: 1px solid #3f3f46;
-                background: #18181b;
-                color: #e4e4e7;
-                cursor: pointer;
-                font-size: 13px;
-            }
-            .toolbar button:hover {
-                background: #27272a;
-            }
+            .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+            .toolbar-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+            .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+            .toolbar button { padding: 8px 14px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 13px; }
+            .toolbar button:hover { background: #27272a; }
+            .btn-danger { border-color: #dc2626 !important; color: #f87171 !important; }
+            .btn-danger:hover { background: #1a0a0a !important; }
+
+            /* Contador de auto-refresh */
+            #refresh-counter { font-size: 12px; color: #52525b; white-space: nowrap; }
+            #refresh-counter span { color: #a1a1aa; font-weight: 700; }
 
             /* Filtros */
-            .filters-bar {
-                display: flex;
-                gap: 10px;
-                margin: 16px 0;
-                flex-wrap: wrap;
-            }
-            .filters-bar input,
-            .filters-bar select {
-                padding: 8px 12px;
-                border-radius: 8px;
-                border: 1px solid #3f3f46;
-                background: #18181b;
-                color: #e4e4e7;
-                font-size: 13px;
-            }
-            .filters-bar input {
-                flex: 1;
-                min-width: 200px;
-            }
+            .filters-bar { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+            .filters-bar input, .filters-bar select { padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; font-size: 13px; }
+            .filters-bar input { flex: 1; min-width: 200px; }
 
             /* Tabela */
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 13px;
-                margin-top: 12px;
-            }
-            th,
-            td {
-                text-align: left;
-                padding: 8px 10px;
-                border-bottom: 1px solid #27272a;
-                vertical-align: top;
-            }
-            th {
-                color: #a1a1aa;
-                text-transform: uppercase;
-                font-size: 11px;
-                letter-spacing: 0.05em;
-            }
-            .status-pill {
-                padding: 2px 8px;
-                border-radius: 999px;
-                font-size: 11px;
-                font-weight: 700;
-                white-space: nowrap;
-            }
-            .status-approved {
-                background: #14532d;
-                color: #86efac;
-            }
-            .status-pending {
-                background: #422006;
-                color: #fcd34d;
-            }
-            .status-rejected,
-            .status-cancelled {
-                background: #450a0a;
-                color: #fca5a5;
-            }
-            .status-refunded {
-                background: #1e293b;
-                color: #93c5fd;
-            }
-            .status-select {
-                padding: 4px 8px;
-                border-radius: 6px;
-                border: 1px solid #3f3f46;
-                background: #09090b;
-                color: #e4e4e7;
-                font-size: 12px;
-            }
-            .row-saving {
-                opacity: 0.5;
-            }
-            .empty-state {
-                text-align: center;
-                padding: 40px;
-                color: #71717a;
-            }
-            .toast {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #18181b;
-                border: 1px solid #3f3f46;
-                color: #e4e4e7;
-                padding: 10px 16px;
-                border-radius: 10px;
-                font-size: 13px;
-                z-index: 100;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+            th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #27272a; vertical-align: top; }
+            th { color: #a1a1aa; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+            .status-pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+            .status-approved { background: #14532d; color: #86efac; }
+            .status-pending { background: #422006; color: #fcd34d; }
+            .status-rejected, .status-cancelled { background: #450a0a; color: #fca5a5; }
+            .status-refunded { background: #1e293b; color: #93c5fd; }
+            .status-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 12px; }
+            .row-saving { opacity: 0.5; pointer-events: none; }
+            .empty-state { text-align: center; padding: 40px; color: #71717a; }
 
-            /* ─── Responsivo (mobile) ──────────────────────────────────────── */
+            /* Highlight de pedidos novos (últimos 5 min) */
+            tr.row-new td { background: #0f1f0f !important; }
+            tr.row-new td:first-child { border-left: 3px solid #22c55e; }
+            .badge-new { display: inline-block; background: #14532d; color: #86efac; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+
+            /* Linha de detalhe expandido */
+            tr.detail-row td { background: #111113; padding: 12px 16px; }
+            tr.detail-row { display: none; }
+            tr.detail-row.open { display: table-row; }
+            .detail-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+            .detail-section h4 { font-size: 11px; text-transform: uppercase; color: #52525b; letter-spacing: .05em; margin: 0 0 8px; }
+            .detail-items { list-style: none; padding: 0; margin: 0; }
+            .detail-items li { font-size: 13px; color: #a1a1aa; padding: 3px 0; border-bottom: 1px solid #1f1f22; }
+            .detail-items li:last-child { border-bottom: none; }
+            .expand-btn { background: none; border: none; color: #52525b; cursor: pointer; font-size: 12px; padding: 0; }
+            .expand-btn:hover { color: #a1a1aa; }
+
+            /* Botão verificar no MP */
+            .btn-mp { background: none; border: 1px solid #3f3f46; color: #a1a1aa; border-radius: 6px; padding: 3px 8px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+            .btn-mp:hover { border-color: #009ee3; color: #009ee3; }
+            .mp-result { font-size: 11px; margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: #18181b; border: 1px solid #27272a; }
+            .mp-result.ok { border-color: #22c55e; color: #86efac; }
+            .mp-result.err { border-color: #dc2626; color: #fca5a5; }
+
+            /* Toast */
+            .toast { position: fixed; bottom: 20px; right: 20px; background: #18181b; border: 1px solid #3f3f46; color: #e4e4e7; padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+
+            /* Mobile */
             @media (max-width: 720px) {
-                .panel-wrap {
-                    padding: 16px 12px 60px;
-                }
-                .kpi-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 8px;
-                }
-                .kpi-card {
-                    padding: 12px;
-                }
-                .kpi-value {
-                    font-size: 18px;
-                }
-                .toolbar {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-                .toolbar-actions {
-                    width: 100%;
-                }
-                .toolbar-actions button {
-                    flex: 1;
-                }
-                .filters-bar {
-                    flex-direction: column;
-                }
-                .filters-bar input,
-                .filters-bar select {
-                    width: 100%;
-                }
-
-                /* Tabela → cards em telas pequenas */
-                table,
-                thead {
-                    display: none;
-                }
-                tbody {
-                    display: block;
-                }
-                tr {
-                    display: block;
-                    background: #18181b;
-                    border: 1px solid #27272a;
-                    border-radius: 12px;
-                    padding: 12px;
-                    margin-bottom: 10px;
-                }
-                td {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 10px;
-                    border: none;
-                    padding: 6px 0;
-                    text-align: right;
-                }
-                td::before {
-                    content: attr(data-label);
-                    color: #71717a;
-                    font-size: 11px;
-                    text-transform: uppercase;
-                    font-weight: 700;
-                    flex-shrink: 0;
-                    text-align: left;
-                }
-                td[data-label='Cliente'] {
-                    align-items: flex-start;
-                    text-align: right;
-                }
-                td[data-label='Ação'] .status-select {
-                    width: 100%;
-                }
+                .panel-wrap { padding: 16px 12px 60px; }
+                .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+                .kpi-card { padding: 12px; }
+                .kpi-value { font-size: 18px; }
+                .toolbar { flex-direction: column; align-items: stretch; }
+                .toolbar-actions { width: 100%; }
+                .toolbar-actions button { flex: 1; }
+                .filters-bar { flex-direction: column; }
+                .filters-bar input, .filters-bar select { width: 100%; }
+                table, thead { display: none; }
+                tbody { display: block; }
+                tr { display: block; background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+                tr.row-new { border-left: 3px solid #22c55e; }
+                tr.detail-row { display: none !important; }
+                td { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none; padding: 6px 0; text-align: right; }
+                td::before { content: attr(data-label); color: #71717a; font-size: 11px; text-transform: uppercase; font-weight: 700; flex-shrink: 0; text-align: left; }
+                td[data-label='Cliente'] { align-items: flex-start; text-align: right; }
+                td[data-label='Ação'] .status-select { width: 100%; }
+                .detail-inner { grid-template-columns: 1fr; }
             }
         </style>
     </head>
     <body>
-        <!-- Tela de login -->
+
+        <!-- LOGIN -->
         <div id="login-screen" class="login-box">
-            <h2 style="margin: 0 0 4px">Painel — Loja Oficial</h2>
-            <p style="color: #a1a1aa; font-size: 13px">Acesso restrito.</p>
-            <input
-                id="admin-password-input"
-                type="password"
-                placeholder="Senha"
-                autocomplete="current-password"
-            />
+            <h2 style="margin:0 0 4px">Painel — Loja Oficial</h2>
+            <p style="color:#a1a1aa;font-size:13px">Acesso restrito.</p>
+            <input id="admin-password-input" type="password" placeholder="Senha" autocomplete="current-password" />
             <div id="login-error" class="login-error"></div>
             <button id="login-submit">Entrar</button>
         </div>
 
-        <!-- Painel (oculto até autenticar) -->
-        <div id="panel-screen" class="panel-wrap" style="display: none">
+        <!-- PAINEL -->
+        <div id="panel-screen" class="panel-wrap" style="display:none">
             <div class="toolbar">
-                <h1 style="font-size: 20px">Pedidos da Loja</h1>
+                <div class="toolbar-left">
+                    <h1 style="font-size:20px">Pedidos da Loja</h1>
+                    <span id="refresh-counter"></span>
+                </div>
                 <div class="toolbar-actions">
                     <button id="export-csv-btn">⬇ Exportar CSV</button>
                     <button id="refresh-btn">↻ Atualizar</button>
+                    <button id="logout-btn" class="btn-danger">Sair</button>
                 </div>
             </div>
 
-            <!-- KPIs -->
             <div class="kpi-grid" id="kpi-grid"></div>
 
-            <!-- Filtros -->
             <div class="filters-bar">
-                <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Buscar por nome, e-mail ou ID do pedido…"
-                />
+                <input id="search-input" type="text" placeholder="Buscar por nome, e-mail ou ID do pedido…" />
                 <select id="status-filter">
                     <option value="">Todos os status</option>
                     <option value="pending">Pendente</option>
@@ -331,31 +147,30 @@
         </div>
 
         <script>
-            const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-            const STORAGE_KEY = 'bruna_admin_session'; // guarda a senha só na sessão do navegador (sessionStorage)
+            const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            const STORAGE_KEY = 'bruna_admin_session';
+            const NEW_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutos
+            const REFRESH_INTERVAL = 60;             // segundos
 
-            const STATUS_LABELS = {
-                approved: 'Aprovado',
-                pending: 'Pendente',
-                rejected: 'Rejeitado',
-                cancelled: 'Cancelado',
-                refunded: 'Devolvido',
-            };
+            const STATUS_LABELS = { approved:'Aprovado', pending:'Pendente', rejected:'Rejeitado', cancelled:'Cancelado', refunded:'Devolvido' };
 
-            const loginScreen = document.getElementById('login-screen');
-            const panelScreen = document.getElementById('panel-screen');
-            const ordersArea = document.getElementById('orders-area');
-            const loginError = document.getElementById('login-error');
-            const kpiGrid = document.getElementById('kpi-grid');
-            const searchInput = document.getElementById('search-input');
+            const loginScreen  = document.getElementById('login-screen');
+            const panelScreen  = document.getElementById('panel-screen');
+            const ordersArea   = document.getElementById('orders-area');
+            const loginError   = document.getElementById('login-error');
+            const kpiGrid      = document.getElementById('kpi-grid');
+            const searchInput  = document.getElementById('search-input');
             const statusFilter = document.getElementById('status-filter');
+            const refreshCounter = document.getElementById('refresh-counter');
 
-            let _allOrders = []; // cache local de todos os pedidos carregados
-            let _password = null;
+            let _allOrders  = [];
+            let _password   = null;
+            let _countdown  = REFRESH_INTERVAL;
+            let _timer      = null;
+            let _expandedRows = new Set(); // IDs de pedidos com detalhe aberto
 
-            function statusLabel(status) {
-                return STATUS_LABELS[status] || status;
-            }
+            const statusLabel = s => STATUS_LABELS[s] || s;
+            const isNew = o => (Date.now() - new Date(o.created_at).getTime()) < NEW_THRESHOLD_MS;
 
             function showToast(msg) {
                 const el = document.createElement('div');
@@ -365,12 +180,10 @@
                 setTimeout(() => el.remove(), 3000);
             }
 
-            // ─── Fetch de pedidos ──────────────────────────────────────────────────
+            // ── APIs ──────────────────────────────────────────────────────────────
 
             async function fetchOrders(password) {
-                const res = await fetch('/api/admin-orders', {
-                    headers: { 'x-admin-password': password },
-                });
+                const res = await fetch('/api/admin-orders', { headers: { 'x-admin-password': password } });
                 if (res.status === 401) throw new Error('Senha incorreta.');
                 if (!res.ok) throw new Error('Erro ao buscar pedidos.');
                 return res.json();
@@ -378,98 +191,130 @@
 
             async function updateOrderStatus(orderId, status) {
                 const res = await fetch('/api/update-order-status', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-password': _password,
-                    },
-                    body: JSON.stringify({ orderId, status }),
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                    body: JSON.stringify({ orderId, newStatus: status }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Erro ao atualizar status.');
                 return data.order;
             }
 
-            // ─── KPIs ──────────────────────────────────────────────────────────────
+            async function verifyMpPayment(mpPaymentId, container) {
+                container.innerHTML = '<span style="color:#52525b">Consultando MP…</span>';
+                try {
+                    const res = await fetch(`/api/verify-mp-payment?mpPaymentId=${mpPaymentId}`, {
+                        headers: { 'x-admin-password': _password },
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Erro');
+                    const approved = data.dateApproved ? new Date(data.dateApproved).toLocaleString('pt-BR') : '—';
+                    container.className = 'mp-result ok';
+                    container.innerHTML = `
+                        <strong>Status MP:</strong> ${data.status} (${data.statusDetail})<br>
+                        <strong>Valor:</strong> ${money.format(data.amount)}<br>
+                        <strong>Método:</strong> ${data.method}<br>
+                        <strong>Aprovado em:</strong> ${approved}
+                    `;
+                } catch (e) {
+                    container.className = 'mp-result err';
+                    container.textContent = '❌ ' + e.message;
+                }
+            }
+
+            // ── KPIs ──────────────────────────────────────────────────────────────
 
             function isSameDay(dateStr, ref) {
                 const d = new Date(dateStr);
-                return (
-                    d.getFullYear() === ref.getFullYear() &&
-                    d.getMonth() === ref.getMonth() &&
-                    d.getDate() === ref.getDate()
-                );
+                return d.getFullYear()===ref.getFullYear() && d.getMonth()===ref.getMonth() && d.getDate()===ref.getDate();
             }
-
             function isSameMonth(dateStr, ref) {
                 const d = new Date(dateStr);
-                return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+                return d.getFullYear()===ref.getFullYear() && d.getMonth()===ref.getMonth();
             }
 
             function renderKpis(orders) {
-                const now = new Date();
-                const approved = orders.filter((o) => o.status === 'approved');
-
-                const revenueToday = approved
-                    .filter((o) => isSameDay(o.created_at, now))
-                    .reduce((sum, o) => sum + Number(o.total), 0);
-
-                const revenueMonth = approved
-                    .filter((o) => isSameMonth(o.created_at, now))
-                    .reduce((sum, o) => sum + Number(o.total), 0);
-
-                const pendingCount = orders.filter((o) => o.status === 'pending').length;
-                const totalOrders = orders.length;
-
+                const now      = new Date();
+                const approved = orders.filter(o => o.status === 'approved');
+                const today    = approved.filter(o => isSameDay(o.created_at, now)).reduce((s,o)=>s+Number(o.total),0);
+                const month    = approved.filter(o => isSameMonth(o.created_at, now)).reduce((s,o)=>s+Number(o.total),0);
+                const pending  = orders.filter(o => o.status === 'pending').length;
                 kpiGrid.innerHTML = `
-                    <div class="kpi-card">
-                        <div class="kpi-label">Receita Hoje</div>
-                        <div class="kpi-value good">${money.format(revenueToday)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Receita do Mês</div>
-                        <div class="kpi-value good">${money.format(revenueMonth)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Pedidos Pendentes</div>
-                        <div class="kpi-value ${pendingCount > 0 ? 'warn' : ''}">${pendingCount}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Total de Pedidos</div>
-                        <div class="kpi-value">${totalOrders}</div>
-                    </div>
-                `;
+                    <div class="kpi-card"><div class="kpi-label">Receita Hoje</div><div class="kpi-value good">${money.format(today)}</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Receita do Mês</div><div class="kpi-value good">${money.format(month)}</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Pedidos Pendentes</div><div class="kpi-value ${pending>0?'warn':''}">${pending}</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Total de Pedidos</div><div class="kpi-value">${orders.length}</div></div>`;
             }
 
-            // ─── Filtro + busca ────────────────────────────────────────────────────
+            // ── Filtro ────────────────────────────────────────────────────────────
 
-            function getFilteredOrders() {
-                const search = searchInput.value.trim().toLowerCase();
-                const status = statusFilter.value;
-
-                return _allOrders.filter((o) => {
-                    if (status && o.status !== status) return false;
-                    if (!search) return true;
-                    const haystack = [o.id, o.customer_name, o.customer_email]
-                        .filter(Boolean)
-                        .join(' ')
-                        .toLowerCase();
-                    return haystack.includes(search);
+            function getFiltered() {
+                const q = searchInput.value.trim().toLowerCase();
+                const s = statusFilter.value;
+                return _allOrders.filter(o => {
+                    if (s && o.status !== s) return false;
+                    if (!q) return true;
+                    return [o.id, o.customer_name, o.customer_email].filter(Boolean).join(' ').toLowerCase().includes(q);
                 });
             }
 
-            function applyFiltersAndRender() {
-                renderOrders(getFilteredOrders());
-            }
-
-            // ─── Renderização da tabela ────────────────────────────────────────────
+            // ── Renderização ──────────────────────────────────────────────────────
 
             function renderOrders(orders) {
                 if (!orders.length) {
-                    ordersArea.innerHTML =
-                        '<div class="empty-state">Nenhum pedido encontrado com esses filtros.</div>';
+                    ordersArea.innerHTML = '<div class="empty-state">Nenhum pedido encontrado.</div>';
                     return;
                 }
+
+                const rows = orders.map(o => {
+                    const novinho   = isNew(o);
+                    const expanded  = _expandedRows.has(o.id);
+                    const mpId      = o.mp_payment_id || '';
+
+                    // Itens do pedido para o detalhe expandido
+                    const itemsList = Array.isArray(o.items) && o.items.length
+                        ? o.items.map(i => `<li>${i.name||i.id}${i.quantity>1?` ×${i.quantity}`:''}${i.variant?` <em>(${i.variant})</em>`:''}</li>`).join('')
+                        : '<li style="color:#52525b">Sem itens registrados</li>';
+
+                    return `
+                    <tr data-order-row="${o.id}" class="${novinho?'row-new':''}">
+                        <td data-label="Pedido">
+                            <button class="expand-btn" data-expand="${o.id}" title="Ver itens">${expanded?'▼':'▶'}</button>
+                            <strong> ${o.id}</strong>
+                            ${novinho?'<span class="badge-new">NOVO</span>':''}
+                        </td>
+                        <td data-label="Data">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
+                        <td data-label="Cliente">${o.customer_name||'—'}<br><span style="color:#71717a">${o.customer_email||''}</span></td>
+                        <td data-label="Método">${(o.method||'').toUpperCase()}</td>
+                        <td data-label="Total">${money.format(o.total)}</td>
+                        <td data-label="Status"><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
+                        <td data-label="XP">+${o.earned_xp||0}</td>
+                        <td data-label="Ação">
+                            <select class="status-select" data-order-id="${o.id}">
+                                ${Object.keys(STATUS_LABELS).map(s=>`<option value="${s}"${s===o.status?' selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="detail-row${expanded?' open':''}" data-detail-for="${o.id}">
+                        <td colspan="8">
+                            <div class="detail-inner">
+                                <div class="detail-section">
+                                    <h4>Itens do pedido</h4>
+                                    <ul class="detail-items">${itemsList}</ul>
+                                </div>
+                                <div class="detail-section">
+                                    <h4>Verificar no Mercado Pago</h4>
+                                    ${mpId
+                                        ? `<button class="btn-mp" data-mp-id="${mpId}" data-mp-container="mp-${o.id}">🔍 Consultar status real (ID: ${mpId})</button>
+                                           <div id="mp-${o.id}" class="mp-result" style="display:none"></div>`
+                                        : '<span style="color:#52525b;font-size:12px">ID do MP não registrado neste pedido.</span>'
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+
                 ordersArea.innerHTML = `
                     <table>
                         <thead>
@@ -478,142 +323,142 @@
                                 <th>Total</th><th>Status</th><th>XP</th><th>Ação</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${orders
-                                .map(
-                                    (o) => `
-                                <tr data-order-row="${o.id}">
-                                    <td data-label="Pedido"><strong>${o.id}</strong></td>
-                                    <td data-label="Data">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
-                                    <td data-label="Cliente">${o.customer_name || '—'}<br><span style="color:#71717a">${o.customer_email || ''}</span></td>
-                                    <td data-label="Método">${(o.method || '').toUpperCase()}</td>
-                                    <td data-label="Total">${money.format(o.total)}</td>
-                                    <td data-label="Status"><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
-                                    <td data-label="XP">+${o.earned_xp || 0}</td>
-                                    <td data-label="Ação">
-                                        <select class="status-select" data-order-id="${o.id}">
-                                            ${Object.keys(STATUS_LABELS)
-                                                .map(
-                                                    (s) =>
-                                                        `<option value="${s}" ${s === o.status ? 'selected' : ''}>${STATUS_LABELS[s]}</option>`
-                                                )
-                                                .join('')}
-                                        </select>
-                                    </td>
-                                </tr>
-                            `
-                                )
-                                .join('')}
-                        </tbody>
+                        <tbody>${rows}</tbody>
                     </table>`;
 
-                // Listener de troca de status por linha
-                ordersArea.querySelectorAll('.status-select').forEach((select) => {
-                    select.addEventListener('change', async (e) => {
-                        const orderId = e.target.dataset.orderId;
+                // Expandir/recolher detalhe
+                ordersArea.querySelectorAll('.expand-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id      = btn.dataset.expand;
+                        const detail  = ordersArea.querySelector(`[data-detail-for="${id}"]`);
+                        const isOpen  = detail.classList.contains('open');
+                        if (isOpen) { _expandedRows.delete(id); } else { _expandedRows.add(id); }
+                        detail.classList.toggle('open', !isOpen);
+                        btn.textContent = isOpen ? '▶' : '▼';
+                    });
+                });
+
+                // Botão verificar no MP
+                ordersArea.querySelectorAll('.btn-mp').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const container = document.getElementById(btn.dataset.mpContainer);
+                        container.style.display = 'block';
+                        verifyMpPayment(btn.dataset.mpId, container);
+                    });
+                });
+
+                // Alterar status
+                ordersArea.querySelectorAll('.status-select').forEach(select => {
+                    select.addEventListener('change', async e => {
+                        const orderId   = e.target.dataset.orderId;
                         const newStatus = e.target.value;
-                        const row = ordersArea.querySelector(`[data-order-row="${orderId}"]`);
+                        const row       = ordersArea.querySelector(`[data-order-row="${orderId}"]`);
                         row?.classList.add('row-saving');
                         try {
                             const updated = await updateOrderStatus(orderId, newStatus);
-                            const idx = _allOrders.findIndex((o) => o.id === orderId);
-                            if (idx !== -1) _allOrders[idx] = updated;
-                            showToast(
-                                `Pedido ${orderId} atualizado para "${statusLabel(newStatus)}".`
-                            );
+                            const idx = _allOrders.findIndex(o => o.id === orderId);
+                            if (idx !== -1 && updated) _allOrders[idx] = { ..._allOrders[idx], status: newStatus };
+                            showToast(`Pedido ${orderId} → "${statusLabel(newStatus)}"`);
                             renderKpis(_allOrders);
-                            applyFiltersAndRender();
+                            renderOrders(getFiltered());
                         } catch (err) {
-                            showToast(`Erro: ${err.message}`);
+                            showToast('Erro: ' + err.message);
                             row?.classList.remove('row-saving');
                         }
                     });
                 });
             }
 
-            // ─── Exportar CSV ──────────────────────────────────────────────────────
+            function applyFiltersAndRender() { renderOrders(getFiltered()); }
+
+            // ── CSV ───────────────────────────────────────────────────────────────
 
             function exportCsv() {
-                const orders = getFilteredOrders();
-                if (!orders.length) {
-                    showToast('Nenhum pedido para exportar.');
-                    return;
-                }
-                const header = [
-                    'ID',
-                    'Data',
-                    'Cliente',
-                    'E-mail',
-                    'Telefone',
-                    'Método',
-                    'Total',
-                    'Status',
-                    'XP',
-                ];
-                const rows = orders.map((o) => [
-                    o.id,
-                    new Date(o.created_at).toLocaleString('pt-BR'),
-                    o.customer_name || '',
-                    o.customer_email || '',
-                    o.customer_phone || '',
-                    (o.method || '').toUpperCase(),
-                    Number(o.total).toFixed(2).replace('.', ','),
-                    statusLabel(o.status),
-                    o.earned_xp || 0,
+                const orders = getFiltered();
+                if (!orders.length) { showToast('Nenhum pedido para exportar.'); return; }
+                const header = ['ID','Data','Cliente','E-mail','Telefone','Método','Total','Status','XP'];
+                const rows   = orders.map(o => [
+                    o.id, new Date(o.created_at).toLocaleString('pt-BR'),
+                    o.customer_name||'', o.customer_email||'', o.customer_phone||'',
+                    (o.method||'').toUpperCase(), Number(o.total).toFixed(2).replace('.',','),
+                    statusLabel(o.status), o.earned_xp||0,
                 ]);
-
-                const csvContent = [header, ...rows]
-                    .map((line) =>
-                        line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';')
-                    )
-                    .join('\r\n');
-
-                // BOM para o Excel reconhecer UTF-8 corretamente com acentos
-                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `pedidos-bruna-mandz-${new Date().toISOString().slice(0, 10)}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const csv  = [header,...rows].map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+                const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8;' });
+                const url  = URL.createObjectURL(blob);
+                const a    = Object.assign(document.createElement('a'), { href:url, download:`pedidos-bruna-mandz-${new Date().toISOString().slice(0,10)}.csv` });
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                showToast('✅ CSV exportado!');
             }
 
-            // ─── Carregamento inicial / login ─────────────────────────────────────
+            // ── Auto-refresh ──────────────────────────────────────────────────────
+
+            function startAutoRefresh() {
+                clearInterval(_timer);
+                _countdown = REFRESH_INTERVAL;
+                _timer = setInterval(async () => {
+                    _countdown--;
+                    refreshCounter.innerHTML = `Auto-refresh em <span>${_countdown}s</span>`;
+                    if (_countdown <= 0) {
+                        _countdown = REFRESH_INTERVAL;
+                        try {
+                            const { orders } = await fetchOrders(_password);
+                            const prevIds = new Set(_allOrders.map(o => o.id));
+                            const newOnes = orders.filter(o => !prevIds.has(o.id));
+                            _allOrders = orders;
+                            renderKpis(_allOrders);
+                            applyFiltersAndRender();
+                            if (newOnes.length) showToast(`🛍️ ${newOnes.length} novo(s) pedido(s)!`);
+                        } catch { /* silencioso — não interrompe o admin */ }
+                    }
+                }, 1000);
+            }
+
+            // ── Login / carregamento ──────────────────────────────────────────────
 
             async function loadPanel(password) {
                 try {
                     const { orders } = await fetchOrders(password);
                     _allOrders = orders;
-                    _password = password;
+                    _password  = password;
                     renderKpis(_allOrders);
                     applyFiltersAndRender();
                     loginScreen.style.display = 'none';
                     panelScreen.style.display = 'block';
                     sessionStorage.setItem(STORAGE_KEY, password);
+                    startAutoRefresh();
                 } catch (err) {
                     loginError.textContent = err.message;
                 }
             }
 
-            document.getElementById('login-submit').addEventListener('click', () => {
-                const password = document.getElementById('admin-password-input').value;
-                loadPanel(password);
-            });
-            document.getElementById('admin-password-input').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') document.getElementById('login-submit').click();
-            });
-            document.getElementById('refresh-btn').addEventListener('click', () => {
-                if (_password) loadPanel(_password);
+            // ── Eventos ───────────────────────────────────────────────────────────
+
+            document.getElementById('login-submit').addEventListener('click', () =>
+                loadPanel(document.getElementById('admin-password-input').value));
+            document.getElementById('admin-password-input').addEventListener('keydown', e =>
+                { if (e.key==='Enter') document.getElementById('login-submit').click(); });
+            document.getElementById('refresh-btn').addEventListener('click', async () => {
+                if (!_password) return;
+                const { orders } = await fetchOrders(_password);
+                _allOrders = orders;
+                renderKpis(_allOrders);
+                applyFiltersAndRender();
+                _countdown = REFRESH_INTERVAL;
+                showToast('Pedidos atualizados.');
             });
             document.getElementById('export-csv-btn').addEventListener('click', exportCsv);
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                clearInterval(_timer);
+                sessionStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            });
             searchInput.addEventListener('input', applyFiltersAndRender);
             statusFilter.addEventListener('change', applyFiltersAndRender);
 
-            // Tenta usar a senha já guardada nesta aba (não persiste entre sessões/navegadores)
-            const savedPassword = sessionStorage.getItem(STORAGE_KEY);
-            if (savedPassword) loadPanel(savedPassword);
+            const saved = sessionStorage.getItem(STORAGE_KEY);
+            if (saved) loadPanel(saved);
         </script>
     </body>
 </html>

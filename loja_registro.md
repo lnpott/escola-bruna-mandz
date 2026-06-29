@@ -61,6 +61,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
 | 19 | **Catálogo real** — 7 produtos com imagens definitivas, produto de teste removido | ✅ Concluído |
 | 20 | **Plano do Painel Admin** — diagnóstico do estado atual + roadmap completo de melhorias | ✅ Planejado |
+| 21 | **Pesquisa integração MP** — decisão documentada + **Fase B implementada** (auto-refresh, notificação e-mail, detalhe de itens, botão "Verificar no MP") | ✅ Concluído |
 | 21 | **Fase A do Painel implementada**: KPIs, ação de status inline, filtro, busca, export CSV, mobile responsivo | ✅ Concluído — aguardando teste |
 
 ---
@@ -1087,6 +1088,66 @@ um único nome de campo do SDK do Mercado Pago.
   antes de avançar para a Fase C (gestão de produtos)
 
 ---
+
+---
+
+## ✅ ETAPA 21 — Pesquisa de integração MP + Implementação da Fase B
+
+### 21.1 — Decisão sobre integração direta com a API do Mercado Pago
+
+**Pergunta:** vale a pena buscar pedidos direto da API do MP em vez do Supabase no painel admin?
+
+**Resposta: não. Manter arquitetura atual.**
+
+A API do MP (`GET /v1/payments/search`) retorna dados financeiros da transação —
+valor, status, método. Ela **não sabe** o nome do produto, tamanho, XP ganho nem
+dados completos do cliente — essas informações ficam no Supabase porque foram
+gravadas pelo `create-payment.js` no momento da compra. Buscar só do MP perderia
+todos esses dados; cruzar os dois aumentaria complexidade sem ganho real.
+
+A arquitetura atual (MP → webhook → Supabase → painel) já é o padrão oficial
+recomendado pelo MP para e-commerces. O webhook já está implementado e fecha o ciclo.
+
+**O que foi adicionado da API do MP:** botão "Verificar no MP" por pedido —
+consulta `GET /v1/payments/{mp_payment_id}` para checar o status real quando houver
+dúvida (ex: pedido "Pendente" no Supabase mas cliente diz que pagou). Agrega valor
+sem quebrar a arquitetura.
+
+---
+
+### 21.2 — Fase B implementada
+
+#### Itens implementados
+
+| Item | Descrição | Arquivo |
+|---|---|---|
+| **B1** | Auto-refresh a cada 60s com contador regressivo visível | `painel-x9k2f.html` |
+| **B2** | Notificação por e-mail quando chega pedido novo (via Resend) | `api/notify-new-order.js` + `api/webhook.js` |
+| **B3** | Detalhe expandido: linha clicável mostra itens, tamanho, XP | `painel-x9k2f.html` |
+| **B4** | Highlight visual em pedidos novos (últimos 5 minutos) | `painel-x9k2f.html` |
+| **B+** | Botão "Verificar no MP" — consulta status real na API do MP | `api/verify-mp-payment.js` + `painel-x9k2f.html` |
+
+#### Nova variável de ambiente necessária na Vercel
+- `RESEND_API_KEY` — chave da API do Resend (resend.com, plano gratuito cobre até
+  3.000 e-mails/mês). Criar conta, gerar a chave e adicionar na Vercel.
+- `NOTIFY_EMAIL` — endereço de e-mail que vai receber as notificações de pedido novo
+  (ex: o e-mail da Bruna)
+
+#### Como ativar as notificações
+1. Criar conta gratuita em resend.com
+2. Gerar API Key em resend.com/api-keys
+3. Adicionar `RESEND_API_KEY` e `NOTIFY_EMAIL` nas variáveis de ambiente da Vercel
+4. Fazer redeploy (ou aguardar o deploy automático do push)
+
+### Status
+- [x] Decisão sobre integração MP documentada
+- [x] Auto-refresh com contador (B1)
+- [x] Notificação por e-mail via Resend (B2)
+- [x] Detalhe expandido de itens (B3)
+- [x] Highlight de pedidos novos (B4)
+- [x] Botão "Verificar no MP" (B+)
+- [ ] Configurar RESEND_API_KEY e NOTIFY_EMAIL na Vercel
+
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
