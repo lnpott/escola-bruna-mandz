@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 30/06/2026 — (Etapa 24)
+> Última atualização: 30/06/2026 — (Etapa 25)
 
 ---
 
@@ -64,6 +64,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 22 | **Pesquisa integração MP** — decisão documentada + **Fase B implementada** (auto-refresh, notificação e-mail, detalhe de itens, botão "Verificar no MP") | ✅ Concluído e testado |
 | 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
 | 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
+| 25 | **Netlify descontinuado** — pasta `.netlify/` removida do repositório, Vercel confirmado como único ambiente de produção | ✅ Concluído |
 
 ---
 
@@ -1283,6 +1284,38 @@ visualização mobile) e confirmou: **"Tudo pareceu ok."**
 - [x] Roteiro de teste manual do painel confirmado pelo usuário
 
 ---
+
+---
+
+## ✅ ETAPA 25 — Netlify descontinuado, Vercel confirmado como único ambiente
+
+### Decisão
+Confirmado com o usuário: **o Netlify não será mais usado em produção.**
+A Vercel é o único ambiente de deploy daqui em diante.
+
+### O que foi feito
+- Removida a pasta `.netlify/` do repositório (continha `state.json` com o
+  `siteId` `49035235-37f9-4555-91ec-984bbd6b73ae`, vestígio de um deploy
+  antigo identificado na Etapa 9)
+- Nenhuma outra referência técnica ao Netlify foi encontrada no projeto
+  (sem `netlify.toml`, sem build hooks, sem variáveis de ambiente
+  específicas do Netlify)
+
+### Observação
+Como não havia acesso confirmado à conta Netlify onde esse site foi
+publicado, **o site antigo pode continuar acessível na URL do Netlify**
+(algo como `nome-aleatorio.netlify.app`) mesmo após esta limpeza no
+repositório — remover o código local não desliga o deploy já publicado.
+Se em algum momento for encontrado o acesso a essa conta, vale entrar e
+desativar/excluir o site por lá também, para eliminar de vez a
+possibilidade de alguém cair numa versão desatualizada do site.
+
+### Status
+- [x] Decisão registrada: Vercel é o único ambiente de produção
+- [x] Pasta `.netlify/` removida do repositório
+- [ ] (Se encontrado acesso à conta Netlify no futuro) desativar o site
+  publicado por lá
+
 
 ## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
 
