@@ -22,6 +22,8 @@ const nodeGlobals = {
     console: 'readonly',
     Response: 'readonly',
     Request: 'readonly',
+    fetch: 'readonly',
+    URL: 'readonly',
 };
 
 export default [
