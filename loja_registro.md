@@ -1,28 +1,27 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 29/06/2026 — (Etapa 21)
+> Última atualização: 30/06/2026 — (Etapa 24)
 
 ---
 
 ## 🚦 Próximos Passos Imediatos (o que falta AGORA)
 
-1. **Sobrescrever os arquivos da Etapa 21** no repositório: `painel-x9k2f.html`,
-   `api/update-order-status.js` (novo), `store/checkout-modal.js`
-2. **Apagar os arquivos órfãos removidos** nesta etapa (se ainda existirem no
-   seu repositório local): `api/payment-provider.js`, `api/env.example`,
-   pasta `src/`, e o arquivo `correcao-404-public.zip` na raiz
-3. **Commit + push** das mudanças
-4. **Testar o painel `/painel-x9k2f.html`**: KPIs aparecem corretos, trocar
-   o status de um pedido funciona, busca e filtro funcionam, exportar CSV
-   gera arquivo correto, e testar também no celular (modo responsivo)
-5. Decidir com a Bruna se a **Fase B** (auto-refresh + notificação por
-   e-mail + detalhe expandido) é a próxima prioridade, ou se outra coisa é
-   mais urgente
-6. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
-   está no ar e desativar, para não haver duas versões diferentes do site)
+A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
+Fases A e B completas). O que falta agora é refinamento e itens não
+bloqueantes:
 
-Detalhe completo de cada item nas Etapas 20 e 21 abaixo.
+1. Confirmar remoção definitiva dos arquivos órfãos:
+   `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
+2. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
+   está no ar e desativar, para não haver duas versões diferentes do site)
+3. Confirmar os preços reais dos 7 produtos do catálogo com a Bruna
+4. Planejar a **Fase C** do painel (gestão de produtos direto pelo painel,
+   sem editar código) quando fizer sentido priorizar
+5. Hardening pendente: validação de assinatura `x-signature` no webhook
+
+Detalhe completo de cada item nas Etapas 20 a 24 abaixo, e na seção
+"Próximos Passos" mais ao final do documento.
 
 ---
 
@@ -61,8 +60,10 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
 | 19 | **Catálogo real** — 7 produtos com imagens definitivas, produto de teste removido | ✅ Concluído |
 | 20 | **Plano do Painel Admin** — diagnóstico do estado atual + roadmap completo de melhorias | ✅ Planejado |
-| 21 | **Pesquisa integração MP** — decisão documentada + **Fase B implementada** (auto-refresh, notificação e-mail, detalhe de itens, botão "Verificar no MP") | ✅ Concluído |
-| 21 | **Fase A do Painel implementada**: KPIs, ação de status inline, filtro, busca, export CSV, mobile responsivo | ✅ Concluído — aguardando teste |
+| 21 | **Fase A do Painel implementada**: KPIs, ação de status inline, filtro, busca, export CSV, mobile responsivo | ✅ Concluído e testado |
+| 22 | **Pesquisa integração MP** — decisão documentada + **Fase B implementada** (auto-refresh, notificação e-mail, detalhe de itens, botão "Verificar no MP") | ✅ Concluído e testado |
+| 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
+| 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
 
 ---
 
@@ -1091,7 +1092,7 @@ um único nome de campo do SDK do Mercado Pago.
 
 ---
 
-## ✅ ETAPA 21 — Pesquisa de integração MP + Implementação da Fase B
+## ✅ ETAPA 22 — Pesquisa de integração MP + Implementação da Fase B
 
 ### 21.1 — Decisão sobre integração direta com a API do Mercado Pago
 
@@ -1220,57 +1221,92 @@ sufixo aleatório (ex: `BM-66107551-998R`), eliminando o risco de colisão.
 - [x] `api/webhook.js` corrigido
 - [x] `store/cart.js` corrigido
 - [x] Commit e push feitos pelo usuário
-- [ ] Confirmar que o deploy na Vercel passa limpo com as correções
+- [x] Confirmar que o deploy na Vercel passa limpo com as correções
 - [ ] Reconfirmar se os arquivos órfãos da Etapa 22 foram de fato removidos
   do repositório
 - [ ] Validação de assinatura do webhook (`x-signature`) — pendência de
   hardening futuro
-- [ ] Seguir com o teste real de ponta a ponta assim que os dados da conta
-  Mercado Pago da Bruna estiverem disponíveis
-
-
-## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
-
-A integração já está toda escrita — falta só configurar as contas e colar as chaves:
-
-1. **Supabase**: criar o projeto (ou usar o já conectado) e rodar
-   `supabase/schema.sql` no SQL Editor
-2. **Mercado Pago**: criar conta de desenvolvedor, pegar credenciais de
-   **teste** primeiro, testar o fluxo completo, só depois trocar para
-   credenciais de **produção**
-3. **Vercel**: conectar o repositório, configurar as variáveis de
-   `.env.example`, fazer o deploy
-4. **Webhook**: configurar a URL `https://seu-dominio.vercel.app/api/webhook`
-   no painel do Mercado Pago
-5. **Verificar o site antigo na Netlify** (`.netlify/state.json` indica que
-   já existiu um deploy lá) — decidir se ele deve ser desativado para não
-   haver duas versões diferentes do site no ar
-6. **Fase futura (não crítica agora)**: editar produtos via painel admin
-   (hoje os produtos continuam fixos em `store/products.js`, só os pedidos
-   passaram a ser dinâmicos via Supabase)
-
-Passo a passo detalhado de configuração está em `docs/PUBLICACAO.md`.
+- [x] Seguir com o teste real de ponta a ponta — concluído na Etapa 24
 
 ---
 
-## 🚦 Próximos Passos Imediatos (o que falta AGORA)
+## ✅ ETAPA 24 — Auditoria isolada (sem navegador) + confirmação do roteiro de teste do painel
 
-1. Continuar o roteiro de teste do painel `/painel-x9k2f.html`: filtro por
-   status, busca, exportar CSV, auto-refresh, detalhe expandido, highlight
-   de pedido novo, botão "Verificar no MP", visualização mobile
-2. Confirmar remoção dos arquivos órfãos ainda pendentes:
-   `api/payment-provider.js`, `api/env.example`
-3. Assim que tiver os dados de acesso da conta Mercado Pago da Bruna:
-   testar o fluxo real de ponta a ponta (PIX de R$1) e confirmar que o
-   e-mail de notificação chega **uma única vez**, sem duplicidade
-4. Planejar a Fase C ampliada do painel admin (gestão de produtos: editar
-   preço, adicionar/remover produto, sinalizar Novo/Descontinuado/Em Falta)
-   — ver detalhes na Etapa 24
-5. Confirmar preços reais dos 7 produtos com a Bruna
-6. Decidir o que fazer com o site antigo na Netlify, se ainda não foi
-   finalizado
+### Contexto
+Antes do usuário concluir o roteiro de teste restante do painel (filtro,
+busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile),
+foi feita uma auditoria técnica adicional usando o conteúdo real e atual
+do GitHub (via `raw.githubusercontent.com`, não o tarball — ver nota
+abaixo), simulando cada função isoladamente com `node -e` antes do teste
+manual no navegador.
 
-Detalhe completo de cada item nas Etapas 20 a 25 abaixo.
+### ⚠️ Nota técnica: tarball do GitHub estava servindo cache desatualizado
+Durante esta auditoria, `codeload.github.com` (usado nas etapas anteriores
+para baixar o repositório completo) chegou a servir uma versão **desatualizada**
+do projeto — sem `notify-new-order.js`, `verify-mp-payment.js`, e com
+`webhook.js`/`cart.js` em versões antigas, mesmo já estando tudo commitado
+e atualizado no `main`. Trocar para `raw.githubusercontent.com` (arquivo por
+arquivo) resolveu, confirmando que o problema era cache do tarball, não do
+repositório em si. Vale lembrar disso se uma auditoria futura "achar" um
+arquivo faltando que deveria existir — confirmar via raw antes de alarmar.
+
+### Validações isoladas feitas (sem navegador)
+- ✅ Contrato `verify-mp-payment.js` ↔ `painel-x9k2f.html`: parâmetro
+  `mpPaymentId` e atributo `data-mp-id` conferidos, sem desalinhamento
+- ✅ Lógica de KPI (receita hoje/mês, pendentes) testada com dados simulados
+- ✅ Lógica de filtro + busca combinados testada isoladamente
+- ✅ Exportação CSV testada com nome contendo aspas duplas (escaping correto)
+- ✅ Detecção de pedidos novos no auto-refresh (`prevIds`/`newOnes`) testada
+- ✅ Threshold de "pedido novo" (5 minutos) testado nos limites (dentro/fora)
+- ✅ `colspan="8"` da linha de detalhe expandido confere com as 8 colunas
+  do cabeçalho da tabela
+- ✅ `npm run build` roda sem erro com o estado real e atual do repositório
+- ✅ ESLint sem erros após corrigir `eslint.config.js` (ver abaixo)
+
+### Correção aplicada: `eslint.config.js`
+`fetch` e `URL` não estavam na lista de globals do Node configurada,
+gerando 2 falsos erros de lint (`'fetch' is not defined`) em
+`notify-new-order.js` e `verify-mp-payment.js`. Não eram bugs funcionais —
+o Node 18+/Vercel já tem `fetch` nativo — só faltava declarar o global
+para o linter parar de reclamar. Adicionados `fetch: 'readonly'` e
+`URL: 'readonly'` em `nodeGlobals`.
+
+### Confirmação do usuário
+Usuário concluiu o roteiro de teste manual completo no navegador (filtro
+por status, busca por nome/e-mail/ID, exportar CSV, auto-refresh,
+detalhe expandido, highlight de pedido novo, botão "Verificar no MP",
+visualização mobile) e confirmou: **"Tudo pareceu ok."**
+
+### Status
+- [x] Auditoria de código isolada concluída, sem problemas encontrados
+- [x] `eslint.config.js` corrigido
+- [x] Roteiro de teste manual do painel confirmado pelo usuário
+
+---
+
+## 🔮 Próximos Passos (o que falta para ir ao ar de verdade)
+
+1. Confirmar remoção dos arquivos órfãos ainda pendentes (citados na
+   Etapa 23): `api/payment-provider.js`, `api/env.example`,
+   `api/test-notify.js`
+2. **Site antigo na Netlify**: verificar se ainda está no ar
+   (`.netlify/state.json` indica que já existiu um deploy lá) e decidir se
+   deve ser desativado, para não haver duas versões diferentes do site
+3. **Hardening pendente**: validar a assinatura `x-signature` do webhook do
+   Mercado Pago (hoje qualquer POST externo com um `paymentId` válido é
+   processado — risco parcialmente mitigado porque o pagamento é sempre
+   confirmado de novo direto na API do MP antes de confiar nos dados)
+4. **Planejar Fase C do painel admin** (gestão de produtos: editar preço,
+   adicionar/remover produto, sinalizar Novo/Descontinuado/Em Falta) — pré-requisito:
+   mover produtos para uma tabela no Supabase (hoje continuam fixos em
+   `store/products.js`)
+5. Confirmar preços reais dos 7 produtos do catálogo com a Bruna
+6. Decidir se a Bruna quer notificação por e-mail também para pedidos via
+   PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
+
+Passo a passo detalhado de configuração inicial (Supabase, Mercado Pago,
+Vercel, Webhook) está em `docs/PUBLICACAO.md` — essa parte já foi concluída
+e testada nas Etapas 9 a 16.
 
 ## 📝 Notas Gerais
 
