@@ -942,6 +942,31 @@ Webhook) está em `docs/PUBLICACAO.md` — concluído nas Etapas 9 a 16.
 
 ---
 
+## ✅ ETAPA 27 — Limpeza e reorganização do repositório
+
+### Contexto
+A estrutura do projeto passou por muitas iterações e agora precisa de uma
+organização mais clara para reduzir ruído, facilitar manutenção e evitar
+arquivos órfãos ou duplicados.
+
+### Plano adotado
+- Inventariar a raiz do repositório e separar arquivos ativos de arquivos
+  legados, duplicados ou sem uso confirmado.
+- Preservar os pontos de entrada principais da loja: `index.html`,
+  `painel-x9k2f.html`, `api/`, `store/`, `public/`, `supabase/` e `docs/`.
+- Mover ou arquivar apenas itens que não tenham referência viva em HTML, JS,
+  Vite, Vercel ou documentação.
+- Atualizar paths e referências afetadas sem alterar o fluxo de checkout,
+  painel admin ou rotas de API.
+- Validar a build após cada lote de mudança antes de remover qualquer arquivo
+  antigo.
+
+### Status
+- [x] Plano registrado para execução segura
+- [x] Documento atualizado para acompanhar a próxima etapa de organização
+
+---
+
 ## 📝 Notas Gerais
 
 - A chave PIX antiga (placeholder `21997600704`) foi **removida do código**.
