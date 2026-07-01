@@ -479,6 +479,9 @@
     border: 1px solid #27272a;
     border-radius: 1rem;
     padding: 1.25rem;
+    width: 100%;
+    max-width: 20rem;
+    margin: 0 auto;
 }
 .pix-qr-wrap img {
     width: 10rem;
