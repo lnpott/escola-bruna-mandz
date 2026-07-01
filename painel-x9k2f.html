@@ -78,6 +78,34 @@
             .mp-result.ok { border-color: #22c55e; color: #86efac; }
             .mp-result.err { border-color: #dc2626; color: #fca5a5; }
 
+            /* Tabs de navegação */
+            .nav-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #27272a; padding-bottom: 0; }
+            .nav-tab { padding: 8px 18px; border-radius: 8px 8px 0 0; border: 1px solid transparent; border-bottom: none; background: none; color: #71717a; cursor: pointer; font-size: 13px; font-weight: 600; position: relative; bottom: -1px; }
+            .nav-tab:hover { color: #a1a1aa; }
+            .nav-tab.active { background: #18181b; border-color: #27272a; color: #e4e4e7; }
+
+            /* Aba Produtos */
+            .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+            .product-admin-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
+            .product-admin-card.inactive { opacity: 0.5; }
+            .product-admin-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #27272a; flex-shrink: 0; }
+            .product-admin-info { flex: 1; min-width: 0; }
+            .product-admin-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .product-admin-cat { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+            .product-admin-fields { display: flex; flex-direction: column; gap: 6px; }
+            .field-row { display: flex; align-items: center; gap: 8px; }
+            .field-label { font-size: 11px; color: #71717a; width: 56px; flex-shrink: 0; }
+            .field-input { flex: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
+            .field-input:focus { outline: none; border-color: #dc2626; }
+            .toggle-active { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #a1a1aa; }
+            .toggle-active input[type="checkbox"] { accent-color: #dc2626; width: 14px; height: 14px; cursor: pointer; }
+            .btn-save-product { margin-top: 10px; width: 100%; padding: 6px; border-radius: 6px; border: none; background: #dc2626; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer; }
+            .btn-save-product:hover { background: #b91c1c; }
+            .btn-save-product:disabled { opacity: 0.5; cursor: not-allowed; }
+            .save-result { font-size: 11px; margin-top: 4px; text-align: center; min-height: 14px; }
+            .save-result.ok  { color: #86efac; }
+            .save-result.err { color: #fca5a5; }
+
             /* Toast */
             .toast { position: fixed; bottom: 20px; right: 20px; background: #18181b; border: 1px solid #3f3f46; color: #e4e4e7; padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 
@@ -120,7 +148,7 @@
         <div id="panel-screen" class="panel-wrap" style="display:none">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <h1 style="font-size:20px">Pedidos da Loja</h1>
+                    <h1 style="font-size:20px">Loja Bruna Mandz</h1>
                     <span id="refresh-counter"></span>
                 </div>
                 <div class="toolbar-actions">
@@ -130,21 +158,36 @@
                 </div>
             </div>
 
-            <div class="kpi-grid" id="kpi-grid"></div>
-
-            <div class="filters-bar">
-                <input id="search-input" type="text" placeholder="Buscar por nome, e-mail ou ID do pedido…" />
-                <select id="status-filter">
-                    <option value="">Todos os status</option>
-                    <option value="pending">Pendente</option>
-                    <option value="approved">Aprovado</option>
-                    <option value="rejected">Rejeitado</option>
-                    <option value="cancelled">Cancelado</option>
-                    <option value="refunded">Devolvido</option>
-                </select>
+            <!-- TABS -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="orders">🧾 Pedidos</button>
+                <button class="nav-tab" data-tab="products">📦 Produtos</button>
             </div>
 
-            <div id="orders-area"></div>
+            <!-- ABA PEDIDOS -->
+            <div id="tab-orders">
+                <div class="kpi-grid" id="kpi-grid"></div>
+                <div class="filters-bar">
+                    <input id="search-input" type="text" placeholder="Buscar por nome, e-mail ou ID do pedido…" />
+                    <select id="status-filter">
+                        <option value="">Todos os status</option>
+                        <option value="pending">Pendente</option>
+                        <option value="approved">Aprovado</option>
+                        <option value="rejected">Rejeitado</option>
+                        <option value="cancelled">Cancelado</option>
+                        <option value="refunded">Devolvido</option>
+                    </select>
+                </div>
+                <div id="orders-area"></div>
+            </div>
+
+            <!-- ABA PRODUTOS -->
+            <div id="tab-products" style="display:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                    <p style="color:#71717a;font-size:13px">Edite preço, estoque e visibilidade de cada produto. As alterações refletem na loja imediatamente.</p>
+                </div>
+                <div id="products-area"><div class="empty-state">Carregando produtos…</div></div>
+            </div>
         </div>
 
         <script>
@@ -165,7 +208,9 @@
             const refreshCounter = document.getElementById('refresh-counter');
 
             let _allOrders  = [];
+            let _allProducts = [];
             let _password   = null;
+            let _activeTab  = 'orders';
             let _countdown  = REFRESH_INTERVAL;
             let _timer      = null;
             let _expandedRows = new Set(); // IDs de pedidos com detalhe aberto
@@ -180,6 +225,21 @@
                 document.body.appendChild(el);
                 setTimeout(() => el.remove(), 3000);
             }
+
+            // ── Navegação entre abas ────────────────────────────────────────────────
+
+            function switchTab(tab) {
+                _activeTab = tab;
+                document.getElementById('tab-orders').style.display   = tab === 'orders'   ? '' : 'none';
+                document.getElementById('tab-products').style.display = tab === 'products' ? '' : 'none';
+                document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
+                document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+                if (tab === 'products' && !_allProducts.length) loadProducts();
+            }
+
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
 
             // ── APIs ──────────────────────────────────────────────────────────────
 
@@ -393,6 +453,109 @@
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 showToast('✅ CSV exportado!');
+            }
+
+
+            // ── Produtos (Fase C) ─────────────────────────────────────────────────────
+
+            async function fetchProducts() {
+                const res = await fetch('/api/admin-products', { headers: { 'x-admin-password': _password } });
+                if (!res.ok) throw new Error('Erro ao buscar produtos.');
+                return res.json();
+            }
+
+            async function saveProduct(id, fields, card) {
+                const btn    = card.querySelector('.btn-save-product');
+                const result = card.querySelector('.save-result');
+                btn.disabled = true;
+                btn.textContent = 'Salvando…';
+                result.textContent = '';
+                result.className = 'save-result';
+                try {
+                    const res = await fetch('/api/admin-products', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                        body: JSON.stringify({ id, ...fields }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+                    const idx = _allProducts.findIndex(p => p.id === id);
+                    if (idx !== -1) _allProducts[idx] = data.product;
+                    card.classList.toggle('inactive', !data.product.active);
+                    result.textContent = '✅ Salvo!';
+                    result.className = 'save-result ok';
+                } catch (err) {
+                    result.textContent = '❌ ' + err.message;
+                    result.className = 'save-result err';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Salvar alterações';
+                    setTimeout(() => { result.textContent = ''; result.className = 'save-result'; }, 3000);
+                }
+            }
+
+            function renderProductsTab() {
+                const area = document.getElementById('products-area');
+                if (!_allProducts.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum produto encontrado.</div>';
+                    return;
+                }
+                const catLabel = c => ({ roupas: 'Roupas', acessorios: 'Acessórios', kits: 'Kits' }[c] || c);
+                area.innerHTML = '<div class="products-grid">' + _allProducts.map(p => `
+                    <div class="product-admin-card${p.active ? '' : ' inactive'}" data-product-id="${p.id}">
+                        <img class="product-admin-img" src="${p.image}" alt="${p.name}" onerror="this.style.opacity='.2'" />
+                        <div class="product-admin-info">
+                            <div class="product-admin-name" title="${p.name}">${p.name}</div>
+                            <div class="product-admin-cat">${catLabel(p.category)}</div>
+                            <div class="product-admin-fields">
+                                <div class="field-row">
+                                    <span class="field-label">Preço</span>
+                                    <input class="field-input" type="number" step="0.01" min="0"
+                                        data-field="price" value="${Number(p.price).toFixed(2)}" />
+                                </div>
+                                <div class="field-row">
+                                    <span class="field-label">Estoque</span>
+                                    <input class="field-input" type="number" step="1" min="0"
+                                        data-field="stock" value="${p.stock}" />
+                                </div>
+                                <div class="field-row">
+                                    <span class="field-label">Badge</span>
+                                    <input class="field-input" type="text" placeholder="Novidade, Premium…"
+                                        data-field="badge" value="${p.badge || ''}" />
+                                </div>
+                                <label class="toggle-active">
+                                    <input type="checkbox" data-field="active" ${p.active ? 'checked' : ''} />
+                                    Produto ativo (visível na loja)
+                                </label>
+                            </div>
+                            <button class="btn-save-product">Salvar alterações</button>
+                            <div class="save-result"></div>
+                        </div>
+                    </div>`).join('') + '</div>';
+
+                area.querySelectorAll('.product-admin-card').forEach(card => {
+                    card.querySelector('.btn-save-product').addEventListener('click', () => {
+                        const id = card.dataset.productId;
+                        const fields = {
+                            price:  Number(card.querySelector('[data-field="price"]').value),
+                            stock:  Number(card.querySelector('[data-field="stock"]').value),
+                            badge:  card.querySelector('[data-field="badge"]').value.trim() || null,
+                            active: card.querySelector('[data-field="active"]').checked,
+                        };
+                        saveProduct(id, fields, card);
+                    });
+                });
+            }
+
+            async function loadProducts() {
+                document.getElementById('products-area').innerHTML = '<div class="empty-state">Carregando produtos…</div>';
+                try {
+                    const { products } = await fetchProducts();
+                    _allProducts = products;
+                    renderProductsTab();
+                } catch (err) {
+                    document.getElementById('products-area').innerHTML = '<div class="empty-state">❌ ' + err.message + '</div>';
+                }
             }
 
             // ── Auto-refresh ──────────────────────────────────────────────────────
