@@ -47,3 +47,39 @@ create trigger orders_set_updated_at
 -- Isso significa: só quem usar a Service Role Key (nosso backend na Vercel)
 -- consegue ler/escrever. O navegador do cliente NUNCA acessa essa tabela direto.
 alter table public.orders enable row level security;
+
+create table if not exists public.products (
+    id text primary key,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    name text not null,
+    description text,
+    price numeric(10,2) not null default 0,
+    stock integer not null default 0,
+    active boolean not null default true,
+    category text not null default 'acessorios',
+    badge text,
+    badge_color text,
+    image text,
+    reward_xp integer default 0,
+    variants jsonb default '[]'::jsonb
+);
+
+create index if not exists products_active_idx on public.products (active);
+create index if not exists products_category_idx on public.products (category);
+
+create or replace function public.set_updated_at()
+returns trigger as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists products_set_updated_at on public.products;
+create trigger products_set_updated_at
+    before update on public.products
+    for each row
+    execute function public.set_updated_at();
+
+alter table public.products enable row level security;

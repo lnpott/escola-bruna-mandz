@@ -24,19 +24,28 @@ const paymentClient = new mercadopago.Payment(mp);
 
 export default async function handler(req, res) {
     try {
-        if (webhookSecret && !validateWebhookSignature(req, webhookSecret)) {
+        let body = req.body;
+        if (typeof body === 'string') {
+            try {
+                body = JSON.parse(body);
+            } catch {
+                body = {};
+            }
+        }
+
+        if (webhookSecret && !validateWebhookSignature({ ...req, body }, webhookSecret)) {
             return res.status(401).json({ error: 'invalid_signature' });
         }
 
         // Notificações do Mercado Pago podem ser de outros tipos além de
         // "payment" (ex: merchant_order). Ignoramos qualquer coisa que não
         // seja sobre pagamento, sem erro, para evitar retries inúteis do MP.
-        const topic = req.body?.type || req.query?.topic;
+        const topic = body?.type || req.query?.topic;
         if (topic && topic !== 'payment') {
             return res.status(200).json({ ok: true, skipped: true });
         }
 
-        const paymentId = req.body?.data?.id || req.query?.id;
+        const paymentId = body?.data?.id || req.query?.id;
         if (!paymentId) {
             return res.status(400).json({ error: 'missing payment id' });
         }
