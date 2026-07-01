@@ -4,7 +4,11 @@
  * Protegido pela mesma senha do painel via header 'x-admin-password'.
  *
  * GET   /api/admin-products          → lista todos os produtos (inclusive inativos)
+ * POST  /api/admin-products          → cria novo produto
  * PATCH /api/admin-products          → atualiza campos de um produto
+ *
+ * Campos para POST:
+ *   { name, description, price, stock, category, active, badge?, badge_color?, image? }
  *
  * Campos atualizáveis via PATCH:
  *   { id, price?, stock?, active?, badge?, badge_color?, name?, description? }
@@ -91,6 +95,52 @@ export default async function handler(req, res) {
             return res.status(200).json({ products: (data || []).map(normalizeProduct) });
         } catch (err) {
             return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message });
+        }
+    }
+
+    // ── POST: criar novo produto ──────────────────────────────────────────────
+    if (req.method === 'POST') {
+        const { name, description, price, stock, category, active, badge, badge_color, image } = req.body || {};
+
+        // Validações obrigatórias
+        if (!name || typeof name !== 'string' || !name.trim()) {
+            return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
+        }
+        if (price === undefined || isNaN(Number(price)) || Number(price) < 0) {
+            return res.status(400).json({ error: 'Preço válido é obrigatório.' });
+        }
+        if (stock === undefined || isNaN(Number(stock)) || Number(stock) < 0) {
+            return res.status(400).json({ error: 'Estoque válido é obrigatório.' });
+        }
+        if (!category || !['roupas', 'acessorios', 'kits'].includes(category)) {
+            return res.status(400).json({ error: 'Categoria válida é obrigatória (roupas, acessorios, kits).' });
+        }
+
+        try {
+            const newProduct = {
+                name: name.trim(),
+                description: description ? String(description).trim() : '',
+                price: Number(price),
+                stock: Number(stock),
+                category: category.trim(),
+                active: active === true || active === 'true',
+                badge: badge ? String(badge).trim() : null,
+                badge_color: badge_color ? String(badge_color).trim() : null,
+                image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',
+            };
+
+            const { data, error } = await supabase
+                .from('products')
+                .insert([newProduct])
+                .select('*')
+                .maybeSingle();
+
+            if (error) throw new Error(error.message);
+            if (!data) return res.status(500).json({ error: 'Falha ao criar produto.' });
+
+            return res.status(201).json({ product: normalizeProduct(data) });
+        } catch (err) {
+            return res.status(500).json({ error: 'Erro ao criar produto.', details: err.message });
         }
     }
 

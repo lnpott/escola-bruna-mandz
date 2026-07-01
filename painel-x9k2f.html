@@ -213,9 +213,65 @@
                         <option value="inactive">Inativos</option>
                     </select>
                     <div id="products-summary" class="products-summary"></div>
+                    <button id="btn-new-product" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s">➕ Novo Produto</button>
                     <input id="product-image-input" type="file" accept="image/*" style="display:none;" />
                 </div>
                 <div id="products-area"><div class="empty-state">Carregando produtos…</div></div>
+            </div>
+        </div>
+
+        <!-- MODAL: Novo Produto -->
+        <div id="modal-new-product" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px rgba(0,0,0,.5)">
+                <h2 style="margin:0 0 16px;color:#e4e4e7">Novo Produto</h2>
+                <form id="form-new-product" style="display:flex;flex-direction:column;gap:12px">
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Nome *</label>
+                        <input type="text" name="name" placeholder="Ex: Pulseira Bruna" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Descrição</label>
+                        <textarea name="description" placeholder="Descrição do produto…" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-family:inherit;resize:vertical;min-height:60px"></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Preço (R$) *</label>
+                            <input type="number" name="price" step="0.01" min="0" placeholder="0.00" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Estoque *</label>
+                            <input type="number" name="stock" step="1" min="0" placeholder="0" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Categoria *</label>
+                        <select name="category" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Selecione…</option>
+                            <option value="roupas">Roupas</option>
+                            <option value="acessorios">Acessórios</option>
+                            <option value="kits">Kits</option>
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Badge</label>
+                            <input type="text" name="badge" placeholder="Novidade, Premium…" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Cor Badge</label>
+                            <input type="color" name="badge_color" value="#22c55e" style="width:100%;padding:6px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;cursor:pointer" />
+                        </div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a1a1aa;cursor:pointer">
+                        <input type="checkbox" name="active" checked />
+                        Produto ativo (visível na loja)
+                    </label>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Criar Produto</button>
+                        <button type="button" id="btn-cancel-product" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                    <div id="form-status" style="font-size:12px;color:#a1a1aa;margin-top:8px"></div>
+                </form>
             </div>
         </div>
 
@@ -550,6 +606,36 @@
                 });
             }
 
+            async function createProduct(productData) {
+                const password = sessionStorage.getItem(STORAGE_KEY);
+                if (!password) throw new Error('Sessão expirada');
+
+                const response = await fetch('/api/admin-products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-password': password,
+                    },
+                    body: JSON.stringify(productData),
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Erro ao criar produto');
+                return result.product;
+            }
+
+            function openNewProductModal() {
+                const modal = document.getElementById('modal-new-product');
+                modal.style.display = 'flex';
+                document.getElementById('form-new-product').reset();
+                document.getElementById('form-status').textContent = '';
+            }
+
+            function closeNewProductModal() {
+                const modal = document.getElementById('modal-new-product');
+                modal.style.display = 'none';
+            }
+
             function renderProductsTab() {
                 const area = document.getElementById('products-area');
                 const summary = document.getElementById('products-summary');
@@ -773,6 +859,53 @@
                     await uploadProductImage(file, targetCard);
                 }
                 e.target.value = '';
+            });
+
+            // ── Novo Produto ──────────────────────────────────────────────────────
+
+            document.getElementById('btn-new-product').addEventListener('click', openNewProductModal);
+            document.getElementById('btn-cancel-product').addEventListener('click', closeNewProductModal);
+
+            document.getElementById('modal-new-product').addEventListener('click', (e) => {
+                if (e.target.id === 'modal-new-product') closeNewProductModal();
+            });
+
+            document.getElementById('form-new-product').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const statusDiv = document.getElementById('form-status');
+                const submitBtn = form.querySelector('button[type="submit"]');
+
+                statusDiv.textContent = '📤 Criando…';
+                statusDiv.style.color = '#a1a1aa';
+                submitBtn.disabled = true;
+
+                try {
+                    const formData = new FormData(form);
+                    const productData = {
+                        name: formData.get('name'),
+                        description: formData.get('description'),
+                        price: Number(formData.get('price')),
+                        stock: Number(formData.get('stock')),
+                        category: formData.get('category'),
+                        badge: formData.get('badge') || null,
+                        badge_color: formData.get('badge_color') || null,
+                        active: formData.get('active') === 'on',
+                    };
+
+                    await createProduct(productData);
+                    statusDiv.textContent = '✅ Criado com sucesso!';
+                    statusDiv.style.color = '#86efac';
+                    setTimeout(() => {
+                        closeNewProductModal();
+                        loadProducts();
+                    }, 1000);
+                } catch (err) {
+                    statusDiv.textContent = '❌ ' + (err.message || 'Erro ao criar').substring(0, 50);
+                    statusDiv.style.color = '#fca5a5';
+                } finally {
+                    submitBtn.disabled = false;
+                }
             });
 
             document.getElementById('login-submit').addEventListener('click', () =>
