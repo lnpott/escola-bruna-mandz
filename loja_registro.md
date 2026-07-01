@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 01/07/2026 — (Etapa 27)
+> Última atualização: 01/07/2026 — (Etapa 29)
 
 ---
 
@@ -41,7 +41,149 @@
 
 ---
 
-## 🚦 Próximos Passos Imediatos (o que falta AGORA)
+## � ETAPA 29 — Planejamento: Sistema de Gestão de Produtos com Upload de Imagens
+
+### Contexto
+O painel admin atual (Fases A e B) permite apenas **editar campos de texto** dos 7 produtos
+existentes. Não é possível:
+- Adicionar novos produtos
+- Deletar produtos
+- Fazer upload de imagens (apenas digitar caminhos)
+- Fazer crop/redimensionamento de imagens
+- Editar reward XP
+
+Identificada a necessidade de implementar a **Fase C: Gestão Completa de Produtos**.
+
+### Estado Atual vs. Necessário
+
+| Funcionalidade | Status | Complexidade |
+|---|---|---|
+| Editar nome/preço/estoque | ✅ Funciona | Baixa |
+| Editar categoria, badge, caminho de imagem | ✅ Funciona (texto) | Baixa |
+| **Adicionar produtos novos** | ❌ Impossível | Alta |
+| **Deletar produtos** | ❌ Impossível | Média |
+| **Upload de imagem real** | ❌ Só aceita caminho em texto | Alta |
+| **Crop/redimensionamento** | ❌ Não existe | Média |
+| **Color picker para badge** | ❌ Só texto hex | Baixa |
+| **Editar variants (tamanhos)** | ❌ Não tem UI | Alta |
+| **Editar reward_xp** | ❌ Campo oculto | Baixa |
+
+### Solução Proposta: Arquitetura em 3 Camadas
+
+```
+1️⃣ FRONTEND (painel-x9k2f.html)
+   ├─ Input file + preview 72x72
+   ├─ Modal overlay com Cropper.js
+   │  └─ Zoom, rotate, move, crop (canvas-based)
+   └─ Compressão JPEG 80% antes de enviar
+         ↓
+2️⃣ BACKEND (api/upload-image.js — NOVO)
+   ├─ Validação: tipo (JPEG/PNG/WebP), tamanho (<2MB)
+   ├─ Sanitização de nome arquivo
+   ├─ Upload multipart → Supabase Storage
+   └─ Retorna URL pública assinada
+         ↓
+3️⃣ DATABASE (Supabase)
+   ├─ Bucket: `product-images` (público, com CORS)
+   └─ Campo `image` na tabela `products` = URL
+```
+
+### Tecnologias Selecionadas
+
+**Para crop de imagens:**
+- **Cropper.js** (35KB, CDN) — https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js
+  - ✅ Zoom, rotate, move, crop
+  - ✅ Export para canvas (compressão automática)
+  - ✅ Mobile responsivo
+  - ✅ Sem dependências externas
+
+**Para armazenamento:**
+- **Supabase Storage** (já integrado no projeto)
+  - ✅ CDN automático
+  - ✅ RLS policies para segurança
+  - ✅ URLs públicas assinadas opcionais
+
+**Para compressão:**
+- **Canvas API nativa** (sem biblioteca)
+  - `toDataURL('image/jpeg', 0.8)` reduz 50-70% do tamanho
+
+### Fluxo de Implementação Proposto
+
+#### Fase C1 — Upload de Imagens (PRÓXIMA)
+| Arquivo | O que fazer | Tempo |
+|---|---|---|
+| `api/upload-image.js` | Novo endpoint, validação + Supabase Storage | 30min |
+| `painel-x9k2f.html` | Adicionar Cropper.js + modal de crop + input file | 45min |
+| `supabase/schema.sql` | Criar bucket `product-images` com policies CORS | 15min |
+| Testes | Upload, crop, feedback UX, erro handling | 30min |
+
+#### Fase C2 — CRUD de Produtos (depois de C1)
+| Arquivo | O que fazer | Tempo |
+|---|---|---|
+| `api/admin-products.js` | Adicionar POST (criar) e DELETE (remover) | 30min |
+| `painel-x9k2f.html` | Botão "Novo Produto" + form + confirmação | 1h |
+| `painel-x9k2f.html` | Botão "Deletar" com modal de confirmação | 30min |
+| Testes | Criar, editar, deletar completo | 45min |
+
+#### Fase C3 — Campos Adicionais (depois de C2)
+| Arquivo | O que fazer | Tempo |
+|---|---|---|
+| `painel-x9k2f.html` | Color picker para badge color | 20min |
+| `painel-x9k2f.html` | Editor de reward_xp | 15min |
+| `painel-x9k2f.html` | Variant editor (tamanhos/opcões) | 1h |
+| `api/admin-products.js` | Validação de variants JSON | 20min |
+| Testes | Todas as combinações | 30min |
+
+### Requisitos Técnicos
+
+**Supabase Storage:**
+- Bucket: `product-images`
+- Acesso público (read), admin autenticado (write/delete)
+- CORS habilitado para `*.vercel.app`
+
+**Arquivo `.env` (nova variável):**
+```env
+SUPABASE_STORAGE_BUCKET=product-images
+```
+
+**Segurança:**
+- ✅ Validar tipo MIME (não apenas extensão)
+- ✅ Validar tamanho (<2MB)
+- ✅ Sanitizar nome arquivo (remover caracteres especiais)
+- ✅ Usar RLS policies do Supabase para autorização
+- ✅ CORS restrictivo no bucket
+
+### Decisões a Confirmar com Usuário
+
+1. **Crop obrigatório ou opcional?**
+   - Sim: garante proporções iguais, menos armazenamento
+   - Não: mais rápido, aceita qualquer imagem
+
+2. **Deletar produtos do painel?**
+   - Sim: CRUD completo
+   - Não: apenas marcar como inativo (safer)
+
+3. **Quando começar Fase C?**
+   - Imediato (C1 + C2 esta semana)
+   - Postergar (manter edição de campos por enquanto)
+
+### Checklist de Implementação
+
+- [ ] Confirmar decisões acima com usuário
+- [ ] Criar bucket no Supabase e configurar CORS
+- [ ] Implementar `api/upload-image.js`
+- [ ] Integrar Cropper.js no painel
+- [ ] Testar upload completo local
+- [ ] Implementar POST/DELETE em `api/admin-products.js`
+- [ ] Testar CRUD no painel
+- [ ] Deploy na Vercel
+- [ ] Testar em produção
+- [ ] Atualizar documentação em `docs/PUBLICACAO.md`
+
+### Status
+- [ ] Planejamento concluído
+- [ ] Aguardando confirmação de requisitos
+- [ ] Pendente: implementação de Fase C1
 
 A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
 Fases A e B completas). O que falta agora é refinamento e itens não
@@ -107,6 +249,10 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
 | 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
 | 25 | **Bug no painel**: troca de status retornava erro 405 — corrigido `painel-x9k2f.html` | ✅ Concluído |
+| 26 | **Resiliência da loja e hardening do painel** — fallback local, normalização de produtos, validação de webhook | ✅ Concluído |
+| 27 | **Organização estrutural do repositório** — limpeza de pastas, remoção de arquivos órfãos | ✅ Concluído |
+| 28 | **Correção de imagens dos produtos na loja e no painel** — normalização de caminhos, seed do Supabase | ✅ Concluído |
+| 29 | **Planejamento: Fase C do Painel — Gestão de Produtos com Upload de Imagens** — arquitetura, tecnologias, requisitos | ⏳ Em Planejamento |
 
 ---
 
