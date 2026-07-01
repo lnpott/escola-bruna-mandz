@@ -1,4 +1,3 @@
-import { PRODUCTS } from './products.js';
 import {
     addToCart,
     removeFromCart,
@@ -11,11 +10,27 @@ import { openCheckoutFlow } from './checkout-modal.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+// ─── Cache de produtos (carregados via /api/products) ─────────────────────────
+
+let PRODUCTS = [];
+
+async function loadProducts() {
+    try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Falha ao buscar produtos.');
+        const { products } = await res.json();
+        PRODUCTS = products;
+    } catch (err) {
+        console.error('store.js: erro ao carregar produtos:', err.message);
+        PRODUCTS = [];
+    }
+}
+
 // ─── Badge helper ─────────────────────────────────────────────────────────────
 
 const BADGE_COLORS = {
-    red: 'bg-red-600 text-white',
-    green: 'bg-emerald-600 text-white',
+    red:    'bg-red-600 text-white',
+    green:  'bg-emerald-600 text-white',
     purple: 'bg-purple-600 text-white',
     yellow: 'bg-amber-500 text-zinc-900',
     orange: 'bg-orange-500 text-white',
@@ -32,10 +47,7 @@ function badgeHtml(product) {
 function variantHtml(product) {
     if (!product.variants?.sizes?.length) return '';
     const options = product.variants.sizes
-        .map(
-            (s) =>
-                `<button type="button" class="size-btn" data-size="${s}" data-product-id="${product.id}">${s}</button>`
-        )
+        .map((s) => `<button type="button" class="size-btn" data-size="${s}" data-product-id="${product.id}">${s}</button>`)
         .join('');
     return `
         <div class="size-selector" data-product-id="${product.id}">
@@ -52,6 +64,15 @@ export function renderProducts() {
     const area = document.querySelector('#store-products');
     if (!area) return;
 
+    if (!PRODUCTS.length) {
+        area.innerHTML = `
+            <div class="col-span-full text-center py-12 text-zinc-500">
+                <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                <p class="text-sm">Carregando produtos…</p>
+            </div>`;
+        return;
+    }
+
     const filtered = PRODUCTS.filter(
         (p) => p.active && (activeCategory === 'todos' || p.category === activeCategory)
     );
@@ -65,9 +86,7 @@ export function renderProducts() {
         return;
     }
 
-    area.innerHTML = filtered
-        .map(
-            (product) => `
+    area.innerHTML = filtered.map((product) => `
         <article class="product-card" data-product-id="${product.id}">
             <div class="product-img-wrap">
                 <img src="${product.image}" alt="${product.name}" loading="lazy" />
@@ -90,16 +109,12 @@ export function renderProducts() {
                 </p>
             </div>
         </article>
-    `
-        )
-        .join('');
+    `).join('');
 
     // Seleciona o primeiro tamanho por padrão
     area.querySelectorAll('.size-btn').forEach((btn) => {
         const wrap = btn.closest('.size-options');
-        if (wrap && !wrap.querySelector('.active')) {
-            btn.classList.add('active');
-        }
+        if (wrap && !wrap.querySelector('.active')) btn.classList.add('active');
     });
 }
 
@@ -112,29 +127,24 @@ function categoryLabel(cat) {
 export function filterStoreCategory(category) {
     activeCategory = category;
     renderProducts();
-
     document.querySelectorAll('.store-tab-btn').forEach((btn) => {
-        const isActive = btn.dataset.storeCategory === category;
-        btn.classList.toggle('active', isActive);
+        btn.classList.toggle('active', btn.dataset.storeCategory === category);
     });
 }
 
 // ─── Renderizar carrinho ──────────────────────────────────────────────────────
 
 export function renderCart() {
-    const cart = getCart();
-    const area = document.querySelector('#store-cart-lines');
+    const cart  = getCart();
+    const area  = document.querySelector('#store-cart-lines');
     const total = document.querySelector('#store-cart-total');
     const badge = document.querySelector('#store-cart-badge');
 
     if (area) {
         area.innerHTML = cart.length
-            ? cart
-                  .map((item) => {
-                      const variantLabel = item.variant
-                          ? `<span class="cart-variant">${item.variant}</span>`
-                          : '';
-                      return `
+            ? cart.map((item) => {
+                const variantLabel = item.variant ? `<span class="cart-variant">${item.variant}</span>` : '';
+                return `
                     <div class="cart-line">
                         <div class="cart-line-info">
                             <span class="cart-line-name">${item.name}${variantLabel}</span>
@@ -154,8 +164,7 @@ export function renderCart() {
                                 title="Remover item">×</button>
                         </div>
                     </div>`;
-                  })
-                  .join('')
+            }).join('')
             : `<div class="cart-empty">
                     <i class="fas fa-shopping-bag text-3xl text-zinc-700 mb-2"></i>
                     <p>Seu carrinho está vazio.</p>
@@ -170,7 +179,6 @@ export function renderCart() {
     const navBadge = document.querySelector('#nav-cart-badge');
     if (navBadge) navBadge.textContent = count;
 
-    // Desabilitar botão de checkout se carrinho estiver vazio
     const disabled = !cart.length;
     const startBtn = document.getElementById('checkout-start-btn');
     if (startBtn) {
@@ -180,28 +188,29 @@ export function renderCart() {
     }
 }
 
-// ─── Event listeners ──────────────────────────────────────────────────────────
+// ─── Init ─────────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderProducts();
+document.addEventListener('DOMContentLoaded', async () => {
+    renderProducts(); // mostra spinner imediatamente
+    await loadProducts();
+    renderProducts(); // renderiza com dados reais
     renderCart();
-
-    // Expor funções globais necessárias para o HTML
     window.filterStoreCategory = filterStoreCategory;
 });
+
+// ─── Event listeners ──────────────────────────────────────────────────────────
 
 document.addEventListener('click', (event) => {
     // Adicionar ao carrinho
     const addBtn = event.target.closest('[data-add-product]');
     if (addBtn) {
         const productId = addBtn.dataset.addProduct;
-        const product = PRODUCTS.find((p) => p.id === productId);
+        const product   = PRODUCTS.find((p) => p.id === productId);
         if (!product) return;
 
-        // Pegar variante selecionada
-        const card = addBtn.closest('.product-card');
+        const card       = addBtn.closest('.product-card');
         const activeSize = card?.querySelector('.size-btn.active');
-        const variant = activeSize?.dataset.size ?? null;
+        const variant    = activeSize?.dataset.size ?? null;
 
         if (product.variants?.sizes?.length && !variant) {
             window.showToast?.('Selecione um tamanho primeiro!');
@@ -214,7 +223,6 @@ document.addEventListener('click', (event) => {
         const label = variant ? `${product.name} (${variant})` : product.name;
         window.showToast?.(`🛍️ ${label} adicionado!`);
 
-        // Animação do botão
         addBtn.innerHTML = '<i class="fas fa-check"></i> Adicionado!';
         addBtn.classList.add('btn-added');
         setTimeout(() => {
@@ -237,12 +245,11 @@ document.addEventListener('click', (event) => {
     const qtyBtn = event.target.closest('[data-qty-action]');
     if (qtyBtn) {
         const productId = qtyBtn.dataset.productId;
-        const variant = qtyBtn.dataset.variant || null;
-        const cart = getCart();
-        const item = cart.find((e) => e.id === productId && (e.variant ?? '') === (variant ?? ''));
+        const variant   = qtyBtn.dataset.variant || null;
+        const cart      = getCart();
+        const item      = cart.find((e) => e.id === productId && (e.variant ?? '') === (variant ?? ''));
         if (!item) return;
-        const newQty =
-            qtyBtn.dataset.qtyAction === 'increase' ? item.quantity + 1 : item.quantity - 1;
+        const newQty = qtyBtn.dataset.qtyAction === 'increase' ? item.quantity + 1 : item.quantity - 1;
         updateQuantity(productId, newQty, variant || null);
         renderCart();
         return;
@@ -252,18 +259,17 @@ document.addEventListener('click', (event) => {
     const removeBtn = event.target.closest('[data-remove-product]');
     if (removeBtn) {
         const productId = removeBtn.dataset.removeProduct;
-        const variant = removeBtn.dataset.variant || null;
+        const variant   = removeBtn.dataset.variant || null;
         removeFromCart(productId, variant || null);
         renderCart();
         window.showToast?.('Item removido do carrinho.');
         return;
     }
 
-    // Checkout — agora um botão único
+    // Checkout
     if (event.target.closest('#checkout-start-btn')) {
         openCheckoutFlow();
     }
 });
 
-// Atualizar carrinho ao receber evento global (ex: ecommerce.js)
 window.addEventListener('bruna:cart-updated', renderCart);
