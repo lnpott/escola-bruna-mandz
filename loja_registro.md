@@ -13,8 +13,8 @@ bloqueantes:
 
 1. Confirmar remoção definitiva dos arquivos órfãos:
    `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
-2. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
-   está no ar e desativar, para não haver duas versões diferentes do site)
+2. Encerrar qualquer referência antiga ao **Netlify** e concentrar a publicação
+   da loja na **Vercel**, definindo o domínio/URL da nova versão como foco
 3. Confirmar os preços reais dos 7 produtos do catálogo com a Bruna
 4. Planejar a **Fase C** do painel (gestão de produtos direto pelo painel,
    sem editar código) quando fizer sentido priorizar
@@ -267,9 +267,9 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
    atualizado pelo JS (sempre pegava o primeiro elemento).
 7. Painel admin acessível por link visível no menu (`admin/admin.html`), sem
    nenhuma autenticação.
-8. Encontrado `siteId` de um projeto Netlify (`.netlify/state.json`) já
-   vinculado a este repositório — sinal de que o projeto já foi publicado por
-   lá em algum momento. Vale verificar se esse site antigo ainda está no ar.
+8. Encontrado histórico de uma publicação antiga na Netlify, mas a estratégia
+   atual é encerrar essa referência e concentrar a implantação da loja na
+   Vercel.
 
 ### 🏗️ Nova arquitetura implementada
 
