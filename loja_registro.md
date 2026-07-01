@@ -11,8 +11,10 @@ A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
 Fases A e B completas). O que falta agora é refinamento e itens não
 bloqueantes:
 
-1. Confirmar remoção definitiva dos arquivos órfãos:
+1. ✅ Confirmada remoção definitiva dos arquivos órfãos:
    `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
+   Verificação feita no workspace: não existem mais no repositório e não há
+   referências ativas pendentes para esses nomes.
 2. Encerrar qualquer referência antiga ao **Netlify** e concentrar a publicação
    da loja na **Vercel**, definindo o domínio/URL da nova versão como foco
 3. Confirmar os preços reais dos 7 produtos do catálogo com a Bruna

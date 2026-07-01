@@ -14,7 +14,7 @@
 
 ## 3. Vercel
 - [ ] Conectar o repositório do GitHub à Vercel
-- [ ] Configurar todas as variáveis de `.env.example` em Project Settings > Environment Variables
+- [ ] Configurar todas as variáveis de ambiente necessárias em Project Settings > Environment Variables
 - [ ] Fazer o primeiro deploy e confirmar que `/api/config` responde com a Public Key
 
 ## 4. Segurança

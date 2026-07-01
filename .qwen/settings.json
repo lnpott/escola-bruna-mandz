@@ -1,6 +1,0 @@
-{
-    "permissions": {
-        "allow": ["Read(C:\\Users\\lnpot\\AppData\\Roaming\\Devin\\User/**)"]
-    },
-    "$version": 4
-}
