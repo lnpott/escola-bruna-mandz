@@ -17,6 +17,44 @@
 
 import { getSupabase } from './_lib/supabase.js';
 
+function normalizeProductImage(image) {
+    if (!image || typeof image !== 'string') return '/brand/LOGOPRETO.png';
+
+    const value = image.trim();
+    if (!value) return '/brand/LOGOPRETO.png';
+
+    if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
+        return value;
+    }
+
+    if (value.startsWith('/')) {
+        if (value.startsWith('/merch/') || value.startsWith('/brand/') || value.startsWith('/media/') || value.startsWith('/products/')) {
+            return value;
+        }
+        return `/merch/${value.replace(/^\/+/, '')}`;
+    }
+
+    const fileName = value.replace(/^.*[\\/]/, '');
+    const knownMerchImages = [
+        'Pulseira.png',
+        'Paleta.png',
+        'Chaveiro.png',
+        'Copo.png',
+        'TSHIRT_PREMIUN.png',
+        'TSHIRT_PRO.png',
+        'TSHIRT_ROCK.png',
+    ];
+
+    return knownMerchImages.includes(fileName) ? `/merch/${fileName}` : '/brand/LOGOPRETO.png';
+}
+
+function normalizeProduct(product) {
+    return {
+        ...product,
+        image: normalizeProductImage(product?.image),
+    };
+}
+
 const ALLOWED_UPDATE_FIELDS = [
     'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image',
 ];
@@ -50,7 +88,7 @@ export default async function handler(req, res) {
                 .order('created_at', { ascending: true });
 
             if (error) throw new Error(error.message);
-            return res.status(200).json({ products: data || [] });
+            return res.status(200).json({ products: (data || []).map(normalizeProduct) });
         } catch (err) {
             return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message });
         }
@@ -78,6 +116,9 @@ export default async function handler(req, res) {
         if ('price' in updates && (isNaN(Number(updates.price)) || Number(updates.price) < 0)) {
             return res.status(400).json({ error: 'Preço inválido.' });
         }
+        if ('image' in updates) {
+            updates.image = normalizeProductImage(updates.image);
+        }
         if ('stock' in updates && (isNaN(Number(updates.stock)) || Number(updates.stock) < 0)) {
             return res.status(400).json({ error: 'Estoque inválido.' });
         }
@@ -93,7 +134,7 @@ export default async function handler(req, res) {
             if (error) throw new Error(error.message);
             if (!data) return res.status(404).json({ error: 'Produto não encontrado.' });
 
-            return res.status(200).json({ product: data });
+            return res.status(200).json({ product: normalizeProduct(data) });
         } catch (err) {
             return res.status(500).json({ error: 'Erro ao atualizar produto.', details: err.message });
         }
