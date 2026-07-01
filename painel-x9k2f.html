@@ -197,7 +197,7 @@
             <!-- ABA PRODUTOS -->
             <div id="tab-products" style="display:none">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-                    <p style="color:#71717a;font-size:13px">Edite preço, estoque e visibilidade de cada produto. As alterações refletem na loja imediatamente.</p>
+                    <p style="color:#71717a;font-size:13px">Edite preço, estoque, imagem e visibilidade de cada produto. As alterações refletem na loja imediatamente.</p>
                 </div>
                 <div class="products-toolbar">
                     <input id="product-search-input" type="text" placeholder="Buscar produto por nome ou descrição…" />
@@ -213,10 +213,14 @@
                         <option value="inactive">Inativos</option>
                     </select>
                     <div id="products-summary" class="products-summary"></div>
+                    <input id="product-image-input" type="file" accept="image/*" style="display:none;" />
                 </div>
                 <div id="products-area"><div class="empty-state">Carregando produtos…</div></div>
             </div>
         </div>
+
+        <!-- INPUT FILE OCULTO (global para upload) -->
+        <input id="global-image-upload" type="file" accept="image/*" style="display:none;" />
 
         <script>
             const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -597,6 +601,10 @@
                                     <input class="field-input" type="text" placeholder="/imagem.png"
                                         data-field="image" value="${p.image || ''}" />
                                 </div>
+                                <div class="field-row" style="gap:4px">
+                                    <button class="btn-upload-img" style="flex:0;padding:4px 10px;border-radius:6px;border:1px solid #3f3f46;background:#18181b;color:#a1a1aa;font-size:12px;cursor:pointer;transition:all .2s">📁 Upload</button>
+                                    <span class="upload-status" data-upload-id="${p.id}" style="font-size:11px;color:#71717a;"></span>
+                                </div>
                                 <label class="toggle-active">
                                     <input type="checkbox" data-field="active" ${p.active ? 'checked' : ''} />
                                     Produto ativo (visível na loja)
@@ -624,7 +632,61 @@
                         };
                         saveProduct(id, fields, card);
                     });
+
+                    card.querySelector('.btn-upload-img').addEventListener('click', () => {
+                        const fileInput = document.getElementById('global-image-upload');
+                        fileInput.dataset.targetCard = card.dataset.productId;
+                        fileInput.click();
+                    });
                 });
+            }
+
+            async function uploadProductImage(file, productCard) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Selecione uma imagem válida');
+                    return;
+                }
+                const statusSpan = productCard.querySelector('.upload-status');
+                const uploadBtn = productCard.querySelector('.btn-upload-img');
+                const imageInput = productCard.querySelector('[data-field="image"]');
+
+                statusSpan.textContent = '📤 Enviando...';
+                statusSpan.style.color = '#a1a1aa';
+                uploadBtn.disabled = true;
+                uploadBtn.style.opacity = '.5';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const password = sessionStorage.getItem(STORAGE_KEY);
+                    if (!password) throw new Error('Sessão expirada');
+
+                    const response = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        headers: { 'x-admin-password': password },
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || 'Erro no upload');
+
+                    imageInput.value = result.url;
+                    statusSpan.textContent = '✅ Enviado!';
+                    statusSpan.style.color = '#86efac';
+                    setTimeout(() => {
+                        statusSpan.textContent = '';
+                    }, 2000);
+                } catch (err) {
+                    statusSpan.textContent = '❌ ' + (err.message || 'Erro').substring(0, 30);
+                    statusSpan.style.color = '#fca5a5';
+                    setTimeout(() => {
+                        statusSpan.textContent = '';
+                    }, 3000);
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadBtn.style.opacity = '1';
+                }
             }
 
             async function loadProducts() {
@@ -698,6 +760,20 @@
                     });
                 });
             }
+
+            // ── Upload de Imagem ──────────────────────────────────────────────────
+
+            document.getElementById('global-image-upload').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const targetProductId = e.target.dataset.targetCard;
+                if (!targetProductId) return;
+                const targetCard = document.querySelector(`[data-product-id="${targetProductId}"]`);
+                if (targetCard) {
+                    await uploadProductImage(file, targetCard);
+                }
+                e.target.value = '';
+            });
 
             document.getElementById('login-submit').addEventListener('click', () =>
                 loadPanel(document.getElementById('admin-password-input').value));

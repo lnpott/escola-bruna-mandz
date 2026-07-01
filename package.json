@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.108.0",
+        "formidable": "^3.5.4",
         "mercadopago": "^2.0.0"
     },
     "devDependencies": {

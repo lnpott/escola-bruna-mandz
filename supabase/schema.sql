@@ -83,3 +83,33 @@ create trigger products_set_updated_at
     execute function public.set_updated_at();
 
 alter table public.products enable row level security;
+
+-- ─── Storage: Bucket de Imagens de Produtos ────────────────────────────────────
+-- Criar bucket para armazenar imagens de produtos (uploads do painel admin)
+-- Cole isso no SQL Editor do Supabase DEPOIS de criar o bucket manualmente:
+--
+-- 1. No painel do Supabase, vá em Storage > Buckets
+-- 2. Clique em "Create a new bucket"
+-- 3. Nome: product-images
+-- 4. Checkbox: Make it public
+-- 5. Clique em "Create bucket"
+-- 6. Em seguida, cole o SQL abaixo no SQL Editor para configurar as policies
+--
+-- insert into storage.buckets (id, name, public)
+-- values ('product-images', 'product-images', true)
+-- on conflict do nothing;
+--
+-- -- Policy: Leitura pública de imagens
+-- create policy "public read"
+-- on storage.objects for select
+-- using (bucket_id = 'product-images');
+--
+-- -- Policy: Upload somente com Service Role Key (protegido por senha no backend)
+-- create policy "admin upload"
+-- on storage.objects for insert
+-- with check (bucket_id = 'product-images');
+--
+-- -- Policy: Deletar somente com Service Role Key
+-- create policy "admin delete"
+-- on storage.objects for delete
+-- using (bucket_id = 'product-images');
