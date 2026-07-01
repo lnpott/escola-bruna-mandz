@@ -25,6 +25,22 @@
 
 ---
 
+## ✅ ETAPA 28 — Correção de imagens dos produtos na loja e no painel
+
+### O que foi feito
+- Identificou-se que os produtos estavam sendo renderizados com caminhos antigos de imagem, como `Chaveiro.png`, `Pulseira.png` e `TSHIRT_PRO.png`, o que causava 404s no navegador.
+- Implementou-se a normalização de imagens de produtos tanto na API da loja quanto na API do painel admin.
+- Qualquer valor antigo ou incompleto agora é convertido para o caminho correto em `public/merch`.
+- Atualizou-se o seed do Supabase para persistir os caminhos corretos dos produtos.
+- Validação confirmada com `npm run build`, que concluiu com sucesso.
+
+### Status
+- [x] Imagens de produtos corrigidas na loja
+- [x] Imagens de produtos corrigidas no painel admin
+- [x] Build de produção validada
+
+---
+
 ## 🚦 Próximos Passos Imediatos (o que falta AGORA)
 
 A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
