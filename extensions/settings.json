@@ -1,7 +1,0 @@
-{
-    "terminal.integrated.enableMultiLinePasteWarning": "never",
-    "terminal.integrated.showCommandHint": false,
-    "claudeCode.preferredLocation": "panel",
-    "qwenPlan": "1. Separar CSS/JS em arquivos externos – criar styles.css e scripts.js e carregá‑los via <link> e <script>.\n2. Optimizar recursos externos – usar Tailwind build custom, sub‑set de FontAwesome e fontes Google limitadas.\n3. Acessibilidade – alt descritivos, contraste adequado, navegação por teclado, ARIA nos modais e toast.\n4. SEO – meta description, Open Graph tags e title mais descritivo.\n5. Responsividade e performance de imagens – srcset, lazy loading e compressão.\n6. Código JavaScript modular – separar em módulos ES6, evitar globals, usar DOMContentLoaded.\n7. Gerenciamento de estado – objeto state para filtro e slideshow, persistir em localStorage.\n8. Toast notifications – API padronizada showToast(message, type), role=\"alert\".\n9. Estrutura HTML semântica – usar header, nav, section, article, aside, footer; remover onclick inline.\n10. Testes de usabilidade – verificação mobile, leitores de tela e tempo de carregamento <2 s (3G).\n11. Automatizar build/deploy – package.json com scripts build:css, build:js, preview.\n12. Política de fallback de fontes – definir fontes de backup.\n13. Documentação – README.md com estrutura de pastas, como rodar, dependências e contribuição.\n14. Segurança – Content‑Security‑Policy, X‑Content‑Type‑Options e X‑Frame‑Options.",
-    "qwen-code.provider": "api-key"
-}
