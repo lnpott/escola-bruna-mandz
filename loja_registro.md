@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 01/07/2026 — (Etapa 25)
+> Última atualização: 01/07/2026 — (Etapa 26)
 
 ---
 
@@ -865,20 +865,77 @@ diferentes, sem contrato sincronizado.
 
 ---
 
+## ✅ ETAPA 26 — Resiliência da loja e hardening do painel
+
+### Contexto
+Durante a validação local da loja, o fluxo de produtos ficou vulnerável a respostas inválidas da API e a problemas na integração com o Supabase. O objetivo desta etapa foi garantir que a loja continuasse funcionando mesmo com falhas temporárias no backend.
+
+### O que foi feito
+- `store/store.js` passou a usar um catálogo local como fallback quando `/api/products` falha, retorna resposta não-JSON ou está indisponível.
+- `api/products.js` passou a normalizar os dados retornados do Supabase e a responder de forma mais previsível em caso de erro.
+- `api/admin-products.js` foi reforçado para aceitar campos adicionais do catálogo e retornar mensagens claras quando o ambiente do Supabase não estiver configurado.
+- `api/webhook.js` passou a validar a assinatura `x-signature` quando a secret estiver disponível, usando o helper `api/_lib/webhook-signature.js`.
+- `painel-x9k2f.html` recebeu melhorias de feedback para erros de API e passou a exibir uma experiência mais clara ao editar produtos.
+
+### Validações feitas
+- ✅ `npm run build` executado com sucesso
+- ✅ Endpoint de produtos validado localmente com dados do Supabase
+- ✅ Fluxo da loja preservado mesmo quando a API não responde corretamente
+
+### Status
+- [x] Fallback local da loja implementado
+- [x] Hardening das APIs de produtos e webhook concluído
+- [x] Painel admin mais resiliente e com melhor feedback de erro
+
+---
+
 ## 🔮 Próximos Passos (o que falta fazer)
 
-1. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
-   `api/payment-provider.js`, `api/env.example`
-2. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
-   por senha admin), mas pode ser removido se não houver mais utilidade
-3. Confirmar preços reais dos 7 produtos com a Bruna
-4. **Planejar e implementar a Fase C** do painel (gestão de produtos:
-   editar preço, adicionar/remover produto, sinalizar Novo/Descontinuado/
-   Em Falta) — pré-requisito: mover `store/products.js` para tabela
-   `products` no Supabase (ver Etapa 20.2)
-5. Hardening pendente: validar assinatura `x-signature` do webhook do MP
-6. Decidir se notificação por e-mail deve ser enviada também para pedidos
-   PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
+### Melhorias previstas para a administração de produtos
+
+1. Resolver o truncamento visual da lista de produtos no painel:
+   - revisar o layout da aba de produtos em telas pequenas e médias;
+   - limitar o tamanho do nome e da descrição sem cortar a legibilidade;
+   - ajustar a altura das cards e permitir rolagem interna quando necessário.
+2. Melhorar a experiência de edição de produtos:
+   - adicionar campos de preço, estoque, categoria, badge e imagem com validação visual;
+   - incluir feedback imediato de sucesso/erro após salvar;
+   - permitir salvar por lote ou por card sem recarregar a página.
+3. Implementar a Fase C do painel:
+   - criar fluxo para ativar/desativar produtos;
+   - adicionar produto novo diretamente no painel;
+   - sinalizar status como `novo`, `em_falta`, `descontinuado` ou `ativo`.
+4. Sincronizar o catálogo do painel com a loja em tempo real:
+   - garantir que alterações em estoque/preço/visibilidade apareçam imediatamente na vitrine;
+   - evitar inconsistências entre o catálogo local fallback e os dados do Supabase.
+5. Melhorar a busca e filtragem de produtos no painel:
+   - filtrar por categoria, estoque baixo e status;
+   - ordenar por preço, estoque e data de criação.
+
+### Checklist de integração do Mercado Pago (pronto para as credenciais)
+
+1. Confirmar as variáveis de ambiente na Vercel:
+   - `MERCADO_PAGO_ACCESS_TOKEN`
+   - `MERCADO_PAGO_PUBLIC_KEY`
+   - `MP_WEBHOOK_SECRET`
+   - `MP_WEBHOOK_URL`
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+2. Validar o webhook no painel do Mercado Pago:
+   - URL pública do endpoint `/api/webhook`
+   - evento `payment`
+   - assinatura habilitada se a secret for configurada
+3. Validar o fluxo completo com credenciais reais:
+   - PIX com valor de teste baixo
+   - cartão com tokenização via Brick
+   - atualização de status no Supabase
+   - envio de e-mail de confirmação quando aprovado
+4. Confirmar o comportamento de fallback:
+   - sem credenciais, a loja continua operando em modo local;
+   - com credenciais, o fluxo passa a cobrar de verdade sem necessidade de código novo.
+5. Revisar logs e monitoramento após o primeiro pagamento real:
+   - verificar se o webhook chega corretamente;
+   - confirmar se o pedido entra no painel com o status correto.
 
 Passo a passo de configuração inicial (Supabase, Mercado Pago, Vercel,
 Webhook) está em `docs/PUBLICACAO.md` — concluído nas Etapas 9 a 16.

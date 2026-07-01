@@ -86,24 +86,31 @@
 
             /* Aba Produtos */
             .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
-            .product-admin-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
-            .product-admin-card.inactive { opacity: 0.5; }
-            .product-admin-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #27272a; flex-shrink: 0; }
-            .product-admin-info { flex: 1; min-width: 0; }
-            .product-admin-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .product-admin-cat { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
-            .product-admin-fields { display: flex; flex-direction: column; gap: 6px; }
-            .field-row { display: flex; align-items: center; gap: 8px; }
-            .field-label { font-size: 11px; color: #71717a; width: 72px; flex-shrink: 0; }
-            .field-input { flex: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
+            .products-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 8px 0 4px; }
+            .products-toolbar input, .products-toolbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; font-size: 13px; }
+            .products-toolbar input { flex: 1; min-width: 220px; }
+            .products-toolbar select { min-width: 140px; }
+            .products-summary { color: #71717a; font-size: 12px; margin-left: auto; }
+            .product-admin-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; width: 100%; box-sizing: border-box; }
+            .product-admin-card.inactive { opacity: 0.65; }
+            .product-admin-card.saving { border-color: #dc2626; box-shadow: inset 0 0 0 1px rgba(220,38,38,.25); }
+            .product-admin-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #27272a; flex-shrink: 0; }
+            .product-admin-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+            .product-admin-name { font-weight: 700; font-size: 14px; line-height: 1.35; margin-bottom: 0; white-space: normal; overflow: visible; text-overflow: clip; }
+            .product-admin-cat { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 0; line-height: 1.4; }
+            .product-admin-fields { display: flex; flex-direction: column; gap: 8px; }
+            .field-row { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+            .field-label { font-size: 11px; color: #71717a; width: 72px; flex-shrink: 0; margin-top: 6px; }
+            .field-input { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
             .field-input:focus { outline: none; border-color: #dc2626; }
-            .field-textarea { width: 100%; min-height: 58px; resize: vertical; padding: 6px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
-            .field-select { flex: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
-            .toggle-active { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #a1a1aa; }
+            .field-textarea { width: 100%; min-height: 76px; resize: vertical; padding: 6px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; box-sizing: border-box; }
+            .field-select { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
+            .toggle-active { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #a1a1aa; margin-top: 2px; }
             .toggle-active input[type="checkbox"] { accent-color: #dc2626; width: 14px; height: 14px; cursor: pointer; }
             .btn-save-product { margin-top: 10px; width: 100%; padding: 6px; border-radius: 6px; border: none; background: #dc2626; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer; }
             .btn-save-product:hover { background: #b91c1c; }
             .btn-save-product:disabled { opacity: 0.5; cursor: not-allowed; }
+            .btn-save-product.saved { background: #166534; }
             .save-result { font-size: 11px; margin-top: 4px; text-align: center; min-height: 14px; }
             .save-result.ok  { color: #86efac; }
             .save-result.err { color: #fca5a5; }
@@ -132,6 +139,10 @@
                 td[data-label='Cliente'] { align-items: flex-start; text-align: right; }
                 td[data-label='Ação'] .status-select { width: 100%; }
                 .detail-inner { grid-template-columns: 1fr; }
+                .product-admin-card { flex-direction: column; }
+                .product-admin-img { width: 100%; height: 160px; }
+                .products-toolbar { flex-direction: column; align-items: stretch; }
+                .products-summary { margin-left: 0; }
             }
         </style>
     </head>
@@ -188,6 +199,21 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
                     <p style="color:#71717a;font-size:13px">Edite preço, estoque e visibilidade de cada produto. As alterações refletem na loja imediatamente.</p>
                 </div>
+                <div class="products-toolbar">
+                    <input id="product-search-input" type="text" placeholder="Buscar produto por nome ou descrição…" />
+                    <select id="product-category-filter">
+                        <option value="">Todas as categorias</option>
+                        <option value="roupas">Roupas</option>
+                        <option value="acessorios">Acessórios</option>
+                        <option value="kits">Kits</option>
+                    </select>
+                    <select id="product-status-filter">
+                        <option value="">Todos</option>
+                        <option value="active">Ativos</option>
+                        <option value="inactive">Inativos</option>
+                    </select>
+                    <div id="products-summary" class="products-summary"></div>
+                </div>
                 <div id="products-area"><div class="empty-state">Carregando produtos…</div></div>
             </div>
         </div>
@@ -213,6 +239,7 @@
             let _allProducts = [];
             let _password   = null;
             let _activeTab  = 'orders';
+            let _productFilters = { search: '', category: '', status: '' };
             let _countdown  = REFRESH_INTERVAL;
             let _timer      = null;
             let _expandedRows = new Set(); // IDs de pedidos com detalhe aberto
@@ -474,6 +501,7 @@
                 const result = card.querySelector('.save-result');
                 btn.disabled = true;
                 btn.textContent = 'Salvando…';
+                card.classList.add('saving');
                 result.textContent = '';
                 result.className = 'save-result';
                 try {
@@ -487,26 +515,48 @@
                     const idx = _allProducts.findIndex(p => p.id === id);
                     if (idx !== -1) _allProducts[idx] = data.product;
                     card.classList.toggle('inactive', !data.product.active);
-                    result.textContent = '✅ Salvo!';
+                    btn.textContent = 'Salvo!';
+                    btn.classList.add('saved');
+                    result.textContent = '✅ Alterações salvas.';
                     result.className = 'save-result ok';
+                    renderProductsTab();
                 } catch (err) {
                     result.textContent = '❌ ' + err.message;
                     result.className = 'save-result err';
+                    btn.textContent = 'Tentar novamente';
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = 'Salvar alterações';
-                    setTimeout(() => { result.textContent = ''; result.className = 'save-result'; }, 3000);
+                    card.classList.remove('saving');
+                    setTimeout(() => {
+                        btn.classList.remove('saved');
+                        btn.textContent = 'Salvar alterações';
+                        result.textContent = '';
+                        result.className = 'save-result';
+                    }, 2500);
                 }
+            }
+
+            function getFilteredProducts() {
+                const term = _productFilters.search.trim().toLowerCase();
+                return _allProducts.filter((p) => {
+                    const matchesSearch = !term || [p.name, p.description, p.category, p.badge].filter(Boolean).join(' ').toLowerCase().includes(term);
+                    const matchesCategory = !_productFilters.category || p.category === _productFilters.category;
+                    const matchesStatus = !_productFilters.status || (_productFilters.status === 'active' ? p.active : !p.active);
+                    return matchesSearch && matchesCategory && matchesStatus;
+                });
             }
 
             function renderProductsTab() {
                 const area = document.getElementById('products-area');
-                if (!_allProducts.length) {
-                    area.innerHTML = '<div class="empty-state">Nenhum produto encontrado.</div>';
+                const summary = document.getElementById('products-summary');
+                const filtered = getFilteredProducts();
+                if (!filtered.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum produto encontrado com esses filtros.</div>';
+                    if (summary) summary.textContent = '0 de ' + _allProducts.length + ' produtos';
                     return;
                 }
                 const catLabel = c => ({ roupas: 'Roupas', acessorios: 'Acessórios', kits: 'Kits' }[c] || c);
-                area.innerHTML = '<div class="products-grid">' + _allProducts.map(p => `
+                area.innerHTML = '<div class="products-grid">' + filtered.map(p => `
                     <div class="product-admin-card${p.active ? '' : ' inactive'}" data-product-id="${p.id}">
                         <img class="product-admin-img" src="${p.image}" alt="${p.name}" onerror="this.style.opacity='.2'" />
                         <div class="product-admin-info">
@@ -556,6 +606,8 @@
                             <div class="save-result"></div>
                         </div>
                     </div>`).join('') + '</div>';
+
+                if (summary) summary.textContent = filtered.length + ' de ' + _allProducts.length + ' produtos';
 
                 area.querySelectorAll('.product-admin-card').forEach(card => {
                     card.querySelector('.btn-save-product').addEventListener('click', () => {
@@ -618,6 +670,7 @@
                     _password  = password;
                     renderKpis(_allOrders);
                     applyFiltersAndRender();
+                    bindProductFilters();
                     loginScreen.style.display = 'none';
                     panelScreen.style.display = 'block';
                     sessionStorage.setItem(STORAGE_KEY, password);
@@ -628,6 +681,23 @@
             }
 
             // ── Eventos ───────────────────────────────────────────────────────────
+
+            function bindProductFilters() {
+                const search = document.getElementById('product-search-input');
+                const category = document.getElementById('product-category-filter');
+                const status = document.getElementById('product-status-filter');
+                if (!search || !category || !status) return;
+                [search, category, status].forEach((el) => {
+                    el.addEventListener('input', () => {
+                        _productFilters = {
+                            search: search.value,
+                            category: category.value,
+                            status: status.value,
+                        };
+                        renderProductsTab();
+                    });
+                });
+            }
 
             document.getElementById('login-submit').addEventListener('click', () =>
                 loadPanel(document.getElementById('admin-password-input').value));
