@@ -36,7 +36,7 @@ export default async function handler(req, res) {
             category: p?.category || 'acessorios',
             badge: p?.badge || null,
             badgeColor: p?.badge_color || null,
-            image: p?.image || '/LOGOPRETO.png',
+            image: p?.image || '/brand/LOGOPRETO.png',
             rewardXp: Number(p?.reward_xp || 0),
             variants: p?.variants || null,
         }));

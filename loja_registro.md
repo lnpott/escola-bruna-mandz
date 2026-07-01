@@ -1,7 +1,27 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 01/07/2026 — (Etapa 26)
+> Última atualização: 01/07/2026 — (Etapa 27)
+
+---
+
+## ✅ ETAPA 27 — Organização estrutural do repositório
+
+### O que foi feito
+- Reorganização dos arquivos soltos da raiz em pastas mais coerentes:
+  - `public/brand` para logos e branding
+  - `public/media` para imagens e vídeos do site
+  - `public/merch` para assets de produtos/merchandising
+  - `public/products` para imagens de produtos
+  - `docs` para documentos de apoio e configuração
+- Ajuste dos caminhos usados no HTML para refletir a nova estrutura de pastas.
+- Remoção de arquivos e pastas redundantes/obsoletos que não fazem mais parte do fluxo principal da loja.
+- Validação final confirmada com `npm run build`, que concluíu com sucesso.
+
+### Status
+- [x] Estrutura do projeto mais limpa e organizada
+- [x] Links de assets corrigidos
+- [x] Build de produção validada
 
 ---
 
