@@ -27,18 +27,18 @@ export default async function handler(req, res) {
         // Normaliza campos para manter compatibilidade com o front-end existente
         // (produtos.js usava camelCase; Supabase retorna snake_case)
         const products = (data || []).map((p) => ({
-            id:          p.id,
-            name:        p.name,
-            description: p.description,
-            price:       Number(p.price),
-            stock:       p.stock,
-            active:      p.active,
-            category:    p.category,
-            badge:       p.badge,
-            badgeColor:  p.badge_color,
-            image:       p.image,
-            rewardXp:    p.reward_xp,
-            variants:    p.variants,
+            id: p?.id || `product-${Math.random().toString(36).slice(2, 8)}`,
+            name: p?.name || 'Produto sem nome',
+            description: p?.description || 'Descrição em breve.',
+            price: Number(p?.price || 0),
+            stock: Number(p?.stock || 0),
+            active: Boolean(p?.active ?? true),
+            category: p?.category || 'acessorios',
+            badge: p?.badge || null,
+            badgeColor: p?.badge_color || null,
+            image: p?.image || '/LOGOPRETO.png',
+            rewardXp: Number(p?.reward_xp || 0),
+            variants: p?.variants || null,
         }));
 
         return res.status(200).json({ products });

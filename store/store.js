@@ -7,6 +7,7 @@ import {
     getCart,
 } from './cart.js';
 import { openCheckoutFlow } from './checkout-modal.js';
+import { PRODUCTS as FALLBACK_PRODUCTS } from './products.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -16,13 +17,19 @@ let PRODUCTS = [];
 
 async function loadProducts() {
     try {
-        const res = await fetch('/api/products');
-        if (!res.ok) throw new Error('Falha ao buscar produtos.');
+        const res = await fetch('/api/products', { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(`Falha ao buscar produtos: ${res.status}`);
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error('Resposta da API não é JSON.');
+        }
+
         const { products } = await res.json();
-        PRODUCTS = products;
+        PRODUCTS = Array.isArray(products) ? products : FALLBACK_PRODUCTS;
     } catch (err) {
         console.error('store.js: erro ao carregar produtos:', err.message);
-        PRODUCTS = [];
+        PRODUCTS = FALLBACK_PRODUCTS;
     }
 }
 

@@ -18,7 +18,7 @@
 import { getSupabase } from './_lib/supabase.js';
 
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'description', 'price', 'stock', 'active', 'badge', 'badge_color',
+    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image',
 ];
 
 function auth(req, res) {
@@ -31,7 +31,15 @@ function auth(req, res) {
 export default async function handler(req, res) {
     if (!auth(req, res)) return;
 
-    const supabase = getSupabase();
+    let supabase;
+    try {
+        supabase = getSupabase();
+    } catch (err) {
+        return res.status(500).json({
+            error: 'Supabase não configurado.',
+            details: err.message,
+        });
+    }
 
     // ── GET: listar todos os produtos ─────────────────────────────────────────
     if (req.method === 'GET') {
