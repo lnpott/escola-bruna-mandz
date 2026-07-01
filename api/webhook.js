@@ -11,7 +11,10 @@
 
 import { getSupabase } from './_lib/supabase.js';
 import { notifyNewOrder } from './notify-new-order.js';
+import { validateWebhookSignature } from './_lib/webhook-signature.js';
 import mercadopago from 'mercadopago';
+
+const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADO_PAGO_WEBHOOK_SECRET;
 
 const mp = new mercadopago.MercadoPagoConfig({
     accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
@@ -21,6 +24,10 @@ const paymentClient = new mercadopago.Payment(mp);
 
 export default async function handler(req, res) {
     try {
+        if (webhookSecret && !validateWebhookSignature(req, webhookSecret)) {
+            return res.status(401).json({ error: 'invalid_signature' });
+        }
+
         // Notificações do Mercado Pago podem ser de outros tipos além de
         // "payment" (ex: merchant_order). Ignoramos qualquer coisa que não
         // seja sobre pagamento, sem erro, para evitar retries inúteis do MP.
