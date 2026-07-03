@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 01/07/2026 — (Etapa 29)
+> Última atualização: 03/07/2026 — (Etapa 30)
 
 ---
 
@@ -1070,6 +1070,70 @@ Durante a validação local da loja, o fluxo de produtos ficou vulnerável a res
 - [x] Fallback local da loja implementado
 - [x] Hardening das APIs de produtos e webhook concluído
 - [x] Painel admin mais resiliente e com melhor feedback de erro
+
+---
+
+## ✅ ETAPA 30 — Sistema de Upload de Imagens com Crop e Correções
+
+### Contexto
+A Fase C do painel admin (Gestão Completa de Produtos) foi implementada com sucesso, incluindo funcionalidades de upload de imagens com crop, criação de novos produtos e melhorias na experiência de checkout.
+
+### O que foi feito
+
+**1. Sistema de Upload de Imagens com Crop**
+- Configuração de policies RLS no bucket `product-images` do Supabase:
+  - Leitura pública para imagens
+  - Upload protegido (apenas admin via Service Role Key)
+  - Deletar protegido (apenas admin)
+- Integração do Cropper.js via CDN no painel admin
+- Criação de modal de crop com interface visual
+- Implementação de crop quadrado 1:1 (ideal para produtos)
+- Compressão automática JPEG 80%
+- Preview em tempo real durante o crop
+- Botão de upload em cada card de produto existente
+- Feedback visual durante o processo (enviando, sucesso, erro)
+
+**2. Correção do Erro 500 ao Criar Produto**
+- Identificação do problema: campo `id` na tabela `products` é NOT NULL, mas o código não gerava ID ao criar novos produtos
+- Implementação da função `generateProductId()` para gerar IDs únicos no formato `BM-XXXXXX`
+- Inclusão do campo `id` ao criar novo produto no POST `/api/admin-products`
+- Resolução do erro de NOT NULL constraint
+
+**3. Upload de Imagem no Modal de Novo Produto**
+- Adição de campo de imagem com botão de upload no modal de novo produto
+- Implementação da função `uploadProductImageForNewProduct()` específica para o modal
+- Integração com Cropper.js para recorte antes do upload
+- Preview da imagem após upload
+- Atualização automática do campo de imagem no form
+- Lógica do `global-image-upload` atualizada para suportar novo contexto
+
+**4. Melhoria na Visualização do Código PIX**
+- Aumento do padding do container do código PIX
+- Adição de `flex-wrap` para quebra de linha em telas pequenas
+- Redução do tamanho da fonte para 0.75rem para melhor ajuste
+- Adição de `word-break` e `line-height` para melhor legibilidade
+- Código agora fica completamente dentro do campo sem overflow
+
+### Arquivos modificados
+- `painel-x9k2f.html` — Adição do modal de crop, integração Cropper.js, upload em produtos existentes e novos
+- `api/admin-products.js` — Adição de geração de ID único para novos produtos
+- `store/store-style.css` — Melhoria na visualização do código PIX
+- Supabase Storage — Configuração de policies RLS no bucket `product-images`
+
+### Validações feitas
+- ✅ Upload de imagens com crop testado em produção
+- ✅ Criação de novos produtos testada e funcionando
+- ✅ Crop quadrado 1:1 validado
+- ✅ Compressão JPEG 80% aplicada corretamente
+- ✅ Preview em tempo real funcionando
+- ✅ Código PIX exibido corretamente no campo
+
+### Status
+- [x] Sistema de upload de imagens com crop implementado
+- [x] Correção do erro 500 ao criar produto
+- [x] Upload de imagem no modal de novo produto
+- [x] Melhoria na visualização do código PIX
+- [x] Deploy automático na Vercel realizado
 
 ---
 
