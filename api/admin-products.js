@@ -52,6 +52,12 @@ function normalizeProductImage(image) {
     return knownMerchImages.includes(fileName) ? `/merch/${fileName}` : '/brand/LOGOPRETO.png';
 }
 
+function generateProductId() {
+    // Gera ID único no formato BM-XXXXXX
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `BM-${randomPart}`;
+}
+
 function normalizeProduct(product) {
     return {
         ...product,
@@ -118,6 +124,7 @@ export default async function handler(req, res) {
 
         try {
             const newProduct = {
+                id: generateProductId(),
                 name: name.trim(),
                 description: description ? String(description).trim() : '',
                 price: Number(price),
