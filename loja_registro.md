@@ -1,200 +1,20 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 03/07/2026 — (Etapa 30)
+> Última atualização: 01/07/2026 — (Etapa 25)
 
 ---
 
-## ✅ ETAPA 27 — Organização estrutural do repositório
-
-### O que foi feito
-- Reorganização dos arquivos soltos da raiz em pastas mais coerentes:
-  - `public/brand` para logos e branding
-  - `public/media` para imagens e vídeos do site
-  - `public/merch` para assets de produtos/merchandising
-  - `public/products` para imagens de produtos
-  - `docs` para documentos de apoio e configuração
-- Ajuste dos caminhos usados no HTML para refletir a nova estrutura de pastas.
-- Remoção de arquivos e pastas redundantes/obsoletos que não fazem mais parte do fluxo principal da loja.
-- Validação final confirmada com `npm run build`, que concluíu com sucesso.
-
-### Status
-- [x] Estrutura do projeto mais limpa e organizada
-- [x] Links de assets corrigidos
-- [x] Build de produção validada
-
----
-
-## ✅ ETAPA 28 — Correção de imagens dos produtos na loja e no painel
-
-### O que foi feito
-- Identificou-se que os produtos estavam sendo renderizados com caminhos antigos de imagem, como `Chaveiro.png`, `Pulseira.png` e `TSHIRT_PRO.png`, o que causava 404s no navegador.
-- Implementou-se a normalização de imagens de produtos tanto na API da loja quanto na API do painel admin.
-- Qualquer valor antigo ou incompleto agora é convertido para o caminho correto em `public/merch`.
-- Atualizou-se o seed do Supabase para persistir os caminhos corretos dos produtos.
-- Validação confirmada com `npm run build`, que concluiu com sucesso.
-
-### Status
-- [x] Imagens de produtos corrigidas na loja
-- [x] Imagens de produtos corrigidas no painel admin
-- [x] Build de produção validada
-
----
-
-## � ETAPA 29 — Planejamento: Sistema de Gestão de Produtos com Upload de Imagens
-
-### Contexto
-O painel admin atual (Fases A e B) permite apenas **editar campos de texto** dos 7 produtos
-existentes. Não é possível:
-- Adicionar novos produtos
-- Deletar produtos
-- Fazer upload de imagens (apenas digitar caminhos)
-- Fazer crop/redimensionamento de imagens
-- Editar reward XP
-
-Identificada a necessidade de implementar a **Fase C: Gestão Completa de Produtos**.
-
-### Estado Atual vs. Necessário
-
-| Funcionalidade | Status | Complexidade |
-|---|---|---|
-| Editar nome/preço/estoque | ✅ Funciona | Baixa |
-| Editar categoria, badge, caminho de imagem | ✅ Funciona (texto) | Baixa |
-| **Adicionar produtos novos** | ❌ Impossível | Alta |
-| **Deletar produtos** | ❌ Impossível | Média |
-| **Upload de imagem real** | ❌ Só aceita caminho em texto | Alta |
-| **Crop/redimensionamento** | ❌ Não existe | Média |
-| **Color picker para badge** | ❌ Só texto hex | Baixa |
-| **Editar variants (tamanhos)** | ❌ Não tem UI | Alta |
-| **Editar reward_xp** | ❌ Campo oculto | Baixa |
-
-### Solução Proposta: Arquitetura em 3 Camadas
-
-```
-1️⃣ FRONTEND (painel-x9k2f.html)
-   ├─ Input file + preview 72x72
-   ├─ Modal overlay com Cropper.js
-   │  └─ Zoom, rotate, move, crop (canvas-based)
-   └─ Compressão JPEG 80% antes de enviar
-         ↓
-2️⃣ BACKEND (api/upload-image.js — NOVO)
-   ├─ Validação: tipo (JPEG/PNG/WebP), tamanho (<2MB)
-   ├─ Sanitização de nome arquivo
-   ├─ Upload multipart → Supabase Storage
-   └─ Retorna URL pública assinada
-         ↓
-3️⃣ DATABASE (Supabase)
-   ├─ Bucket: `product-images` (público, com CORS)
-   └─ Campo `image` na tabela `products` = URL
-```
-
-### Tecnologias Selecionadas
-
-**Para crop de imagens:**
-- **Cropper.js** (35KB, CDN) — https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js
-  - ✅ Zoom, rotate, move, crop
-  - ✅ Export para canvas (compressão automática)
-  - ✅ Mobile responsivo
-  - ✅ Sem dependências externas
-
-**Para armazenamento:**
-- **Supabase Storage** (já integrado no projeto)
-  - ✅ CDN automático
-  - ✅ RLS policies para segurança
-  - ✅ URLs públicas assinadas opcionais
-
-**Para compressão:**
-- **Canvas API nativa** (sem biblioteca)
-  - `toDataURL('image/jpeg', 0.8)` reduz 50-70% do tamanho
-
-### Fluxo de Implementação Proposto
-
-#### Fase C1 — Upload de Imagens (PRÓXIMA)
-| Arquivo | O que fazer | Tempo |
-|---|---|---|
-| `api/upload-image.js` | Novo endpoint, validação + Supabase Storage | 30min |
-| `painel-x9k2f.html` | Adicionar Cropper.js + modal de crop + input file | 45min |
-| `supabase/schema.sql` | Criar bucket `product-images` com policies CORS | 15min |
-| Testes | Upload, crop, feedback UX, erro handling | 30min |
-
-#### Fase C2 — CRUD de Produtos (depois de C1)
-| Arquivo | O que fazer | Tempo |
-|---|---|---|
-| `api/admin-products.js` | Adicionar POST (criar) e DELETE (remover) | 30min |
-| `painel-x9k2f.html` | Botão "Novo Produto" + form + confirmação | 1h |
-| `painel-x9k2f.html` | Botão "Deletar" com modal de confirmação | 30min |
-| Testes | Criar, editar, deletar completo | 45min |
-
-#### Fase C3 — Campos Adicionais (depois de C2)
-| Arquivo | O que fazer | Tempo |
-|---|---|---|
-| `painel-x9k2f.html` | Color picker para badge color | 20min |
-| `painel-x9k2f.html` | Editor de reward_xp | 15min |
-| `painel-x9k2f.html` | Variant editor (tamanhos/opcões) | 1h |
-| `api/admin-products.js` | Validação de variants JSON | 20min |
-| Testes | Todas as combinações | 30min |
-
-### Requisitos Técnicos
-
-**Supabase Storage:**
-- Bucket: `product-images`
-- Acesso público (read), admin autenticado (write/delete)
-- CORS habilitado para `*.vercel.app`
-
-**Arquivo `.env` (nova variável):**
-```env
-SUPABASE_STORAGE_BUCKET=product-images
-```
-
-**Segurança:**
-- ✅ Validar tipo MIME (não apenas extensão)
-- ✅ Validar tamanho (<2MB)
-- ✅ Sanitizar nome arquivo (remover caracteres especiais)
-- ✅ Usar RLS policies do Supabase para autorização
-- ✅ CORS restrictivo no bucket
-
-### Decisões a Confirmar com Usuário
-
-1. **Crop obrigatório ou opcional?**
-   - Sim: garante proporções iguais, menos armazenamento
-   - Não: mais rápido, aceita qualquer imagem
-
-2. **Deletar produtos do painel?**
-   - Sim: CRUD completo
-   - Não: apenas marcar como inativo (safer)
-
-3. **Quando começar Fase C?**
-   - Imediato (C1 + C2 esta semana)
-   - Postergar (manter edição de campos por enquanto)
-
-### Checklist de Implementação
-
-- [ ] Confirmar decisões acima com usuário
-- [ ] Criar bucket no Supabase e configurar CORS
-- [ ] Implementar `api/upload-image.js`
-- [ ] Integrar Cropper.js no painel
-- [ ] Testar upload completo local
-- [ ] Implementar POST/DELETE em `api/admin-products.js`
-- [ ] Testar CRUD no painel
-- [ ] Deploy na Vercel
-- [ ] Testar em produção
-- [ ] Atualizar documentação em `docs/PUBLICACAO.md`
-
-### Status
-- [ ] Planejamento concluído
-- [ ] Aguardando confirmação de requisitos
-- [ ] Pendente: implementação de Fase C1
+## 🚦 Próximos Passos Imediatos (o que falta AGORA)
 
 A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
 Fases A e B completas). O que falta agora é refinamento e itens não
 bloqueantes:
 
-1. ✅ Confirmada remoção definitiva dos arquivos órfãos:
+1. Confirmar remoção definitiva dos arquivos órfãos:
    `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
-   Verificação feita no workspace: não existem mais no repositório e não há
-   referências ativas pendentes para esses nomes.
-2. Encerrar qualquer referência antiga ao **Netlify** e concentrar a publicação
-   da loja na **Vercel**, definindo o domínio/URL da nova versão como foco
+2. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
+   está no ar e desativar, para não haver duas versões diferentes do site)
 3. Confirmar os preços reais dos 7 produtos do catálogo com a Bruna
 4. Planejar a **Fase C** do painel (gestão de produtos direto pelo painel,
    sem editar código) quando fizer sentido priorizar
@@ -249,10 +69,6 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
 | 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
 | 25 | **Bug no painel**: troca de status retornava erro 405 — corrigido `painel-x9k2f.html` | ✅ Concluído |
-| 26 | **Resiliência da loja e hardening do painel** — fallback local, normalização de produtos, validação de webhook | ✅ Concluído |
-| 27 | **Organização estrutural do repositório** — limpeza de pastas, remoção de arquivos órfãos | ✅ Concluído |
-| 28 | **Correção de imagens dos produtos na loja e no painel** — normalização de caminhos, seed do Supabase | ✅ Concluído |
-| 29 | **Planejamento: Fase C do Painel — Gestão de Produtos com Upload de Imagens** — arquitetura, tecnologias, requisitos | ⏳ Em Planejamento |
 
 ---
 
@@ -451,9 +267,9 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
    atualizado pelo JS (sempre pegava o primeiro elemento).
 7. Painel admin acessível por link visível no menu (`admin/admin.html`), sem
    nenhuma autenticação.
-8. Encontrado histórico de uma publicação antiga na Netlify, mas a estratégia
-   atual é encerrar essa referência e concentrar a implantação da loja na
-   Vercel.
+8. Encontrado `siteId` de um projeto Netlify (`.netlify/state.json`) já
+   vinculado a este repositório — sinal de que o projeto já foi publicado por
+   lá em algum momento. Vale verificar se esse site antigo ainda está no ar.
 
 ### 🏗️ Nova arquitetura implementada
 
@@ -1049,191 +865,23 @@ diferentes, sem contrato sincronizado.
 
 ---
 
-## ✅ ETAPA 26 — Resiliência da loja e hardening do painel
-
-### Contexto
-Durante a validação local da loja, o fluxo de produtos ficou vulnerável a respostas inválidas da API e a problemas na integração com o Supabase. O objetivo desta etapa foi garantir que a loja continuasse funcionando mesmo com falhas temporárias no backend.
-
-### O que foi feito
-- `store/store.js` passou a usar um catálogo local como fallback quando `/api/products` falha, retorna resposta não-JSON ou está indisponível.
-- `api/products.js` passou a normalizar os dados retornados do Supabase e a responder de forma mais previsível em caso de erro.
-- `api/admin-products.js` foi reforçado para aceitar campos adicionais do catálogo e retornar mensagens claras quando o ambiente do Supabase não estiver configurado.
-- `api/webhook.js` passou a validar a assinatura `x-signature` quando a secret estiver disponível, usando o helper `api/_lib/webhook-signature.js`.
-- `painel-x9k2f.html` recebeu melhorias de feedback para erros de API e passou a exibir uma experiência mais clara ao editar produtos.
-
-### Validações feitas
-- ✅ `npm run build` executado com sucesso
-- ✅ Endpoint de produtos validado localmente com dados do Supabase
-- ✅ Fluxo da loja preservado mesmo quando a API não responde corretamente
-
-### Status
-- [x] Fallback local da loja implementado
-- [x] Hardening das APIs de produtos e webhook concluído
-- [x] Painel admin mais resiliente e com melhor feedback de erro
-
----
-
-## ✅ ETAPA 30 — Sistema de Upload de Imagens com Crop e Correções
-
-### Contexto
-A Fase C do painel admin (Gestão Completa de Produtos) foi implementada com sucesso, incluindo funcionalidades de upload de imagens com crop, criação de novos produtos e melhorias na experiência de checkout.
-
-### O que foi feito
-
-**1. Sistema de Upload de Imagens com Crop**
-- Configuração de policies RLS no bucket `product-images` do Supabase:
-  - Leitura pública para imagens
-  - Upload protegido (apenas admin via Service Role Key)
-  - Deletar protegido (apenas admin)
-- Integração do Cropper.js via CDN no painel admin
-- Criação de modal de crop com interface visual
-- Implementação de crop quadrado 1:1 (ideal para produtos)
-- Compressão automática JPEG 80%
-- Preview em tempo real durante o crop
-- Botão de upload em cada card de produto existente
-- Feedback visual durante o processo (enviando, sucesso, erro)
-
-**2. Correção do Erro 500 ao Criar Produto**
-- Identificação do problema: campo `id` na tabela `products` é NOT NULL, mas o código não gerava ID ao criar novos produtos
-- Implementação da função `generateProductId()` para gerar IDs únicos no formato `BM-XXXXXX`
-- Inclusão do campo `id` ao criar novo produto no POST `/api/admin-products`
-- Resolução do erro de NOT NULL constraint
-
-**3. Upload de Imagem no Modal de Novo Produto**
-- Adição de campo de imagem com botão de upload no modal de novo produto
-- Implementação da função `uploadProductImageForNewProduct()` específica para o modal
-- Integração com Cropper.js para recorte antes do upload
-- Preview da imagem após upload
-- Atualização automática do campo de imagem no form
-- Lógica do `global-image-upload` atualizada para suportar novo contexto
-
-**4. Melhoria na Visualização do Código PIX**
-- Aumento do padding do container do código PIX
-- Adição de `flex-wrap` para quebra de linha em telas pequenas
-- Redução do tamanho da fonte para 0.75rem para melhor ajuste
-- Adição de `word-break` e `line-height` para melhor legibilidade
-- Código agora fica completamente dentro do campo sem overflow
-
-### Arquivos modificados
-- `painel-x9k2f.html` — Adição do modal de crop, integração Cropper.js, upload em produtos existentes e novos
-- `api/admin-products.js` — Adição de geração de ID único para novos produtos
-- `store/store-style.css` — Melhoria na visualização do código PIX
-- Supabase Storage — Configuração de policies RLS no bucket `product-images`
-
-### Validações feitas
-- ✅ Upload de imagens com crop testado em produção
-- ✅ Criação de novos produtos testada e funcionando
-- ✅ Crop quadrado 1:1 validado
-- ✅ Compressão JPEG 80% aplicada corretamente
-- ✅ Preview em tempo real funcionando
-- ✅ Código PIX exibido corretamente no campo
-
-### Status
-- [x] Sistema de upload de imagens com crop implementado
-- [x] Correção do erro 500 ao criar produto
-- [x] Upload de imagem no modal de novo produto
-- [x] Melhoria na visualização do código PIX
-- [x] Deploy automático na Vercel realizado
-
----
-
 ## 🔮 Próximos Passos (o que falta fazer)
 
-### Melhorias previstas para a administração de produtos
-
-1. Resolver o truncamento visual da lista de produtos no painel:
-   - revisar o layout da aba de produtos em telas pequenas e médias;
-   - limitar o tamanho do nome e da descrição sem cortar a legibilidade;
-   - ajustar a altura das cards e permitir rolagem interna quando necessário.
-2. Melhorar a experiência de edição de produtos:
-   - adicionar campos de preço, estoque, categoria, badge e imagem com validação visual;
-   - incluir feedback imediato de sucesso/erro após salvar;
-   - permitir salvar por lote ou por card sem recarregar a página.
-3. Implementar a Fase C do painel:
-   - criar fluxo para ativar/desativar produtos;
-   - adicionar produto novo diretamente no painel;
-   - sinalizar status como `novo`, `em_falta`, `descontinuado` ou `ativo`.
-4. Sincronizar o catálogo do painel com a loja em tempo real:
-   - garantir que alterações em estoque/preço/visibilidade apareçam imediatamente na vitrine;
-   - evitar inconsistências entre o catálogo local fallback e os dados do Supabase.
-5. Melhorar a busca e filtragem de produtos no painel:
-   - filtrar por categoria, estoque baixo e status;
-   - ordenar por preço, estoque e data de criação.
-
-### Checklist de integração do Mercado Pago (pronto para as credenciais)
-
-1. Confirmar as variáveis de ambiente na Vercel:
-   - `MERCADO_PAGO_ACCESS_TOKEN`
-   - `MERCADO_PAGO_PUBLIC_KEY`
-   - `MP_WEBHOOK_SECRET`
-   - `MP_WEBHOOK_URL`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-2. Validar o webhook no painel do Mercado Pago:
-   - URL pública do endpoint `/api/webhook`
-   - evento `payment`
-   - assinatura habilitada se a secret for configurada
-3. Validar o fluxo completo com credenciais reais:
-   - PIX com valor de teste baixo
-   - cartão com tokenização via Brick
-   - atualização de status no Supabase
-   - envio de e-mail de confirmação quando aprovado
-4. Confirmar o comportamento de fallback:
-   - sem credenciais, a loja continua operando em modo local;
-   - com credenciais, o fluxo passa a cobrar de verdade sem necessidade de código novo.
-5. Revisar logs e monitoramento após o primeiro pagamento real:
-   - verificar se o webhook chega corretamente;
-   - confirmar se o pedido entra no painel com o status correto.
+1. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
+   `api/payment-provider.js`, `api/env.example`
+2. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
+   por senha admin), mas pode ser removido se não houver mais utilidade
+3. Confirmar preços reais dos 7 produtos com a Bruna
+4. **Planejar e implementar a Fase C** do painel (gestão de produtos:
+   editar preço, adicionar/remover produto, sinalizar Novo/Descontinuado/
+   Em Falta) — pré-requisito: mover `store/products.js` para tabela
+   `products` no Supabase (ver Etapa 20.2)
+5. Hardening pendente: validar assinatura `x-signature` do webhook do MP
+6. Decidir se notificação por e-mail deve ser enviada também para pedidos
+   PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
 
 Passo a passo de configuração inicial (Supabase, Mercado Pago, Vercel,
 Webhook) está em `docs/PUBLICACAO.md` — concluído nas Etapas 9 a 16.
-
----
-
-## ✅ ETAPA 27 — Limpeza e reorganização do repositório
-
-### Contexto
-A estrutura do projeto passou por muitas iterações e agora precisa de uma
-organização mais clara para reduzir ruído, facilitar manutenção e evitar
-arquivos órfãos ou duplicados.
-
-### Plano adotado
-- Inventariar a raiz do repositório e separar arquivos ativos de arquivos
-  legados, duplicados ou sem uso confirmado.
-- Preservar os pontos de entrada principais da loja: `index.html`,
-  `painel-x9k2f.html`, `api/`, `store/`, `public/`, `supabase/` e `docs/`.
-- Mover ou arquivar apenas itens que não tenham referência viva em HTML, JS,
-  Vite, Vercel ou documentação.
-- Atualizar paths e referências afetadas sem alterar o fluxo de checkout,
-  painel admin ou rotas de API.
-- Validar a build após cada lote de mudança antes de remover qualquer arquivo
-  antigo.
-
-### Status
-- [x] Plano registrado para execução segura
-- [x] Documento atualizado para acompanhar a próxima etapa de organização
-
----
-
-## ✅ ETAPA 31 — Otimização de Performance, Tempo de Carregamento e Compatibilidade
-
-### Contexto
-O usuário relatou lentidão no site. Investigamos e identificamos os seguintes gargalos de renderização e rede:
-1. **Vídeos pesados precarregando**: 3 tags de vídeo totalizando mais de 20MB de mídia estavam iniciando download no primeiro carregamento de página por comportamento padrão do browser.
-2. **Scripts síncronos bloqueantes**: `Tone.js` (~1.5MB) no `<head>` e outros scripts na base da página estavam bloqueando o parser HTML do browser.
-3. **Estilos inline e compatibilidade**: Estilos inline nas teclas do piano geravam warnings no linter, e faltavam prefixos WebKit para `backdrop-filter` no Safari.
-
-### Plano adotado
-- Adicionar `preload="none"` aos vídeos da página (`apresentacao.mp4`, `quis_(3).mp4`, `demo.mp4`) para evitar downloads indesejados automáticos.
-- Adicionar o atributo `defer` nos scripts `Tone.js`, `audio.js` e `game.js` para carregamento assíncrono não-bloqueante mantendo a ordem correta de dependências.
-- Substituir estilos inline do piano por classes CSS estruturadas (`.piano-key-cs`, `.piano-key-ds`, etc.) declaradas no bloco `<style>` do cabeçalho de `index.html`.
-- Adicionar `-webkit-backdrop-filter` em `store-style.css` e remover o antigo `-webkit-overflow-scrolling`.
-
-### Status
-- [x] Scripts otimizados com carregamento diferido (`defer`).
-- [x] Preload de vídeos ajustado para `none`.
-- [x] Estilos inline removidos e migrados para classes no cabeçalho.
-- [x] Compatibilidade para Safari atualizada.
 
 ---
 
