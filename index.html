@@ -8,12 +8,13 @@
         <meta name="theme-color" content="#ef4444" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" href="/brand/LOGOPRETO.png" />
+        <link rel="apple-touch-icon" href="/brand/LOGOPRETO.png" />
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
         <!-- Loja Oficial: estilos premium -->
         <link rel="stylesheet" href="store/store-style.css" />
         <!-- Tone.js for high-quality piano samples -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" defer></script>
         <!-- Google Fonts: Inter para legibilidade e Montserrat para títulos expressivos -->
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Montserrat:wght=700;800;900&display=swap"
@@ -32,6 +33,11 @@
                 color: #f3f4f6;
                 overflow-x: hidden;
             }
+            .piano-key-cs { left: calc(12.5% - 1rem); }
+            .piano-key-ds { left: calc(25% - 1rem); }
+            .piano-key-fs { left: calc(50% - 1rem); }
+            .piano-key-gs { left: calc(62.5% - 1rem); }
+            .piano-key-as { left: calc(75% - 1rem); }
             h1,
             h2,
             h3 {
@@ -783,7 +789,7 @@
                     <div
                         class="relative max-w-lg mx-auto mb-6 rounded-2xl overflow-hidden bg-zinc-950"
                     >
-                        <video id="quiz-video" class="w-full h-auto" controls>
+                        <video id="quiz-video" class="w-full h-auto" controls preload="none">
                             <source src="/media/quis_(3).mp4" type="video/mp4" />
                         </video>
                     </div>
@@ -1201,8 +1207,7 @@
                                 data-key-id="key-cs"
                                 data-note="C#4"
                                 aria-label="Nota Dó sustenido"
-                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white"
-                                style="left: calc(12.5% - 1rem)"
+                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white piano-key-cs"
                             >
                                 <span class="text-[8px] text-zinc-500 font-medium leading-none"
                                     >C#4</span
@@ -1225,8 +1230,7 @@
                                 data-key-id="key-ds"
                                 data-note="D#4"
                                 aria-label="Nota Ré sustenido"
-                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white"
-                                style="left: calc(25% - 1rem)"
+                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white piano-key-ds"
                             >
                                 <span class="text-[8px] text-zinc-500 font-medium leading-none"
                                     >D#4</span
@@ -1249,8 +1253,7 @@
                                 data-key-id="key-fs"
                                 data-note="F#4"
                                 aria-label="Nota Fá sustenido"
-                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white"
-                                style="left: calc(50% - 1rem)"
+                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white piano-key-fs"
                             >
                                 <span class="text-[8px] text-zinc-500 font-medium leading-none"
                                     >F#4</span
@@ -1273,8 +1276,7 @@
                                 data-key-id="key-gs"
                                 data-note="G#4"
                                 aria-label="Nota Sol sustenido"
-                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white"
-                                style="left: calc(62.5% - 1rem)"
+                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white piano-key-gs"
                             >
                                 <span class="text-[8px] text-zinc-500 font-medium leading-none"
                                     >G#4</span
@@ -1297,8 +1299,7 @@
                                 data-key-id="key-as"
                                 data-note="A#4"
                                 aria-label="Nota Lá sustenido"
-                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white"
-                                style="left: calc(75% - 1rem)"
+                                class="piano-key piano-black-key pointer-events-auto w-8 h-36 rounded-b-md absolute z-20 shadow-md transition-all border-x border-zinc-950 flex flex-col items-center justify-end pb-2 text-white piano-key-as"
                             >
                                 <span class="text-[8px] text-zinc-500 font-medium leading-none"
                                     >A#4</span
@@ -1756,7 +1757,7 @@
                 <div
                     class="relative h-96 overflow-hidden bg-zinc-950 flex items-center justify-center group/video"
                 >
-                    <video id="player-intro" class="w-full h-full object-contain" loop playsinline>
+                    <video id="player-intro" class="w-full h-full object-contain" loop playsinline preload="none">
                         <source src="/media/apresentacao.mp4" type="video/mp4" />
                     </video>
                     <div
@@ -2021,7 +2022,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="relative h-[65vh] bg-zinc-950">
-                    <video id="modal-drums-player" class="w-full h-full object-contain" controls>
+                    <video id="modal-drums-player" class="w-full h-full object-contain" controls preload="none">
                         <source src="/media/demo.mp4" type="video/mp4" />
                     </video>
                 </div>
@@ -2400,8 +2401,8 @@
                 });
             });
         </script>
-        <script src="/audio.js"></script>
-        <script src="/game.js"></script>
+        <script src="/audio.js" defer></script>
+        <script src="/game.js" defer></script>
         <script src="https://sdk.mercadopago.com/js/v2" defer></script>
         <script type="module" src="store/checkout-modal.js"></script>
         <script type="module" src="store/store.js"></script>

@@ -1215,6 +1215,28 @@ arquivos órfãos ou duplicados.
 
 ---
 
+## ✅ ETAPA 31 — Otimização de Performance, Tempo de Carregamento e Compatibilidade
+
+### Contexto
+O usuário relatou lentidão no site. Investigamos e identificamos os seguintes gargalos de renderização e rede:
+1. **Vídeos pesados precarregando**: 3 tags de vídeo totalizando mais de 20MB de mídia estavam iniciando download no primeiro carregamento de página por comportamento padrão do browser.
+2. **Scripts síncronos bloqueantes**: `Tone.js` (~1.5MB) no `<head>` e outros scripts na base da página estavam bloqueando o parser HTML do browser.
+3. **Estilos inline e compatibilidade**: Estilos inline nas teclas do piano geravam warnings no linter, e faltavam prefixos WebKit para `backdrop-filter` no Safari.
+
+### Plano adotado
+- Adicionar `preload="none"` aos vídeos da página (`apresentacao.mp4`, `quis_(3).mp4`, `demo.mp4`) para evitar downloads indesejados automáticos.
+- Adicionar o atributo `defer` nos scripts `Tone.js`, `audio.js` e `game.js` para carregamento assíncrono não-bloqueante mantendo a ordem correta de dependências.
+- Substituir estilos inline do piano por classes CSS estruturadas (`.piano-key-cs`, `.piano-key-ds`, etc.) declaradas no bloco `<style>` do cabeçalho de `index.html`.
+- Adicionar `-webkit-backdrop-filter` em `store-style.css` e remover o antigo `-webkit-overflow-scrolling`.
+
+### Status
+- [x] Scripts otimizados com carregamento diferido (`defer`).
+- [x] Preload de vídeos ajustado para `none`.
+- [x] Estilos inline removidos e migrados para classes no cabeçalho.
+- [x] Compatibilidade para Safari atualizada.
+
+---
+
 ## 📝 Notas Gerais
 
 - A chave PIX antiga (placeholder `21997600704`) foi **removida do código**.

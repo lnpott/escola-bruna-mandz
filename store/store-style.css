@@ -322,6 +322,7 @@
     inset: 0;
     z-index: 9999;
     background: rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -602,7 +603,6 @@
     z-index: 10000;
     background: #09090b;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 .checkout-overlay-inner {
     position: relative;
@@ -675,6 +675,7 @@
     inset: 0;
     z-index: 10020;
     background: rgba(0, 0, 0, 0.75);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
