@@ -53,11 +53,19 @@ export default async function handler(req, res) {
                 mpStatus: null,
             });
 
-            // Notifica a Bruna por e-mail (mesmo fluxo do webhook)
+            // Notifica a Bruna por e-mail.
+            // IMPORTANTE: notifyNewOrder espera campos no formato do Supabase
+            // (customer_name, customer_email, earned_xp), não do objeto de carrinho
+            // (customer.name, customer.email, earnedXp) — por isso o mapeamento abaixo.
             await notifyNewOrder({
-                ...order,
-                status: 'pending',
-                method: 'manual',
+                id:             order.id,
+                status:         'pending',
+                method:         'manual',
+                total:          order.total,
+                customer_name:  order.customer?.name  || null,
+                customer_email: order.customer?.email || null,
+                items:          order.items,
+                earned_xp:      order.earnedXp || 0,
             }).catch((e) => console.error('Notificação e-mail (manual) falhou:', e.message));
 
             return res.status(200).json({
