@@ -2,42 +2,30 @@
  * checkout-modal.js
  * Checkout da Loja Oficial Bruna Mandz — overlay único de tela cheia.
  *
- * FLUXO:
- *   1. Usuário clica "Finalizar Compra" no carrinho
- *   2. Overlay abre na etapa "customer" (dados do cliente)
- *   3. Ao confirmar dados, abre etapa "payment" com o Payment Brick do
- *      Mercado Pago — PIX e Cartão aparecem juntos em abas, sem precisar
- *      escolher antes. O usuário troca entre eles livremente dentro do Brick.
- *   4. Ao confirmar pagamento, vai para etapa "success".
+ * MODO ATUAL: "Fazer Pedido" — sem pagamento online.
+ * O pedido é salvo no Supabase com status "pending" e a Bruna recebe
+ * notificação por e-mail. O pagamento é combinado diretamente com a escola.
  *
- * FECHAMENTO: só pelo botão X. Se houver pagamento em andamento (PIX
- * aguardando confirmação ou Brick montado), pede confirmação antes de fechar.
+ * Quando as credenciais do Mercado Pago estiverem disponíveis, basta:
+ * 1. Descomentar o SDK do MP no index.html
+ * 2. Restaurar os fluxos de PIX e Cartão neste arquivo
+ * 3. O api/create-payment.js já detecta as credenciais automaticamente
  */
 
-import { PAYMENT_CONFIG, getMercadoPagoPublicKey } from './payment-config.js';
+import { PAYMENT_CONFIG } from './payment-config.js';
 import { buildOrder, clearCart, applyStudentXp, getCart } from './cart.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 // ─── Estado interno ────────────────────────────────────────────────────────────
 
-let _paymentInProgress = false;
-let _pixPollInterval = null;
-let _paymentBrickController = null;
 let _currentOrder = null;
-// _currentEarnedXp removido: variável de módulo não utilizada (earnedXp é passado por parâmetro em toda a cadeia)
-let _selectedMethod = null; // 'pix' | 'credit_card' | 'debit_card' etc.
-
-function setPaymentInProgress(v) {
-    _paymentInProgress = v;
-}
 
 // ─── Etapas do overlay ────────────────────────────────────────────────────────
 
 const STEPS = {
     customer: 'checkout-step-customer',
-    payment: 'checkout-step-payment',
-    success: 'checkout-step-success',
+    success:  'checkout-step-success',
 };
 
 function showStep(key) {
@@ -54,27 +42,17 @@ function openOverlay() {
     document.body.style.overflow = 'hidden';
 }
 
-function hideCloseConfirm() {
-    document.getElementById('checkout-close-confirm')?.classList.add('hidden');
-}
-
-function showCloseConfirm() {
-    document.getElementById('checkout-close-confirm')?.classList.remove('hidden');
-}
-
 export function closeCheckoutOverlay(force = false) {
-    if (_paymentInProgress && !force) {
-        showCloseConfirm();
-        return;
-    }
-    hideCloseConfirm();
-    stopPixPolling();
-    destroyPaymentBrick();
-    setPaymentInProgress(false);
     _currentOrder = null;
     document.getElementById('checkout-overlay')?.classList.add('hidden');
     document.body.style.overflow = '';
     showStep('customer');
+    // Limpa os campos do formulário ao fechar
+    ['checkout-name', 'checkout-email', 'checkout-phone'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    clearError('customer');
 }
 
 // Compatibilidade com onclicks antigos
@@ -84,24 +62,19 @@ export function closeCheckoutModals() {
 
 // ─── Ponto de entrada ─────────────────────────────────────────────────────────
 
-/**
- * Abre o overlay. Chamado quando o usuário clica "Finalizar Compra".
- * Não recebe mais "method" — a escolha PIX/Cartão é feita dentro do Brick.
- */
 export function openCheckoutFlow() {
     if (!getCart().length) {
         window.showToast?.('Adicione produtos ao carrinho primeiro!');
         return;
     }
-    setPaymentInProgress(false);
     showStep('customer');
     openOverlay();
 }
 
-// ─── Etapa 1: Dados do Cliente ────────────────────────────────────────────────
+// ─── Etapa 1: Dados do Cliente → Confirmar Pedido ────────────────────────────
 
 export async function submitCustomerForm() {
-    const name = document.getElementById('checkout-name')?.value.trim();
+    const name  = document.getElementById('checkout-name')?.value.trim();
     const email = document.getElementById('checkout-email')?.value.trim();
     const phone = document.getElementById('checkout-phone')?.value.trim();
 
@@ -118,7 +91,7 @@ export async function submitCustomerForm() {
     let order, earnedXp;
     try {
         ({ order, earnedXp } = buildOrder({
-            method: 'pix', // placeholder, será sobrescrito ao pagar
+            method: 'manual',
             customer: { name, email, phone },
         }));
     } catch (err) {
@@ -127,284 +100,69 @@ export async function submitCustomerForm() {
     }
 
     _currentOrder = order;
-    showStep('payment');
-    await openPaymentBrick(order, earnedXp);
-}
 
-// ─── Etapa 2: Payment Brick (PIX + Cartão unificados) ────────────────────────
-
-async function destroyPaymentBrick() {
-    if (_paymentBrickController) {
-        try {
-            await _paymentBrickController.unmount();
-        } catch {
-            /* ignora */
-        }
-        _paymentBrickController = null;
+    // Desabilita o botão para evitar duplo clique
+    const btn = document.querySelector('#checkout-step-customer .checkout-btn-primary');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Registrando…';
     }
-    // Limpa o container para o próximo uso
-    const container = document.getElementById('payment-brick-container');
-    if (container) container.innerHTML = '';
-}
-
-async function openPaymentBrick(order, earnedXp) {
-    const container = document.getElementById('payment-brick-container');
-    const errorEl = document.getElementById('checkout-payment-error');
-
-    if (container) container.innerHTML = '';
-    if (errorEl) errorEl.classList.add('hidden');
-
-    // Atualiza total visível
-    const totalEl = document.getElementById('payment-order-total');
-    if (totalEl) totalEl.textContent = money.format(order.total);
-
-    const publicKey = await getMercadoPagoPublicKey();
-    if (!publicKey) {
-        showError('payment', 'Pagamento não configurado. Entre em contato com a escola.');
-        return;
-    }
-
-    if (typeof window.MercadoPago === 'undefined') {
-        showError('payment', 'SDK do Mercado Pago não carregou. Verifique sua conexão.');
-        return;
-    }
-
-    await destroyPaymentBrick();
-
-    const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
-    const bricksBuilder = mp.bricks();
 
     try {
-        _paymentBrickController = await bricksBuilder.create('payment', 'payment-brick-container', {
-            initialization: {
-                amount: order.total,
-                payer: {
-                    email: document.getElementById('checkout-email')?.value.trim() || '',
-                    entityType: 'individual',
-                },
-            },
-            customization: {
-                paymentMethods: {
-                    creditCard: 'all',
-                    debitCard: 'all',
-                    // ticket e mercadoPago removidos: conforme doc oficial do MP,
-                    // para desabilitar um método basta não incluir a chave (não usar 'none').
-                    bankTransfer: 'all', // corrigido: era ['pix'], causava erro 422 na API
-                },
-                visual: {
-                    style: {
-                        theme: 'dark',
-                        customVariables: {
-                            baseColor: '#ef4444',
-                            baseColorFirstVariant: '#dc2626',
-                            baseColorSecondVariant: '#b91c1c',
-                            errorColor: '#f87171',
-                            textPrimaryColor: '#f4f4f5',
-                            textSecondaryColor: '#a1a1aa',
-                            inputBackgroundColor: '#18181b',
-                            formBackgroundColor: '#09090b',
-                            borderRadiusFull: '12px',
-                            borderRadiusLarge: '10px',
-                            borderRadiusMedium: '8px',
-                        },
-                    },
-                },
-            },
-            callbacks: {
-                onReady: () => {
-                    setPaymentInProgress(true);
-                },
-                onSubmit: async ({ selectedPaymentMethod, formData }) => {
-                    _selectedMethod = selectedPaymentMethod;
-                    clearError('payment');
-
-                    try {
-                        // Determina method para o backend. Checamos tanto
-                        // selectedPaymentMethod quanto formData.payment_method_id
-                        // como sinais de PIX, para não depender de um único
-                        // nome de campo que pode variar entre versões do SDK.
-                        const isPix =
-                            selectedPaymentMethod === 'bank_transfer' ||
-                            formData?.payment_method_id === 'pix';
-                        const method = isPix ? 'pix' : 'card';
-
-                        // Monta payload correto para cada método
-                        let payload;
-                        if (method === 'pix') {
-                            payload = {
-                                method: 'pix',
-                                order: { ..._currentOrder, method: 'pix' },
-                            };
-                        } else {
-                            payload = {
-                                method: 'card',
-                                order: { ..._currentOrder, method: 'card' },
-                                cardToken: formData.token,
-                                paymentMethodId: formData.payment_method_id,
-                                installments: formData.installments,
-                                payerEmail: formData.payer?.email,
-                            };
-                        }
-
-                        const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload),
-                        });
-                        const data = await res.json();
-
-                        if (!res.ok) {
-                            showError('payment', data.error || 'Falha ao processar pagamento.');
-                            return;
-                        }
-
-                        if (data.mode === 'local') {
-                            // Modo teste sem chave configurada
-                            finalizePurchase(earnedXp);
-                            return;
-                        }
-
-                        if (method === 'pix') {
-                            // Para PIX: mostra QR code e inicia polling
-                            showPixResult(data, _currentOrder, earnedXp);
-                        } else {
-                            // Para cartão: resposta síncrona
-                            if (data.status === 'approved') {
-                                finalizePurchase(earnedXp);
-                            } else if (data.status === 'rejected') {
-                                showError(
-                                    'payment',
-                                    'Pagamento recusado pela operadora. Tente outro cartão.'
-                                );
-                            } else {
-                                showError(
-                                    'payment',
-                                    'Pagamento em análise. Você será notificado em breve.'
-                                );
-                            }
-                        }
-                    } catch (err) {
-                        showError('payment', `Erro ao processar: ${err.message}`);
-                    }
-                },
-                onError: (error) => {
-                    console.error('Payment Brick error:', error);
-                    showError(
-                        'payment',
-                        'Erro ao carregar formulário de pagamento. Tente recarregar a página.'
-                    );
-                },
-            },
+        const res = await fetch(PAYMENT_CONFIG.createPaymentEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ method: 'manual', order }),
         });
-    } catch (err) {
-        console.error('Erro ao criar Payment Brick:', err);
-        showError(
-            'payment',
-            'Não foi possível carregar o formulário de pagamento. Tente novamente.'
-        );
-    }
-}
 
-// ─── Resultado PIX (QR Code dentro da etapa payment) ─────────────────────────
+        const data = await res.json();
 
-function showPixResult(data, order, earnedXp) {
-    const pixResult = document.getElementById('payment-pix-result');
-    const qrImg = document.getElementById('payment-pix-qr');
-    const keyEl = document.getElementById('payment-pix-key');
-    const statusEl = document.getElementById('payment-pix-status');
-    const copyBtn = document.getElementById('payment-pix-copy');
-
-    if (pixResult) pixResult.classList.remove('hidden');
-
-    if (qrImg && data.qr_code_base64) {
-        qrImg.src = `data:image/png;base64,${data.qr_code_base64}`;
-        qrImg.alt = `QR Code PIX — Pedido ${order.id}`;
-    }
-    if (keyEl) keyEl.textContent = data.qr_code || '—';
-    if (statusEl) statusEl.textContent = 'Aguardando confirmação do pagamento…';
-
-    if (copyBtn && keyEl) {
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(keyEl.textContent || '').then(() => {
-                window.showToast?.('Código PIX copiado!');
-                copyBtn.textContent = '✓ Copiado!';
-                setTimeout(() => (copyBtn.textContent = 'Copiar código PIX'), 2000);
-            });
-        };
-    }
-
-    setPaymentInProgress(true);
-    startPixPolling(order, earnedXp, statusEl);
-}
-
-// ─── Polling de status PIX ────────────────────────────────────────────────────
-
-function stopPixPolling() {
-    if (_pixPollInterval) {
-        clearInterval(_pixPollInterval);
-        _pixPollInterval = null;
-    }
-}
-
-function startPixPolling(order, earnedXp, statusEl) {
-    stopPixPolling();
-    let attempts = 0;
-    _pixPollInterval = setInterval(async () => {
-        attempts += 1;
-        if (attempts > 72) {
-            // ~6 minutos
-            stopPixPolling();
-            if (statusEl) statusEl.textContent = 'Tempo esgotado. Tente novamente se já pagou.';
+        if (!res.ok) {
+            showError('customer', data.error || 'Erro ao registrar pedido. Tente novamente.');
             return;
         }
-        try {
-            const res = await fetch(`/api/order-status?id=${encodeURIComponent(order.id)}`);
-            if (!res.ok) return;
-            const data = await res.json();
 
-            if (data.status === 'approved') {
-                stopPixPolling();
-                finalizePurchase(earnedXp);
-            } else if (['rejected', 'cancelled'].includes(data.status)) {
-                stopPixPolling();
-                setPaymentInProgress(false);
-                if (statusEl) statusEl.textContent = 'Pagamento não aprovado. Tente novamente.';
-            }
-        } catch {
-            /* ignora falhas de rede no polling */
+        // Pedido registrado com sucesso — vai para tela de sucesso
+        finalizePurchase(earnedXp);
+
+    } catch (err) {
+        showError('customer', 'Falha de conexão. Verifique sua internet e tente novamente.');
+    } finally {
+        // Reabilita o botão em caso de erro
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Pedido <i class="fas fa-arrow-right ml-1"></i>';
         }
-    }, 5000);
+    }
 }
 
-// ─── Finalizar compra (sucesso) ───────────────────────────────────────────────
+// ─── Tela de sucesso ──────────────────────────────────────────────────────────
 
 function finalizePurchase(earnedXp) {
-    stopPixPolling();
-    setPaymentInProgress(false);
     clearCart();
     applyStudentXp(earnedXp);
 
     const order = _currentOrder;
 
-    const orderIdEl = document.getElementById('success-order-id');
-    const methodEl = document.getElementById('success-method');
-    const totalEl = document.getElementById('success-total');
-    const xpEl = document.getElementById('success-xp');
-
-    const methodLabel =
-        _selectedMethod === 'bank_transfer'
-            ? 'PIX'
-            : _selectedMethod?.includes('debit')
-              ? 'Cartão de Débito'
-              : 'Cartão de Crédito';
+    const orderIdEl  = document.getElementById('success-order-id');
+    const totalEl    = document.getElementById('success-total');
+    const xpEl       = document.getElementById('success-xp');
+    const footerNote = document.getElementById('success-footer-note');
 
     if (orderIdEl) orderIdEl.textContent = order?.id || '—';
-    if (methodEl) methodEl.textContent = methodLabel;
-    if (totalEl) totalEl.textContent = money.format(order?.total || 0);
-    if (xpEl) xpEl.textContent = `+${earnedXp} XP`;
+    if (totalEl)   totalEl.textContent   = money.format(order?.total || 0);
+    if (xpEl)      xpEl.textContent      = `+${earnedXp} XP`;
+    if (footerNote) {
+        footerNote.textContent =
+            'Entraremos em contato pelo WhatsApp ou e-mail para combinar o pagamento.';
+    }
+
+    // Oculta a linha "Método" na tela de sucesso (não faz sentido no modo manual)
+    const methodRow = document.getElementById('success-method-row');
+    if (methodRow) methodRow.classList.add('hidden');
 
     showStep('success');
-    window.showToast?.(`✅ Pedido ${order?.id} confirmado! +${earnedXp} XP`);
+    window.showToast?.(`✅ Pedido ${order?.id} recebido! +${earnedXp} XP`);
 }
 
 // ─── Utilitários de erro ──────────────────────────────────────────────────────
@@ -415,7 +173,6 @@ function showError(context, msg) {
         el.textContent = msg;
         el.classList.remove('hidden');
     }
-    window.showToast?.(`Erro: ${msg}`);
 }
 
 function clearError(context) {
@@ -427,18 +184,12 @@ function clearError(context) {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('checkout-close-btn')?.addEventListener('click', () => {
-        closeCheckoutOverlay(false);
-    });
-    document.getElementById('checkout-close-confirm-yes')?.addEventListener('click', () => {
-        closeCheckoutOverlay(true);
-    });
-    document.getElementById('checkout-close-confirm-no')?.addEventListener('click', () => {
-        hideCloseConfirm();
+        closeCheckoutOverlay();
     });
 });
 
 // Expor para onclicks inline no HTML
 window.closeCheckoutOverlay = closeCheckoutOverlay;
-window.closeCheckoutModals = closeCheckoutModals;
-window.submitCustomerForm = submitCustomerForm;
-window.openCheckoutFlow = openCheckoutFlow;
+window.closeCheckoutModals  = closeCheckoutModals;
+window.submitCustomerForm   = submitCustomerForm;
+window.openCheckoutFlow     = openCheckoutFlow;

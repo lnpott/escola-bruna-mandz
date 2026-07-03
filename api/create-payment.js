@@ -1,27 +1,20 @@
 /**
  * api/create-payment.js
  * Cria um pagamento real no Mercado Pago (PIX ou Cartão) e salva o pedido no Supabase.
- *
- * Vercel Function — runtime Node (precisamos do SDK oficial do Mercado Pago).
- *
- * NOTA SOBRE A VERSÃO DO SDK: este código usa a classe `Payment` do pacote
- * `mercadopago` (npm), que funciona nas versões 2.x. Há uma versão mais nova
- * do SDK que usa a classe `Order` em vez de `Payment` para fluxos mais
- * complexos — se ao instalar você receber avisos de depreciação sobre
- * `Payment`, consulte https://github.com/mercadopago/sdk-nodejs para o
- * exemplo atualizado e me avise para eu adaptar este arquivo.
+ * Também suporta o modo "manual" — pedido salvo sem pagamento online, com notificação
+ * por e-mail para a Bruna combinar o pagamento diretamente com o cliente.
  *
  * VARIÁVEIS DE AMBIENTE NECESSÁRIAS (configure na Vercel > Settings > Environment Variables):
  *   MERCADO_PAGO_ACCESS_TOKEN  → Access Token de produção (Mercado Pago > Credenciais)
  *   SUPABASE_URL               → URL do projeto Supabase
  *   SUPABASE_SERVICE_ROLE_KEY  → Service Role Key do Supabase
- *
- * ENQUANTO essas variáveis não existirem, o endpoint responde em "modo local"
- * (sem cobrar nada de verdade) para você poder testar o resto do fluxo.
+ *   RESEND_API_KEY             → Chave do Resend para notificação por e-mail
+ *   NOTIFY_EMAIL               → E-mail da Bruna para receber notificações
  */
 
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { getSupabase } from './_lib/supabase.js';
+import { notifyNewOrder } from './notify-new-order.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -42,13 +35,45 @@ export default async function handler(req, res) {
     if (!order?.items?.length) {
         return res.status(400).json({ error: 'Pedido vazio.' });
     }
-    if (!['pix', 'card'].includes(method)) {
+    if (!['pix', 'card', 'manual'].includes(method)) {
         return res.status(400).json({ error: 'Método de pagamento inválido.' });
+    }
+
+    // ─── MODO MANUAL — pedido sem pagamento online ────────────────────────────
+    // Usado temporariamente enquanto as credenciais do Mercado Pago não estão
+    // configuradas. O pedido é salvo no Supabase com status "pending" e a Bruna
+    // recebe notificação por e-mail para combinar o pagamento com o cliente.
+    if (method === 'manual') {
+        try {
+            await saveOrderToSupabase({
+                order,
+                method: 'manual',
+                status: 'pending',
+                mpPaymentId: null,
+                mpStatus: null,
+            });
+
+            // Notifica a Bruna por e-mail (mesmo fluxo do webhook)
+            await notifyNewOrder({
+                ...order,
+                status: 'pending',
+                method: 'manual',
+            }).catch((e) => console.error('Notificação e-mail (manual) falhou:', e.message));
+
+            return res.status(200).json({
+                mode: 'manual',
+                orderId: order.id,
+                status: 'pending',
+            });
+        } catch (err) {
+            console.error('Erro ao salvar pedido manual:', err.message);
+            return res.status(500).json({ error: 'Erro ao registrar pedido. Tente novamente.' });
+        }
     }
 
     const hasMpToken = Boolean(process.env.MERCADO_PAGO_ACCESS_TOKEN);
 
-    // ─── MODO LOCAL (enquanto as chaves reais não foram configuradas) ────────
+    // ─── MODO LOCAL (enquanto as chaves do MP não foram configuradas) ─────────
     if (!hasMpToken) {
         await saveOrderToSupabase({
             order,
@@ -117,11 +142,9 @@ export default async function handler(req, res) {
 
         if (method === 'card') {
             if (!cardToken) {
-                return res
-                    .status(400)
-                    .json({
-                        error: 'Token do cartão ausente. O Brick do Mercado Pago deve gerá-lo no navegador.',
-                    });
+                return res.status(400).json({
+                    error: 'Token do cartão ausente. O Brick do Mercado Pago deve gerá-lo no navegador.',
+                });
             }
 
             mpResult = await payment.create({
@@ -186,15 +209,15 @@ async function saveOrderToSupabase({
         id: order.id,
         status,
         method,
-        customer_name: order.customer?.name || null,
+        customer_name:  order.customer?.name  || null,
         customer_email: order.customer?.email || null,
         customer_phone: order.customer?.phone || null,
-        items: order.items,
-        total: order.total,
-        mp_payment_id: mpPaymentId,
-        mp_status: mpStatus,
+        items:          order.items,
+        total:          order.total,
+        mp_payment_id:  mpPaymentId,
+        mp_status:      mpStatus,
         mp_status_detail: mpStatusDetail || null,
-        earned_xp: order.earnedXp || 0,
+        earned_xp:      order.earnedXp || 0,
     });
     if (error) throw new Error(error.message);
 }
