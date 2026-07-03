@@ -274,6 +274,17 @@
                             <input type="color" name="badge_color" value="#22c55e" style="width:100%;padding:6px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;cursor:pointer" />
                         </div>
                     </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Imagem do Produto</label>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <input type="text" name="image" placeholder="/imagem.png" style="flex:1;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            <button type="button" id="btn-upload-new-product" style="padding:8px 12px;border-radius:6px;border:1px solid #3f3f46;background:#18181b;color:#a1a1aa;cursor:pointer;font-size:12px">📁 Upload</button>
+                        </div>
+                        <div id="new-product-upload-status" style="font-size:11px;color:#71717a;margin-top:4px;"></div>
+                        <div id="new-product-image-preview" style="margin-top:8px;display:none;">
+                            <img id="new-product-preview-img" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #27272a" />
+                        </div>
+                    </div>
                     <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a1a1aa;cursor:pointer">
                         <input type="checkbox" name="active" checked />
                         Produto ativo (visível na loja)
@@ -872,6 +883,125 @@
                 currentProductCard = null;
             });
 
+            // Upload de imagem para novo produto (modal)
+            async function uploadProductImageForNewProduct(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Selecione uma imagem válida');
+                    return;
+                }
+
+                const statusSpan = document.getElementById('new-product-upload-status');
+                const imageInput = document.querySelector('#form-new-product [name="image"]');
+                const previewDiv = document.getElementById('new-product-image-preview');
+                const previewImg = document.getElementById('new-product-preview-img');
+
+                // Abrir modal de crop
+                const modal = document.getElementById('modal-crop');
+                const cropImage = document.getElementById('crop-image');
+                
+                // Criar URL temporária para preview
+                const imageUrl = URL.createObjectURL(file);
+                cropImage.src = imageUrl;
+                
+                // Destruir cropper anterior se existir
+                if (cropper) {
+                    cropper.destroy();
+                }
+                
+                // Inicializar Cropper.js
+                cropper = new Cropper(cropImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                    checkCrossOrigin: false,
+                });
+                
+                // Mostrar modal
+                modal.style.display = 'flex';
+
+                // Sobrescrever handler de confirmação para novo produto
+                const confirmHandler = async () => {
+                    if (!cropper) return;
+                    
+                    statusSpan.textContent = '📤 Enviando...';
+                    statusSpan.style.color = '#a1a1aa';
+
+                    try {
+                        // Obter canvas cropado
+                        const canvas = cropper.getCroppedCanvas({
+                            maxWidth: 800,
+                            maxHeight: 800,
+                            imageSmoothingQuality: 'high',
+                        });
+                        
+                        // Converter para blob com compressão
+                        canvas.toBlob(async (blob) => {
+                            if (!blob) throw new Error('Erro ao processar imagem');
+                            
+                            const formData = new FormData();
+                            formData.append('file', new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
+
+                            const password = sessionStorage.getItem(STORAGE_KEY);
+                            if (!password) throw new Error('Sessão expirada');
+
+                            const response = await fetch('/api/upload-image', {
+                                method: 'POST',
+                                headers: { 'x-admin-password': password },
+                                body: formData,
+                            });
+
+                            const result = await response.json();
+                            if (!response.ok) throw new Error(result.error || 'Erro no upload');
+
+                            // Atualizar campo de imagem no form
+                            imageInput.value = result.url;
+                            
+                            // Mostrar preview
+                            previewImg.src = result.url;
+                            previewDiv.style.display = 'block';
+                            
+                            statusSpan.textContent = '✅ Enviado!';
+                            statusSpan.style.color = '#86efac';
+                            
+                            // Fechar modal e limpar
+                            modal.style.display = 'none';
+                            cropper.destroy();
+                            cropper = null;
+                            
+                            // Remover handler temporário
+                            document.getElementById('btn-confirm-crop').removeEventListener('click', confirmHandler);
+                            
+                            setTimeout(() => {
+                                statusSpan.textContent = '';
+                            }, 2000);
+                        }, 'image/jpeg', 0.8);
+                    } catch (err) {
+                        statusSpan.textContent = '❌ ' + (err.message || 'Erro').substring(0, 30);
+                        statusSpan.style.color = '#fca5a5';
+                        setTimeout(() => {
+                            statusSpan.textContent = '';
+                        }, 3000);
+                    }
+                };
+
+                // Adicionar handler temporário
+                document.getElementById('btn-confirm-crop').addEventListener('click', confirmHandler);
+                
+                // Handler de cancelar para novo produto
+                const cancelHandler = () => {
+                    modal.style.display = 'none';
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+                    document.getElementById('btn-cancel-crop').removeEventListener('click', cancelHandler);
+                    document.getElementById('btn-confirm-crop').removeEventListener('click', confirmHandler);
+                };
+                
+                document.getElementById('btn-cancel-crop').addEventListener('click', cancelHandler);
+            }
+
             async function uploadProductImageLegacy(file, productCard) {
                 // Função legada mantida para compatibilidade
                 if (!file || !file.type.startsWith('image/')) {
@@ -998,12 +1128,21 @@
             document.getElementById('global-image-upload').addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
+                
                 const targetProductId = e.target.dataset.targetCard;
-                if (!targetProductId) return;
-                const targetCard = document.querySelector(`[data-product-id="${targetProductId}"]`);
-                if (targetCard) {
-                    await uploadProductImage(file, targetCard);
+                const targetContext = e.target.dataset.targetContext;
+                
+                if (targetProductId) {
+                    // Upload para produto existente
+                    const targetCard = document.querySelector(`[data-product-id="${targetProductId}"]`);
+                    if (targetCard) {
+                        await uploadProductImage(file, targetCard);
+                    }
+                } else if (targetContext === 'new-product') {
+                    // Upload para novo produto (modal)
+                    await uploadProductImageForNewProduct(file);
                 }
+                
                 e.target.value = '';
             });
 
@@ -1011,6 +1150,13 @@
 
             document.getElementById('btn-new-product').addEventListener('click', openNewProductModal);
             document.getElementById('btn-cancel-product').addEventListener('click', closeNewProductModal);
+            
+            // Upload de imagem no modal de novo produto
+            document.getElementById('btn-upload-new-product').addEventListener('click', () => {
+                const fileInput = document.getElementById('global-image-upload');
+                fileInput.dataset.targetContext = 'new-product';
+                fileInput.click();
+            });
 
             document.getElementById('modal-new-product').addEventListener('click', (e) => {
                 if (e.target.id === 'modal-new-product') closeNewProductModal();
