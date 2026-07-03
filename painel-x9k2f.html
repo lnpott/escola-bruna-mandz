@@ -7,6 +7,7 @@
         <link rel="icon" type="image/png" href="/brand/LOGOPRETO.png" />
         <title>Painel — Loja Oficial</title>
         <link rel="stylesheet" href="store/store-style.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
         <style>
             body { background: #09090b; color: #e4e4e7; font-family: system-ui, sans-serif; }
             .panel-wrap { max-width: 1200px; margin: 0 auto; padding: 32px 20px 80px; }
@@ -117,6 +118,17 @@
 
             /* Toast */
             .toast { position: fixed; bottom: 20px; right: 20px; background: #18181b; border: 1px solid #3f3f46; color: #e4e4e7; padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+
+            /* Modal de Crop */
+            #modal-crop { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.85); z-index: 2000; justify-content: center; align-items: center; }
+            .crop-container { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+            .crop-preview { max-width: 100%; max-height: 400px; display: block; margin: 0 auto; }
+            .crop-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+            .crop-actions button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+            .crop-actions .btn-crop { background: #22c55e; color: #000; }
+            .crop-actions .btn-cancel { background: #3f3f46; color: #e4e4e7; }
+            .upload-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 12px; }
+            .upload-btn:hover { background: #27272a; border-color: #dc2626; }
 
             /* Mobile */
             @media (max-width: 720px) {
@@ -278,6 +290,21 @@
         <!-- INPUT FILE OCULTO (global para upload) -->
         <input id="global-image-upload" type="file" accept="image/*" style="display:none;" />
 
+        <!-- MODAL: Crop de Imagem -->
+        <div id="modal-crop">
+            <div class="crop-container">
+                <h3 style="margin:0 0 12px;color:#e4e4e7">Recortar Imagem</h3>
+                <div style="background:#09090b;border:1px solid #27272a;border-radius:8px;overflow:hidden">
+                    <img id="crop-image" class="crop-preview" style="max-width:100%;display:block" />
+                </div>
+                <div class="crop-actions">
+                    <button class="btn-cancel" id="btn-cancel-crop">Cancelar</button>
+                    <button class="btn-crop" id="btn-confirm-crop">✓ Recortar e Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
         <script>
             const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
             const STORAGE_KEY = 'bruna_admin_session';
@@ -727,7 +754,126 @@
                 });
             }
 
+            let cropper = null;
+            let currentProductCard = null;
+
             async function uploadProductImage(file, productCard) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Selecione uma imagem válida');
+                    return;
+                }
+
+                // Abrir modal de crop
+                currentProductCard = productCard;
+                const modal = document.getElementById('modal-crop');
+                const cropImage = document.getElementById('crop-image');
+                
+                // Criar URL temporária para preview
+                const imageUrl = URL.createObjectURL(file);
+                cropImage.src = imageUrl;
+                
+                // Destruir cropper anterior se existir
+                if (cropper) {
+                    cropper.destroy();
+                }
+                
+                // Inicializar Cropper.js
+                cropper = new Cropper(cropImage, {
+                    aspectRatio: 1, // Quadrado 1:1
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                    checkCrossOrigin: false,
+                });
+                
+                // Mostrar modal
+                modal.style.display = 'flex';
+            }
+
+            // Handler para confirmar crop e fazer upload
+            document.getElementById('btn-confirm-crop').addEventListener('click', async () => {
+                if (!cropper || !currentProductCard) return;
+                
+                const statusSpan = currentProductCard.querySelector('.upload-status');
+                const uploadBtn = currentProductCard.querySelector('.btn-upload-img');
+                const imageInput = currentProductCard.querySelector('[data-field="image"]');
+                const modal = document.getElementById('modal-crop');
+
+                statusSpan.textContent = '📤 Enviando...';
+                statusSpan.style.color = '#a1a1aa';
+                uploadBtn.disabled = true;
+                uploadBtn.style.opacity = '.5';
+
+                try {
+                    // Obter canvas cropado
+                    const canvas = cropper.getCroppedCanvas({
+                        maxWidth: 800,
+                        maxHeight: 800,
+                        imageSmoothingQuality: 'high',
+                    });
+                    
+                    // Converter para blob com compressão
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) throw new Error('Erro ao processar imagem');
+                        
+                        const formData = new FormData();
+                        formData.append('file', new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
+
+                        const password = sessionStorage.getItem(STORAGE_KEY);
+                        if (!password) throw new Error('Sessão expirada');
+
+                        const response = await fetch('/api/upload-image', {
+                            method: 'POST',
+                            headers: { 'x-admin-password': password },
+                            body: formData,
+                        });
+
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Erro no upload');
+
+                        imageInput.value = result.url;
+                        statusSpan.textContent = '✅ Enviado!';
+                        statusSpan.style.color = '#86efac';
+                        
+                        // Atualizar preview da imagem
+                        const imgPreview = currentProductCard.querySelector('.product-admin-img');
+                        if (imgPreview) imgPreview.src = result.url;
+                        
+                        // Fechar modal e limpar
+                        modal.style.display = 'none';
+                        cropper.destroy();
+                        cropper = null;
+                        currentProductCard = null;
+                        
+                        setTimeout(() => {
+                            statusSpan.textContent = '';
+                        }, 2000);
+                    }, 'image/jpeg', 0.8); // 80% qualidade
+                } catch (err) {
+                    statusSpan.textContent = '❌ ' + (err.message || 'Erro').substring(0, 30);
+                    statusSpan.style.color = '#fca5a5';
+                    setTimeout(() => {
+                        statusSpan.textContent = '';
+                    }, 3000);
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadBtn.style.opacity = '1';
+                }
+            });
+
+            // Handler para cancelar crop
+            document.getElementById('btn-cancel-crop').addEventListener('click', () => {
+                const modal = document.getElementById('modal-crop');
+                modal.style.display = 'none';
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                currentProductCard = null;
+            });
+
+            async function uploadProductImageLegacy(file, productCard) {
+                // Função legada mantida para compatibilidade
                 if (!file || !file.type.startsWith('image/')) {
                     alert('Selecione uma imagem válida');
                     return;
