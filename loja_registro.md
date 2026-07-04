@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 03/07/2026 — (Etapa 28)
+> Última atualização: 03/07/2026 — (Etapa 28 — decisão de backup pendente)
 
 ---
 
@@ -978,6 +978,99 @@ em nova sessão ou ferramenta. Cobre:
 - [x] Prompt de execução gerado
 - [ ] Criar repo privado `escola-bruna-mandz-backups`
 - [ ] Executar prompt de correção (reescrever workflow, corrigir backup-api.js, documentar MP_WEBHOOK_SECRET)
+
+
+---
+
+## 🤔 DECISÃO PENDENTE — Onde salvar os backups do banco de dados
+
+### Contexto
+O workflow de GitHub Actions (`supabase-backup.yml`) roda todo dia às 05:00 UTC
+e salva um snapshot completo das tabelas `products` e `orders` em JSON.
+Atualmente ele commita em `supabase/backup_dados.json` — pasta que **não está**
+no `.gitignore`, então o arquivo fica visível no repositório público com dados
+reais de clientes.
+
+### Opções disponíveis
+
+---
+
+#### ✅ Opção A — Pasta `backups/` no mesmo repositório (já ignorada pelo Git)
+O workflow salva o arquivo em `backups/YYYY-MM-DD.json`.
+A pasta `backups/` **já está no `.gitignore`** — o Git nunca a rastreia,
+então o arquivo existe localmente na máquina do GitHub Actions mas nunca
+aparece no repositório público.
+
+**Prós:**
+- Mais simples — zero configuração extra
+- Sem tokens adicionais para gerenciar
+- Backups nomeados por data (histórico de 30 dias, por exemplo)
+- Já funciona com os Secrets existentes (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
+
+**Contras:**
+- O arquivo só existe durante a execução do workflow — depois que o job termina,
+  o arquivo some (GitHub Actions não persiste arquivos entre runs)
+- Para ter histórico real, precisaria de artifact upload (ver Opção A2 abaixo)
+
+---
+
+#### ✅ Opção A2 — Pasta `backups/` + GitHub Artifacts (recomendada se ficar no mesmo repo)
+Igual à Opção A, mas em vez de tentar commitar, o workflow faz **upload do
+arquivo como Artifact** do GitHub Actions. Artifacts ficam armazenados por
+90 dias (configurável) e podem ser baixados manualmente pelo painel do GitHub.
+
+**Prós:**
+- Histórico real de backups (90 dias por padrão, ajustável)
+- Dados **nunca aparecem** no repositório público — nem no histórico de commits
+- Download fácil pelo painel do GitHub Actions quando precisar
+- Zero configuração extra além do que já existe
+
+**Contras:**
+- Não é um arquivo acessível via URL pública (precisa baixar manualmente)
+- Após 90 dias o artifact expira (mas pode ser configurado para mais)
+
+---
+
+#### 🟡 Opção B — Repositório privado separado `escola-bruna-mandz-backups`
+O workflow faz push do JSON em outro repositório, completamente privado.
+
+**Prós:**
+- Separação total entre código e dados
+- Histórico permanente de commits de backup
+- Controle de acesso independente
+
+**Contras:**
+- Requer criar um Personal Access Token extra (`BACKUP_REPO_TOKEN`)
+- Mais um repositório para gerenciar
+- Mais complexidade no workflow
+
+---
+
+#### 🟡 Opção C — Supabase Storage (bucket privado)
+O workflow faz upload do JSON direto para um bucket privado no Supabase Storage,
+sem passar pelo Git.
+
+**Prós:**
+- Completamente fora do GitHub
+- Fácil de acessar via painel do Supabase
+- Histórico organizado por data no bucket
+
+**Contras:**
+- Requer criar o bucket e configurar políticas no Supabase
+- Usa a cota de storage do plano gratuito (500MB no free tier)
+
+---
+
+### Recomendação
+**Opção A2** — mesma simplicidade da Opção A, mas com histórico real de 90 dias
+via GitHub Artifacts. Zero configuração extra, dados nunca aparecem no repo
+público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
+
+### Status
+- [ ] Decidir qual opção seguir
+- [ ] Implementar a opção escolhida
+- [ ] Remover `supabase/backup_dados.json` do repositório
+- [ ] Adicionar `supabase/backup_dados.json` ao `.gitignore`
 
 
 ## 🔮 Próximos Passos (o que falta fazer)
