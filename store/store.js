@@ -226,9 +226,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.filterStoreCategory = filterStoreCategory;
 });
 
+// ─── Zoom da imagem (Lightbox) ────────────────────────────────────────────────
+function openImageZoom(src, alt) {
+    let overlay = document.getElementById('store-lightbox-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'store-lightbox-overlay';
+        overlay.innerHTML = `
+            <div class="lightbox-close">&times;</div>
+            <img class="lightbox-img" src="" alt="" />
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+    }
+
+    const img = overlay.querySelector('.lightbox-img');
+    img.src = src;
+    img.alt = alt || 'Imagem do produto';
+    overlay.classList.add('active');
+}
+
 // ─── Event listeners ──────────────────────────────────────────────────────────
 
 document.addEventListener('click', (event) => {
+    // Zoom na imagem do produto
+    const clickedImg = event.target.closest('.product-img-wrap img');
+    if (clickedImg) {
+        openImageZoom(clickedImg.src, clickedImg.alt);
+        return;
+    }
+
     // Adicionar ao carrinho
     const addBtn = event.target.closest('[data-add-product]');
     if (addBtn) {

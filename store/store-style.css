@@ -740,3 +740,62 @@
 #payment-order-total {
     color: #ef4444;
 }
+
+/* ── Lightbox Zoom ────────────────────────────────────────────────────────── */
+.product-img-wrap img {
+    cursor: zoom-in;
+}
+
+#store-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(9, 9, 11, 0.95);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#store-lightbox-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#store-lightbox-overlay .lightbox-img {
+    max-width: 90%;
+    max-height: 85%;
+    object-fit: contain;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: zoom-out;
+}
+
+#store-lightbox-overlay.active .lightbox-img {
+    transform: scale(1);
+}
+
+#store-lightbox-overlay .lightbox-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 2.5rem;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    line-height: 1;
+}
+
+#store-lightbox-overlay .lightbox-close:hover {
+    color: #ffffff;
+}
+

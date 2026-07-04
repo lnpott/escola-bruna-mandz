@@ -1,6 +1,6 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
-> Última atualização: 04/07/2026 — (Etapa 31)
+> Última atualização: 04/07/2026 — (Etapa 32)
 
 ---
 
@@ -70,6 +70,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
 | 30 | **Visual hero-headline** — segundo logo removido do nav, logo no ciclo de frases corrigido para `LOGOBGRAND.png` (alta resolução, tamanho proporcional ao texto) | ✅ Concluído |
 | 31 | **Badges selecionáveis, Tamanhos no Painel e Catálogo de 10 Produtos** | ✅ Concluído |
+| 32 | **Zoom nos Produtos (Lightbox Overlay)** | ✅ Concluído |
 
 ---
 
@@ -1160,6 +1161,15 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
   - **Limitado** (Laranja / `orange`)
 - **Gestão de Tamanhos**: Adicionado input "Tamanhos" no modal de criação e nas fichas de edição de produto do painel admin. O administrador pode digitar os tamanhos separados por vírgula (ex: `P, M, G, GG`), sendo persistidos no campo JSON de variantes.
 - **API Backend**: Atualizada a API `api/admin-products.js` para aceitar o campo `variants` enviado do painel admin nas requisições POST e PATCH, preservando as opções customizadas e evitando sobrescritas indesejadas de valores padrão.
+
+---
+
+## ✅ ETAPA 32 — Zoom nos Produtos (Lightbox Overlay)
+
+### O que foi feito
+- **Lightbox Overlay Dinâmico**: Criada estrutura e comportamento de lightbox em JavaScript dentro de [store/store.js](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store.js). Ao clicar na imagem de qualquer produto, o overlay em tela cheia é gerado e animado de forma suave.
+- **Interação Intuitiva**: Adicionado cursor `zoom-in` nas imagens dos cards de produtos e cursor `zoom-out` na imagem expandida para sinalizar que o clique realiza o zoom e fecha a visualização, além de um botão de fechamento (`×`) no canto superior direito.
+- **Visual Dark Integrado**: Estilizado em [store/store-style.css](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store-style.css) com fundo semi-transparente escuro (`rgba(9, 9, 11, 0.95)`), bordas arredondadas e sombras projetadas no lightbox.
 
 ## 🔮 Próximos Passos (o que falta fazer)
 
