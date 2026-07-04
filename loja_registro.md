@@ -69,6 +69,8 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
 | 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
 | 25 | **Bug no painel**: troca de status retornava erro 405 — corrigido `painel-x9k2f.html` | ✅ Concluído |
+| 26 | **Segurança Supabase & Backup Automático**: chaves estáticas removidas de `backup-api.js` + GitHub Actions diário (05:00 UTC) | ✅ Concluído |
+| 27 | **Melhorias de Code Review**: config `bodyParser` no upload, otimização bundle, `.gitignore` de backups, e `.env.example` | ✅ Concluído |
 
 ---
 
@@ -862,6 +864,32 @@ diferentes, sem contrato sincronizado.
 - [x] Bug identificado e corrigido
 - [x] Commit/push da correção
 - [x] Retestado: troca de status funcionando sem erro 405
+
+---
+
+## ✅ ETAPA 26 — Segurança do Supabase e Backup Diário Automático via GitHub Actions
+
+### O que foi feito
+- **Remoção da chave privada**: Removida a chave estática exposta em `backup-api.js`. O script agora utiliza `process.env.SUPABASE_SERVICE_ROLE_KEY` e `process.env.SUPABASE_URL`.
+- **Criação do `.env` local**: Criado arquivo local `.env` (ignorado pelo Git) com as chaves para que a execução local de backups continue funcionando normalmente.
+- **Backup no diretório `./supabase`**: Modificado o local de destino dos backups no script de `./backups/backup_dados.json` para `./supabase/backup_dados.json`.
+- **Fluxo do GitHub Actions**: Criado o arquivo `.github/workflows/supabase-backup.yml` que executa diariamente às 05:00 UTC, gera o backup usando as secrets cadastradas no GitHub e faz push do novo JSON de volta ao repositório se houver alterações nos dados.
+
+### Testado
+- [x] Executado `node --env-file=.env backup-api.js` localmente com sucesso, gerando o arquivo JSON com 22KB na pasta `supabase/`.
+
+---
+
+## ✅ ETAPA 27 — Melhorias do Code Review aplicadas
+
+### O que foi feito
+- **Correção da API de Upload**: Adicionada a configuração `export const config = { api: { bodyParser: false } }` em `api/upload-image.js` para garantir que o middleware da Vercel não interfira com a biblioteca `formidable`.
+- **Otimização do Bundle**: Removido o import do catálogo estático `products.js` em `store/store.js`. Agora a lista é puramente dinâmica, inicializada como vazia e com tratamento elegante de erro caso a API do Supabase falhe.
+- **Gitignore Ajustado**: Adicionadas as regras de ignore para `backups/` e `/backups` para evitar o envio de backups locais.
+- **Documentação de Variáveis**: Documentada a variável `MP_WEBHOOK_SECRET` em `.env.example` para suporte à assinatura de webhooks do Mercado Pago.
+
+### Testado
+- [x] Executado `npm run build` confirmando compilação do bundle final com sucesso e sem erros.
 
 ---
 
