@@ -784,17 +784,33 @@
                 <div
                     class="bg-zinc-950 p-4 sm:p-6 rounded-3xl border border-zinc-800 shadow-2xl relative"
                 >
-                    <!-- Video Player -->
-                    <div
-                        class="relative max-w-lg mx-auto mb-6 rounded-2xl overflow-hidden bg-zinc-950"
-                    >
+                    <!-- Tela inicial — oculta o vídeo até o usuário iniciar -->
+                    <div id="quiz-start-screen" class="py-10 flex flex-col items-center gap-6">
+                        <div class="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-lg shadow-red-900/50 cursor-pointer hover:bg-red-500 transition-all hover:scale-105"
+                             onclick="startQuiz()">
+                            <i class="fas fa-play text-white text-3xl ml-1"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-bold text-lg mb-1">Pronto para o desafio?</p>
+                            <p class="text-zinc-400 text-sm">Clique em play para ouvir o trecho e tentar adivinhar</p>
+                        </div>
+                        <button
+                            onclick="startQuiz()"
+                            class="px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl transition-all hover:scale-105 shadow-lg shadow-red-900/40"
+                        >
+                            Iniciar Quiz
+                        </button>
+                    </div>
+
+                    <!-- Video Player — oculto até iniciar -->
+                    <div id="quiz-video-wrap" class="hidden relative max-w-lg mx-auto mb-6 rounded-2xl overflow-hidden bg-zinc-950">
                         <video id="quiz-video" class="w-full h-auto" controls preload="none">
                             <source src="/media/quis_(3).mp4" type="video/mp4" />
                         </video>
                     </div>
 
-                    <!-- Answer Options -->
-                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Answer Options — ocultas até iniciar -->
+                    <div id="quiz-options" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <button
                             onclick="checkAnswer('roupa-nova')"
                             class="quiz-option bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-red-500 text-white py-4 px-6 rounded-xl font-bold transition-all"
@@ -2261,6 +2277,26 @@
             }
 
             // Music Quiz Functions
+            function startQuiz() {
+                const startScreen = document.getElementById('quiz-start-screen');
+                const videoWrap   = document.getElementById('quiz-video-wrap');
+                const options     = document.getElementById('quiz-options');
+                const video       = document.getElementById('quiz-video');
+
+                // Ocultar tela inicial
+                startScreen.classList.add('hidden');
+
+                // Mostrar vídeo e opções
+                videoWrap.classList.remove('hidden');
+                options.classList.remove('hidden');
+                options.classList.add('grid');
+
+                // Dar play automático no vídeo
+                if (video) {
+                    video.play().catch(() => {});
+                }
+            }
+
             function checkAnswer(answer) {
                 const options = document.getElementById('quiz-options');
                 const result = document.getElementById('quiz-result');
@@ -2300,21 +2336,29 @@
             }
 
             function resetQuiz() {
-                const options = document.getElementById('quiz-options');
-                const result = document.getElementById('quiz-result');
-                const video = document.getElementById('quiz-video');
+                const startScreen = document.getElementById('quiz-start-screen');
+                const videoWrap   = document.getElementById('quiz-video-wrap');
+                const options     = document.getElementById('quiz-options');
+                const result      = document.getElementById('quiz-result');
+                const video       = document.getElementById('quiz-video');
 
-                // Show options
-                options.classList.remove('hidden');
-
-                // Hide result
-                result.classList.add('hidden');
-
-                // Reset video
+                // Resetar vídeo
                 if (video) {
-                    video.currentTime = 0;
                     video.pause();
+                    video.currentTime = 0;
                 }
+
+                // Esconder vídeo e opções
+                videoWrap.classList.add('hidden');
+                options.classList.add('hidden');
+                options.classList.remove('grid');
+
+                // Esconder resultado
+                result.classList.add('hidden');
+                result.className = 'hidden rounded-2xl p-6 text-left';
+
+                // Mostrar tela inicial novamente
+                startScreen.classList.remove('hidden');
             }
 
             // Canvas interactive categories filter system
