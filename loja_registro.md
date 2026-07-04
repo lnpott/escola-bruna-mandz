@@ -1,7 +1,6 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
-> Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 03/07/2026 — (Etapa 30)
+> Última atualização: 04/07/2026 — (Etapa 31)
 
 ---
 
@@ -15,14 +14,10 @@ bloqueantes:
    `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
 2. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
    está no ar e desativar, para não haver duas versões diferentes do site)
-3. Confirmar os preços reais dos 7 produtos do catálogo com a Bruna
-4. Planejar a **Fase C** do painel (gestão de produtos direto pelo painel,
-   sem editar código) quando fizer sentido priorizar
-5. Hardening pendente: validação de assinatura `x-signature` no webhook
-6. Decidir se a Bruna quer notificação por e-mail também para pedidos via
+3. Confirmar os preços reais dos 10 produtos do catálogo com a Bruna
+4. Hardening pendente: validação de assinatura `x-signature` no webhook
+5. Decidir se a Bruna quer notificação por e-mail também para pedidos via
    PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
-7. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
-   por senha), mas pode ser removido se não houver mais utilidade
 
 Detalhe completo de cada item nas Etapas 20 a 25 abaixo, e na seção
 "Próximos Passos" mais ao final do documento.
@@ -74,6 +69,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
 | 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
 | 30 | **Visual hero-headline** — segundo logo removido do nav, logo no ciclo de frases corrigido para `LOGOBGRAND.png` (alta resolução, tamanho proporcional ao texto) | ✅ Concluído |
+| 31 | **Badges selecionáveis, Tamanhos no Painel e Catálogo de 10 Produtos** | ✅ Concluído |
 
 ---
 
@@ -1151,6 +1147,19 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
 - [x] Remover `supabase/backup_dados.json` do repositório
 - [x] Adicionar `supabase/backup_dados.json` ao `.gitignore`
 
+---
+
+## ✅ ETAPA 31 — Badges selecionáveis, Gestão de Tamanhos no Painel e Seeding de 10 Produtos
+
+### O que foi feito
+- **Semente de Produtos**: Atualizado o arquivo `supabase/seed-products.sql` e executada a semente no banco de dados para incluir todos os **10 produtos ativos** na loja (as 7 camisetas/acessórios antigos + os 3 novos produtos).
+- **Controle de Badges (3 Cores)**: Removidos os inputs livres de texto e cor de badge. Implementado dropdown (`<select>`) no painel admin (`painel-x9k2f.html`) coordenado para selecionar apenas as 3 opções e cores correspondentes:
+  - **Nenhum**
+  - **Novidade** (Roxo / `purple`)
+  - **Promoção** (Verde / `green`)
+  - **Limitado** (Laranja / `orange`)
+- **Gestão de Tamanhos**: Adicionado input "Tamanhos" no modal de criação e nas fichas de edição de produto do painel admin. O administrador pode digitar os tamanhos separados por vírgula (ex: `P, M, G, GG`), sendo persistidos no campo JSON de variantes.
+- **API Backend**: Atualizada a API `api/admin-products.js` para aceitar o campo `variants` enviado do painel admin nas requisições POST e PATCH, preservando as opções customizadas e evitando sobrescritas indesejadas de valores padrão.
 
 ## 🔮 Próximos Passos (o que falta fazer)
 
@@ -1158,13 +1167,9 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
    `api/payment-provider.js`, `api/env.example`
 2. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
    por senha admin), mas pode ser removido se não houver mais utilidade
-3. Confirmar preços reais dos 7 produtos com a Bruna
-4. **Planejar e implementar a Fase C** do painel (gestão de produtos:
-   editar preço, adicionar/remover produto, sinalizar Novo/Descontinuado/
-   Em Falta) — pré-requisito: mover `store/products.js` para tabela
-   `products` no Supabase (ver Etapa 20.2)
-5. Hardening pendente: validar assinatura `x-signature` do webhook do MP
-6. Decidir se notificação por e-mail deve ser enviada também para pedidos
+3. Confirmar preços reais dos 10 produtos com a Bruna
+4. Hardening pendente: validar assinatura `x-signature` do webhook do MP
+5. Decidir se notificação por e-mail deve ser enviada também para pedidos
    PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
 
 Passo a passo de configuração inicial (Supabase, Mercado Pago, Vercel,

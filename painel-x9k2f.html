@@ -267,11 +267,16 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div>
                             <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Badge</label>
-                            <input type="text" name="badge" placeholder="Novidade, Premium…" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            <select name="badge" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                                <option value="">Nenhum</option>
+                                <option value="Novidade">Novidade (Roxo)</option>
+                                <option value="Promoção">Promoção (Verde)</option>
+                                <option value="Limitado">Limitado (Laranja)</option>
+                            </select>
                         </div>
                         <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Cor Badge</label>
-                            <input type="color" name="badge_color" value="#22c55e" style="width:100%;padding:6px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;cursor:pointer" />
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Tamanhos (opcional, ex: P, M, G, GG)</label>
+                            <input type="text" name="sizes" placeholder="Ex: P, M, G, GG" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                         </div>
                     </div>
                     <div>
@@ -726,8 +731,17 @@
                                 </div>
                                 <div class="field-row">
                                     <span class="field-label">Badge</span>
-                                    <input class="field-input" type="text" placeholder="Novidade, Premium…"
-                                        data-field="badge" value="${p.badge || ''}" />
+                                    <select class="field-select" data-field="badge">
+                                        <option value="" ${!p.badge ? 'selected' : ''}>Nenhum</option>
+                                        <option value="Novidade" ${p.badge === 'Novidade' ? 'selected' : ''}>Novidade (Roxo)</option>
+                                        <option value="Promoção" ${p.badge === 'Promoção' ? 'selected' : ''}>Promoção (Verde)</option>
+                                        <option value="Limitado" ${p.badge === 'Limitado' ? 'selected' : ''}>Limitado (Laranja)</option>
+                                    </select>
+                                </div>
+                                <div class="field-row">
+                                    <span class="field-label">Tamanhos</span>
+                                    <input class="field-input" type="text" placeholder="Ex: P, M, G, GG (vazio se s/ tamanho)"
+                                        data-field="sizes" value="${p.variants?.sizes ? p.variants.sizes.join(', ') : ''}" />
                                 </div>
                                 <div class="field-row">
                                     <span class="field-label">Imagem</span>
@@ -753,15 +767,27 @@
                 area.querySelectorAll('.product-admin-card').forEach(card => {
                     card.querySelector('.btn-save-product').addEventListener('click', () => {
                         const id = card.dataset.productId;
+                        
+                        const badgeVal = card.querySelector('[data-field="badge"]').value || null;
+                        let badgeColorVal = null;
+                        if (badgeVal === 'Novidade') badgeColorVal = 'purple';
+                        else if (badgeVal === 'Promoção') badgeColorVal = 'green';
+                        else if (badgeVal === 'Limitado') badgeColorVal = 'orange';
+
+                        const sizesVal = card.querySelector('[data-field="sizes"]').value.trim();
+                        const variantsVal = sizesVal ? { sizes: sizesVal.split(',').map(s => s.trim()).filter(Boolean) } : null;
+
                         const fields = {
                             name: card.querySelector('[data-field="name"]').value.trim(),
                             description: card.querySelector('[data-field="description"]').value.trim(),
                             price: Number(card.querySelector('[data-field="price"]').value),
                             stock: Number(card.querySelector('[data-field="stock"]').value),
                             category: card.querySelector('[data-field="category"]').value,
-                            badge: card.querySelector('[data-field="badge"]').value.trim() || null,
+                            badge: badgeVal,
+                            badge_color: badgeColorVal,
                             image: card.querySelector('[data-field="image"]').value.trim() || null,
                             active: card.querySelector('[data-field="active"]').checked,
+                            variants: variantsVal,
                         };
                         saveProduct(id, fields, card);
                     });
@@ -1183,15 +1209,28 @@
 
                 try {
                     const formData = new FormData(form);
+                    const badgeVal = formData.get('badge') || null;
+                    let badgeColorVal = null;
+                    if (badgeVal === 'Novidade') badgeColorVal = 'purple';
+                    else if (badgeVal === 'Promoção') badgeColorVal = 'green';
+                    else if (badgeVal === 'Limitado') badgeColorVal = 'orange';
+
+                    const sizesVal = formData.get('sizes') ? formData.get('sizes').trim() : '';
+                    let variantsVal = null;
+                    if (sizesVal) {
+                        variantsVal = { sizes: sizesVal.split(',').map(s => s.trim()).filter(Boolean) };
+                    }
+
                     const productData = {
                         name: formData.get('name'),
                         description: formData.get('description'),
                         price: Number(formData.get('price')),
                         stock: Number(formData.get('stock')),
                         category: formData.get('category'),
-                        badge: formData.get('badge') || null,
-                        badge_color: formData.get('badge_color') || null,
+                        badge: badgeVal,
+                        badge_color: badgeColorVal,
                         active: formData.get('active') === 'on',
+                        variants: variantsVal,
                     };
 
                     await createProduct(productData);

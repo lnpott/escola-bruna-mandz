@@ -143,7 +143,7 @@ export default async function handler(req, res) {
                 badge: badge ? String(badge).trim() : null,
                 badge_color: badge_color ? String(badge_color).trim() : null,
                 image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',
-                variants: category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null,
+                variants: req.body.variants ? req.body.variants : (category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null),
             };
 
             const { data, error } = await supabase
@@ -181,9 +181,13 @@ export default async function handler(req, res) {
 
         if ('category' in updates) {
             if (updates.category === 'roupas') {
-                updates.variants = { sizes: ['P', 'M', 'G', 'GG'] };
+                if (!('variants' in updates)) {
+                    updates.variants = { sizes: ['P', 'M', 'G', 'GG'] };
+                }
             } else {
-                updates.variants = null;
+                if (!('variants' in updates)) {
+                    updates.variants = null;
+                }
             }
         }
 
