@@ -10,6 +10,10 @@ MERCADO_PAGO_ACCESS_TOKEN=seu_access_token_do_mp
 MERCADO_PAGO_PUBLIC_KEY=seu_public_key_do_mp
 ADMIN_PASSWORD=sua_senha_forte
 MP_WEBHOOK_URL=https://seu-dominio.vercel.app/api/webhook
+MP_WEBHOOK_SECRET=<segredo gerado pelo Mercado Pago para validar assinatura do webhook>
+# MP_WEBHOOK_SECRET é opcional mas recomendado em produção.
+# Sem ele, qualquer POST externo com um paymentId válido seria processado.
+# Para obter: painel do Mercado Pago → Suas integrações → Webhooks → Chave secreta.
 ```
 
 ## 2) Supabase
