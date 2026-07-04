@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 03/07/2026 — (Etapa 29)
+> Última atualização: 03/07/2026 — (Etapa 30)
 
 ---
 
@@ -73,6 +73,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 27 | **Melhorias de Code Review**: config `bodyParser` no upload, otimização bundle, `.gitignore` de backups, e `.env.example` | ✅ Concluído |
 | 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
 | 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
+| 30 | **Visual hero-headline** — segundo logo removido do nav, logo no ciclo de frases corrigido para `LOGOBGRAND.png` (alta resolução, tamanho proporcional ao texto) | ✅ Concluído |
 
 ---
 
@@ -1031,6 +1032,33 @@ em nova sessão ou ferramenta. Cobre:
 - [x] `supabase/backup_dados.json` removido do repo
 - [x] `.gitignore` atualizado
 - [x] `MP_WEBHOOK_SECRET` documentado
+
+
+---
+
+## ✅ ETAPA 30 — Correções visuais do hero-headline e nav brand
+
+### O que foi feito
+
+**`index.html` — nav brand:**
+- Removido o segundo `<img>` (`LOGOBRANCOPQNO.png`) do link da marca no topo
+- Ficou apenas o `logo.png` com fundo branco arredondado — visual limpo e sem repetição
+
+**`index.html` — ciclo de frases do hero-headline:**
+- Logo que aparecia ao final das frases era `LOGOPRETO.png` — errado (resolução baixa, tamanho incorreto)
+- Substituído por `LOGOBGRAND.png` (alta resolução, arquivo enviado pela Bruna)
+- Tamanho ajustado para `h-32 sm:h-44` — proporcional ao espaço ocupado pelas frases de texto
+- Alinhamento: `mx-auto lg:mx-0` — centralizado no mobile, alinhado à esquerda em desktop
+
+**`public/brand/LOGOBGRAND.png` — novo arquivo adicionado:**
+- Logo em alta resolução com fundo transparente
+- Layout horizontal: "ESCOLA DE MÚSICA / BRUNA MANDZ" com o ícone vermelho da marca
+
+### Status
+- [x] Segundo logo removido do nav
+- [x] Logo do hero-headline corrigido e em alta resolução
+- [x] Arquivo `LOGOBGRAND.png` adicionado em `public/brand/`
+- [x] Commit e push realizados
 
 
 ## 🤔 DECISÃO PENDENTE — Onde salvar os backups do banco de dados
