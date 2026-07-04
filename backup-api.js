@@ -1,8 +1,13 @@
 import fs from 'fs';
 
-// 1. CONFIGURAÇÃO (Substitui pelos teus dados do Supabase)
-const SUPABASE_URL = "https://ljosqddzxreloizpynvf.supabase.co"; 
-const SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqb3NxZGR6eHJlbG9penB5bnZmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjYwNDAwOSwiZXhwIjoyMDk4MTgwMDA5fQ.0L-E3dJVO5Kj41S_JEyLDCt9gEqEbtloVtWX-HaNWeE"; // Começa com eyJ...
+// 1. CONFIGURAÇÃO (Carregada via variáveis de ambiente para segurança)
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://ljosqddzxreloizpynvf.supabase.co"; 
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_SERVICE_KEY) {
+    console.error("❌ Erro: A variável de ambiente SUPABASE_SERVICE_ROLE_KEY não está definida.");
+    process.exit(1);
+}
 
 // Lista as tabelas do teu banco que queres fazer backup
 // Exemplo: ['produtos', 'pedidos', 'usuarios']
@@ -36,13 +41,13 @@ async function fazerBackup() {
         }
     }
 
-    // Criar a pasta de backups se não existir
-    if (!fs.existsSync('./backups')){
-        fs.mkdirSync('./backups');
+    // Criar a pasta supabase se não existir
+    if (!fs.existsSync('./supabase')){
+        fs.mkdirSync('./supabase');
     }
 
     // Guarda o resultado final num ficheiro JSON
-    const caminhoFicheiro = './backups/backup_dados.json';
+    const caminhoFicheiro = './supabase/backup_dados.json';
     fs.writeFileSync(caminhoFicheiro, JSON.stringify(backupCompleto, null, 2));
     
     console.log(`\n🎉 Backup concluído! Dados guardados em: ${caminhoFicheiro}`);
