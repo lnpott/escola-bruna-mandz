@@ -72,6 +72,12 @@ function sanitizeFileName(originalName) {
     return `${cleaned}-${timestamp}.${finalExt}`;
 }
 
+export const config = {
+    api: {
+        bodyParser: false,
+    },
+};
+
 export default async function handler(req, res) {
     // Apenas POST
     if (req.method !== 'POST') {

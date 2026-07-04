@@ -7,16 +7,17 @@ import {
     getCart,
 } from './cart.js';
 import { openCheckoutFlow } from './checkout-modal.js';
-import { PRODUCTS as FALLBACK_PRODUCTS } from './products.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 // ─── Cache de produtos (carregados via /api/products) ─────────────────────────
 
 let PRODUCTS = [];
+let productLoadError = false;
 
 async function loadProducts() {
     try {
+        productLoadError = false;
         const res = await fetch('/api/products', { headers: { Accept: 'application/json' } });
         if (!res.ok) throw new Error(`Falha ao buscar produtos: ${res.status}`);
 
@@ -26,10 +27,11 @@ async function loadProducts() {
         }
 
         const { products } = await res.json();
-        PRODUCTS = Array.isArray(products) ? products : FALLBACK_PRODUCTS;
+        PRODUCTS = Array.isArray(products) ? products : [];
     } catch (err) {
         console.error('store.js: erro ao carregar produtos:', err.message);
-        PRODUCTS = FALLBACK_PRODUCTS;
+        PRODUCTS = [];
+        productLoadError = true;
     }
 }
 
@@ -70,6 +72,15 @@ let activeCategory = 'todos';
 export function renderProducts() {
     const area = document.querySelector('#store-products');
     if (!area) return;
+
+    if (productLoadError) {
+        area.innerHTML = `
+            <div class="col-span-full text-center py-12 text-zinc-500">
+                <i class="fas fa-exclamation-triangle text-4xl mb-3 text-red-500 opacity-60"></i>
+                <p class="text-sm text-zinc-400">Erro ao carregar os produtos. Por favor, recarregue a página.</p>
+            </div>`;
+        return;
+    }
 
     if (!PRODUCTS.length) {
         area.innerHTML = `
