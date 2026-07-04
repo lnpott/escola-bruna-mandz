@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 03/07/2026 — (Etapa 28 — decisão de backup pendente)
+> Última atualização: 03/07/2026 — (Etapa 29)
 
 ---
 
@@ -72,6 +72,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 26 | **Segurança Supabase & Backup Automático**: chaves estáticas removidas de `backup-api.js` + GitHub Actions diário (05:00 UTC) | ✅ Concluído |
 | 27 | **Melhorias de Code Review**: config `bodyParser` no upload, otimização bundle, `.gitignore` de backups, e `.env.example` | ✅ Concluído |
 | 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
+| 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
 
 ---
 
@@ -982,6 +983,56 @@ em nova sessão ou ferramenta. Cobre:
 
 ---
 
+---
+
+## ✅ ETAPA 29 — Backup via GitHub Artifacts (Opção A2 implementada)
+
+### O que foi feito
+
+**`.github/workflows/supabase-backup.yml` — reescrito:**
+- Removido o step `commit and push backup` (que commitava dados de clientes no repo público)
+- Adicionado step `Upload backup as Artifact` usando `actions/upload-artifact@v4`
+- Artifact nomeado com `run_id` e `run_attempt` para unicidade
+- Retenção de 90 dias (configurável até 400 dias nas configurações do repo)
+- Permissão `contents: write` removida (não é mais necessária — não commita nada)
+
+**`backup-api.js` — corrigido:**
+- URL hardcoded removida — falha explicitamente se `SUPABASE_URL` não estiver configurado
+- Arquivo salvo em `./backup_dados.json` na raiz (pasta temporária do runner do GitHub Actions)
+- Adicionado campo `_meta` com data e lista de tabelas no JSON gerado
+- Log de quantos registros foram baixados por tabela
+
+**`supabase/backup_dados.json` — removido do repositório:**
+- `git rm supabase/backup_dados.json` executado
+- Dados de clientes (e-mail, telefone) não ficam mais visíveis no repo público
+
+**`.gitignore` — atualizado:**
+- Adicionados `backup_dados.json` e `supabase/backup_dados.json`
+- Garante que nenhum backup futuro entre acidentalmente no repositório
+
+**`docs/CONFIGURACAO_ENV.md` — atualizado:**
+- `MP_WEBHOOK_SECRET` documentado com descrição e instrução de onde obter no painel do MP
+- Nota sobre ser opcional mas recomendado em produção
+
+### Como funciona agora
+1. Todo dia às 05:00 UTC o GitHub Actions executa `backup-api.js`
+2. O script baixa as tabelas `products` e `orders` do Supabase
+3. Salva em `backup_dados.json` na máquina temporária do runner
+4. O workflow faz upload desse arquivo como **Artifact** privado do GitHub
+5. O arquivo **nunca aparece no repositório** — nem em commit, nem em histórico
+6. Para baixar um backup: GitHub → Actions → selecionar o run → baixar o Artifact
+
+### Retenção
+90 dias por padrão. Para alterar: `Settings → Actions → Artifact and log retention`.
+
+### Status
+- [x] Workflow reescrito e publicado
+- [x] `backup-api.js` corrigido
+- [x] `supabase/backup_dados.json` removido do repo
+- [x] `.gitignore` atualizado
+- [x] `MP_WEBHOOK_SECRET` documentado
+
+
 ## 🤔 DECISÃO PENDENTE — Onde salvar os backups do banco de dados
 
 ### Contexto
@@ -1067,10 +1118,10 @@ via GitHub Artifacts. Zero configuração extra, dados nunca aparecem no repo
 público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
 
 ### Status
-- [ ] Decidir qual opção seguir
-- [ ] Implementar a opção escolhida
-- [ ] Remover `supabase/backup_dados.json` do repositório
-- [ ] Adicionar `supabase/backup_dados.json` ao `.gitignore`
+- [x] Decidir qual opção seguir → **Opção A2 (GitHub Artifacts)** escolhida
+- [x] Implementar a opção escolhida — ver Etapa 29
+- [x] Remover `supabase/backup_dados.json` do repositório
+- [x] Adicionar `supabase/backup_dados.json` ao `.gitignore`
 
 
 ## 🔮 Próximos Passos (o que falta fazer)

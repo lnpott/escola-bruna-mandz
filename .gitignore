@@ -5,3 +5,7 @@ node_modules/
 dist/
 backups/
 /backups
+
+# Backups — nunca commitar dados de clientes
+backup_dados.json
+supabase/backup_dados.json
