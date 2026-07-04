@@ -69,6 +69,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
 | 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
 | 30 | **Visual hero-headline** — segundo logo removido do nav, logo no ciclo de frases corrigido para `LOGOBGRAND.png` (alta resolução, tamanho proporcional ao texto) | ✅ Concluído |
+| 31 | **Quiz Musical** — vídeo oculto ao carregar página, tela de início com botão play, opções reveladas só ao iniciar, "Jogar Novamente" volta à tela inicial | ✅ Concluído |
 | 31 | **Badges selecionáveis, Tamanhos no Painel e Catálogo de 10 Produtos** | ✅ Concluído |
 | 32 | **Zoom nos Produtos (Lightbox Overlay)** | ✅ Concluído |
 
@@ -1032,6 +1033,44 @@ em nova sessão ou ferramenta. Cobre:
 
 
 ---
+
+---
+
+## ✅ ETAPA 31 — Quiz Musical: vídeo oculto e fluxo com tela de início
+
+### Problema
+O vídeo do quiz carregava junto com a página — impacto na performance e
+experiência ruim (vídeo exposto sem contexto ao abrir o site).
+
+### O que foi feito
+
+**`index.html` — estrutura do quiz reformulada:**
+
+- **Tela inicial** (`#quiz-start-screen`) adicionada com:
+  - Botão play circular vermelho grande e clicável
+  - Texto "Pronto para o desafio?" com instrução
+  - Botão "Iniciar Quiz"
+- **Vídeo** (`#quiz-video-wrap`) agora começa com `hidden` — não carrega ao abrir a página (`preload="none"` mantido)
+- **Opções de resposta** (`#quiz-options`) também começam com `hidden` — reveladas só ao iniciar
+
+**Funções JS adicionadas/atualizadas:**
+
+- `startQuiz()` — oculta a tela inicial, revela vídeo e opções, dá play automático no vídeo
+- `resetQuiz()` — atualizado para voltar à tela inicial limpa (antes só resetava o vídeo sem esconder nada)
+
+### Fluxo final
+1. Página carrega → só tela de início visível, zero carregamento de vídeo
+2. Usuário clica em play ou "Iniciar Quiz" → vídeo aparece e toca automaticamente, opções reveladas
+3. Usuário responde → resultado exibido (acerto verde / erro vermelho)
+4. "Jogar Novamente" → volta à tela inicial, vídeo para e reseta
+
+### Status
+- [x] Vídeo oculto ao carregar a página
+- [x] Tela de início com botão play implementada
+- [x] Play automático ao iniciar
+- [x] Reset completo volta à tela inicial
+- [x] Commit e push realizados
+
 
 ## ✅ ETAPA 30 — Correções visuais do hero-headline e nav brand
 
