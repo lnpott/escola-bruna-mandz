@@ -47,7 +47,17 @@ const BADGE_COLORS = {
 
 function badgeHtml(product) {
     if (!product.badge) return '';
-    const cls = BADGE_COLORS[product.badgeColor] || 'bg-red-600 text-white';
+    const badgeText = product.badge.trim().toLowerCase();
+    let cls = '';
+    if (badgeText === 'novidade') {
+        cls = BADGE_COLORS.purple;
+    } else if (badgeText === 'limitado') {
+        cls = BADGE_COLORS.orange;
+    } else if (badgeText === 'promoção' || badgeText === 'promocao' || badgeText === 'promoçao') {
+        cls = BADGE_COLORS.green;
+    } else {
+        cls = BADGE_COLORS[product.badgeColor] || 'bg-red-600 text-white';
+    }
     return `<span class="store-badge ${cls}">${product.badge}</span>`;
 }
 

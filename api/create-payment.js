@@ -64,6 +64,8 @@ export default async function handler(req, res) {
                 total:          order.total,
                 customer_name:  order.customer?.name  || null,
                 customer_email: order.customer?.email || null,
+                customer_phone: order.customer?.phone || null,
+                customer_is_student: order.customer?.isStudent || false,
                 items:          order.items,
                 earned_xp:      order.earnedXp || 0,
             }).catch((e) => console.error('Notificação e-mail (manual) falhou:', e.message));
@@ -220,6 +222,7 @@ async function saveOrderToSupabase({
         customer_name:  order.customer?.name  || null,
         customer_email: order.customer?.email || null,
         customer_phone: order.customer?.phone || null,
+        customer_is_student: order.customer?.isStudent || false,
         items:          order.items,
         total:          order.total,
         mp_payment_id:  mpPaymentId,

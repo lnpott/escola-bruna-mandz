@@ -477,7 +477,15 @@
                             ${novinho?'<span class="badge-new">NOVO</span>':''}
                         </td>
                         <td data-label="Data">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
-                        <td data-label="Cliente">${o.customer_name||'—'}<br><span style="color:#71717a">${o.customer_email||''}</span></td>
+                        <td data-label="Cliente">
+                            ${o.customer_name||'—'}<br>
+                            <span style="color:#71717a">${o.customer_email||''}</span>
+                            ${o.customer_phone ? `<br><span style="color:#a1a1aa;font-size:11px">📞 ${o.customer_phone}</span>` : ''}
+                            <br>
+                            <span class="status-pill ${o.customer_is_student ? 'status-approved' : 'status-rejected'}" style="font-size: 10px; padding: 1px 6px; display: inline-block; margin-top: 3px;">
+                                ${o.customer_is_student ? '🎓 Aluno' : '👤 Não Aluno'}
+                            </span>
+                        </td>
                         <td data-label="Método">${(o.method||'').toUpperCase()}</td>
                         <td data-label="Total">${money.format(o.total)}</td>
                         <td data-label="Status"><span class="status-pill status-${o.status}">${statusLabel(o.status)}</span></td>
@@ -569,10 +577,11 @@
             function exportCsv() {
                 const orders = getFiltered();
                 if (!orders.length) { showToast('Nenhum pedido para exportar.'); return; }
-                const header = ['ID','Data','Cliente','E-mail','Telefone','Método','Total','Status','XP'];
+                const header = ['ID','Data','Cliente','E-mail','Telefone','Aluno','Método','Total','Status','XP'];
                 const rows   = orders.map(o => [
                     o.id, new Date(o.created_at).toLocaleString('pt-BR'),
                     o.customer_name||'', o.customer_email||'', o.customer_phone||'',
+                    o.customer_is_student ? 'Sim' : 'Não',
                     (o.method||'').toUpperCase(), Number(o.total).toFixed(2).replace('.',','),
                     statusLabel(o.status), o.earned_xp||0,
                 ]);

@@ -59,14 +59,23 @@ function generateProductId() {
 }
 
 function normalizeProduct(product) {
+    let variants = product?.variants || null;
+    if (Array.isArray(variants)) {
+        if (variants.length > 0 && typeof variants[0] === 'object' && variants[0] !== null) {
+            variants = variants[0];
+        } else {
+            variants = { sizes: variants };
+        }
+    }
     return {
         ...product,
         image: normalizeProductImage(product?.image),
+        variants: variants,
     };
 }
 
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image',
+    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image', 'variants',
 ];
 
 function auth(req, res) {
@@ -134,6 +143,7 @@ export default async function handler(req, res) {
                 badge: badge ? String(badge).trim() : null,
                 badge_color: badge_color ? String(badge_color).trim() : null,
                 image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',
+                variants: category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null,
             };
 
             const { data, error } = await supabase
@@ -167,6 +177,14 @@ export default async function handler(req, res) {
 
         if (!Object.keys(updates).length) {
             return res.status(400).json({ error: 'Nenhum campo válido para atualizar.' });
+        }
+
+        if ('category' in updates) {
+            if (updates.category === 'roupas') {
+                updates.variants = { sizes: ['P', 'M', 'G', 'GG'] };
+            } else {
+                updates.variants = null;
+            }
         }
 
         // Validações básicas

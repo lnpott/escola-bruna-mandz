@@ -41,6 +41,8 @@ export async function notifyNewOrder(order) {
       <tr><td style="padding:6px 0;color:#a1a1aa;width:110px;">Pedido</td>    <td><strong>${order.id}</strong></td></tr>
       <tr><td style="padding:6px 0;color:#a1a1aa;">Cliente</td>   <td>${order.customer_name || '—'}</td></tr>
       <tr><td style="padding:6px 0;color:#a1a1aa;">E-mail</td>    <td>${order.customer_email || '—'}</td></tr>
+      <tr><td style="padding:6px 0;color:#a1a1aa;">Telefone</td>  <td>${order.customer_phone || '—'}</td></tr>
+      <tr><td style="padding:6px 0;color:#a1a1aa;">Aluno?</td>    <td>${order.customer_is_student ? '🎓 Sim' : '👤 Não'}</td></tr>
       <tr><td style="padding:6px 0;color:#a1a1aa;">Método</td>    <td>${method}</td></tr>
       <tr><td style="padding:6px 0;color:#a1a1aa;">Total</td>     <td><strong style="color:#86efac;">${money(order.total)}</strong></td></tr>
       <tr><td style="padding:6px 0;color:#a1a1aa;">XP gerado</td> <td>+${order.earned_xp || 0}</td></tr>

@@ -77,6 +77,7 @@ export async function submitCustomerForm() {
     const name  = document.getElementById('checkout-name')?.value.trim();
     const email = document.getElementById('checkout-email')?.value.trim();
     const phone = document.getElementById('checkout-phone')?.value.trim();
+    const isStudent = document.getElementById('checkout-is-student')?.value === 'true';
 
     if (!name || !email || !phone) {
         showError('customer', 'Por favor, preencha todos os campos.');
@@ -92,7 +93,7 @@ export async function submitCustomerForm() {
     try {
         ({ order, earnedXp } = buildOrder({
             method: 'manual',
-            customer: { name, email, phone },
+            customer: { name, email, phone, isStudent },
         }));
     } catch (err) {
         window.showToast?.(`Erro: ${err.message}`);

@@ -19,7 +19,8 @@ create table if not exists public.orders (
     mp_payment_id text,                  -- ID do pagamento no Mercado Pago (preenchido após criar)
     mp_status text,                      -- status bruto retornado pelo Mercado Pago
     mp_status_detail text,
-    earned_xp integer default 0
+    earned_xp integer default 0,
+    customer_is_student boolean default false
 );
 
 -- Índices úteis para o painel admin (listar por data, filtrar por status)

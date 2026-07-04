@@ -40,6 +40,14 @@ function normalizeProductImage(image) {
 }
 
 function normalizeProduct(product) {
+    let variants = product?.variants || null;
+    if (Array.isArray(variants)) {
+        if (variants.length > 0 && typeof variants[0] === 'object' && variants[0] !== null) {
+            variants = variants[0];
+        } else {
+            variants = { sizes: variants };
+        }
+    }
     return {
         id: product?.id || `product-${Math.random().toString(36).slice(2, 8)}`,
         name: product?.name || 'Produto sem nome',
@@ -52,7 +60,7 @@ function normalizeProduct(product) {
         badgeColor: product?.badge_color || null,
         image: normalizeProductImage(product?.image),
         rewardXp: Number(product?.reward_xp || 0),
-        variants: product?.variants || null,
+        variants: variants,
     };
 }
 

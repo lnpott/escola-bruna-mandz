@@ -1498,6 +1498,13 @@
                             autocomplete="tel"
                         />
                     </div>
+                    <div class="checkout-field">
+                        <label for="checkout-is-student">Você é aluno da escola?</label>
+                        <select id="checkout-is-student" class="checkout-input">
+                            <option value="false">Não, não sou aluno</option>
+                            <option value="true">Sim, sou aluno</option>
+                        </select>
+                    </div>
                     <div id="checkout-customer-error" class="checkout-error hidden"></div>
                     <button class="checkout-btn-primary" onclick="submitCustomerForm()">
                         Confirmar Pedido <i class="fas fa-arrow-right ml-1"></i>
