@@ -1,7 +1,7 @@
 # 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
 > Documento vivo. Atualizado a cada etapa da implementação.
-> Última atualização: 01/07/2026 — (Etapa 25)
+> Última atualização: 03/07/2026 — (Etapa 28)
 
 ---
 
@@ -71,6 +71,7 @@ Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** c
 | 25 | **Bug no painel**: troca de status retornava erro 405 — corrigido `painel-x9k2f.html` | ✅ Concluído |
 | 26 | **Segurança Supabase & Backup Automático**: chaves estáticas removidas de `backup-api.js` + GitHub Actions diário (05:00 UTC) | ✅ Concluído |
 | 27 | **Melhorias de Code Review**: config `bodyParser` no upload, otimização bundle, `.gitignore` de backups, e `.env.example` | ✅ Concluído |
+| 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
 
 ---
 
@@ -892,6 +893,92 @@ diferentes, sem contrato sincronizado.
 - [x] Executado `npm run build` confirmando compilação do bundle final com sucesso e sem erros.
 
 ---
+
+---
+
+## ✅ ETAPA 28 — Code Review completo + Plano de isolamento do backup
+
+### 28.1 — Auditoria geral realizada em 03/07/2026
+
+Revisão completa de todos os arquivos do repositório após as Etapas 26 e 27.
+
+#### ✅ Confirmado resolvido
+| Item | Estado |
+|---|---|
+| Service Role Key exposta em `backup-api.js` | ✅ Removida — lê de `process.env` |
+| `upload-image.js` sem `bodyParser: false` | ✅ `export const config` adicionado |
+| Import de `FALLBACK_PRODUCTS` em `store.js` | ✅ Removido |
+| Validação de assinatura do webhook (`x-signature`) | ✅ Implementada com `timingSafeEqual` |
+| Sintaxe de todos os arquivos JS | ✅ Zero erros (`node --check`) |
+| Build Vite | ✅ Passa limpo (3.60s, sem warnings) |
+| Adicionar produto no painel (Fase C) | ✅ Modal + upload implementados |
+
+#### 🟡 Pendências identificadas nesta auditoria
+
+**1. `supabase/backup_dados.json` no repositório principal**
+O workflow de GitHub Actions salva o backup em `supabase/backup_dados.json` e
+commita no repo principal — que é público. O arquivo contém e-mail e telefone
+de clientes reais. `supabase/` não está no `.gitignore`.
+
+**2. URL do Supabase hardcoded em `backup-api.js`**
+```js
+// Ainda presente como fallback:
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://ljosqddzxreloizpynvf.supabase.co";
+```
+A chave está segura, mas a URL expõe o ID do projeto Supabase publicamente.
+
+**3. `MP_WEBHOOK_SECRET` não documentada**
+A variável existe em `api/webhook.js` mas não está listada em
+`docs/CONFIGURACAO_ENV.md` — quem configurar o projeto do zero vai perder
+essa variável.
+
+---
+
+### 28.2 — Decisão: backup em repositório privado separado
+
+**Opção escolhida:** criar repositório privado `escola-bruna-mandz-backups`
+e redirecionar o workflow para fazer push lá, em vez de commitar no repo
+principal.
+
+**Por que repositório privado é melhor que ajustar `.gitignore`:**
+- Dados de clientes nunca ficam em repositório público, independente de erro de configuração
+- Histórico do repositório principal fica limpo (sem commits de backup poluindo)
+- Controle de acesso separado — quem tem acesso ao código não necessariamente vê os backups
+- Backups nomeados por data (`backups/YYYY-MM-DD.json`) facilitam auditoria histórica
+
+---
+
+### 28.3 — Prompt de execução gerado
+
+Um prompt completo e autossuficiente foi gerado para execução das correções
+em nova sessão ou ferramenta. Cobre:
+
+1. Reescrever `.github/workflows/supabase-backup.yml` para fazer push no repo privado
+   usando `BACKUP_REPO_TOKEN` (Personal Access Token com escrita só no repo de backup)
+2. Remover `supabase/backup_dados.json` do repo principal e adicionar ao `.gitignore`
+3. Corrigir `backup-api.js` — remover URL hardcoded, falhar explicitamente se
+   `SUPABASE_URL` não estiver configurado
+4. Documentar `MP_WEBHOOK_SECRET` em `docs/CONFIGURACAO_ENV.md` com descrição
+   de uso e nota sobre ser opcional mas recomendado em produção
+
+#### Pré-requisitos para execução
+- [ ] Criar repositório privado `escola-bruna-mandz-backups` no GitHub
+- [ ] Gerar Personal Access Token com permissão `repo` no repo de backup
+- [ ] Adicionar `BACKUP_REPO_TOKEN` nos Secrets do GitHub Actions do repo principal
+      (`Settings → Secrets and variables → Actions`)
+
+#### Secrets do GitHub Actions já configurados (não precisam ser recriados)
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Status
+- [x] Auditoria completa realizada
+- [x] Pendências documentadas
+- [x] Decisão de arquitetura de backup registrada
+- [x] Prompt de execução gerado
+- [ ] Criar repo privado `escola-bruna-mandz-backups`
+- [ ] Executar prompt de correção (reescrever workflow, corrigir backup-api.js, documentar MP_WEBHOOK_SECRET)
+
 
 ## 🔮 Próximos Passos (o que falta fazer)
 
