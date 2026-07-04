@@ -4,11 +4,6 @@ const ASSETS = [
     '/index.html',
     '/audio.js',
     '/game.js',
-    '/store/store.js',
-    '/store/products.js',
-    '/store/cart.js',
-    '/store/payment-config.js',
-    '/store/checkout-modal.js',
 ];
 
 self.addEventListener('install', (event) => {

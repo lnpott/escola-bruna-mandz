@@ -790,8 +790,8 @@
     color: #a1a1aa;
     cursor: pointer;
     transition: color 0.2s;
-    user-select: none;
     -webkit-user-select: none;
+    user-select: none;
     line-height: 1;
 }
 
