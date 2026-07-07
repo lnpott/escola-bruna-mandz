@@ -1346,14 +1346,16 @@ Manter o padrão dark do painel atual:
 
 ### Status
 - [x] Planejamento completo documentado
-- [x] Banco de dados: `supabase/financial-schema.sql` com 5 tabelas criado
-- [x] APIs Backend: 6 endpoints criados e protegidos por senha admin
-  - `api/admin-students.js` — CRUD de alunos
-  - `api/admin-tuitions.js` — Mensalidades
-  - `api/admin-payments.js` — Receitas avulsas
-  - `api/admin-expenses.js` — Custos fixos
-  - `api/admin-investments.js` — Investimentos
-  - `api/admin-financial-summary.js` — KPIs consolidados
+- [x] Banco de dados: `supabase/financial-schema.sql` com 5 tabelas criado e executado no Supabase
+- [x] APIs Backend: consolidadas em `api/admin-financial.js` (roteamento por `?resource=`)
+  - `?resource=students` — CRUD de alunos
+  - `?resource=tuitions` — Mensalidades
+  - `?resource=payments` — Receitas avulsas
+  - `?resource=expenses` — Custos fixos
+  - `?resource=investments` — Investimentos
+  - `?resource=summary` — KPIs consolidados
+  - ⚠️ Consolidação foi necessária: Vercel Hobby permite no máximo 12 Serverless Functions.
+    As 6 APIs individuais foram unificadas em 1 para respeitar o limite (total: 12 functions).
 - [x] Interface: aba "💰 Financeiro" integrada ao `painel-x9k2f.html`
   - Sub-abas: Alunos, Mensalidades, Receitas Avulsas, Custos & Investimentos
   - 6 modais funcionais (Novo Aluno, Nova Mensalidade, Registrar Pagamento, Novo Pagamento Avulso, Novo Custo, Novo Investimento)
@@ -1361,13 +1363,14 @@ Manter o padrão dark do painel atual:
   - Filtro por mês/ano de referência
   - Exportação CSV de receitas avulsas
 - [x] Bug corrigido: função `loadProducts` duplicada removida do painel
+- [x] Fix Vercel: 6 APIs financeiras consolidadas em `api/admin-financial.js` (commit `0370282`)
 - [x] Entregue em: 07/07/2026
 
 ---
 
 ## 🔮 Próximos Passos (o que falta fazer)
 
-1. **Executar SQL no Supabase** — Rodar `supabase/financial-schema.sql` no Editor SQL do Supabase para criar as 5 tabelas do módulo financeiro
+1. ~~**Executar SQL no Supabase**~~ — ✅ Concluído
 2. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
    `api/payment-provider.js`, `api/env.example`
 3. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
