@@ -298,6 +298,7 @@
                 <!-- Sub-abas -->
                 <div class="sub-nav-tabs" style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid #27272a;padding-bottom:0">
                     <button class="nav-tab active" data-subtab="students">🎓 Alunos</button>
+                    <button class="nav-tab" data-subtab="teachers">👨‍🏫 Professores</button>
                     <button class="nav-tab" data-subtab="tuitions">💵 Mensalidades</button>
                     <button class="nav-tab" data-subtab="payments">🧾 Receitas Avulsas</button>
                     <button class="nav-tab" data-subtab="expenses">📉 Custos & Investimentos</button>
@@ -312,6 +313,15 @@
                     <div id="students-area" style="margin-top: 12px;"></div>
                 </div>
 
+                <!-- Sub-aba PROFESSORES -->
+                <div id="subtab-teachers" style="display:none">
+                    <div class="products-toolbar">
+                        <input id="teacher-search-input" type="text" placeholder="Buscar professor por nome..." />
+                        <button id="btn-new-teacher" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Professor</button>
+                    </div>
+                    <div id="teachers-area" style="margin-top: 12px;"></div>
+                </div>
+
                 <!-- Sub-aba MENSALIDADES -->
                 <div id="subtab-tuitions" style="display:none">
                     <div class="products-toolbar">
@@ -321,6 +331,9 @@
                             <option value="paid">Pago</option>
                             <option value="overdue">Atrasado</option>
                             <option value="cancelled">Cancelado</option>
+                        </select>
+                        <select id="tuition-teacher-filter" style="min-width: 140px;">
+                            <option value="">Todos os professores</option>
                         </select>
                         <button id="btn-new-tuition" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Nova Mensalidade</button>
                     </div>
@@ -469,6 +482,58 @@
             </div>
         </div>
 
+        <!-- MODAL: Novo Professor -->
+        <div id="modal-new-teacher" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto">
+                <h2 style="margin:0 0 16px;color:#e4e4e7" id="teacher-modal-title">Novo Professor</h2>
+                <form id="form-new-teacher" style="display:flex;flex-direction:column;gap:12px">
+                    <input type="hidden" name="id" />
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Nome *</label>
+                        <input type="text" name="name" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Telefone</label>
+                        <input type="text" name="phone" placeholder="(XX) XXXXX-XXXX" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Especialidade</label>
+                        <input type="text" name="specialty" placeholder="Ex: Piano, Violão, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Dias de Atendimento</label>
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="seg" /> Seg
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="ter" /> Ter
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="qua" /> Qua
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="qui" /> Qui
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="sex" /> Sex
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="sab" /> Sáb
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
+                                <input type="checkbox" name="days_of_week" value="dom" /> Dom
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Salvar</button>
+                        <button type="button" class="btn-cancel-teacher" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- MODAL: Nova Mensalidade -->
         <div id="modal-new-tuition" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
             <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto">
@@ -496,6 +561,29 @@
                         <div>
                             <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Motivo do Desconto</label>
                             <input type="text" name="discount_reason" placeholder="Ex: Bolsa de Estudos" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <div style="border-top:1px solid #27272a;padding-top:12px;margin-top:8px">
+                        <div style="font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Dados Pedagógicos</div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Professor</label>
+                            <select name="teacher_id" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                                <option value="">Sem professor</option>
+                            </select>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+                            <div>
+                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento</label>
+                                <input type="text" name="instrument" placeholder="Ex: Piano, Violão..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Duração (min)</label>
+                                <input type="number" name="duration_minutes" min="15" step="15" value="60" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            </div>
+                        </div>
+                        <div style="margin-top:8px">
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Aulas por Semana</label>
+                            <input type="number" name="classes_per_week" min="1" max="7" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                         </div>
                     </div>
                     <div>
@@ -1480,6 +1568,7 @@
 
             let _activeSubTab = 'students';
             let _allStudents = [];
+            let _allTeachers = [];
             let _allTuitions = [];
             let _allPayments = [];
             let _allExpenses = [];
@@ -1533,6 +1622,9 @@
                 switch (_activeSubTab) {
                     case 'students':
                         await loadStudents();
+                        break;
+                    case 'teachers':
+                        await loadTeachers();
                         break;
                     case 'tuitions':
                         await loadTuitions(month, year);
@@ -1654,6 +1746,122 @@
                 });
             }
 
+            // Sub-aba: Professores
+            async function loadTeachers() {
+                const area = document.getElementById('teachers-area');
+                area.innerHTML = '<div class="empty-state">Carregando professores...</div>';
+                try {
+                    const res = await fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    _allTeachers = data.teachers;
+                    renderTeachers();
+                } catch (err) {
+                    area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
+                }
+            }
+
+            function renderTeachers() {
+                const area = document.getElementById('teachers-area');
+                const searchVal = document.getElementById('teacher-search-input').value.toLowerCase().trim();
+
+                const filtered = _allTeachers.filter(t =>
+                    !searchVal ||
+                    [t.name, t.phone, t.specialty].filter(Boolean).join(' ').toLowerCase().includes(searchVal)
+                );
+
+                if (!filtered.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum professor cadastrado ou encontrado.</div>';
+                    return;
+                }
+
+                const dayMap = { seg: 'Seg', ter: 'Ter', qua: 'Qua', qui: 'Qui', sex: 'Sex', sab: 'Sáb', dom: 'Dom' };
+                const rows = filtered.map(t => {
+                    const days = t.days_of_week && Array.isArray(t.days_of_week) ? t.days_of_week.map(d => dayMap[d] || d).join(', ') : '—';
+                    return `
+                        <tr>
+                            <td data-label="ID"><strong>${t.id}</strong></td>
+                            <td data-label="Nome"><strong>${t.name}</strong></td>
+                            <td data-label="Telefone">${t.phone || '—'}</td>
+                            <td data-label="Especialidade">${t.specialty || '—'}</td>
+                            <td data-label="Dias">${days}</td>
+                            <td data-label="Ações">
+                                <button class="btn-action-small btn-edit-teacher" data-id="${t.id}">Editar</button>
+                                <button class="btn-action-small btn-action-danger btn-delete-teacher" data-id="${t.id}">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                area.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Nome</th><th>Telefone</th><th>Especialidade</th><th>Dias</th><th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+
+                // Eventos
+                area.querySelectorAll('.btn-edit-teacher').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const teacher = _allTeachers.find(t => t.id === btn.dataset.id);
+                        if (teacher) openTeacherModal(teacher);
+                    });
+                });
+
+                area.querySelectorAll('.btn-delete-teacher').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Deseja excluir este professor? Mensalidades vinculadas ficarão sem professor.')) return;
+                        try {
+                            const res = await fetch(`/api/admin-financial?resource=teachers&id=${btn.dataset.id}`, {
+                                method: 'DELETE',
+                                headers: { 'x-admin-password': _password }
+                            });
+                            if (!res.ok) {
+                                const data = await res.json();
+                                throw new Error(data.error);
+                            }
+                            showToast('Professor excluído!');
+                            loadTeachers();
+                        } catch (e) {
+                            showToast('Erro ao excluir: ' + e.message);
+                        }
+                    });
+                });
+            }
+
+            function openTeacherModal(teacher = null) {
+                const modal = document.getElementById('modal-new-teacher');
+                const form = document.getElementById('form-new-teacher');
+                form.reset();
+
+                if (teacher) {
+                    document.getElementById('teacher-modal-title').textContent = 'Editar Professor';
+                    form.querySelector('[name="id"]').value = teacher.id;
+                    form.querySelector('[name="name"]').value = teacher.name;
+                    form.querySelector('[name="phone"]').value = teacher.phone || '';
+                    form.querySelector('[name="specialty"]').value = teacher.specialty || '';
+                    // Marcar dias da semana
+                    if (teacher.days_of_week && Array.isArray(teacher.days_of_week)) {
+                        form.querySelectorAll('[name="days_of_week"]').forEach(cb => {
+                            cb.checked = teacher.days_of_week.includes(cb.value);
+                        });
+                    }
+                } else {
+                    document.getElementById('teacher-modal-title').textContent = 'Novo Professor';
+                    form.querySelector('[name="id"]').value = '';
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            function closeTeacherModal() {
+                document.getElementById('modal-new-teacher').style.display = 'none';
+            }
+
             // Sub-aba: Mensalidades
             async function loadTuitions(month, year) {
                 const area = document.getElementById('tuitions-area');
@@ -1666,6 +1874,18 @@
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
                     _allTuitions = data.tuitions;
+
+                    // Popular filtro de professores
+                    const teacherFilter = document.getElementById('tuition-teacher-filter');
+                    teacherFilter.innerHTML = '<option value="">Todos os professores</option>';
+                    const teachers = [...new Set(_allTuitions.filter(t => t.teachers).map(t => t.teachers))];
+                    teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name + (t.specialty ? ` (${t.specialty})` : '');
+                        teacherFilter.appendChild(opt);
+                    });
+
                     renderTuitions();
                 } catch (err) {
                     area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
@@ -1674,7 +1894,14 @@
 
             function renderTuitions() {
                 const area = document.getElementById('tuitions-area');
-                if (!_allTuitions.length) {
+                const teacherFilter = document.getElementById('tuition-teacher-filter').value;
+
+                // Filtrar por professor
+                const filtered = teacherFilter
+                    ? _allTuitions.filter(t => t.teachers && t.teachers.id === teacherFilter)
+                    : _allTuitions;
+
+                if (!filtered.length) {
                     area.innerHTML = '<div class="empty-state">Nenhuma mensalidade neste período.</div>';
                     return;
                 }
@@ -1686,12 +1913,14 @@
                     cancelled: { label: 'Cancelado', class: 'status-refunded' }
                 };
 
-                const rows = _allTuitions.map(t => {
+                const rows = filtered.map(t => {
                     const finalValue = Number(t.amount) - Number(t.discount_amount);
                     const s = statusMap[t.status] || { label: t.status, class: '' };
                     const paidDate = t.paid_at ? new Date(t.paid_at).toLocaleDateString('pt-BR') : '—';
                     const method = t.payment_method ? t.payment_method.toUpperCase() : '—';
                     const disc = Number(t.discount_amount) > 0 ? `<br><span style="color:#f87171;font-size:11px">Desc: ${money.format(t.discount_amount)} (${t.discount_reason || 'Outro'})</span>` : '';
+                    const teacherInfo = t.teachers ? `<br><span style="color:#71717a;font-size:11px">👨‍🏫 ${t.teachers.name}</span>` : '';
+                    const instrumentInfo = t.instrument ? `<br><span style="color:#71717a;font-size:11px">🎸 ${t.instrument}</span>` : '';
 
                     let actionHtml = '';
                     if (t.status !== 'paid') {
@@ -1703,7 +1932,7 @@
 
                     return `
                         <tr>
-                            <td data-label="Aluno"><strong>${t.students?.name || 'Aluno Excluído'}</strong></td>
+                            <td data-label="Aluno"><strong>${t.students?.name || 'Aluno Excluído'}</strong>${teacherInfo}${instrumentInfo}</td>
                             <td data-label="Valor">${money.format(t.amount)}${disc}</td>
                             <td data-label="Total">${money.format(finalValue)}</td>
                             <td data-label="Vencimento">${new Date(t.due_date + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
@@ -1961,6 +2190,7 @@
 
             async function populateStudentSelects() {
                 try {
+                    // Buscar alunos
                     const res = await fetch('/api/admin-financial?resource=students', { headers: { 'x-admin-password': _password } });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
@@ -1986,8 +2216,24 @@
                             select.appendChild(opt);
                         });
                     });
+
+                    // Buscar professores
+                    const teacherRes = await fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } });
+                    const teacherData = await teacherRes.json();
+                    if (teacherRes.ok) {
+                        const teacherSelect = document.querySelector('#form-new-tuition [name="teacher_id"]');
+                        if (teacherSelect) {
+                            teacherSelect.innerHTML = '<option value="">Sem professor</option>';
+                            teacherData.teachers.forEach(t => {
+                                const opt = document.createElement('option');
+                                opt.value = t.id;
+                                opt.textContent = t.name + (t.specialty ? ` (${t.specialty})` : '');
+                                teacherSelect.appendChild(opt);
+                            });
+                        }
+                    }
                 } catch (e) {
-                    showToast('Erro ao buscar lista de alunos: ' + e.message);
+                    showToast('Erro ao buscar lista de alunos/professores: ' + e.message);
                 }
             }
 
@@ -2225,6 +2471,59 @@
                  }
              });
 
+             // Professores
+             document.getElementById('btn-new-teacher').addEventListener('click', () => openTeacherModal());
+             document.querySelectorAll('.btn-cancel-teacher').forEach(b => b.addEventListener('click', closeTeacherModal));
+             document.getElementById('teacher-search-input').addEventListener('input', renderTeachers);
+
+             document.getElementById('form-new-teacher').addEventListener('submit', async (e) => {
+                 e.preventDefault();
+                 const form = e.target;
+                 const id = form.querySelector('[name="id"]').value;
+
+                 // Coletar dias da semana selecionados
+                 const selectedDays = [];
+                 form.querySelectorAll('[name="days_of_week"]:checked').forEach(cb => {
+                     selectedDays.push(cb.value);
+                 });
+
+                 const payload = {
+                     name: form.querySelector('[name="name"]').value,
+                     phone: form.querySelector('[name="phone"]').value,
+                     specialty: form.querySelector('[name="specialty"]').value,
+                     days_of_week: selectedDays
+                 };
+
+                 try {
+                     let res;
+                     if (id) {
+                         // Edit
+                         res = await fetch('/api/admin-financial?resource=teachers', {
+                             method: 'PATCH',
+                             headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                             body: JSON.stringify({ id, ...payload })
+                         });
+                     } else {
+                         // New
+                         res = await fetch('/api/admin-financial?resource=teachers', {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                             body: JSON.stringify(payload)
+                         });
+                     }
+
+                     if (!res.ok) {
+                         const data = await res.json();
+                         throw new Error(data.error);
+                     }
+                     showToast('Professor salvo com sucesso!');
+                     closeTeacherModal();
+                     loadTeachers();
+                 } catch (err) {
+                     showToast('Erro ao salvar professor: ' + err.message);
+                 }
+             });
+
              // Mensalidades
              document.getElementById('btn-new-tuition').addEventListener('click', async () => {
                  await populateStudentSelects();
@@ -2245,6 +2544,7 @@
                  document.getElementById('modal-new-tuition').style.display = 'none';
              }));
              document.getElementById('tuition-status-filter').addEventListener('change', loadFinancialData);
+             document.getElementById('tuition-teacher-filter').addEventListener('change', renderTuitions);
 
              document.getElementById('form-new-tuition').addEventListener('submit', async (e) => {
                  e.preventDefault();
@@ -2255,7 +2555,11 @@
                      due_date: form.querySelector('[name="due_date"]').value,
                      discount_amount: form.querySelector('[name="discount_amount"]').value,
                      discount_reason: form.querySelector('[name="discount_reason"]').value,
-                     notes: form.querySelector('[name="notes"]').value
+                     notes: form.querySelector('[name="notes"]').value,
+                     teacher_id: form.querySelector('[name="teacher_id"]').value || null,
+                     instrument: form.querySelector('[name="instrument"]').value || null,
+                     duration_minutes: form.querySelector('[name="duration_minutes"]').value ? parseInt(form.querySelector('[name="duration_minutes"]').value) : null,
+                     classes_per_week: form.querySelector('[name="classes_per_week"]').value ? parseInt(form.querySelector('[name="classes_per_week"]').value) : null
                  };
 
                  try {
@@ -2453,7 +2757,7 @@
              });
 
              // Fechar modais ao clicar fora
-             ['modal-new-student', 'modal-new-tuition', 'modal-pay-tuition', 'modal-new-payment', 'modal-new-expense', 'modal-new-investment'].forEach(id => {
+             ['modal-new-student', 'modal-new-teacher', 'modal-new-tuition', 'modal-pay-tuition', 'modal-new-payment', 'modal-new-expense', 'modal-new-investment'].forEach(id => {
                  document.getElementById(id).addEventListener('click', (e) => {
                      if (e.target.id === id) {
                          document.getElementById(id).style.display = 'none';
