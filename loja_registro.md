@@ -1210,7 +1210,7 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
 - **Interação Intuitiva**: Adicionado cursor `zoom-in` nas imagens dos cards de produtos e cursor `zoom-out` na imagem expandida para sinalizar que o clique realiza o zoom e fecha a visualização, além de um botão de fechamento (`×`) no canto superior direito.
 - **Visual Dark Integrado**: Estilizado em [store/store-style.css](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store-style.css) com fundo semi-transparente escuro (`rgba(9, 9, 11, 0.95)`), bordas arredondadas e sombras projetadas no lightbox.
 
-## � ETAPA 33 — Planejamento da Aba Financeira no Painel Administrativo
+## ✅ ETAPA 33 — Módulo Financeiro no Painel Administrativo (CONCLUÍDA)
 
 ### Contexto
 Solicitado pelo usuário em 07/07/2026: adicionar uma nova aba "Financeiro" ao painel administrativo para gestão completa das finanças da escola, incluindo alunos, mensalidades, pagamentos, custos e investimentos.
@@ -1346,14 +1346,28 @@ Manter o padrão dark do painel atual:
 
 ### Status
 - [x] Planejamento completo documentado
-- [ ] Aguardando aprovação do usuário para iniciar implementação
-- [ ] Plano detalhado salvo em `C:\Users\lnpot\.windsurf\plans\aba-financeira-fa2d12.md`
+- [x] Banco de dados: `supabase/financial-schema.sql` com 5 tabelas criado
+- [x] APIs Backend: 6 endpoints criados e protegidos por senha admin
+  - `api/admin-students.js` — CRUD de alunos
+  - `api/admin-tuitions.js` — Mensalidades
+  - `api/admin-payments.js` — Receitas avulsas
+  - `api/admin-expenses.js` — Custos fixos
+  - `api/admin-investments.js` — Investimentos
+  - `api/admin-financial-summary.js` — KPIs consolidados
+- [x] Interface: aba "💰 Financeiro" integrada ao `painel-x9k2f.html`
+  - Sub-abas: Alunos, Mensalidades, Receitas Avulsas, Custos & Investimentos
+  - 6 modais funcionais (Novo Aluno, Nova Mensalidade, Registrar Pagamento, Novo Pagamento Avulso, Novo Custo, Novo Investimento)
+  - Dashboard KPIs: Recebido, Pago, Saldo, Pendentes, Alunos em Atraso
+  - Filtro por mês/ano de referência
+  - Exportação CSV de receitas avulsas
+- [x] Bug corrigido: função `loadProducts` duplicada removida do painel
+- [x] Entregue em: 07/07/2026
 
 ---
 
-## �🔮 Próximos Passos (o que falta fazer)
+## 🔮 Próximos Passos (o que falta fazer)
 
-1. **Implementar Etapa 33** — Aba Financeira (aguardando aprovação do plano)
+1. **Executar SQL no Supabase** — Rodar `supabase/financial-schema.sql` no Editor SQL do Supabase para criar as 5 tabelas do módulo financeiro
 2. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
    `api/payment-provider.js`, `api/env.example`
 3. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
