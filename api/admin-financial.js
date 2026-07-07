@@ -1,7 +1,8 @@
 /**
  * api/admin-financial.js
  * API financeira consolidada para o painel admin.
- * Roteamento interno por query string: ?resource=students|tuitions|payments|expenses|investments|summary
+ * Roteamento interno por query string: ?resource=students|teachers|tuitions|payments|expenses|investments|summary
+
  * Protegido por header 'x-admin-password'.
  *
  * Consolida os 6 endpoints anteriores em 1 único arquivo para respeitar o
@@ -45,6 +46,7 @@ function monthRange(month, year) {
 // ── Handlers por resource ─────────────────────────────────────────────────────
 
 async function handleStudents(req, res, supabase) {
+
     const { method } = req;
 
     if (method === 'GET') {
@@ -92,7 +94,72 @@ async function handleStudents(req, res, supabase) {
     return res.status(405).json({ error: 'Método não permitido.' });
 }
 
+async function handleTeachers(req, res, supabase) {
+    const { method } = req;
+
+    if (method === 'GET') {
+        const { data, error } = await supabase
+            .from('teachers')
+            .select('*')
+            .order('name', { ascending: true });
+        if (error) throw error;
+        return res.status(200).json({ teachers: data });
+    }
+
+    if (method === 'POST') {
+        const { name, phone, specialty, days_of_week } = req.body;
+        if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
+
+        const days = Array.isArray(days_of_week)
+            ? days_of_week
+            : (typeof days_of_week === 'string' ? days_of_week.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+        const { data, error } = await supabase
+            .from('teachers')
+            .insert([{ id: genId('TE'), name, phone: phone || null, specialty: specialty || null, days_of_week: days }])
+            .select().single();
+        if (error) throw error;
+        return res.status(201).json({ teacher: data });
+    }
+
+    if (method === 'PATCH') {
+        const { id, name, phone, specialty, days_of_week } = req.body;
+        if (!id) return res.status(400).json({ error: 'id do professor é obrigatório.' });
+
+        const upd = {};
+        if (name !== undefined) upd.name = name;
+        if (phone !== undefined) upd.phone = phone || null;
+        if (specialty !== undefined) upd.specialty = specialty || null;
+
+        if (days_of_week !== undefined) {
+            const days = Array.isArray(days_of_week)
+                ? days_of_week
+                : (typeof days_of_week === 'string' ? days_of_week.split(',').map(s => s.trim()).filter(Boolean) : []);
+            upd.days_of_week = days;
+        }
+
+        const { data, error } = await supabase
+            .from('teachers')
+            .update(upd)
+            .eq('id', id)
+            .select().single();
+        if (error) throw error;
+        return res.status(200).json({ teacher: data });
+    }
+
+    if (method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'ID do professor é obrigatório na query string.' });
+        const { error } = await supabase.from('teachers').delete().eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
+}
+
 async function handleTuitions(req, res, supabase) {
+
     const { method } = req;
 
     if (method === 'GET') {
@@ -110,20 +177,69 @@ async function handleTuitions(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { student_id, amount, discount_amount, discount_reason, due_date, status, notes } = req.body;
-        if (!student_id || !amount || !due_date)
+        const {
+            student_id,
+            teacher_id,
+            instrument,
+            duration_minutes,
+            classes_per_week,
+            amount,
+            discount_amount,
+            discount_reason,
+            due_date,
+            status,
+            notes,
+        } = req.body;
+
+        if (!student_id || !amount || !due_date) {
             return res.status(400).json({ error: 'student_id, amount e due_date são obrigatórios.' });
+        }
+
+        const payload = {
+            id: genId('TU'),
+            student_id,
+            teacher_id: teacher_id || null,
+            instrument: instrument || null,
+            duration_minutes: duration_minutes !== undefined && duration_minutes !== null ? parseInt(duration_minutes, 10) : 60,
+            classes_per_week: classes_per_week !== undefined && classes_per_week !== null ? parseInt(classes_per_week, 10) : 1,
+            amount: parseFloat(amount),
+            discount_amount: parseFloat(discount_amount || 0),
+            discount_reason: discount_reason || null,
+            due_date,
+            status: status || 'pending',
+            notes: notes || null,
+        };
+
         const { data, error } = await supabase
             .from('tuitions')
-            .insert([{ id: genId('TU'), student_id, amount: parseFloat(amount), discount_amount: parseFloat(discount_amount || 0), discount_reason: discount_reason || null, due_date, status: status || 'pending', notes: notes || null }])
-            .select('*, students(name)').single();
+            .insert([payload])
+            .select('*, students(name)')
+            .single();
+
         if (error) throw error;
         return res.status(201).json({ tuition: data });
     }
 
+
     if (method === 'PATCH') {
-        const { id, status, payment_method, paid_at, discount_amount, discount_reason, amount, notes, due_date } = req.body;
+        const {
+            id,
+            status,
+            payment_method,
+            paid_at,
+            discount_amount,
+            discount_reason,
+            amount,
+            notes,
+            due_date,
+            teacher_id,
+            instrument,
+            duration_minutes,
+            classes_per_week,
+        } = req.body;
+
         if (!id) return res.status(400).json({ error: 'ID da mensalidade é obrigatório.' });
+
         const upd = {};
         if (status           !== undefined) upd.status           = status;
         if (payment_method   !== undefined) upd.payment_method   = payment_method;
@@ -133,12 +249,26 @@ async function handleTuitions(req, res, supabase) {
         if (amount           !== undefined) upd.amount           = parseFloat(amount);
         if (notes            !== undefined) upd.notes            = notes;
         if (due_date         !== undefined) upd.due_date         = due_date;
+
+        if (teacher_id       !== undefined) upd.teacher_id = teacher_id || null;
+        if (instrument       !== undefined) upd.instrument = instrument || null;
+        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
+        if (classes_per_week !== undefined) upd.classes_per_week = parseInt(classes_per_week, 10);
+
         if (status === 'paid' && !upd.paid_at) upd.paid_at = new Date().toISOString();
         else if (status && status !== 'paid') { upd.paid_at = null; upd.payment_method = null; }
-        const { data, error } = await supabase.from('tuitions').update(upd).eq('id', id).select('*, students(name)').single();
+
+        const { data, error } = await supabase
+            .from('tuitions')
+            .update(upd)
+            .eq('id', id)
+            .select('*, students(name)')
+            .single();
+
         if (error) throw error;
         return res.status(200).json({ tuition: data });
     }
+
 
     return res.status(405).json({ error: 'Método não permitido.' });
 }
@@ -175,49 +305,82 @@ async function handlePayments(req, res, supabase) {
 }
 
 async function handleExpenses(req, res, supabase) {
+
     const { method } = req;
 
     if (method === 'GET') {
-        const { paid, month, year } = req.query;
+        const { paid, month, year, expense_type } = req.query;
         let q = supabase.from('expenses').select('*').order('due_date', { ascending: false });
+
+        if (expense_type) q = q.eq('expense_type', expense_type);
         if (paid !== undefined && paid !== '') q = q.eq('paid', paid === 'true');
+
         if (month && year) {
             const { dateStart, dateEnd } = monthRange(month, year);
             q = q.gte('due_date', dateStart).lte('due_date', dateEnd);
         }
+
         const { data, error } = await q;
         if (error) throw error;
         return res.status(200).json({ expenses: data });
     }
 
+
     if (method === 'POST') {
-        const { description, amount, category, due_date, paid, paid_at } = req.body;
+        const { description, amount, category, due_date, paid, paid_at, expense_type } = req.body;
+
         if (!description || !amount || !due_date)
             return res.status(400).json({ error: 'descrição, valor e data de vencimento são obrigatórios.' });
+
+        const payload = {
+            id: genId('EX'),
+            description,
+            amount: parseFloat(amount),
+            category: category || 'outro',
+            due_date,
+            expense_type: expense_type || 'fixed',
+            paid: paid || false,
+            paid_at: paid ? (paid_at || new Date().toISOString()) : null,
+        };
+
         const { data, error } = await supabase
             .from('expenses')
-            .insert([{ id: genId('EX'), description, amount: parseFloat(amount), category: category || 'outro', due_date, paid: paid || false, paid_at: paid ? (paid_at || new Date().toISOString()) : null }])
-            .select().single();
+            .insert([payload])
+            .select()
+            .single();
+
         if (error) throw error;
         return res.status(201).json({ expense: data });
     }
 
+
     if (method === 'PATCH') {
-        const { id, description, amount, category, due_date, paid, paid_at } = req.body;
+        const { id, description, amount, category, due_date, paid, paid_at, expense_type } = req.body;
         if (!id) return res.status(400).json({ error: 'ID da despesa é obrigatório.' });
+
         const upd = {};
         if (description !== undefined) upd.description = description;
         if (amount      !== undefined) upd.amount      = parseFloat(amount);
         if (category    !== undefined) upd.category    = category;
         if (due_date    !== undefined) upd.due_date    = due_date;
+        if (expense_type !== undefined) upd.expense_type = expense_type;
         if (paid        !== undefined) upd.paid        = paid;
         if (paid_at     !== undefined) upd.paid_at     = paid_at;
+
         if (paid === true  && !upd.paid_at) upd.paid_at = new Date().toISOString();
         if (paid === false) upd.paid_at = null;
-        const { data, error } = await supabase.from('expenses').update(upd).eq('id', id).select().single();
+
+        const { data, error } = await supabase
+            .from('expenses')
+            .update(upd)
+            .eq('id', id)
+            .select()
+            .single();
+
         if (error) throw error;
         return res.status(200).json({ expense: data });
     }
+
 
     return res.status(405).json({ error: 'Método não permitido.' });
 }
@@ -312,11 +475,13 @@ export default async function handler(req, res) {
     try {
         switch (resource) {
             case 'students':    return await handleStudents(req, res, supabase);
+            case 'teachers':    return await handleTeachers(req, res, supabase);
             case 'tuitions':    return await handleTuitions(req, res, supabase);
             case 'payments':    return await handlePayments(req, res, supabase);
             case 'expenses':    return await handleExpenses(req, res, supabase);
             case 'investments': return await handleInvestments(req, res, supabase);
             case 'summary':     return await handleSummary(req, res, supabase);
+
             default:
                 return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: students, tuitions, payments, expenses, investments, summary.' });
         }
