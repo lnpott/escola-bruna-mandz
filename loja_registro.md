@@ -1210,7 +1210,29 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
 - **Interação Intuitiva**: Adicionado cursor `zoom-in` nas imagens dos cards de produtos e cursor `zoom-out` na imagem expandida para sinalizar que o clique realiza o zoom e fecha a visualização, além de um botão de fechamento (`×`) no canto superior direito.
 - **Visual Dark Integrado**: Estilizado em [store/store-style.css](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store-style.css) com fundo semi-transparente escuro (`rgba(9, 9, 11, 0.95)`), bordas arredondadas e sombras projetadas no lightbox.
 
+## 🐛 BUG FIX — Sub-abas do Módulo Financeiro (07/07/2026)
+
+### Problema
+Após deploy da Etapa 33, as sub-abas **🎓 Alunos**, **💵 Mensalidades** e **🧾 Receitas Avulsas** não funcionavam: clicar nelas não exibia nenhum conteúdo nem abria modais.
+
+### Causa Raiz
+O seletor `document.querySelectorAll('.nav-tab')` era genérico demais — capturava tanto as **3 tabs principais** (Pedidos, Produtos, Financeiro) quanto os **4 botões de sub-aba** do módulo financeiro.
+
+Isso causava **dois problemas simultâneos**:
+1. Clicar em qualquer sub-aba (ex: "Alunos") disparava `switchTab(undefined)` — que escondia todos os conteúdos porque nenhuma tab tem `data-tab === undefined`
+2. A função `switchTab` resetava o estado `.active` de todos os `.nav-tab`, apagando o destaque da sub-aba clicada
+
+### Correção
+- Restringido o seletor para `.nav-tabs > .nav-tab` (filho direto da barra de navegação principal)
+- As sub-abas em `.sub-nav-tabs .nav-tab` ficaram completamente isoladas do listener das tabs principais
+
+### Arquivos alterados
+- `painel-x9k2f.html` — 2 ocorrências do seletor corrigidas (commit `043eef9`)
+
+---
+
 ## ✅ ETAPA 33 — Módulo Financeiro no Painel Administrativo (CONCLUÍDA)
+
 
 ### Contexto
 Solicitado pelo usuário em 07/07/2026: adicionar uma nova aba "Financeiro" ao painel administrativo para gestão completa das finanças da escola, incluindo alunos, mensalidades, pagamentos, custos e investimentos.
