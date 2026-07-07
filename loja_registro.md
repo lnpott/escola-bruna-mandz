@@ -1210,15 +1210,157 @@ público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
 - **Interação Intuitiva**: Adicionado cursor `zoom-in` nas imagens dos cards de produtos e cursor `zoom-out` na imagem expandida para sinalizar que o clique realiza o zoom e fecha a visualização, além de um botão de fechamento (`×`) no canto superior direito.
 - **Visual Dark Integrado**: Estilizado em [store/store-style.css](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store-style.css) com fundo semi-transparente escuro (`rgba(9, 9, 11, 0.95)`), bordas arredondadas e sombras projetadas no lightbox.
 
-## 🔮 Próximos Passos (o que falta fazer)
+## � ETAPA 33 — Planejamento da Aba Financeira no Painel Administrativo
 
-1. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
+### Contexto
+Solicitado pelo usuário em 07/07/2026: adicionar uma nova aba "Financeiro" ao painel administrativo para gestão completa das finanças da escola, incluindo alunos, mensalidades, pagamentos, custos e investimentos.
+
+### Requisitos definidos pelo usuário
+
+**1. Dados financeiros a gerenciar:**
+- Mensalidades dos alunos
+- Pagamentos avulsos (matrícula, material, aulas extras)
+- Histórico de pagamentos por aluno
+- Alunos em atraso
+
+**2. Operações do dia a dia:**
+- Registrar pagamento recebido
+- Marcar aluno como pago/não pago
+- Gerar relatórios de pagamentos
+- Verificar quem está em atraso
+
+**3. Gestão de alunos:**
+- Não existe tabela de alunos atualmente — precisa ser criada junto com a financeira
+
+**4. Formas de pagamento aceitas:**
+- Cartão
+- Pix
+
+**5. Custos e investimentos:**
+- Custos fixos: aluguel, água, luz, material didático
+- Investimentos: novos instrumentos, móveis, equipamentos
+- Marketing considerado como investimento
+
+**6. Mensalidades:**
+- Valores diferentes por aluno
+- Possibilidade de descontos
+- Vencimento varia por aluno
+
+**7. Relatórios:**
+- Relatórios só quando solicitado
+- Visão básica de fechamento do mês (receita vs despesas)
+
+### Estrutura do Banco de Dados (Supabase) — 5 novas tabelas
+
+**1. `students`** — Cadastro de alunos
+- `id` (text, primary key)
+- `name`, `email`, `phone`, `address`
+- `created_at`, `active`
+
+**2. `tuitions`** — Mensalidades
+- `id`, `student_id` (FK → students)
+- `amount`, `discount_amount`, `discount_reason`
+- `due_date`, `status` ('pending' | 'paid' | 'overdue' | 'cancelled')
+- `payment_method` ('pix' | 'card'), `paid_at`
+- `notes`
+
+**3. `payments`** — Pagamentos avulsos
+- `id`, `student_id` (FK, nullable)
+- `description`, `amount`, `payment_method`
+- `category` ('matricula' | 'material' | 'aula_extra' | 'outro')
+- `paid_at`, `created_at`
+
+**4. `expenses`** — Custos fixos
+- `id`, `description`, `amount`
+- `category` ('aluguel' | 'agua' | 'luz' | 'material' | 'outro')
+- `due_date`, `paid`, `paid_at`
+
+**5. `investments`** — Investimentos
+- `id`, `description`, `amount`
+- `category` ('instrumento' | 'movel' | 'equipamento' | 'outro')
+- `purchased_at`, `notes`
+
+### Interface do Painel — Nova aba "💰 Financeiro" com 4 sub-abas
+
+**1. Alunos**
+- Lista com busca
+- CRUD completo (criar, editar, excluir)
+- Ver mensalidades do aluno
+
+**2. Mensalidades**
+- Lista com filtros (status, mês/ano)
+- KPIs: total pendente, total pago, alunos em atraso
+- Ações: marcar como pago, registrar pagamento
+- Modal "Nova Mensalidade"
+
+**3. Pagamentos Avulsos**
+- Lista com filtros (categoria, período)
+- Modal "Novo Pagamento"
+- Exportar CSV
+
+**4. Custos e Investimentos**
+- Duas seções: Custos Fixos e Investimentos
+- Modais para adicionar custo/investimento
+- Resumo: total custos do mês, total investimentos
+
+### KPIs da aba Financeiro
+- Receita do mês (mensalidades + pagamentos avulsos)
+- Despesas do mês (custos fixos)
+- Saldo do mês (receita - despesas)
+- Alunos em atraso
+
+### APIs a criar (6 novas, todas protegidas por `x-admin-password`)
+
+1. `api/admin-students.js` — CRUD de alunos
+2. `api/admin-tuitions.js` — Listar/criar/atualizar mensalidades
+3. `api/admin-payments.js` — Listar/registrar pagamentos avulsos
+4. `api/admin-expenses.js` — Listar/criar/marcar custo como pago
+5. `api/admin-investments.js` — Listar/registrar investimentos
+6. `api/admin-financial-summary.js` — KPIs financeiros
+
+### Modais a criar (6 modais)
+
+1. Novo Aluno
+2. Nova Mensalidade
+3. Registrar Pagamento
+4. Novo Pagamento Avulso
+5. Novo Custo
+6. Novo Investimento
+
+### Implementação em 7 etapas
+
+1. **Banco de Dados** — Criar `supabase/financial-schema.sql` com todas as tabelas
+2. **APIs Backend** — Criar as 6 APIs protegidas
+3. **Interface — Parte 1** — Sub-aba "Alunos" + CRUD
+4. **Interface — Parte 2** — Sub-aba "Mensalidades" + modais
+5. **Interface — Parte 3** — Sub-aba "Pagamentos Avulsos"
+6. **Interface — Parte 4** — Sub-aba "Custos e Investimentos"
+7. **Testes e Ajustes** — Validação completa do fluxo
+
+### Estilo Visual
+Manter o padrão dark do painel atual:
+- Fundo `#09090b`, cards `#18181b`, bordas `#27272a`
+- Acento vermelho `#dc2626` para ações principais
+- Status: verde (pago), amarelo (pendente), vermelho (atrasado)
+- Responsivo para mobile
+
+### Status
+- [x] Planejamento completo documentado
+- [ ] Aguardando aprovação do usuário para iniciar implementação
+- [ ] Plano detalhado salvo em `C:\Users\lnpot\.windsurf\plans\aba-financeira-fa2d12.md`
+
+---
+
+## �🔮 Próximos Passos (o que falta fazer)
+
+1. **Implementar Etapa 33** — Aba Financeira (aguardando aprovação do plano)
+2. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
    `api/payment-provider.js`, `api/env.example`
-2. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
+3. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
    por senha admin), mas pode ser removido se não houver mais utilidade
-3. Confirmar preços reais dos 10 produtos com a Bruna
-4. Hardening pendente: validar assinatura `x-signature` do webhook do MP
-5. Decidir se notificação por e-mail deve ser enviada também para pedidos
+4. Confirmar preços reais dos 10 produtos com a Bruna
+5. Hardening pendente: validar assinatura `x-signature` do webhook do MP
+6. Decidir se notificação por e-mail deve ser enviada também para pedidos
    PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
 
 Passo a passo de configuração inicial (Supabase, Mercado Pago, Vercel,
