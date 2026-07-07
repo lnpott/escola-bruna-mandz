@@ -1546,7 +1546,7 @@
 
             async function loadFinancialSummary(month, year) {
                 try {
-                    const res = await fetch(`/api/admin-financial-summary?month=${month}&year=${year}`, {
+                    const res = await fetch(`/api/admin-financial?resource=summary&month=${month}&year=${year}`, {
                         headers: { 'x-admin-password': _password }
                     });
                     const data = await res.json();
@@ -1570,7 +1570,7 @@
                 const area = document.getElementById('students-area');
                 area.innerHTML = '<div class="empty-state">Carregando alunos...</div>';
                 try {
-                    const res = await fetch('/api/admin-students', { headers: { 'x-admin-password': _password } });
+                    const res = await fetch('/api/admin-financial?resource=students', { headers: { 'x-admin-password': _password } });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
                     _allStudents = data.students;
@@ -1635,7 +1635,7 @@
                     btn.addEventListener('click', async () => {
                         if (!confirm('Deseja excluir permanentemente este aluno e todas as suas mensalidades?')) return;
                         try {
-                            const res = await fetch(`/api/admin-students?id=${btn.dataset.id}`, {
+                            const res = await fetch(`/api/admin-financial?resource=students&id=${btn.dataset.id}`, {
                                 method: 'DELETE',
                                 headers: { 'x-admin-password': _password }
                             });
@@ -1658,7 +1658,7 @@
                 area.innerHTML = '<div class="empty-state">Carregando mensalidades...</div>';
                 try {
                     const status = document.getElementById('tuition-status-filter').value;
-                    const res = await fetch(`/api/admin-tuitions?month=${month}&year=${year}&status=${status}`, {
+                    const res = await fetch(`/api/admin-financial?resource=tuitions&month=${month}&year=${year}&status=${status}`, {
                         headers: { 'x-admin-password': _password }
                     });
                     const data = await res.json();
@@ -1743,7 +1743,7 @@
                     btn.addEventListener('click', async () => {
                         if (!confirm('Deseja cancelar esta mensalidade?')) return;
                         try {
-                            const res = await fetch('/api/admin-tuitions', {
+                            const res = await fetch('/api/admin-financial?resource=tuitions', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                                 body: JSON.stringify({ id: btn.dataset.id, status: 'cancelled' })
@@ -1764,7 +1764,7 @@
                 area.innerHTML = '<div class="empty-state">Carregando pagamentos...</div>';
                 try {
                     const category = document.getElementById('payment-category-filter').value;
-                    const res = await fetch(`/api/admin-payments?month=${month}&year=${year}&category=${category}`, {
+                    const res = await fetch(`/api/admin-financial?resource=payments&month=${month}&year=${year}&category=${category}`, {
                         headers: { 'x-admin-password': _password }
                     });
                     const data = await res.json();
@@ -1817,7 +1817,7 @@
 
                 try {
                     // Custos
-                    const resExp = await fetch(`/api/admin-expenses?month=${month}&year=${year}`, {
+                    const resExp = await fetch(`/api/admin-financial?resource=expenses&month=${month}&year=${year}`, {
                         headers: { 'x-admin-password': _password }
                     });
                      const dataExp = await resExp.json();
@@ -1825,7 +1825,7 @@
                      _allExpenses = dataExp.expenses;
 
                      // Investimentos
-                     const resInv = await fetch(`/api/admin-investments?month=${month}&year=${year}`, {
+                     const resInv = await fetch(`/api/admin-financial?resource=investments&month=${month}&year=${year}`, {
                          headers: { 'x-admin-password': _password }
                      });
                      const dataInv = await resInv.json();
@@ -1884,7 +1884,7 @@
                     btn.addEventListener('click', async () => {
                         if (!confirm('Deseja marcar esta despesa como paga na data atual?')) return;
                         try {
-                            const res = await fetch('/api/admin-expenses', {
+                            const res = await fetch('/api/admin-financial?resource=expenses', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                                 body: JSON.stringify({ id: btn.dataset.id, paid: true })
@@ -1959,7 +1959,7 @@
 
             async function populateStudentSelects() {
                 try {
-                    const res = await fetch('/api/admin-students', { headers: { 'x-admin-password': _password } });
+                    const res = await fetch('/api/admin-financial?resource=students', { headers: { 'x-admin-password': _password } });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
 
@@ -2197,14 +2197,14 @@
                      let res;
                      if (id) {
                          // Edit
-                         res = await fetch('/api/admin-students', {
+                         res = await fetch('/api/admin-financial?resource=students', {
                              method: 'PATCH',
                              headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                              body: JSON.stringify({ id, ...payload })
                          });
                      } else {
                          // New
-                         res = await fetch('/api/admin-students', {
+                         res = await fetch('/api/admin-financial?resource=students', {
                              method: 'POST',
                              headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                              body: JSON.stringify(payload)
@@ -2257,7 +2257,7 @@
                  };
 
                  try {
-                     const res = await fetch('/api/admin-tuitions', {
+                     const res = await fetch('/api/admin-financial?resource=tuitions', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                          body: JSON.stringify(payload)
@@ -2286,7 +2286,7 @@
                  const paid_at = new Date(form.querySelector('[name="paid_at"]').value).toISOString();
 
                  try {
-                     const res = await fetch('/api/admin-tuitions', {
+                     const res = await fetch('/api/admin-financial?resource=tuitions', {
                          method: 'PATCH',
                          headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                          body: JSON.stringify({ id, status: 'paid', payment_method, paid_at })
@@ -2334,7 +2334,7 @@
                  };
 
                  try {
-                     const res = await fetch('/api/admin-payments', {
+                     const res = await fetch('/api/admin-financial?resource=payments', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                          body: JSON.stringify(payload)
@@ -2391,7 +2391,7 @@
                  };
 
                  try {
-                     const res = await fetch('/api/admin-expenses', {
+                     const res = await fetch('/api/admin-financial?resource=expenses', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                          body: JSON.stringify(payload)
@@ -2433,7 +2433,7 @@
                  };
 
                  try {
-                     const res = await fetch('/api/admin-investments', {
+                     const res = await fetch('/api/admin-financial?resource=investments', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
                          body: JSON.stringify(payload)
