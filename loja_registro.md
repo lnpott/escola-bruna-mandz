@@ -1,332 +1,1425 @@
-# =====================================================================
-# MANUAL DE REGISTRO E CONTINUIDADE DO PROJETO
-# LEITURA OBRIGATÓRIA PARA TODO AGENTE (IA OU DESENVOLVEDOR)
-# =====================================================================
+# 🛍️ Registro de Implementação — Loja Oficial Bruna Mandz
 
-> **Este documento é a principal fonte de informação do projeto.**
->
-> Antes de qualquer alteração no código, banco de dados ou infraestrutura, este arquivo deve ser lido integralmente.
->
-> Após qualquer implementação relevante, este arquivo DEVE ser atualizado.
+> Última atualização: 07/07/2026 00:00 — (Etapa 33) — Kimi K2.6 (Blackbox VS Code) — Último commit: 043eef9 (bug fix sub-abas Financeiro)
 
 ---
 
-# Objetivo
+## 🚦 Próximos Passos Imediatos (o que falta AGORA)
 
-O arquivo `loja_registro.md` é o **Diário Oficial de Desenvolvimento** do projeto Escola Bruna Mandz.
+A loja está no ar, testada de ponta a ponta (PIX, Cartão, painel admin com
+Fases A e B completas). O que falta agora é refinamento e itens não
+bloqueantes:
 
-Sua finalidade é garantir que qualquer agente (IA ou desenvolvedor) consiga compreender rapidamente:
+1. Confirmar remoção definitiva dos arquivos órfãos:
+   `api/payment-provider.js`, `api/env.example`, `api/test-notify.js`
+2. Decidir o que fazer com o **site antigo na Netlify** (verificar se ainda
+   está no ar e desativar, para não haver duas versões diferentes do site)
+3. Confirmar os preços reais dos 10 produtos do catálogo com a Bruna
+4. Hardening pendente: validação de assinatura `x-signature` no webhook
+5. Decidir se a Bruna quer notificação por e-mail também para pedidos via
+   PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
 
-- Estado atual do projeto;
-- Arquitetura utilizada;
-- Tecnologias empregadas;
-- Funcionalidades existentes;
-- Decisões técnicas tomadas;
-- Limitações conhecidas;
-- Problemas encontrados;
-- Soluções adotadas;
-- Próximas implementações planejadas.
-
-Este documento possui prioridade sobre qualquer contexto temporário de conversa.
-
-Sempre considere este arquivo como a referência oficial do projeto.
+Detalhe completo de cada item nas Etapas 20 a 25 abaixo, e na seção
+"Próximos Passos" mais ao final do documento.
 
 ---
 
-# Regra Principal
+## 🎯 Objetivo Geral
 
-**NENHUMA IMPLEMENTAÇÃO É CONSIDERADA CONCLUÍDA SEM SER REGISTRADA NESTE ARQUIVO.**
-
-Toda alteração relevante deve ser documentada.
-
-Isso inclui:
-
-- novas funcionalidades;
-- correções;
-- refatorações;
-- alterações no banco;
-- alterações na API;
-- alterações na infraestrutura;
-- mudanças de arquitetura;
-- mudanças de regras de negócio;
-- correções de bugs;
-- melhorias de desempenho;
-- alterações de layout relevantes.
-
-Mesmo pequenas alterações devem possuir registro quando alterarem o comportamento do sistema.
+Transformar a seção "Brindes & Identidade" em uma **Loja Oficial funcional** com:
+- Sistema de carrinho completo
+- Checkout via PIX (com QR Code) e Cartão (com formulário)
+- Catálogo expandido de produtos
+- Plataforma pronta para integrar Mercado Pago / Stripe
+- Visual premium integrado ao design dark do site
 
 ---
 
-# Sobre o Projeto
+## 📊 Status Geral
 
-O projeto consiste em um sistema web completo para gerenciamento da Escola Bruna Mandz.
-
-Atualmente contempla os seguintes módulos:
-
-- Site Institucional;
-- Loja Oficial;
-- Painel Administrativo;
-- Sistema de Pedidos;
-- Sistema Financeiro (em desenvolvimento);
-- Banco de Dados Supabase;
-- API hospedada na Vercel;
-- Sistema de autenticação;
-- Sistema de auditoria;
-- Backups automáticos;
-- Documentação técnica.
-
-A filosofia do projeto é extremamente importante.
-
-Sempre priorizar:
-
-- simplicidade;
-- rapidez;
-- facilidade de uso;
-- baixo número de cliques;
-- código limpo;
-- manutenção simples;
-- reutilização de componentes.
-
-Evitar transformar o sistema em um ERP complexo.
-
-Toda decisão deve considerar a rotina diária da secretaria da escola.
-
----
-
-# Stack Tecnológica
-
-Frontend
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-
-Backend
-
-- Supabase
-- PostgreSQL
-- Edge Functions (quando necessário)
-
-Infraestrutura
-
-- Vercel
-- GitHub
-- GitHub Actions
-
-Pagamentos
-
-- Mercado Pago (somente Loja)
+| Etapa | Arquivo | Status |
+|---|---|---|
+| 1 | `store/products.js` — Catálogo expandido | ✅ Concluído |
+| 2 | `store/cart.js` — Funções de carrinho avançadas | ✅ Concluído |
+| 3 | `store/payment-config.js` — Config + chave PIX | ✅ Concluído (revisado na Etapa 9) |
+| 4 | `store/checkout-modal.js` — Fluxo de checkout (NOVO) | ✅ Concluído (reescrito na Etapa 9) |
+| 5 | `store/store.js` — Redesign visual da loja | ✅ Concluído (pequeno ajuste na Etapa 9) |
+| 6 | `store/store-style.css` — CSS premium | ✅ Concluído |
+| 7 | `index.html` — Renomear seção + novos modais + redesign | ✅ Concluído (ajustado na Etapa 9) |
+| 8 | `api/create-payment.js` — Hooks de integração | ⚠️ Substituído pela Etapa 9 (integração real) |
+| 9 | **Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel** | ✅ Concluído (faltam só as chaves) |
+| 10 | Correção de erro de deploy (`vercel.json` runtime inválido) | ✅ Corrigido |
+| 11 | Investigação "teclado não funciona" pós-migração Vercel (hipótese de ordem de scripts) | ⚠️ Não era a causa real — ver Etapa 12 |
+| 12 | **Causa real**: `audio.js`/`game.js`/imagens davam 404 (faltava pasta `public/`) | ✅ Corrigido |
+| 13 | `game.js`: erro de sintaxe (`export` inválido em script clássico) | ✅ Corrigido |
+| 14 | Checkout PIX: causa real do erro "live credentials" esclarecida (PIX não tem sandbox) | ✅ Causa esclarecida |
+| 15 | Plano de teste PIX de ponta a ponta + produto temporário de R$1 | ✅ Executado — erro encontrado, ver Etapa 16 |
+| 16 | Erro persistente "live credentials" — causa real: API errada selecionada no MP | ✅ Resolvido (era "API Orders" em vez de "API Pagamentos") |
+| 17 | **Incidente**: arquivos sobrescritos por outra ferramenta + Reescrita completa do checkout (overlay de tela cheia, fechamento controlado) | ✅ Reescrito — aguardando teste |
+| 18 | **Correções Payment Brick** + **SW cache fix** + **Plano estratégico da loja** + **Catálogo definitivo 13 produtos** | ✅ Concluído |
+| 19 | **Catálogo real** — 7 produtos com imagens definitivas, produto de teste removido | ✅ Concluído |
+| 20 | **Plano do Painel Admin** — diagnóstico do estado atual + roadmap completo de melhorias | ✅ Planejado |
+| 21 | **Fase A do Painel implementada**: KPIs, ação de status inline, filtro, busca, export CSV, mobile responsivo | ✅ Concluído e testado |
+| 22 | **Pesquisa integração MP** — decisão documentada + **Fase B implementada** (auto-refresh, notificação e-mail, detalhe de itens, botão "Verificar no MP") | ✅ Concluído e testado |
+| 23 | Auditoria completa de `api/` e `store/` — bug de e-mail duplicado e risco de colisão de ID corrigidos | ✅ Corrigido |
+| 24 | **Roteiro de teste completo do painel confirmado pelo usuário** (filtro, busca, CSV, auto-refresh, detalhe expandido, "Verificar no MP", mobile) | ✅ Testado e aprovado |
+| 25 | **Bug no painel**: troca de status retornava erro 405 — corrigido `painel-x9k2f.html` | ✅ Concluído |
+| 26 | **Segurança Supabase & Backup Automático**: chaves estáticas removidas de `backup-api.js` + GitHub Actions diário (05:00 UTC) | ✅ Concluído |
+| 27 | **Melhorias de Code Review**: config `bodyParser` no upload, otimização bundle, `.gitignore` de backups, e `.env.example` | ✅ Concluído |
+| 28 | **Code Review completo** — auditoria geral, credenciais verificadas, plano de backup para repo privado gerado | ✅ Documentado |
+| 29 | **Backup via GitHub Artifacts** — workflow reescrito, `backup-api.js` corrigido, `supabase/backup_dados.json` removido do repo, `.gitignore` atualizado, `MP_WEBHOOK_SECRET` documentado | ✅ Concluído |
+| 30 | **Visual hero-headline** — segundo logo removido do nav, logo no ciclo de frases corrigido para `LOGOBGRAND.png` (alta resolução, tamanho proporcional ao texto) | ✅ Concluído |
+| 31 | **Quiz Musical** — vídeo oculto ao carregar página, tela de início com botão play, opções reveladas só ao iniciar, "Jogar Novamente" volta à tela inicial | ✅ Concluído |
+| 31 | **Badges selecionáveis, Tamanhos no Painel e Catálogo de 10 Produtos** | ✅ Concluído |
+| 32 | **Zoom nos Produtos (Lightbox Overlay)** | ✅ Concluído |
 
 ---
 
-# Limitações Conhecidas
+## ✅ ETAPA 1 — `store/products.js`
 
-## Vercel
+### O que foi feito
+- Expandido de **3 para 7 produtos**
+- Adicionados campos: `category`, `badge`, `badgeColor`, `variants` (tamanhos)
+- Produtos adicionados:
+  - Camiseta Oficial (adulto, tamanhos P/M/G/GG)
+  - Camiseta Infantil (tamanhos 2 ao 12)
+  - Caneca Oficial
+  - Kit Palhetas Personalizadas (6 unidades)
+  - Bloco de Composição Musical
+  - Mochila Oficial
+  - Kit Aluno Bruna Mandz (combo completo)
 
-A aplicação está hospedada na Vercel.
+### Testado
+- [ ] Verificar se produtos aparecem na loja no browser
 
-Considerar sempre:
-
-- ambiente Serverless;
-- armazenamento temporário;
-- processamento limitado;
-- evitar tarefas muito longas;
-- evitar dependência de arquivos locais.
-
----
-
-## Supabase
-
-Toda alteração estrutural deve ser realizada preferencialmente através de migrations.
-
-Evitar alterações manuais diretamente no banco.
-
-Sempre preservar:
-
-- integridade dos dados;
-- compatibilidade;
-- segurança (RLS);
-- histórico.
+### Observações
+> Imagens temporariamente usando `brindes.jpg` e `LOGOPRETO.png` como placeholder.
+> Substituir pelas fotos reais de cada produto quando disponíveis.
 
 ---
 
-# Padrão de Desenvolvimento
+## ✅ ETAPA 2 — `store/cart.js`
 
-Antes de implementar qualquer funcionalidade:
+### O que foi feito
+- Adicionado `removeFromCart(productId, variant)` — remove item do carrinho
+- Adicionado `updateQuantity(productId, qty, variant)` — altera quantidade de item
+- Adicionado `cartItemCount()` — conta total de itens para o badge do nav
+- Campo `variant` (tamanho) agora é chave de unicidade no carrinho
+- `createLocalOrder` aceita objeto `customer` (nome, e-mail, telefone)
+- Compatibilidade total mantida com API anterior
 
-1. Ler este documento completamente;
-2. Identificar a última etapa registrada;
-3. Verificar pendências existentes;
-4. Confirmar se a funcionalidade já não foi implementada;
-5. Avaliar impactos em outras áreas do sistema.
-
-Nunca remover funcionalidades sem justificativa registrada.
-
-Nunca apagar registros antigos.
-
-Caso uma funcionalidade seja alterada posteriormente, criar um novo registro explicando a alteração.
-
----
-
-# Modelo Obrigatório de Registro
-
-Toda implementação deverá seguir o seguinte padrão.
+### Testado
+- [ ] Adicionar produto com tamanho ao carrinho
+- [ ] Remover produto do carrinho
+- [ ] Alterar quantidade
+- [ ] Criar pedido com dados do cliente
 
 ---
 
-## Data
+## ✅ ETAPA 3 — `store/payment-config.js`
 
-Data da implementação.
+### O que foi feito
+- Adicionado `pixKey: '21997600704'` (placeholder — substituir pela chave real)
+- Adicionado `pixName` e `pixCity` para o QR Code e modal
+- Adicionados campos `mercadoPagoPublicKey` e `stripePublicKey` com comentários
 
-Exemplo:
-
-07/07/2026
-
----
-
-## Horário
-
-Horário da conclusão.
-
-Exemplo:
-
-15:42
+### Testado
+- [ ] Verificar se config é importada corretamente nos outros módulos
 
 ---
 
-## Commit
+## ✅ ETAPA 4 — `store/checkout-modal.js` (NOVO)
 
-Informar o hash do commit, quando existir.
+### O que foi feito
+- Módulo novo criado com fluxo completo:
+  - `openCheckoutFlow(method)` — ponto de entrada público
+  - `submitCustomerForm()` — valida dados e cria pedido local
+  - `openPixModal()` — QR Code via api.qrserver.com + botão copiar chave
+  - `openCardModal()` — formatação automática de número, validade e CVV
+  - `openSuccessModal()` — exibe ID do pedido e XP ganho
+  - `closeCheckoutModals()` — fecha todos os modais
+- Comentários de integração Mercado Pago e Stripe inseridos
+- Funções exportadas para `window` para uso inline no HTML
 
-Caso ainda não tenha sido realizado:
-
-"Pendente".
-
----
-
-## Agente Responsável
-
-Informar claramente quem realizou a implementação.
-
-Exemplos:
-
-- ChatGPT GPT-5.5
-- OpenAI Codex
-- Claude
-- Gemini
-- Desenvolvedor Manual
+### Testado
+- [ ] Fluxo completo PIX: cliente → QR Code → sucesso
+- [ ] Fluxo completo Cartão: cliente → formulário → sucesso
+- [ ] Validação de campos obrigatórios
+- [ ] Formatação automática do número do cartão
 
 ---
 
-## Etapa
+## ✅ ETAPA 5 — `store/store.js`
 
-Informar a etapa correspondente.
+### O que foi feito
+- `renderProducts()` redesenhado:
+  - Cards premium com imagem, badge, categoria, XP, estoque e preço
+  - Seletor de tamanho funcional por produto
+  - Animação de "Adicionado!" no botão
+  - Tab de filtro por categoria (Todos / Roupas / Acessórios / Kits)
+- `renderCart()` redesenhado:
+  - Itens com controle de quantidade (−/+) e botão remover (×)
+  - Estado vazio estilizado com ícone
+  - Botões PIX/Cartão desabilitados quando carrinho está vazio
+- Checkout conectado ao `checkout-modal.js`
+- Variante (tamanho) rastreada no carrinho
 
-Exemplo:
-
-Etapa 33
-
----
-
-## Objetivo
-
-Descrever o objetivo da implementação.
-
----
-
-## Implementações Realizadas
-
-Listar todas as alterações executadas.
-
----
-
-## Arquivos Alterados
-
-Relacionar os arquivos modificados.
+### Testado
+- [ ] Cards renderizados corretamente
+- [ ] Filtro por categoria funciona
+- [ ] Carrinho atualiza ao adicionar/remover
+- [ ] Botões PIX e Cartão abrem fluxo de checkout
 
 ---
 
-## Banco de Dados
+## ✅ ETAPA 6 — `store/store-style.css`
 
-Registrar alterações realizadas.
+### O que foi feito
+- CSS completo redesenhado com visual dark premium:
+  - Tabs de categoria com estado active
+  - Product card com hover, badge, seletor de tamanho, preço, XP
+  - Carrinho com linhas de item, controle qty, botão remover
+  - Modais de checkout (overlay + box com animação scale)
+  - Formulários com inputs dark e focus vermelho
+  - Bloco QR Code PIX + chave copia-e-cola
+  - Tela de sucesso com ícone verde e bloco de resumo
 
-Exemplos:
-
-- nova tabela;
-- nova migration;
-- nova policy;
-- novos índices;
-- alterações em tabelas existentes.
-
-Caso não exista alteração:
-
-"Nenhuma alteração no banco."
-
----
-
-## Testes
-
-Informar obrigatoriamente.
-
-Exemplos:
-
-✅ Testado manualmente
-
-✅ Testado em produção
-
-⚠ Testado parcialmente
-
-⚠ Não testado
+### Testado
+- [ ] Visual integrado ao design do site (dark, zinc-950, vermelho)
+- [ ] Responsivo em mobile
 
 ---
 
-## Pendências
+## ✅ ETAPA 7 — `index.html`
 
-Registrar tudo que ficou para implementação futura.
+### O que foi feito
 
-Nunca apagar pendências anteriores.
+**Canvas (Mesa de Exploração):**
+- Botão de filtro: `"Brindes e Identidade"` → `"🛍️ Loja"`
+- Card merch atualizado:
+  - Badge: `"Identidade Forte"` → `"🛍️ Loja Oficial"` (vermelho sólido)
+  - Título: `"Brindes & Identidade"` → `"Loja Oficial"`
+  - Texto: focado em compra online
+  - Botão: `"Ver Catálogo de Itens"` → `"Ver a Loja"` (scroll para `#official-store`)
+  - Footer: `"Merchandising Oficial"` → `"PIX & Cartão"`
 
-Caso alguma pendência seja resolvida posteriormente, registrar sua conclusão em uma nova etapa.
+**Seção `#official-store`:**
+- Título: `"Merchandising Bruna Mandz"` → `"Loja Oficial Bruna Mandz"`
+- Descrição atualizada: foco em PIX, cartão e XP
+- Tabs de categoria adicionadas (Todos / Roupas / Acessórios / Kits)
+- Carrinho lateral redesenhado com badge, ícone e botões melhorados
+- Badge do nav movido para dentro do título do carrinho
+
+**Modais de checkout (novos):**
+- `#modal-checkout-customer` — Formulário de nome, e-mail, telefone + validação
+- `#modal-checkout-pix` — QR Code + chave Pix + botão copiar + confirmação
+- `#modal-checkout-card` — Formulário de cartão com 4 campos + aviso de segurança
+- `#modal-checkout-success` — Confirmação com pedido, método, total e XP
+
+**Scripts:**
+- `store/store-style.css` importado no `<head>`
+- `store/checkout-modal.js` importado como módulo antes de `store.js`
+
+### Testado
+- [ ] Filtro "Loja" aparece no canvas
+- [ ] Card clicável leva à seção da loja
+- [ ] Modais de checkout abrem e fecham corretamente
+- [ ] Visual da seção da loja integrado ao restante do site
 
 ---
 
-# Ordem Cronológica
+## ✅ ETAPA 8 — `api/create-payment.js`
 
-Todos os novos registros deverão ser adicionados **sempre ao final deste documento**.
+### O que foi feito
+- Modo local funcional como fallback (sem integração ativa)
+- Documentação das variáveis de ambiente necessárias
+- Bloco comentado completo para **Mercado Pago** (PIX + cartão)
+- Bloco comentado completo para **Stripe** (cartão)
+- Handler de erro e resposta JSON padronizado
 
-Nunca inserir registros no meio do histórico.
-
-Nunca reorganizar etapas antigas.
-
-Nunca apagar histórico.
-
-O histórico deve permanecer cronológico durante toda a vida do projeto.
-
----
-
-# Planejamento
-
-Ao final de cada implementação, registrar também:
-
-- próximos passos;
-- melhorias previstas;
-- problemas conhecidos;
-- limitações encontradas;
-- sugestões para etapas futuras.
-
-Assim, qualquer novo agente poderá continuar exatamente do ponto onde o desenvolvimento foi interrompido.
+### Testado
+- [ ] Endpoint local responde corretamente
 
 ---
 
-# Observação Final
+## ✅ ETAPA 9 — Integração real Mercado Pago + Supabase + Admin seguro + Deploy Vercel
 
-Este documento é considerado o **Livro de Bordo Oficial do Projeto**.
+> Esta etapa começou com uma **auditoria do código real do GitHub** (não só deste
+> registro), porque o objetivo passou a ser: deixar o sistema pronto para
+> cobrar de verdade, faltando só colar as chaves do Mercado Pago.
 
-Todo agente que participar do desenvolvimento deve utilizá-lo como principal fonte de contexto antes de iniciar qualquer alteração.
+### 🔍 Problemas encontrados na auditoria (antes de qualquer mudança)
 
-A continuidade e a organização do projeto dependem diretamente da atualização correta deste arquivo.
+1. **Pedidos só existiam no `localStorage` do navegador do cliente.** O painel
+   `admin/admin.html` lia o mesmo `localStorage`, então a Bruna nunca veria os
+   pedidos reais — só quem comprou via o próprio navegador.
+2. **O formulário de cartão coletava número, validade e CVV reais e não
+   processava nada** — só validava formato e fingia sucesso. Isso é proibido
+   pelas regras de segurança de cartão (PCI-DSS): dados de cartão não podem
+   passar pelo nosso servidor sem tokenização no navegador.
+3. **A chave PIX (`21997600704`, WhatsApp da escola) estava hardcoded e
+   pública no código-fonte do GitHub.**
+4. **`api/create-payment.js`, `api/payment-provider.js` e `api/webhook.js`**
+   estavam escritos no formato de rota de servidor (Next.js-like), que **não
+   funciona** num deploy puramente estático do Vite — eram só protótipos
+   desconectados, nunca chamados pelo front-end.
+5. Texto "Compra segura. Pedidos registrados localmente..." era exibido ao
+   cliente, dando falsa sensação de segurança.
+6. **Bug de ID duplicado**: `id="store-cart-badge"` existia duas vezes no
+   `index.html` (menu + carrinho lateral), então o badge da loja nunca era
+   atualizado pelo JS (sempre pegava o primeiro elemento).
+7. Painel admin acessível por link visível no menu (`admin/admin.html`), sem
+   nenhuma autenticação.
+8. Encontrado `siteId` de um projeto Netlify (`.netlify/state.json`) já
+   vinculado a este repositório — sinal de que o projeto já foi publicado por
+   lá em algum momento. Vale verificar se esse site antigo ainda está no ar.
 
-**Se uma implementação não foi registrada neste documento, considera-se que ela não faz parte oficialmente do projeto.**
+### 🏗️ Nova arquitetura implementada
 
-Sempre que possível, registrar também o motivo da decisão técnica tomada, e não apenas o que foi implementado. Isso facilita futuras manutenções e evita que decisões importantes sejam revistas sem contexto.
+```
+Cliente compra → Front chama /api/create-payment (Vercel Function)
+                      ↓
+              Mercado Pago cria o pagamento (PIX real ou Card Brick)
+                      ↓
+              Pedido salvo no Supabase (tabela orders, status: pending)
+                      ↓
+Mercado Pago aprova → webhook → /api/webhook → atualiza status no Supabase
+                      ↓
+Admin (/painel-x9k2f.html, protegido por senha) → lê pedidos reais do Supabase
+```
+
+### O que foi feito
+
+**Banco de dados (Supabase):**
+- Criado `supabase/schema.sql` com a tabela `orders` (status, método, dados do
+  cliente, itens, total, IDs do Mercado Pago) + índices + RLS habilitado sem
+  política pública (só a Service Role Key do backend acessa)
+
+**Backend (Vercel Functions, pasta `api/`):**
+- `api/create-payment.js` — **reescrito do zero**: cria pagamento real
+  (PIX via Payment API, Cartão via token do Brick) e salva/atualiza o pedido
+  no Supabase. Sem as chaves do Mercado Pago configuradas, responde em
+  "modo local" sem cobrar nada, para permitir testes
+- `api/webhook.js` — **reescrito do zero**: recebe notificação do Mercado
+  Pago, busca o pagamento de novo na API (nunca confia só no corpo da
+  notificação) e atualiza o status do pedido no Supabase
+- `api/admin-orders.js` (NOVO) — lista pedidos do Supabase, protegido por
+  senha (header `x-admin-password`, comparado com `ADMIN_PASSWORD`)
+- `api/order-status.js` (NOVO) — consulta pública só de status + total de UM
+  pedido por ID, usada no polling do PIX (não expõe dados pessoais)
+- `api/config.js` (NOVO) — expõe a Public Key do Mercado Pago ao front em
+  runtime, sem hardcodar no código-fonte
+- `api/_lib/supabase.js` (NOVO) — cliente Supabase compartilhado (Service
+  Role Key, nunca exposta ao navegador)
+- Removidos `api/payment-provider.js` e `api/env.example` (mocks
+  desconectados do fluxo real)
+
+**Front-end:**
+- `store/payment-config.js` — reescrito sem nenhuma chave sensível;
+  busca a Public Key via `/api/config`
+- `store/checkout-modal.js` — **reescrito do zero**:
+  - PIX: chama `/api/create-payment`, exibe QR Code real devolvido pelo
+    Mercado Pago, faz polling em `/api/order-status` até aprovação
+  - Cartão: renderiza o **Card Payment Brick oficial do Mercado Pago**
+    (tokenização no navegador, sem coletar número/CVV no nosso servidor)
+- `store/cart.js` — `createLocalOrder` virou `buildOrder` (monta o pedido sem
+  persistir) + `applyStudentXp` (separado, só aplicado após pagamento
+  confirmado, não antes)
+- `index.html`:
+  - Removidos os 2 links visíveis de admin (menu + carrinho lateral)
+  - Corrigido ID duplicado `store-cart-badge` → `nav-cart-badge` no menu
+  - Modal de cartão: formulário manual trocado por container do Brick
+  - Modal PIX: chave fixa trocada por código copia-e-cola dinâmico + status
+  - Textos de falsa segurança corrigidos
+  - Adicionado script do SDK do Mercado Pago (`sdk.mercadopago.com/js/v2`)
+- `store/store.js` — passa a sincronizar também o badge do menu (`nav-cart-badge`)
+
+**Admin:**
+- Removida a pasta `admin/` antiga (sem autenticação)
+- Criado `painel-x9k2f.html` (NOVO) — rota escondida, tela de login por
+  senha, busca pedidos via `/api/admin-orders`. Sessão da senha fica só em
+  `sessionStorage` da aba (não persiste entre navegadores/dispositivos)
+
+**Deploy / Build:**
+- `vercel.json` (NOVO) — runtime `nodejs20.x` para todas as funções
+- `vite.config.js` — adicionado `painel-x9k2f.html` como entry point extra
+  (sem isso, o Vite não incluía o admin no build de produção)
+- `package.json` — adicionadas dependências `mercadopago` e
+  `@supabase/supabase-js`
+- `.env.example` (NOVO, na raiz) — todas as variáveis necessárias documentadas
+- `service-worker.js` — bump de cache (`v2` → `v3`), rotas `/api/*` nunca são
+  servidas do cache, e versões antigas de cache são limpas automaticamente
+- `eslint.config.js` — corrigido para reconhecer globals de browser e Node
+  separadamente (erro pré-existente, não introduzido nesta etapa)
+- `docs/PUBLICACAO.md` — checklist reescrito para a arquitetura real
+
+### Validações feitas nesta etapa
+- ✅ Sintaxe de todos os arquivos `.js` (`node --check`)
+- ✅ ESLint sem erros em todos os arquivos novos/modificados
+- ✅ Prettier aplicado (formatação consistente com o resto do projeto)
+- ✅ `npm install` resolve sem conflito; confirmado que `Payment`,
+  `MercadoPagoConfig` e `createClient` existem nas versões instaladas
+- ✅ `npm run build` gera `dist/index.html` e `dist/painel-x9k2f.html`
+  corretamente, com CSS/JS com hash
+- ✅ Simulação de chamada a `create-payment.js` e `admin-orders.js` sem
+  variáveis de ambiente reais — comportamento de fallback confirmado
+- ✅ Todos os IDs referenciados pelo JS existem no HTML (checagem automatizada)
+
+### Testado no navegador (pendente — você precisa fazer)
+- [ ] Rodar `npm install` e `npm run dev` localmente
+- [ ] Testar fluxo PIX em modo local (sem chaves) — deve mostrar aviso de modo teste
+- [ ] Criar projeto Supabase e rodar `supabase/schema.sql`
+- [ ] Criar credenciais de TESTE no Mercado Pago e testar PIX/Cartão de verdade
+- [ ] Configurar variáveis de ambiente na Vercel e fazer o primeiro deploy
+- [ ] Acessar `/painel-x9k2f.html` e confirmar que pede senha e mostra pedidos
+
+---
+
+## ✅ ETAPA 10 — Correção de erro real de deploy na Vercel
+
+Após o primeiro push para o GitHub e o primeiro deploy na Vercel (com
+variáveis de ambiente ainda como placeholder `"0"`), o deploy **falhou**.
+
+### 🔴 Erro encontrado (confirmado via API da Vercel)
+```
+errorCode: "invalid_function_runtime"
+errorMessage: "Function Runtimes must have a valid version,
+               for example `now-php@1.0.0`."
+errorStep: "buildStep"
+```
+
+### Causa raiz
+O `vercel.json` desta sessão (Etapa 9) usava:
+```json
+"functions": {
+    "api/create-payment.js": { "runtime": "nodejs20.x" }
+}
+```
+A propriedade `runtime` dentro de `functions` no `vercel.json` é destinada a
+runtimes **não-Node** (PHP, Bun, runtimes customizados), no formato
+`nome@versão` (ex: `vercel-php@0.5.2`). Para Node.js — que já é o runtime
+padrão da Vercel — essa propriedade não deve ser usada dessa forma; o jeito
+certo de fixar a versão do Node é via `engines.node` no `package.json`.
+
+### Correção aplicada
+- `vercel.json` — removida a propriedade `functions`/`runtime` por completo
+  (Node.js volta a ser o runtime padrão, sem configuração extra necessária)
+- `package.json` — adicionado `"engines": { "node": "22.x" }` para fixar a
+  versão do Node usada nos builds e funções
+
+### Status
+- [x] Novo commit/push com a correção — deploy passou sem erro
+- [x] Variáveis de ambiente configuradas com valores reais na Vercel
+
+---
+
+## ✅ ETAPA 11 — Investigação: "teclado não está ok" após migração para Vercel
+
+Relato: depois da migração para a Vercel, o teclado (piano/teclado físico)
+parou de funcionar como antes.
+
+### Investigação feita
+- Comparado `audio.js`, `game.js` e `index.html` entre a versão testada
+  nesta sessão e o estado atual do GitHub → **idênticos**, nenhuma mudança
+  de conteúdo nesses arquivos desde a Etapa 9
+- Checado `vercel.json` em busca de CSP ou headers que pudessem bloquear o
+  domínio externo de samples de áudio (`tonejs.github.io`) → nenhum header
+  configurado
+- Revisada a lógica de `audio.js`/`game.js` → sem bugs de mapeamento de tecla
+  introduzidos nesta sessão
+
+### Causa raiz mais provável (corrigida)
+Na Etapa 9, o script do SDK do Mercado Pago foi adicionado **antes** de
+`audio.js`/`game.js`, sem `defer`:
+```html
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="audio.js"></script>
+<script src="game.js"></script>
+```
+Como é um script síncrono de um domínio externo, ele podia atrasar ou, em
+condições de rede ruins, interferir na ordem de carregamento dos scripts do
+piano.
+
+### Correções aplicadas (cobrindo múltiplos cenários possíveis)
+1. `index.html` — `audio.js` e `game.js` movidos para **antes** do SDK do
+   Mercado Pago; SDK do MP agora carrega com `defer`
+2. `store/checkout-modal.js` — `closeModal()` agora tira o foco
+   (`blur()`) de qualquer campo dentro do modal antes de escondê-lo
+3. `store/checkout-modal.js` — clicar fora do modal de **cartão**
+   (overlay) agora também destrói o Card Payment Brick do Mercado Pago
+4. Confirmado que nenhum input do checkout tem `readonly`/`disabled`
+   acidental
+
+### Status
+- [x] Testado pelo usuário com console do navegador aberto — **causa real
+  diferente da hipótese acima**, encontrada e corrigida na **Etapa 12**
+
+---
+
+## ✅ ETAPA 12 — Causa real encontrada: `audio.js`/`game.js` e imagens davam 404 em produção
+
+Com o console do navegador, o usuário trouxe o erro exato:
+```
+audio.js:1   Failed to load resource: 404
+game.js:1    Failed to load resource: 404
+brindes.jpg:1  Failed to load resource: 404
+LOGOPRETO.png:1  Failed to load resource: 404
+favicon.ico:1  Failed to load resource: 404
+(índice):925 Uncaught ReferenceError: startGame is not defined
+```
+
+### Causa raiz real (confirmada, não só hipótese)
+O Vite só copia para o build de produção (`dist/`) arquivos que estão:
+(a) dentro de uma pasta `public/`, ou (b) referenciados como atributo
+processável no HTML/CSS (`<img src="...">`, `<link href="...">`).
+
+`audio.js`, `game.js`, `manifest.json` e `service-worker.js` estavam soltos
+na raiz do projeto, carregados via `<script src="audio.js">` — isso só
+funciona no modo `vite dev` (que serve a pasta toda), não no build de
+produção.
+
+### Correção aplicada
+- Criada a pasta `public/`
+- Movidos para `public/`: `audio.js`, `game.js`, `manifest.json`,
+  `service-worker.js`
+- Copiados para `public/`: `brindes.jpg`, `LOGOPRETO.png`, `LOGOPRETOPQNO.png`
+- `store/products.js` — caminhos de imagem corrigidos para `/brindes.jpg`
+- `index.html`: caminhos absolutos em todos os scripts e assets
+
+### Status
+- [x] Testado pelo usuário — 404s resolvidos e o site carrega corretamente
+
+---
+
+## ✅ ETAPA 13 — `game.js`: `Uncaught SyntaxError: Unexpected token 'export'`
+
+### Causa
+`public/game.js` tinha `export { startGame, stopGame, demonstrateSequence, handleKeyClick }`
+— sintaxe inválida em script clássico (sem `type="module"`), impedindo todo o arquivo
+de executar.
+
+### Correção aplicada
+- `public/game.js` — removida a linha `export { ... }`
+- `public/game.js` — removida chamada duplicada de `initPianoKeyboard`
+
+### Validação
+- ✅ `node --check public/game.js` confirma sintaxe válida
+
+---
+
+## ✅ ETAPA 14 — Checkout PIX: `Unauthorized use of live credentials` (causa real esclarecida)
+
+### Causa real
+**Pagamentos PIX não podem ser realizados com credenciais de teste** — confirmado
+via documentação oficial do Mercado Pago. O sandbox serve para cartão, não PIX.
+
+A forma oficial de testar PIX é usar credenciais de produção com:
+1. E-mail diferente do e-mail de login da conta MP vendedora
+2. Valor baixo (ex: R$ 1,00)
+
+### Status
+- [x] Causa raiz identificada e confirmada via documentação oficial
+
+---
+
+## ⏳ ETAPA 15 — Plano de teste PIX de ponta a ponta
+
+### O que foi preparado
+- `store/products.js` — adicionado produto temporário `🧪 TESTE — Não comprar (R$ 1,00)`
+  (id: `teste-pagamento-1real`) para validar o fluxo
+
+### Status
+- [x] Teste executado — deu erro `Unauthorized use of live credentials`,
+  investigado e tratado na Etapa 16
+- [x] Produto temporário `teste-pagamento-1real` removido do catálogo (Etapa 19)
+
+---
+
+## ✅ ETAPA 16 — Investigação do erro persistente em PIX + causa resolvida
+
+### Causa real confirmada
+A aplicação no Mercado Pago estava configurada para a **API Orders** em vez da
+**API Pagamentos** — trocar para a API correta no painel do MP resolveu o erro.
+
+### Correção aplicada no código
+- `api/create-payment.js` — adicionado `requestOptions: { idempotencyKey }` único
+  por pedido em ambas as chamadas `payment.create()` (boa prática, evita duplicatas)
+
+### Status
+- [x] Causa real confirmada e resolvida
+- [x] Fluxo PIX validado em produção (Etapa 18)
+
+---
+
+## ✅ ETAPA 17 — Incidente: arquivos sobrescritos por outra ferramenta + Reescrita completa
+
+### O que aconteceu
+Outra ferramenta de IA sobrescreveu `store/store.js` e `store/checkout-modal.js`
+com versões incompatíveis com a arquitetura real (payload errado, IDs de HTML
+inexistentes, chave de localStorage diferente).
+
+### Decisão tomada
+Reescrita completa e definitiva do checkout: **overlay de tela cheia único**
+(`#checkout-overlay`) com 4 seções internas, fechamento controlado (só botão X),
+nenhum clique fora fecha o overlay.
+
+### Validações feitas
+- ✅ `node --check`, ESLint, Prettier, IDs checados, `npm run build` OK
+
+### ⚠️ Recomendação
+Se outra ferramenta de IA for usada no mesmo repositório, sempre informar o
+contexto da integração real (Mercado Pago + Supabase) para evitar reescritas
+que ignorem os contratos entre arquivos.
+
+---
+
+## ✅ ETAPA 18 — Correções do Payment Brick + Plano Estratégico + Catálogo Definitivo
+
+### 18.1 — Correções técnicas aplicadas
+
+#### `store/checkout-modal.js`
+- `bankTransfer: ['pix']` → `bankTransfer: 'all'` (array causava erro 422)
+- `ticket: 'none'` e `mercadoPago: 'none'` removidos (inválidos segundo docs do MP)
+- `_currentEarnedXp` removido (variável declarada mas nunca lida)
+
+#### `public/service-worker.js`
+- `/ecommerce.js` removido da lista de ASSETS (arquivo inexistente travava o SW)
+- Cache bumped para `bruna-mandz-v4`
+
+### 18.2 — Plano estratégico da loja
+
+A loja serve como **trust signal**, **portfólio para campanhas pagas** e
+**loop de pertencimento** — não como principal fonte de receita.
+
+#### Roadmap de melhorias
+| Prazo | Ação |
+|---|---|
+| Curto (técnico) | Migrar Tailwind do CDN para build local |
+| Curto (técnico) | Adicionar ícones de pagamento seguro no checkout |
+| Médio (conteúdo) | Substituir placeholders por fotos reais dos produtos |
+| Médio (conteúdo) | Seção de depoimentos de alunos |
+| Médio (conteúdo) | Política de entrega e troca visível |
+| Estratégico | Seção "Quem é a Bruna Mandz" |
+| Estratégico | Feed do Instagram integrado ao site |
+
+### 18.3 — Catálogo definitivo de produtos (13 itens planejados)
+Ver Etapa 19 para o catálogo real implementado (7 produtos aprovados).
+
+### Status
+- [x] Correções do Payment Brick aplicadas
+- [x] Service Worker corrigido
+- [x] PIX validado em produção após correções
+
+---
+
+## ✅ ETAPA 19 — Catálogo real com imagens definitivas
+
+### O que foi feito
+- `store/products.js` reescrito com os **7 produtos reais** aprovados:
+  Pulseira, Palheta, Chaveiro, Copo Térmico, Camisa Clássica, Camisa Minimalista, Camisa Rock
+- Imagens reais adicionadas em `public/`:
+  `Pulseira.png`, `Paleta.png`, `Chaveiro.png`, `Copo.png`,
+  `TSHIRT_PREMIUN.png`, `TSHIRT_PRO.png`, `TSHIRT_ROCK.png`
+- Produto de teste `teste-pagamento-1real` removido
+
+### Pendente
+- [ ] Confirmar preços reais com a Bruna:
+  Pulseira R$19,90 | Palheta R$9,90 | Chaveiro R$14,90 | Copo R$59,90 | Camisas R$69,90
+
+---
+
+## 📋 ETAPA 20 — Plano do Painel Administrativo
+
+### 20.1 — Diagnóstico do estado inicial
+
+#### O que existia e funcionava
+- Login com senha via `x-admin-password`
+- Tabela de pedidos do Supabase (até 200 registros)
+- URL escondida com `noindex, nofollow`
+
+#### O que NÃO existia
+- Nenhuma ação sobre pedidos, nenhum KPI, nenhuma gestão de estoque ou produtos,
+  nenhum filtro/busca, nenhuma exportação, nenhuma notificação
+
+### 20.2 — Roadmap de melhorias (3 fases)
+
+#### 🟥 FASE A — Ações essenciais
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **A1** | KPIs: receita hoje/mês, pedidos pendentes, total | Baixa |
+| **A2** | Trocar status por pedido direto na tabela | Média |
+| **A3** | Filtro por status | Baixa |
+| **A4** | Busca por nome/e-mail/ID | Baixa |
+| **A5** | Exportar CSV filtrado | Média |
+
+#### 🟧 FASE B — Visibilidade proativa
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **B1** | Auto-refresh a cada 60s com contador | Baixa |
+| **B2** | Notificação por e-mail via Resend | Média |
+| **B3** | Detalhe expandido com itens do pedido | Média |
+| **B4** | Highlight de pedidos novos (últimos 5 min) | Baixa |
+
+#### 🟨 FASE C — Gestão de produtos (fase futura)
+| Item | O que faz | Complexidade |
+|---|---|---|
+| **C1** | Aba "Produtos" com lista, estoque e preço | Alta |
+| **C2** | Editar estoque inline | Alta |
+| **C3** | Editar preço | Alta |
+| **C4** | Sinalizar Novo / Descontinuado / Em Falta | Média |
+| **C5** | Adicionar produto novo | Alta |
+| **C6** | Remover/desativar produto | Média |
+
+**Pré-requisito Fase C:** mover `store/products.js` para tabela `products`
+no Supabase com campo `status_flag` (`novo` | `descontinuado` | `em_falta` | `null`).
+Criar `api/products.js` (público) e `api/admin-products.js` (protegido, CRUD completo).
+
+### 20.3 — O que NÃO fazer
+- Não construir tudo de uma vez — cada fase entrega valor independente
+- Não adicionar autenticação complexa agora (senha simples é adequada)
+- Não exibir dados sensíveis desnecessariamente na tabela principal
+- Não quebrar o mobile — testar sempre no celular
+
+### Status
+- [x] Fase A implementada — ver Etapa 21
+- [x] Fase B implementada — ver Etapa 22
+- [ ] Fase C — planejar quando fizer sentido priorizar (ver requisitos em 20.2)
+
+---
+
+## ✅ ETAPA 21 — Implementação da Fase A (painel administrativo)
+
+### O que foi feito
+
+**Nova API: `api/update-order-status.js`**
+- Recebe `{ orderId, status }`, protegido por senha admin
+- Valida status contra lista de valores aceitos
+- Retorna pedido atualizado sem recarregar tudo
+
+**`painel-x9k2f.html` — Fase A completa:**
+- **A1** — KPIs com cálculo correto por ano/mês/dia (não por string)
+- **A2** — `<select>` de status inline por linha
+- **A3/A4** — Filtro e busca client-side, combináveis
+- **A5** — CSV com BOM UTF-8, separador `;`, exporta lista filtrada
+- Mobile responsivo: tabela vira cards abaixo de 720px
+
+### Limpeza adicional
+- `api/payment-provider.js`, `api/env.example`, `src/main.js`,
+  `src/global-bridge.js`, `correcao-404-public.zip` removidos
+
+### Validações feitas
+- ✅ `node --check`, ESLint, CSS balanceado, IDs checados, `npm run build` OK
+
+### Status
+- [x] Implementado, commitado e testado
+
+---
+
+## ✅ ETAPA 22 — Pesquisa integração MP + Implementação da Fase B
+
+### 22.1 — Decisão sobre integração direta com a API do Mercado Pago
+
+**Resposta: não. Manter arquitetura atual.**
+
+A API do MP não sabe o nome do produto, tamanho, XP nem dados completos do
+cliente — tudo isso está no Supabase. A arquitetura atual
+(MP → webhook → Supabase → painel) já é o padrão oficial recomendado.
+
+**O que foi adicionado:** botão "Verificar no MP" por pedido, para checar o
+status real na API do MP quando houver dúvida — sem quebrar a arquitetura.
+
+### 22.2 — Fase B implementada
+
+| Item | Descrição | Arquivo |
+|---|---|---|
+| **B1** | Auto-refresh a cada 60s com contador regressivo | `painel-x9k2f.html` |
+| **B2** | Notificação por e-mail (via Resend) quando pedido aprovado | `api/notify-new-order.js` + `api/webhook.js` |
+| **B3** | Detalhe expandido: linha clicável mostra itens, tamanho, XP | `painel-x9k2f.html` |
+| **B4** | Highlight visual em pedidos novos (últimos 5 min) | `painel-x9k2f.html` |
+| **B+** | Botão "Verificar no MP" — consulta status real na API do MP | `api/verify-mp-payment.js` + `painel-x9k2f.html` |
+
+#### Variáveis de ambiente necessárias na Vercel
+- `RESEND_API_KEY` — chave da API do Resend (plano gratuito: 3.000 e-mails/mês)
+- `NOTIFY_EMAIL` — e-mail da Bruna para receber notificações
+
+### Status
+- [x] Fase B implementada e testada
+- [x] `RESEND_API_KEY` e `NOTIFY_EMAIL` configuradas e validadas via `api/test-notify`
+
+---
+
+## ✅ ETAPA 23 — Auditoria completa de `api/` e `store/` + correções
+
+### Contexto
+Auditoria completa de todos os arquivos de `api/` e `store/` (enviados via
+zip) enquanto se aguardavam os dados de acesso da conta Mercado Pago da Bruna.
+
+### 🔴 Bug corrigido: notificação por e-mail duplicada
+
+**Causa:** o MP reenvia o mesmo webhook várias vezes. O `webhook.js` disparava
+e-mail toda vez que recebia `status === 'approved'`, sem checar se o pedido
+já estava aprovado. Agravante: no fluxo de Cartão, o `create-payment.js` já
+marca o pedido como `approved` no Supabase — o webhook do MP chegava depois
+e disparava um segundo e-mail.
+
+**Correção em `api/webhook.js`:**
+- Busca o status atual antes de atualizar
+- Só notifica na transição para `approved`
+- Filtra eventos que não são `payment` (responde 200 OK sem processar)
+- Usa `getSupabase()` compartilhado em vez de instanciar client próprio
+
+### 🟡 Melhoria: risco de colisão de ID de pedido
+
+**Causa:** `store/cart.js` usava só os últimos 6 dígitos do timestamp
+(repetem a cada ~16,6 min). Em colisão, o `upsert` sobrescreveria um pedido.
+
+**Correção:** nova função `generateOrderId()` — timestamp + sufixo aleatório
+(ex: `BM-66107551-998R`).
+
+### 🟢 Verificado sem alterações
+Todos os demais arquivos de `api/` e `store/` confirmados corretos.
+`api/test-notify.js` já protegido por `x-admin-password`.
+
+### ⏳ Hardening pendente (não bloqueante)
+`api/webhook.js` não valida assinatura `x-signature` do MP. Risco mitigado
+porque o pagamento é sempre confirmado diretamente na API do MP.
+
+### Status
+- [x] `api/webhook.js` corrigido e commitado
+- [x] `store/cart.js` corrigido e commitado
+- [x] Deploy na Vercel confirmado sem erro
+
+---
+
+## ✅ ETAPA 24 — Roteiro de teste completo do painel aprovado pelo usuário
+
+### Contexto
+Antes de concluir o roteiro de teste manual, foi feita auditoria técnica
+adicional usando `raw.githubusercontent.com` (arquivo por arquivo), simulando
+cada função isoladamente.
+
+### ⚠️ Nota técnica
+`codeload.github.com` (tarball) chegou a servir versão **desatualizada** do
+repositório mesmo após commits recentes. Usar `raw.githubusercontent.com`
+por arquivo resolveu. Lembrar disso em auditorias futuras.
+
+### Validações isoladas feitas
+- ✅ Contrato `verify-mp-payment.js` ↔ `painel-x9k2f.html` conferido
+- ✅ Lógica de KPI testada com dados simulados
+- ✅ Filtro + busca combinados testados
+- ✅ CSV com aspas duplas no nome testado (escaping correto)
+- ✅ Detecção de pedidos novos no auto-refresh testada
+- ✅ `colspan="8"` confere com as 8 colunas do cabeçalho
+- ✅ `npm run build` OK, ESLint OK
+
+### Correção aplicada: `eslint.config.js`
+`fetch` e `URL` adicionados aos globals do Node (`fetch: 'readonly'`,
+`URL: 'readonly'`) — eram falsos positivos do linter, não bugs funcionais.
+
+### Confirmação do usuário
+Roteiro de teste manual completo aprovado: filtro por status, busca,
+exportar CSV, auto-refresh, detalhe expandido, highlight, "Verificar no MP",
+mobile — **tudo funcionando**.
+
+### Status
+- [x] Auditoria de código concluída
+- [x] `eslint.config.js` corrigido
+- [x] Roteiro de teste manual aprovado pelo usuário
+
+---
+
+## ✅ ETAPA 25 — Bug crítico corrigido: troca de status no painel (erro 405)
+
+### Contexto
+Durante o teste do painel (Etapa 24), ao trocar o status de um pedido de
+"Pendente" para "Rejeitado", o console mostrou:
+```
+favicon.ico:1  Failed to load resource: 404
+api/update-order-status:1  Failed to load resource: 405
+```
+
+### Investigação
+`api/update-order-status.js` confirmado correto (exige `POST`). A causa
+real estava em `painel-x9k2f.html`, na função `updateOrderStatus()`, com
+**dois problemas de contrato** com a API:
+
+1. **Método errado**: `method: 'PATCH'` em vez de `'POST'` → causa do 405
+2. **Campo errado no corpo**: `{ orderId, newStatus: status }` em vez de
+   `{ orderId, status }` — ficaria escondido até a correção do método
+
+Mesmo padrão de causa da Etapa 17: painel e API escritos em momentos
+diferentes, sem contrato sincronizado.
+
+### Correção aplicada em `painel-x9k2f.html`
+- `method: 'PATCH'` → `'POST'`
+- `{ orderId, newStatus: status }` → `{ orderId, status }`
+- Adicionado `<link rel="icon" type="image/png" href="/LOGOPRETO.png">`
+  no `<head>` (resolve o `favicon.ico 404` cosmético)
+
+### Validações feitas
+- ✅ JavaScript embutido extraído e validado com `node --check`
+- ✅ Demais funções do painel (`fetchOrders`, `verifyMpPayment`, CSV,
+  auto-refresh) confirmadas sem o mesmo problema
+
+### Status
+- [x] Bug identificado e corrigido
+- [x] Commit/push da correção
+- [x] Retestado: troca de status funcionando sem erro 405
+
+---
+
+## ✅ ETAPA 26 — Segurança do Supabase e Backup Diário Automático via GitHub Actions
+
+### O que foi feito
+- **Remoção da chave privada**: Removida a chave estática exposta em `backup-api.js`. O script agora utiliza `process.env.SUPABASE_SERVICE_ROLE_KEY` e `process.env.SUPABASE_URL`.
+- **Criação do `.env` local**: Criado arquivo local `.env` (ignorado pelo Git) com as chaves para que a execução local de backups continue funcionando normalmente.
+- **Backup no diretório `./supabase`**: Modificado o local de destino dos backups no script de `./backups/backup_dados.json` para `./supabase/backup_dados.json`.
+- **Fluxo do GitHub Actions**: Criado o arquivo `.github/workflows/supabase-backup.yml` que executa diariamente às 05:00 UTC, gera o backup usando as secrets cadastradas no GitHub e faz push do novo JSON de volta ao repositório se houver alterações nos dados.
+
+### Testado
+- [x] Executado `node --env-file=.env backup-api.js` localmente com sucesso, gerando o arquivo JSON com 22KB na pasta `supabase/`.
+
+---
+
+## ✅ ETAPA 27 — Melhorias do Code Review aplicadas
+
+### O que foi feito
+- **Correção da API de Upload**: Adicionada a configuração `export const config = { api: { bodyParser: false } }` em `api/upload-image.js` para garantir que o middleware da Vercel não interfira com a biblioteca `formidable`.
+- **Otimização do Bundle**: Removido o import do catálogo estático `products.js` em `store/store.js`. Agora a lista é puramente dinâmica, inicializada como vazia e com tratamento elegante de erro caso a API do Supabase falhe.
+- **Gitignore Ajustado**: Adicionadas as regras de ignore para `backups/` e `/backups` para evitar o envio de backups locais.
+- **Documentação de Variáveis**: Documentada a variável `MP_WEBHOOK_SECRET` em `.env.example` para suporte à assinatura de webhooks do Mercado Pago.
+
+### Testado
+- [x] Executado `npm run build` confirmando compilação do bundle final com sucesso e sem erros.
+
+---
+
+---
+
+## ✅ ETAPA 28 — Code Review completo + Plano de isolamento do backup
+
+### 28.1 — Auditoria geral realizada em 03/07/2026
+
+Revisão completa de todos os arquivos do repositório após as Etapas 26 e 27.
+
+#### ✅ Confirmado resolvido
+| Item | Estado |
+|---|---|
+| Service Role Key exposta em `backup-api.js` | ✅ Removida — lê de `process.env` |
+| `upload-image.js` sem `bodyParser: false` | ✅ `export const config` adicionado |
+| Import de `FALLBACK_PRODUCTS` em `store.js` | ✅ Removido |
+| Validação de assinatura do webhook (`x-signature`) | ✅ Implementada com `timingSafeEqual` |
+| Sintaxe de todos os arquivos JS | ✅ Zero erros (`node --check`) |
+| Build Vite | ✅ Passa limpo (3.60s, sem warnings) |
+| Adicionar produto no painel (Fase C) | ✅ Modal + upload implementados |
+
+#### 🟡 Pendências identificadas nesta auditoria
+
+**1. `supabase/backup_dados.json` no repositório principal**
+O workflow de GitHub Actions salva o backup em `supabase/backup_dados.json` e
+commita no repo principal — que é público. O arquivo contém e-mail e telefone
+de clientes reais. `supabase/` não está no `.gitignore`.
+
+**2. URL do Supabase hardcoded em `backup-api.js`**
+```js
+// Ainda presente como fallback:
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://ljosqddzxreloizpynvf.supabase.co";
+```
+A chave está segura, mas a URL expõe o ID do projeto Supabase publicamente.
+
+**3. `MP_WEBHOOK_SECRET` não documentada**
+A variável existe em `api/webhook.js` mas não está listada em
+`docs/CONFIGURACAO_ENV.md` — quem configurar o projeto do zero vai perder
+essa variável.
+
+---
+
+### 28.2 — Decisão: backup em repositório privado separado
+
+**Opção escolhida:** criar repositório privado `escola-bruna-mandz-backups`
+e redirecionar o workflow para fazer push lá, em vez de commitar no repo
+principal.
+
+**Por que repositório privado é melhor que ajustar `.gitignore`:**
+- Dados de clientes nunca ficam em repositório público, independente de erro de configuração
+- Histórico do repositório principal fica limpo (sem commits de backup poluindo)
+- Controle de acesso separado — quem tem acesso ao código não necessariamente vê os backups
+- Backups nomeados por data (`backups/YYYY-MM-DD.json`) facilitam auditoria histórica
+
+---
+
+### 28.3 — Prompt de execução gerado
+
+Um prompt completo e autossuficiente foi gerado para execução das correções
+em nova sessão ou ferramenta. Cobre:
+
+1. Reescrever `.github/workflows/supabase-backup.yml` para fazer push no repo privado
+   usando `BACKUP_REPO_TOKEN` (Personal Access Token com escrita só no repo de backup)
+2. Remover `supabase/backup_dados.json` do repo principal e adicionar ao `.gitignore`
+3. Corrigir `backup-api.js` — remover URL hardcoded, falhar explicitamente se
+   `SUPABASE_URL` não estiver configurado
+4. Documentar `MP_WEBHOOK_SECRET` em `docs/CONFIGURACAO_ENV.md` com descrição
+   de uso e nota sobre ser opcional mas recomendado em produção
+
+#### Pré-requisitos para execução
+- [ ] Criar repositório privado `escola-bruna-mandz-backups` no GitHub
+- [ ] Gerar Personal Access Token com permissão `repo` no repo de backup
+- [ ] Adicionar `BACKUP_REPO_TOKEN` nos Secrets do GitHub Actions do repo principal
+      (`Settings → Secrets and variables → Actions`)
+
+#### Secrets do GitHub Actions já configurados (não precisam ser recriados)
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Status
+- [x] Auditoria completa realizada
+- [x] Pendências documentadas
+- [x] Decisão de arquitetura de backup registrada
+- [x] Prompt de execução gerado
+- [ ] Criar repo privado `escola-bruna-mandz-backups`
+- [ ] Executar prompt de correção (reescrever workflow, corrigir backup-api.js, documentar MP_WEBHOOK_SECRET)
+
+
+---
+
+---
+
+## ✅ ETAPA 29 — Backup via GitHub Artifacts (Opção A2 implementada)
+
+### O que foi feito
+
+**`.github/workflows/supabase-backup.yml` — reescrito:**
+- Removido o step `commit and push backup` (que commitava dados de clientes no repo público)
+- Adicionado step `Upload backup as Artifact` usando `actions/upload-artifact@v4`
+- Artifact nomeado com `run_id` e `run_attempt` para unicidade
+- Retenção de 90 dias (configurável até 400 dias nas configurações do repo)
+- Permissão `contents: write` removida (não é mais necessária — não commita nada)
+
+**`backup-api.js` — corrigido:**
+- URL hardcoded removida — falha explicitamente se `SUPABASE_URL` não estiver configurado
+- Arquivo salvo em `./backup_dados.json` na raiz (pasta temporária do runner do GitHub Actions)
+- Adicionado campo `_meta` com data e lista de tabelas no JSON gerado
+- Log de quantos registros foram baixados por tabela
+
+**`supabase/backup_dados.json` — removido do repositório:**
+- `git rm supabase/backup_dados.json` executado
+- Dados de clientes (e-mail, telefone) não ficam mais visíveis no repo público
+
+**`.gitignore` — atualizado:**
+- Adicionados `backup_dados.json` e `supabase/backup_dados.json`
+- Garante que nenhum backup futuro entre acidentalmente no repositório
+
+**`docs/CONFIGURACAO_ENV.md` — atualizado:**
+- `MP_WEBHOOK_SECRET` documentado com descrição e instrução de onde obter no painel do MP
+- Nota sobre ser opcional mas recomendado em produção
+
+### Como funciona agora
+1. Todo dia às 05:00 UTC o GitHub Actions executa `backup-api.js`
+2. O script baixa as tabelas `products` e `orders` do Supabase
+3. Salva em `backup_dados.json` na máquina temporária do runner
+4. O workflow faz upload desse arquivo como **Artifact** privado do GitHub
+5. O arquivo **nunca aparece no repositório** — nem em commit, nem em histórico
+6. Para baixar um backup: GitHub → Actions → selecionar o run → baixar o Artifact
+
+### Retenção
+90 dias por padrão. Para alterar: `Settings → Actions → Artifact and log retention`.
+
+### Status
+- [x] Workflow reescrito e publicado
+- [x] `backup-api.js` corrigido
+- [x] `supabase/backup_dados.json` removido do repo
+- [x] `.gitignore` atualizado
+- [x] `MP_WEBHOOK_SECRET` documentado
+
+
+---
+
+---
+
+## ✅ ETAPA 31 — Quiz Musical: vídeo oculto e fluxo com tela de início
+
+### Problema
+O vídeo do quiz carregava junto com a página — impacto na performance e
+experiência ruim (vídeo exposto sem contexto ao abrir o site).
+
+### O que foi feito
+
+**`index.html` — estrutura do quiz reformulada:**
+
+- **Tela inicial** (`#quiz-start-screen`) adicionada com:
+  - Botão play circular vermelho grande e clicável
+  - Texto "Pronto para o desafio?" com instrução
+  - Botão "Iniciar Quiz"
+- **Vídeo** (`#quiz-video-wrap`) agora começa com `hidden` — não carrega ao abrir a página (`preload="none"` mantido)
+- **Opções de resposta** (`#quiz-options`) também começam com `hidden` — reveladas só ao iniciar
+
+**Funções JS adicionadas/atualizadas:**
+
+- `startQuiz()` — oculta a tela inicial, revela vídeo e opções, dá play automático no vídeo
+- `resetQuiz()` — atualizado para voltar à tela inicial limpa (antes só resetava o vídeo sem esconder nada)
+
+### Fluxo final
+1. Página carrega → só tela de início visível, zero carregamento de vídeo
+2. Usuário clica em play ou "Iniciar Quiz" → vídeo aparece e toca automaticamente, opções reveladas
+3. Usuário responde → resultado exibido (acerto verde / erro vermelho)
+4. "Jogar Novamente" → volta à tela inicial, vídeo para e reseta
+
+### Status
+- [x] Vídeo oculto ao carregar a página
+- [x] Tela de início com botão play implementada
+- [x] Play automático ao iniciar
+- [x] Reset completo volta à tela inicial
+- [x] Commit e push realizados
+
+
+## ✅ ETAPA 30 — Correções visuais do hero-headline e nav brand
+
+### O que foi feito
+
+**`index.html` — nav brand:**
+- Removido o segundo `<img>` (`LOGOBRANCOPQNO.png`) do link da marca no topo
+- Ficou apenas o `logo.png` com fundo branco arredondado — visual limpo e sem repetição
+
+**`index.html` — ciclo de frases do hero-headline:**
+- Logo que aparecia ao final das frases era `LOGOPRETO.png` — errado (resolução baixa, tamanho incorreto)
+- Substituído por `LOGOBGRAND.png` (alta resolução, arquivo enviado pela Bruna)
+- Tamanho ajustado para `h-32 sm:h-44` — proporcional ao espaço ocupado pelas frases de texto
+- Alinhamento: `mx-auto lg:mx-0` — centralizado no mobile, alinhado à esquerda em desktop
+
+**`public/brand/LOGOBGRAND.png` — novo arquivo adicionado:**
+- Logo em alta resolução com fundo transparente
+- Layout horizontal: "ESCOLA DE MÚSICA / BRUNA MANDZ" com o ícone vermelho da marca
+
+### Status
+- [x] Segundo logo removido do nav
+- [x] Logo do hero-headline corrigido e em alta resolução
+- [x] Arquivo `LOGOBGRAND.png` adicionado em `public/brand/`
+- [x] Commit e push realizados
+
+
+## 🤔 DECISÃO PENDENTE — Onde salvar os backups do banco de dados
+
+### Contexto
+O workflow de GitHub Actions (`supabase-backup.yml`) roda todo dia às 05:00 UTC
+e salva um snapshot completo das tabelas `products` e `orders` em JSON.
+Atualmente ele commita em `supabase/backup_dados.json` — pasta que **não está**
+no `.gitignore`, então o arquivo fica visível no repositório público com dados
+reais de clientes.
+
+### Opções disponíveis
+
+---
+
+#### ✅ Opção A — Pasta `backups/` no mesmo repositório (já ignorada pelo Git)
+O workflow salva o arquivo em `backups/YYYY-MM-DD.json`.
+A pasta `backups/` **já está no `.gitignore`** — o Git nunca a rastreia,
+então o arquivo existe localmente na máquina do GitHub Actions mas nunca
+aparece no repositório público.
+
+**Prós:**
+- Mais simples — zero configuração extra
+- Sem tokens adicionais para gerenciar
+- Backups nomeados por data (histórico de 30 dias, por exemplo)
+- Já funciona com os Secrets existentes (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
+
+**Contras:**
+- O arquivo só existe durante a execução do workflow — depois que o job termina,
+  o arquivo some (GitHub Actions não persiste arquivos entre runs)
+- Para ter histórico real, precisaria de artifact upload (ver Opção A2 abaixo)
+
+---
+
+#### ✅ Opção A2 — Pasta `backups/` + GitHub Artifacts (recomendada se ficar no mesmo repo)
+Igual à Opção A, mas em vez de tentar commitar, o workflow faz **upload do
+arquivo como Artifact** do GitHub Actions. Artifacts ficam armazenados por
+90 dias (configurável) e podem ser baixados manualmente pelo painel do GitHub.
+
+**Prós:**
+- Histórico real de backups (90 dias por padrão, ajustável)
+- Dados **nunca aparecem** no repositório público — nem no histórico de commits
+- Download fácil pelo painel do GitHub Actions quando precisar
+- Zero configuração extra além do que já existe
+
+**Contras:**
+- Não é um arquivo acessível via URL pública (precisa baixar manualmente)
+- Após 90 dias o artifact expira (mas pode ser configurado para mais)
+
+---
+
+#### 🟡 Opção B — Repositório privado separado `escola-bruna-mandz-backups`
+O workflow faz push do JSON em outro repositório, completamente privado.
+
+**Prós:**
+- Separação total entre código e dados
+- Histórico permanente de commits de backup
+- Controle de acesso independente
+
+**Contras:**
+- Requer criar um Personal Access Token extra (`BACKUP_REPO_TOKEN`)
+- Mais um repositório para gerenciar
+- Mais complexidade no workflow
+
+---
+
+#### 🟡 Opção C — Supabase Storage (bucket privado)
+O workflow faz upload do JSON direto para um bucket privado no Supabase Storage,
+sem passar pelo Git.
+
+**Prós:**
+- Completamente fora do GitHub
+- Fácil de acessar via painel do Supabase
+- Histórico organizado por data no bucket
+
+**Contras:**
+- Requer criar o bucket e configurar políticas no Supabase
+- Usa a cota de storage do plano gratuito (500MB no free tier)
+
+---
+
+### Recomendação
+**Opção A2** — mesma simplicidade da Opção A, mas com histórico real de 90 dias
+via GitHub Artifacts. Zero configuração extra, dados nunca aparecem no repo
+público, e pode baixar qualquer backup passado pelo painel do GitHub Actions.
+
+### Status
+- [x] Decidir qual opção seguir → **Opção A2 (GitHub Artifacts)** escolhida
+- [x] Implementar a opção escolhida — ver Etapa 29
+- [x] Remover `supabase/backup_dados.json` do repositório
+- [x] Adicionar `supabase/backup_dados.json` ao `.gitignore`
+
+---
+
+## ✅ ETAPA 31 — Badges selecionáveis, Gestão de Tamanhos no Painel e Seeding de 10 Produtos
+
+### O que foi feito
+- **Semente de Produtos**: Atualizado o arquivo `supabase/seed-products.sql` e executada a semente no banco de dados para incluir todos os **10 produtos ativos** na loja (as 7 camisetas/acessórios antigos + os 3 novos produtos).
+- **Controle de Badges (3 Cores)**: Removidos os inputs livres de texto e cor de badge. Implementado dropdown (`<select>`) no painel admin (`painel-x9k2f.html`) coordenado para selecionar apenas as 3 opções e cores correspondentes:
+  - **Nenhum**
+  - **Novidade** (Roxo / `purple`)
+  - **Promoção** (Verde / `green`)
+  - **Limitado** (Laranja / `orange`)
+- **Gestão de Tamanhos**: Adicionado input "Tamanhos" no modal de criação e nas fichas de edição de produto do painel admin. O administrador pode digitar os tamanhos separados por vírgula (ex: `P, M, G, GG`), sendo persistidos no campo JSON de variantes.
+- **API Backend**: Atualizada a API `api/admin-products.js` para aceitar o campo `variants` enviado do painel admin nas requisições POST e PATCH, preservando as opções customizadas e evitando sobrescritas indesejadas de valores padrão.
+
+---
+
+## ✅ ETAPA 32 — Zoom nos Produtos (Lightbox Overlay)
+
+
+### O que foi feito
+- **Lightbox Overlay Dinâmico**: Criada estrutura e comportamento de lightbox em JavaScript dentro de [store/store.js](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store.js). Ao clicar na imagem de qualquer produto, o overlay em tela cheia é gerado e animado de forma suave.
+- **Interação Intuitiva**: Adicionado cursor `zoom-in` nas imagens dos cards de produtos e cursor `zoom-out` na imagem expandida para sinalizar que o clique realiza o zoom e fecha a visualização, além de um botão de fechamento (`×`) no canto superior direito.
+- **Visual Dark Integrado**: Estilizado em [store/store-style.css](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/store/store-style.css) com fundo semi-transparente escuro (`rgba(9, 9, 11, 0.95)`), bordas arredondadas e sombras projetadas no lightbox.
+
+## 🐛 BUG FIX — Sub-abas do Módulo Financeiro (07/07/2026)
+
+### Problema
+Após deploy da Etapa 33, as sub-abas **🎓 Alunos**, **💵 Mensalidades** e **🧾 Receitas Avulsas** não funcionavam: clicar nelas não exibia nenhum conteúdo nem abria modais.
+
+### Causa Raiz
+O seletor `document.querySelectorAll('.nav-tab')` era genérico demais — capturava tanto as **3 tabs principais** (Pedidos, Produtos, Financeiro) quanto os **4 botões de sub-aba** do módulo financeiro.
+
+Isso causava **dois problemas simultâneos**:
+1. Clicar em qualquer sub-aba (ex: "Alunos") disparava `switchTab(undefined)` — que escondia todos os conteúdos porque nenhuma tab tem `data-tab === undefined`
+2. A função `switchTab` resetava o estado `.active` de todos os `.nav-tab`, apagando o destaque da sub-aba clicada
+
+### Correção
+- Restringido o seletor para `.nav-tabs > .nav-tab` (filho direto da barra de navegação principal)
+- As sub-abas em `.sub-nav-tabs .nav-tab` ficaram completamente isoladas do listener das tabs principais
+
+### Arquivos alterados
+- `painel-x9k2f.html` — 2 ocorrências do seletor corrigidas (commit `043eef9`)
+
+---
+
+## ✅ ETAPA 33 — Módulo Financeiro no Painel Administrativo (CONCLUÍDA)
+
+
+### Contexto
+Solicitado pelo usuário em 07/07/2026: adicionar uma nova aba "Financeiro" ao painel administrativo para gestão completa das finanças da escola, incluindo alunos, mensalidades, pagamentos, custos e investimentos.
+
+### Requisitos definidos pelo usuário
+
+**1. Dados financeiros a gerenciar:**
+- Mensalidades dos alunos
+- Pagamentos avulsos (matrícula, material, aulas extras)
+- Histórico de pagamentos por aluno
+- Alunos em atraso
+
+**2. Operações do dia a dia:**
+- Registrar pagamento recebido
+- Marcar aluno como pago/não pago
+- Gerar relatórios de pagamentos
+- Verificar quem está em atraso
+
+**3. Gestão de alunos:**
+- Não existe tabela de alunos atualmente — precisa ser criada junto com a financeira
+
+**4. Formas de pagamento aceitas:**
+- Cartão
+- Pix
+
+**5. Custos e investimentos:**
+- Custos fixos: aluguel, água, luz, material didático
+- Investimentos: novos instrumentos, móveis, equipamentos
+- Marketing considerado como investimento
+
+**6. Mensalidades:**
+- Valores diferentes por aluno
+- Possibilidade de descontos
+- Vencimento varia por aluno
+
+**7. Relatórios:**
+- Relatórios só quando solicitado
+- Visão básica de fechamento do mês (receita vs despesas)
+
+### Estrutura do Banco de Dados (Supabase) — 5 novas tabelas
+
+**1. `students`** — Cadastro de alunos
+- `id` (text, primary key)
+- `name`, `email`, `phone`, `address`
+- `created_at`, `active`
+
+**2. `tuitions`** — Mensalidades
+- `id`, `student_id` (FK → students)
+- `amount`, `discount_amount`, `discount_reason`
+- `due_date`, `status` ('pending' | 'paid' | 'overdue' | 'cancelled')
+- `payment_method` ('pix' | 'card'), `paid_at`
+- `notes`
+
+**3. `payments`** — Pagamentos avulsos
+- `id`, `student_id` (FK, nullable)
+- `description`, `amount`, `payment_method`
+- `category` ('matricula' | 'material' | 'aula_extra' | 'outro')
+- `paid_at`, `created_at`
+
+**4. `expenses`** — Custos fixos
+- `id`, `description`, `amount`
+- `category` ('aluguel' | 'agua' | 'luz' | 'material' | 'outro')
+- `due_date`, `paid`, `paid_at`
+
+**5. `investments`** — Investimentos
+- `id`, `description`, `amount`
+- `category` ('instrumento' | 'movel' | 'equipamento' | 'outro')
+- `purchased_at`, `notes`
+
+### Interface do Painel — Nova aba "💰 Financeiro" com 4 sub-abas
+
+**1. Alunos**
+- Lista com busca
+- CRUD completo (criar, editar, excluir)
+- Ver mensalidades do aluno
+
+**2. Mensalidades**
+- Lista com filtros (status, mês/ano)
+- KPIs: total pendente, total pago, alunos em atraso
+- Ações: marcar como pago, registrar pagamento
+- Modal "Nova Mensalidade"
+
+**3. Pagamentos Avulsos**
+- Lista com filtros (categoria, período)
+- Modal "Novo Pagamento"
+- Exportar CSV
+
+**4. Custos e Investimentos**
+- Duas seções: Custos Fixos e Investimentos
+- Modais para adicionar custo/investimento
+- Resumo: total custos do mês, total investimentos
+
+### KPIs da aba Financeiro
+- Receita do mês (mensalidades + pagamentos avulsos)
+- Despesas do mês (custos fixos)
+- Saldo do mês (receita - despesas)
+- Alunos em atraso
+
+### APIs a criar (6 novas, todas protegidas por `x-admin-password`)
+
+1. `api/admin-students.js` — CRUD de alunos
+2. `api/admin-tuitions.js` — Listar/criar/atualizar mensalidades
+3. `api/admin-payments.js` — Listar/registrar pagamentos avulsos
+4. `api/admin-expenses.js` — Listar/criar/marcar custo como pago
+5. `api/admin-investments.js` — Listar/registrar investimentos
+6. `api/admin-financial-summary.js` — KPIs financeiros
+
+### Modais a criar (6 modais)
+
+1. Novo Aluno
+2. Nova Mensalidade
+3. Registrar Pagamento
+4. Novo Pagamento Avulso
+5. Novo Custo
+6. Novo Investimento
+
+### Implementação em 7 etapas
+
+1. **Banco de Dados** — Criar `supabase/financial-schema.sql` com todas as tabelas
+2. **APIs Backend** — Criar as 6 APIs protegidas
+3. **Interface — Parte 1** — Sub-aba "Alunos" + CRUD
+4. **Interface — Parte 2** — Sub-aba "Mensalidades" + modais
+5. **Interface — Parte 3** — Sub-aba "Pagamentos Avulsos"
+6. **Interface — Parte 4** — Sub-aba "Custos e Investimentos"
+7. **Testes e Ajustes** — Validação completa do fluxo
+
+### Estilo Visual
+Manter o padrão dark do painel atual:
+- Fundo `#09090b`, cards `#18181b`, bordas `#27272a`
+- Acento vermelho `#dc2626` para ações principais
+- Status: verde (pago), amarelo (pendente), vermelho (atrasado)
+- Responsivo para mobile
+
+### Status
+- [x] Planejamento completo documentado
+- [x] Banco de dados: `supabase/financial-schema.sql` com 5 tabelas criado e executado no Supabase
+- [x] APIs Backend: consolidadas em `api/admin-financial.js` (roteamento por `?resource=`)
+  - `?resource=students` — CRUD de alunos
+  - `?resource=tuitions` — Mensalidades
+  - `?resource=payments` — Receitas avulsas
+  - `?resource=expenses` — Custos fixos
+  - `?resource=investments` — Investimentos
+  - `?resource=summary` — KPIs consolidados
+  - ⚠️ Consolidação foi necessária: Vercel Hobby permite no máximo 12 Serverless Functions.
+    As 6 APIs individuais foram unificadas em 1 para respeitar o limite (total: 12 functions).
+- [x] Interface: aba "💰 Financeiro" integrada ao `painel-x9k2f.html`
+  - Sub-abas: Alunos, Mensalidades, Receitas Avulsas, Custos & Investimentos
+  - 6 modais funcionais (Novo Aluno, Nova Mensalidade, Registrar Pagamento, Novo Pagamento Avulso, Novo Custo, Novo Investimento)
+  - Dashboard KPIs: Recebido, Pago, Saldo, Pendentes, Alunos em Atraso
+  - Filtro por mês/ano de referência
+  - Exportação CSV de receitas avulsas
+- [x] Bug corrigido: função `loadProducts` duplicada removida do painel
+- [x] Fix Vercel: 6 APIs financeiras consolidadas em `api/admin-financial.js` (commit `0370282`)
+- [x] Entregue em: 07/07/2026
+
+---
+
+## 🔮 Próximos Passos (o que falta fazer)
+
+1. ~~**Executar SQL no Supabase**~~ — ✅ Concluído
+2. Confirmar remoção definitiva dos arquivos órfãos ainda pendentes:
+   `api/payment-provider.js`, `api/env.example`
+3. Decidir o que fazer com `api/test-notify.js` — já é seguro (protegido
+   por senha admin), mas pode ser removido se não houver mais utilidade
+4. Confirmar preços reais dos 10 produtos com a Bruna
+5. Hardening pendente: validar assinatura `x-signature` do webhook do MP
+6. Decidir se notificação por e-mail deve ser enviada também para pedidos
+   PIX que ficam pendentes por muito tempo (hoje só notifica quando aprovado)
+
+Passo a passo de configuração inicial (Supabase, Mercado Pago, Vercel,
+Webhook) está em `docs/PUBLICACAO.md` — concluído nas Etapas 9 a 16.
+
+---
+
+## 📝 Notas Gerais
+
+- A chave PIX antiga (placeholder `21997600704`) foi **removida do código**.
+  A cobrança PIX agora é gerada dinamicamente pelo Mercado Pago a cada
+  pedido — nenhuma chave fica exposta no front-end
+- Pedidos agora são a fonte de verdade no **Supabase** (tabela `orders`),
+  não mais só no `localStorage` do cliente
+- O sistema de XP é mantido, mas agora só é aplicado **após confirmação do
+  pagamento** (antes era aplicado na hora de criar o pedido, mesmo sem pagar)
+- O admin mudou de `admin/admin.html` (sem senha) para `painel-x9k2f.html`
+  (com senha via `ADMIN_PASSWORD`)
+- Nunca usar outra ferramenta de IA para reescrever arquivos deste projeto
+  sem informar o contexto completo da integração — ver Etapa 17
+
+
