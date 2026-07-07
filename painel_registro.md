@@ -945,7 +945,7 @@ Implementar a interface para gerenciar Professores no painel financeiro, incluin
 
 **Agente Responsável:** Cascade SWE-1.6
 
-**Commit Git:** Pendente
+**Commit Git:** 1d1c0de
 
 ---
 
@@ -1011,7 +1011,7 @@ Criar interface completa para gerenciar professores no painel financeiro, permit
 
 **Agente Responsável:** Cascade SWE-1.6
 
-**Commit Git:** Pendente
+**Commit Git:** 1d1c0de
 
 ---
 
