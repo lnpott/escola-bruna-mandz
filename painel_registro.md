@@ -1196,6 +1196,90 @@ Criar as Policies de RLS para `enrollments` e `teacher_payments`, e atualizar `a
 
 ---
 
+# ETAPA 38 — POLICIES DE RLS + API + UI DE VÍNCULOS, AGENDA E PAGTO PROFESSORES
+
+**Data:** 07/07/2026
+
+**Horário:** [preencher — horário real da sessão]
+
+**Agente Responsável:** Claude
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+Fechar as pendências deixadas pela Etapa 37 antes de avançar para os módulos Alunos e Turmas/Agenda do roadmap: decidir e documentar a política de RLS de `enrollments`/`teacher_payments`, confirmar/ajustar a API para os novos resources, sincronizar os arquivos de schema do repositório com o estado real do banco, e atualizar a UI (`painel-x9k2f.html`) que ainda referenciava o formato antigo de `tuitions` (com `teacher_id`/`instrument` diretos).
+
+---
+
+## Decisão Arquitetural Registrada
+
+**Decisão:** `enrollments` e `teacher_payments` seguem exatamente o mesmo padrão de segurança já usado em `students`, `teachers`, `tuitions`, `payments`, `expenses` e `investments`: RLS habilitado, **sem** policies explícitas.
+
+**Motivo:** Todo acesso a essas tabelas acontece exclusivamente pelo backend (`api/admin-financial.js`), que usa a `SUPABASE_SERVICE_ROLE_KEY` (bypassa RLS) e é protegido por senha de admin (`x-admin-password`). Confirmado que o frontend (`painel-x9k2f.html`) nunca instancia um client Supabase — só consome a API via `fetch`. Não existe, portanto, nenhum caminho client-side com chave anônima que precise de policy.
+
+**Impacto:** A pendência "criar Policies de RLS" registrada na Etapa 37 está resolvida — não por criação de policies, mas pela confirmação de que o padrão arquitetural já em uso (acesso só via service role) já cobre `enrollments` e `teacher_payments` da mesma forma que cobre as demais tabelas. Isso foi documentado explicitamente nos comentários de `supabase/financial-schema.sql` e da migration, para que um agente futuro não reabra essa pendência por engano.
+
+---
+
+## Implementações Realizadas
+
+- **Banco de dados:** criado `supabase/migrations/037_enrollments_e_pagamentos_professores.sql`, versão idempotente (com `IF NOT EXISTS`/`DO` blocks defensivos) da migration já aplicada manualmente no SQL Editor na Etapa 37 — agora com histórico versionado no repositório.
+- **Banco de dados:** `supabase/financial-schema.sql` sincronizado com o estado real pós Etapa 37 (antes ainda descrevia `tuitions` com `teacher_id`/`instrument`/`duration_minutes`/`classes_per_week` diretos, e não tinha `enrollments` nem `teacher_payments` — schema-as-code estava desatualizado em relação à produção).
+- **API (`admin-financial.js`):** conferido que `handleEnrollments`, `handleTuitions` (já usando `enrollment_id`/`reference_month`) e `handleTeacherPayments` já estavam implementados corretamente desde a Etapa 37; nenhuma mudança necessária além da revisão.
+- **UI — Professores:** adicionado campo `rate_per_class` (quanto o professor recebe por aula) no modal de cadastro/edição e na listagem.
+- **UI — Nova sub-aba "🔗 Vínculos":** CRUD completo de `enrollments` (aluno, professor, instrumento, dia/horário, duração, aulas/semana, mensalidade do aluno, status).
+- **UI — Nova sub-aba "🗓️ Agenda":** view derivada dos vínculos ativos, agrupada por dia da semana — sem tabela nova, exatamente como decidido na Etapa 37.
+- **UI — Nova sub-aba "💸 Pagto Professores":** CRUD de `teacher_payments` (professor, mês de referência, valor, status de pagamento).
+- **UI — Mensalidades (correção de regressão):** o modal de nova mensalidade ainda enviava `teacher_id`/`instrument`/`duration_minutes`/`classes_per_week` soltos para a API — campos que a API já ignorava desde a Etapa 37, fazendo com que o vínculo pedagógico se perdesse silenciosamente ao criar uma mensalidade pela UI. Corrigido: o modal agora seleciona um `enrollment` existente do aluno (auto-preenchendo o valor a partir de `monthly_fee`) e envia `enrollment_id` + `reference_month`. Mantida a opção de mensalidade avulsa sem vínculo.
+- **UI — Mensalidades (correção de bug):** `renderTuitions`/`loadTuitions` ainda lia `t.teachers`/`t.instrument` diretamente, mas a API já retorna esse dado aninhado em `t.enrollments.teachers`/`t.enrollments.instrument` desde a Etapa 37 — o nome do professor e o instrumento não apareciam mais na listagem. Corrigido.
+- **UI — correção de bug pré-existente (não relacionado à Etapa 37):** a sub-aba "Professores" nunca era exibida ao clicar, porque a lógica de troca de sub-abas não tinha um `case` para `subtab-teachers` (só existia para students/tuitions/payments/expenses). Corrigido junto, já que a mesma lógica precisou ser estendida para as novas sub-abas.
+
+---
+
+## Arquivos Alterados
+
+- `supabase/migrations/037_enrollments_e_pagamentos_professores.sql` (novo)
+- `supabase/financial-schema.sql` (sincronizado com o estado real do banco)
+- `painel-x9k2f.html` (UI: Vínculos, Agenda, Pagto Professores, correções em Professores e Mensalidades)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+Nenhuma alteração nova de schema nesta etapa — `enrollments` e `teacher_payments` já existiam desde a Etapa 37. O que mudou foi o **registro versionado** dessas alterações (migration + schema file), que antes só existiam aplicadas diretamente no SQL Editor do Supabase.
+
+**RLS:** decisão de não criar policies documentada acima e nos comentários SQL.
+
+---
+
+## Testes
+
+⚠ **Não testado em produção/deploy.** As edições foram feitas localmente a partir do clone do repositório. Antes de considerar esta etapa concluída de fato, é necessário:
+- Rodar/conferir a migration `037_enrollments_e_pagamentos_professores.sql` no SQL Editor do Supabase (idempotente — seguro mesmo já tendo enrollments/teacher_payments existentes).
+- Dar deploy do `painel-x9k2f.html` atualizado na Vercel.
+- Testar manualmente na UI: criar vínculo, gerar mensalidade a partir do vínculo, conferir Agenda, registrar pagamento a professor.
+
+---
+
+## Pendências
+
+- Rotina (manual ou agendada) de geração mensal de `tuitions` a partir dos `enrollments` ativos — ainda não implementada, mensalidades continuam sendo criadas uma a uma pela UI.
+- Rotina equivalente para gerar `teacher_payments` mensal a partir de `enrollments.teacher_id` + `teachers.rate_per_class` — hoje o valor é lançado manualmente.
+- `teacher_payments` ainda não entra no cálculo de `outgoings` do resumo financeiro (`handleSummary` em `admin-financial.js`) — o saldo do mês não desconta o que é devido/pago aos professores.
+- Módulo "Alunos" (cadastro estendido: responsáveis, histórico) e detalhamento de Turmas seguem no roadmap (Etapas 41/42), agora que a base de Vínculos e Agenda básica já existe.
+
+---
+
+## Próxima Etapa
+
+Testes funcionais completos do Financeiro (Etapa 39, conforme roadmap já previsto) — validar o fluxo ponta a ponta (vínculo → mensalidade → pagamento → pagamento a professor → resumo) após o deploy, e então incluir `teacher_payments` no cálculo de `outgoings` do resumo financeiro.
+
+---
+
 # ROADMAP DO PAINEL
 
 | Etapa | Implementação | Status |
@@ -1205,11 +1289,11 @@ Criar as Policies de RLS para `enrollments` e `teacher_payments`, e atualizar `a
 | 35 | Interface de Professores | ✅ |
 | 36 | Integração Pedagógica nas Mensalidades | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Policies de RLS + Atualização da API | ⏳ |
+| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ (pendente teste pós-deploy) |
 | 39 | Testes Funcionais do Financeiro | ⏳ |
 | 40 | Relatórios Financeiros | ⏳ |
-| 41 | Alunos | ⏳ |
-| 42 | Turmas / Agenda | ⏳ |
+| 41 | Alunos (cadastro estendido) | ⏳ |
+| 42 | Turmas / Agenda (detalhamento) | 🟡 (Agenda básica já entregue na Etapa 38) |
 
 ---
 

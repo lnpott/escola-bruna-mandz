@@ -299,7 +299,10 @@
                 <div class="sub-nav-tabs" style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid #27272a;padding-bottom:0">
                     <button class="nav-tab active" data-subtab="students">🎓 Alunos</button>
                     <button class="nav-tab" data-subtab="teachers">👨‍🏫 Professores</button>
+                    <button class="nav-tab" data-subtab="enrollments">🔗 Vínculos</button>
+                    <button class="nav-tab" data-subtab="agenda">🗓️ Agenda</button>
                     <button class="nav-tab" data-subtab="tuitions">💵 Mensalidades</button>
+                    <button class="nav-tab" data-subtab="teacherpayments">💸 Pagto Professores</button>
                     <button class="nav-tab" data-subtab="payments">🧾 Receitas Avulsas</button>
                     <button class="nav-tab" data-subtab="expenses">📉 Custos & Investimentos</button>
                 </div>
@@ -322,6 +325,27 @@
                     <div id="teachers-area" style="margin-top: 12px;"></div>
                 </div>
 
+                <!-- Sub-aba VÍNCULOS (enrollments) -->
+                <div id="subtab-enrollments" style="display:none">
+                    <div class="products-toolbar">
+                        <select id="enrollment-status-filter" style="min-width: 140px;">
+                            <option value="">Todos os status</option>
+                            <option value="active">Ativo</option>
+                            <option value="inactive">Inativo</option>
+                        </select>
+                        <button id="btn-new-enrollment" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Vínculo</button>
+                    </div>
+                    <div id="enrollments-area" style="margin-top: 12px;"></div>
+                </div>
+
+                <!-- Sub-aba AGENDA (derivada dos vínculos ativos, agrupada por dia) -->
+                <div id="subtab-agenda" style="display:none">
+                    <div class="empty-state" style="text-align:left;padding:0 0 12px;color:#71717a;font-size:12px">
+                        Agenda básica: mostra todos os vínculos ativos agrupados por dia da semana. Para mudar um horário, edite o vínculo em "🔗 Vínculos".
+                    </div>
+                    <div id="agenda-area" style="margin-top: 12px;"></div>
+                </div>
+
                 <!-- Sub-aba MENSALIDADES -->
                 <div id="subtab-tuitions" style="display:none">
                     <div class="products-toolbar">
@@ -338,6 +362,22 @@
                         <button id="btn-new-tuition" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Nova Mensalidade</button>
                     </div>
                     <div id="tuitions-area" style="margin-top: 12px;"></div>
+                </div>
+
+                <!-- Sub-aba PAGAMENTOS A PROFESSORES -->
+                <div id="subtab-teacherpayments" style="display:none">
+                    <div class="products-toolbar">
+                        <select id="teacherpayment-teacher-filter" style="min-width: 160px;">
+                            <option value="">Todos os professores</option>
+                        </select>
+                        <select id="teacherpayment-paid-filter" style="min-width: 140px;">
+                            <option value="">Todos os status</option>
+                            <option value="false">Pendente</option>
+                            <option value="true">Pago</option>
+                        </select>
+                        <button id="btn-new-teacherpayment" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Pagamento</button>
+                    </div>
+                    <div id="teacherpayments-area" style="margin-top: 12px;"></div>
                 </div>
 
                 <!-- Sub-aba RECEITAS AVULSAS -->
@@ -501,6 +541,10 @@
                         <input type="text" name="specialty" placeholder="Ex: Piano, Violão, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                     </div>
                     <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Valor por Aula (R$) — quanto ELE recebe da escola</label>
+                        <input type="number" name="rate_per_class" step="0.01" min="0" value="0.00" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Dias de Atendimento</label>
                         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px">
                             <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1aa;cursor:pointer">
@@ -529,6 +573,78 @@
                     <div style="display:flex;gap:8px;margin-top:8px">
                         <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Salvar</button>
                         <button type="button" class="btn-cancel-teacher" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: Novo Vínculo (enrollment) -->
+        <div id="modal-new-enrollment" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto">
+                <h2 style="margin:0 0 16px;color:#e4e4e7" id="enrollment-modal-title">Novo Vínculo</h2>
+                <form id="form-new-enrollment" style="display:flex;flex-direction:column;gap:12px">
+                    <input type="hidden" name="id" />
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Aluno *</label>
+                        <select name="student_id" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7"></select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Professor</label>
+                        <select name="teacher_id" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Sem professor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento</label>
+                        <input type="text" name="instrument" placeholder="Ex: Piano, Violão, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Dia da Semana</label>
+                            <select name="day_of_week" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                                <option value="">—</option>
+                                <option value="seg">Segunda</option>
+                                <option value="ter">Terça</option>
+                                <option value="qua">Quarta</option>
+                                <option value="qui">Quinta</option>
+                                <option value="sex">Sexta</option>
+                                <option value="sab">Sábado</option>
+                                <option value="dom">Domingo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Horário</label>
+                            <input type="time" name="class_time" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Duração (min)</label>
+                            <input type="number" name="duration_minutes" min="15" step="15" value="60" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Aulas por Semana</label>
+                            <input type="number" name="classes_per_week" min="1" max="7" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Mensalidade do Aluno (R$)</label>
+                        <input type="number" name="monthly_fee" step="0.01" min="0" value="250.00" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Status</label>
+                        <select name="status" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="active">Ativo</option>
+                            <option value="inactive">Inativo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Observações</label>
+                        <textarea name="notes" placeholder="Notas internas..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-family:inherit;min-height:50px"></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Salvar Vínculo</button>
+                        <button type="button" class="btn-cancel-enrollment" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
                     </div>
                 </form>
             </div>
@@ -564,26 +680,17 @@
                         </div>
                     </div>
                     <div style="border-top:1px solid #27272a;padding-top:12px;margin-top:8px">
-                        <div style="font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Dados Pedagógicos</div>
+                        <div style="font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Vínculo Pedagógico (opcional)</div>
                         <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Professor</label>
-                            <select name="teacher_id" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
-                                <option value="">Sem professor</option>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Vínculo (Aluno + Professor + Instrumento)</label>
+                            <select name="enrollment_id" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                                <option value="">Mensalidade avulsa (sem vínculo)</option>
                             </select>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-                            <div>
-                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento</label>
-                                <input type="text" name="instrument" placeholder="Ex: Piano, Violão..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
-                            </div>
-                            <div>
-                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Duração (min)</label>
-                                <input type="number" name="duration_minutes" min="15" step="15" value="60" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
-                            </div>
+                            <div style="font-size:11px;color:#71717a;margin-top:4px">Selecione o aluno acima primeiro para listar os vínculos dele. Ao escolher um vínculo, o valor é preenchido automaticamente (pode ajustar).</div>
                         </div>
                         <div style="margin-top:8px">
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Aulas por Semana</label>
-                            <input type="number" name="classes_per_week" min="1" max="7" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Mês de Referência</label>
+                            <input type="month" name="reference_month" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                         </div>
                     </div>
                     <div>
@@ -620,6 +727,41 @@
                     <div style="display:flex;gap:8px;margin-top:8px">
                         <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Confirmar</button>
                         <button type="button" class="btn-cancel-pay-tuition" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: Novo Pagamento a Professor -->
+        <div id="modal-new-teacherpayment" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:450px;width:90%">
+                <h2 style="margin:0 0 16px;color:#e4e4e7">Novo Pagamento a Professor</h2>
+                <form id="form-new-teacherpayment" style="display:flex;flex-direction:column;gap:12px">
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Professor *</label>
+                        <select name="teacher_id" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7"></select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Mês de Referência *</label>
+                            <input type="month" name="reference_month" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Valor (R$) *</label>
+                            <input type="number" name="amount" step="0.01" min="0" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a1a1aa;cursor:pointer">
+                        <input type="checkbox" name="paid" id="teacherpayment-paid-checkbox" />
+                        Já foi pago
+                    </label>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Observações</label>
+                        <textarea name="notes" placeholder="Notas internas..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-family:inherit;min-height:50px"></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Registrar</button>
+                        <button type="button" class="btn-cancel-teacherpayment" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
                     </div>
                 </form>
             </div>
@@ -806,6 +948,10 @@
             let _countdown  = REFRESH_INTERVAL;
             let _timer      = null;
             let _expandedRows = new Set(); // IDs de pedidos com detalhe aberto
+            let _allEnrollments = [];
+            let _allTeacherPayments = [];
+            const DAY_MAP = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+            const DAY_ORDER = ['seg','ter','qua','qui','sex','sab','dom'];
 
             const statusLabel = s => STATUS_LABELS[s] || s;
             const isNew = o => (Date.now() - new Date(o.created_at).getTime()) < NEW_THRESHOLD_MS;
@@ -1626,8 +1772,17 @@
                     case 'teachers':
                         await loadTeachers();
                         break;
+                    case 'enrollments':
+                        await loadEnrollments();
+                        break;
+                    case 'agenda':
+                        await loadAgenda();
+                        break;
                     case 'tuitions':
                         await loadTuitions(month, year);
+                        break;
+                    case 'teacherpayments':
+                        await loadTeacherPayments(month, year);
                         break;
                     case 'payments':
                         await loadPayments(month, year);
@@ -1785,6 +1940,7 @@
                             <td data-label="Telefone">${t.phone || '—'}</td>
                             <td data-label="Especialidade">${t.specialty || '—'}</td>
                             <td data-label="Dias">${days}</td>
+                            <td data-label="Valor/Aula">${money.format(t.rate_per_class || 0)}</td>
                             <td data-label="Ações">
                                 <button class="btn-action-small btn-edit-teacher" data-id="${t.id}">Editar</button>
                                 <button class="btn-action-small btn-action-danger btn-delete-teacher" data-id="${t.id}">Excluir</button>
@@ -1797,7 +1953,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th><th>Nome</th><th>Telefone</th><th>Especialidade</th><th>Dias</th><th>Ações</th>
+                                <th>ID</th><th>Nome</th><th>Telefone</th><th>Especialidade</th><th>Dias</th><th>Valor/Aula</th><th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -1844,6 +2000,7 @@
                     form.querySelector('[name="name"]').value = teacher.name;
                     form.querySelector('[name="phone"]').value = teacher.phone || '';
                     form.querySelector('[name="specialty"]').value = teacher.specialty || '';
+                    form.querySelector('[name="rate_per_class"]').value = teacher.rate_per_class || 0;
                     // Marcar dias da semana
                     if (teacher.days_of_week && Array.isArray(teacher.days_of_week)) {
                         form.querySelectorAll('[name="days_of_week"]').forEach(cb => {
@@ -1862,6 +2019,202 @@
                 document.getElementById('modal-new-teacher').style.display = 'none';
             }
 
+            // Sub-aba: Vínculos (enrollments)
+            async function loadEnrollments() {
+                const area = document.getElementById('enrollments-area');
+                area.innerHTML = '<div class="empty-state">Carregando vínculos...</div>';
+                try {
+                    const status = document.getElementById('enrollment-status-filter').value;
+                    const url = '/api/admin-financial?resource=enrollments' + (status ? `&status=${status}` : '');
+                    const res = await fetch(url, { headers: { 'x-admin-password': _password } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    _allEnrollments = data.enrollments;
+                    renderEnrollments();
+                } catch (err) {
+                    area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
+                }
+            }
+
+            function renderEnrollments() {
+                const area = document.getElementById('enrollments-area');
+                if (!_allEnrollments.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum vínculo cadastrado. Crie um vínculo para poder gerar mensalidades e ver a agenda.</div>';
+                    return;
+                }
+
+                const rows = _allEnrollments.map(en => {
+                    const day = en.day_of_week ? (DAY_MAP[en.day_of_week] || en.day_of_week) : '—';
+                    const time = en.class_time ? ` às ${en.class_time}` : '';
+                    return `
+                        <tr>
+                            <td data-label="Aluno"><strong>${en.students?.name || 'Aluno Excluído'}</strong></td>
+                            <td data-label="Professor">${en.teachers?.name || '—'}</td>
+                            <td data-label="Instrumento">${en.instrument || '—'}</td>
+                            <td data-label="Dia/Horário">${day}${time}</td>
+                            <td data-label="Duração">${en.duration_minutes} min × ${en.classes_per_week}x/sem</td>
+                            <td data-label="Mensalidade">${money.format(en.monthly_fee)}</td>
+                            <td data-label="Status"><span class="status-pill ${en.status === 'active' ? 'status-approved' : 'status-rejected'}">${en.status === 'active' ? 'Ativo' : 'Inativo'}</span></td>
+                            <td data-label="Ações">
+                                <button class="btn-action-small btn-edit-enrollment" data-id="${en.id}">Editar</button>
+                                <button class="btn-action-small btn-action-danger btn-delete-enrollment" data-id="${en.id}">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                area.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aluno</th><th>Professor</th><th>Instrumento</th><th>Dia/Horário</th><th>Duração</th><th>Mensalidade</th><th>Status</th><th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+
+                area.querySelectorAll('.btn-edit-enrollment').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const en = _allEnrollments.find(e => e.id === btn.dataset.id);
+                        if (en) await openEnrollmentModal(en);
+                    });
+                });
+
+                area.querySelectorAll('.btn-delete-enrollment').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Deseja excluir este vínculo? Mensalidades já geradas continuam existindo, mas ficam sem vínculo.')) return;
+                        try {
+                            const res = await fetch(`/api/admin-financial?resource=enrollments&id=${btn.dataset.id}`, {
+                                method: 'DELETE',
+                                headers: { 'x-admin-password': _password }
+                            });
+                            if (!res.ok) {
+                                const data = await res.json();
+                                throw new Error(data.error);
+                            }
+                            showToast('Vínculo excluído!');
+                            loadEnrollments();
+                        } catch (e) {
+                            showToast('Erro ao excluir: ' + e.message);
+                        }
+                    });
+                });
+            }
+
+            async function populateEnrollmentFormSelects() {
+                try {
+                    const [studentsRes, teachersRes] = await Promise.all([
+                        fetch('/api/admin-financial?resource=students', { headers: { 'x-admin-password': _password } }),
+                        fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } })
+                    ]);
+                    const studentsData = await studentsRes.json();
+                    const teachersData = await teachersRes.json();
+
+                    const studentSelect = document.querySelector('#form-new-enrollment [name="student_id"]');
+                    studentSelect.innerHTML = '';
+                    studentsData.students.filter(s => s.active).forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id; opt.textContent = s.name;
+                        studentSelect.appendChild(opt);
+                    });
+
+                    const teacherSelect = document.querySelector('#form-new-enrollment [name="teacher_id"]');
+                    teacherSelect.innerHTML = '<option value="">Sem professor</option>';
+                    teachersData.teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id; opt.textContent = t.name + (t.specialty ? ` (${t.specialty})` : '');
+                        teacherSelect.appendChild(opt);
+                    });
+                } catch (e) {
+                    showToast('Erro ao buscar alunos/professores: ' + e.message);
+                }
+            }
+
+            async function openEnrollmentModal(enrollment = null) {
+                await populateEnrollmentFormSelects();
+                const modal = document.getElementById('modal-new-enrollment');
+                const form = document.getElementById('form-new-enrollment');
+                form.reset();
+
+                if (enrollment) {
+                    document.getElementById('enrollment-modal-title').textContent = 'Editar Vínculo';
+                    form.querySelector('[name="id"]').value = enrollment.id;
+                    form.querySelector('[name="student_id"]').value = enrollment.student_id;
+                    form.querySelector('[name="teacher_id"]').value = enrollment.teacher_id || '';
+                    form.querySelector('[name="instrument"]').value = enrollment.instrument || '';
+                    form.querySelector('[name="day_of_week"]').value = enrollment.day_of_week || '';
+                    form.querySelector('[name="class_time"]').value = enrollment.class_time || '';
+                    form.querySelector('[name="duration_minutes"]').value = enrollment.duration_minutes;
+                    form.querySelector('[name="classes_per_week"]').value = enrollment.classes_per_week;
+                    form.querySelector('[name="monthly_fee"]').value = enrollment.monthly_fee;
+                    form.querySelector('[name="status"]').value = enrollment.status;
+                    form.querySelector('[name="notes"]').value = enrollment.notes || '';
+                } else {
+                    document.getElementById('enrollment-modal-title').textContent = 'Novo Vínculo';
+                    form.querySelector('[name="id"]').value = '';
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            function closeEnrollmentModal() {
+                document.getElementById('modal-new-enrollment').style.display = 'none';
+            }
+
+            // Sub-aba: Agenda (derivada dos vínculos ativos)
+            async function loadAgenda() {
+                const area = document.getElementById('agenda-area');
+                area.innerHTML = '<div class="empty-state">Carregando agenda...</div>';
+                try {
+                    const res = await fetch('/api/admin-financial?resource=enrollments&status=active', { headers: { 'x-admin-password': _password } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    renderAgenda(data.enrollments);
+                } catch (err) {
+                    area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
+                }
+            }
+
+            function renderAgenda(enrollments) {
+                const area = document.getElementById('agenda-area');
+                if (!enrollments.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum vínculo ativo para exibir na agenda.</div>';
+                    return;
+                }
+
+                const byDay = {};
+                DAY_ORDER.forEach(d => byDay[d] = []);
+                const noDay = [];
+                enrollments.forEach(en => {
+                    if (en.day_of_week && byDay[en.day_of_week]) byDay[en.day_of_week].push(en);
+                    else noDay.push(en);
+                });
+
+                Object.values(byDay).forEach(list => list.sort((a, b) => (a.class_time || '').localeCompare(b.class_time || '')));
+
+                const dayBlock = (dayKey, label, list) => {
+                    if (!list.length) return '';
+                    const items = list.map(en => `
+                        <li style="padding:8px 0;border-bottom:1px solid #1f1f22;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                            <span><strong>${en.class_time || '—'}</strong> — ${en.students?.name || 'Aluno Excluído'} (${en.instrument || 'sem instrumento'})</span>
+                            <span style="color:#71717a;font-size:12px">👨‍🏫 ${en.teachers?.name || 'sem professor'} · ${en.duration_minutes}min</span>
+                        </li>
+                    `).join('');
+                    return `
+                        <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+                            <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#a1a1aa">${label}</h3>
+                            <ul style="list-style:none;padding:0;margin:0">${items}</ul>
+                        </div>
+                    `;
+                };
+
+                let html = DAY_ORDER.map(d => dayBlock(d, DAY_MAP[d], byDay[d])).join('');
+                if (noDay.length) html += dayBlock('none', 'Sem dia definido', noDay);
+
+                area.innerHTML = html || '<div class="empty-state">Nenhum vínculo ativo com dia definido.</div>';
+            }
+
             // Sub-aba: Mensalidades
             async function loadTuitions(month, year) {
                 const area = document.getElementById('tuitions-area');
@@ -1875,10 +2228,13 @@
                     if (!res.ok) throw new Error(data.error);
                     _allTuitions = data.tuitions;
 
-                    // Popular filtro de professores
+                    // Popular filtro de professores (via vínculo)
                     const teacherFilter = document.getElementById('tuition-teacher-filter');
                     teacherFilter.innerHTML = '<option value="">Todos os professores</option>';
-                    const teachers = [...new Set(_allTuitions.filter(t => t.teachers).map(t => t.teachers))];
+                    const seenTeacherIds = new Set();
+                    const teachers = _allTuitions
+                        .map(t => t.enrollments?.teachers ? { id: t.enrollments.teacher_id, ...t.enrollments.teachers } : null)
+                        .filter(t => t && !seenTeacherIds.has(t.id) && seenTeacherIds.add(t.id));
                     teachers.forEach(t => {
                         const opt = document.createElement('option');
                         opt.value = t.id;
@@ -1898,7 +2254,7 @@
 
                 // Filtrar por professor
                 const filtered = teacherFilter
-                    ? _allTuitions.filter(t => t.teachers && t.teachers.id === teacherFilter)
+                    ? _allTuitions.filter(t => t.enrollments && t.enrollments.teacher_id === teacherFilter)
                     : _allTuitions;
 
                 if (!filtered.length) {
@@ -1919,8 +2275,8 @@
                     const paidDate = t.paid_at ? new Date(t.paid_at).toLocaleDateString('pt-BR') : '—';
                     const method = t.payment_method ? t.payment_method.toUpperCase() : '—';
                     const disc = Number(t.discount_amount) > 0 ? `<br><span style="color:#f87171;font-size:11px">Desc: ${money.format(t.discount_amount)} (${t.discount_reason || 'Outro'})</span>` : '';
-                    const teacherInfo = t.teachers ? `<br><span style="color:#71717a;font-size:11px">👨‍🏫 ${t.teachers.name}</span>` : '';
-                    const instrumentInfo = t.instrument ? `<br><span style="color:#71717a;font-size:11px">🎸 ${t.instrument}</span>` : '';
+                    const teacherInfo = t.enrollments?.teachers ? `<br><span style="color:#71717a;font-size:11px">👨‍🏫 ${t.enrollments.teachers.name}</span>` : '';
+                    const instrumentInfo = t.enrollments?.instrument ? `<br><span style="color:#71717a;font-size:11px">🎸 ${t.enrollments.instrument}</span>` : '';
 
                     let actionHtml = '';
                     if (t.status !== 'paid') {
@@ -2037,6 +2393,123 @@
                         <tbody>${rows}</tbody>
                     </table>
                 `;
+            }
+
+            // Sub-aba: Pagamentos a Professores
+            async function loadTeacherPayments(month, year) {
+                const area = document.getElementById('teacherpayments-area');
+                area.innerHTML = '<div class="empty-state">Carregando pagamentos a professores...</div>';
+                try {
+                    const teacherId = document.getElementById('teacherpayment-teacher-filter').value;
+                    const paid = document.getElementById('teacherpayment-paid-filter').value;
+                    let url = `/api/admin-financial?resource=teacher_payments&month=${month}&year=${year}`;
+                    if (teacherId) url += `&teacher_id=${teacherId}`;
+                    if (paid !== '') url += `&paid=${paid}`;
+                    const res = await fetch(url, { headers: { 'x-admin-password': _password } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    _allTeacherPayments = data.teacher_payments;
+
+                    // Popular filtro de professores (uma vez, se ainda vazio)
+                    const filterSelect = document.getElementById('teacherpayment-teacher-filter');
+                    if (filterSelect.options.length <= 1) {
+                        const tRes = await fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } });
+                        const tData = await tRes.json();
+                        if (tRes.ok) {
+                            tData.teachers.forEach(t => {
+                                const opt = document.createElement('option');
+                                opt.value = t.id; opt.textContent = t.name;
+                                filterSelect.appendChild(opt);
+                            });
+                        }
+                    }
+
+                    renderTeacherPayments();
+                } catch (err) {
+                    area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
+                }
+            }
+
+            function renderTeacherPayments() {
+                const area = document.getElementById('teacherpayments-area');
+                if (!_allTeacherPayments.length) {
+                    area.innerHTML = '<div class="empty-state">Nenhum pagamento a professor neste período.</div>';
+                    return;
+                }
+
+                const rows = _allTeacherPayments.map(tp => `
+                    <tr>
+                        <td data-label="Professor"><strong>${tp.teachers?.name || 'Professor Excluído'}</strong></td>
+                        <td data-label="Mês Ref.">${new Date(tp.reference_month + 'T12:00:00').toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' })}</td>
+                        <td data-label="Valor">${money.format(tp.amount)}</td>
+                        <td data-label="Status"><span class="status-pill ${tp.paid ? 'status-approved' : 'status-pending'}">${tp.paid ? 'Pago' : 'Pendente'}</span></td>
+                        <td data-label="Pago em">${tp.paid_at ? new Date(tp.paid_at).toLocaleDateString('pt-BR') : '—'}</td>
+                        <td data-label="Ações">
+                            ${!tp.paid ? `<button class="btn-action-small btn-action-success btn-pay-teacherpayment" data-id="${tp.id}">Marcar Pago</button>` : ''}
+                            <button class="btn-action-small btn-action-danger btn-delete-teacherpayment" data-id="${tp.id}">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                area.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr><th>Professor</th><th>Mês Ref.</th><th>Valor</th><th>Status</th><th>Pago em</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+
+                area.querySelectorAll('.btn-pay-teacherpayment').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        try {
+                            const res = await fetch('/api/admin-financial?resource=teacher_payments', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                                body: JSON.stringify({ id: btn.dataset.id, paid: true })
+                            });
+                            if (!res.ok) throw new Error((await res.json()).error);
+                            showToast('Pagamento marcado como pago!');
+                            loadFinancialData();
+                        } catch (e) {
+                            showToast('Erro: ' + e.message);
+                        }
+                    });
+                });
+
+                area.querySelectorAll('.btn-delete-teacherpayment').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Deseja excluir este pagamento a professor?')) return;
+                        try {
+                            const res = await fetch(`/api/admin-financial?resource=teacher_payments&id=${btn.dataset.id}`, {
+                                method: 'DELETE',
+                                headers: { 'x-admin-password': _password }
+                            });
+                            if (!res.ok) throw new Error((await res.json()).error);
+                            showToast('Pagamento excluído!');
+                            loadTeacherPayments(document.getElementById('fin-month-filter').value, document.getElementById('fin-year-filter').value);
+                        } catch (e) {
+                            showToast('Erro ao excluir: ' + e.message);
+                        }
+                    });
+                });
+            }
+
+            async function populateTeacherPaymentSelect() {
+                try {
+                    const res = await fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    const select = document.querySelector('#form-new-teacherpayment [name="teacher_id"]');
+                    select.innerHTML = '';
+                    data.teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id; opt.textContent = t.name + (t.specialty ? ` (${t.specialty})` : '');
+                        select.appendChild(opt);
+                    });
+                } catch (e) {
+                    showToast('Erro ao buscar professores: ' + e.message);
+                }
             }
 
             // Sub-aba: Custos & Investimentos
@@ -2217,23 +2690,34 @@
                         });
                     });
 
-                    // Buscar professores
-                    const teacherRes = await fetch('/api/admin-financial?resource=teachers', { headers: { 'x-admin-password': _password } });
-                    const teacherData = await teacherRes.json();
-                    if (teacherRes.ok) {
-                        const teacherSelect = document.querySelector('#form-new-tuition [name="teacher_id"]');
-                        if (teacherSelect) {
-                            teacherSelect.innerHTML = '<option value="">Sem professor</option>';
-                            teacherData.teachers.forEach(t => {
-                                const opt = document.createElement('option');
-                                opt.value = t.id;
-                                opt.textContent = t.name + (t.specialty ? ` (${t.specialty})` : '');
-                                teacherSelect.appendChild(opt);
-                            });
-                        }
-                    }
                 } catch (e) {
                     showToast('Erro ao buscar lista de alunos/professores: ' + e.message);
+                }
+            }
+
+            // Popula o select de Vínculo do form de mensalidade com os vínculos
+            // ativos do aluno escolhido, e auto-preenche o valor a partir do
+            // monthly_fee do vínculo selecionado.
+            async function populateTuitionEnrollmentSelect(studentId) {
+                const enrollmentSelect = document.querySelector('#form-new-tuition [name="enrollment_id"]');
+                if (!enrollmentSelect) return;
+                enrollmentSelect.innerHTML = '<option value="">Mensalidade avulsa (sem vínculo)</option>';
+                if (!studentId) return;
+                try {
+                    const res = await fetch(`/api/admin-financial?resource=enrollments&student_id=${studentId}&status=active`, {
+                        headers: { 'x-admin-password': _password }
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    data.enrollments.forEach(en => {
+                        const opt = document.createElement('option');
+                        opt.value = en.id;
+                        opt.dataset.monthlyFee = en.monthly_fee;
+                        opt.textContent = `${en.instrument || 'Aula'} — ${en.teachers?.name || 'sem professor'} (${money.format(en.monthly_fee)})`;
+                        enrollmentSelect.appendChild(opt);
+                    });
+                } catch (e) {
+                    showToast('Erro ao buscar vínculos do aluno: ' + e.message);
                 }
             }
 
@@ -2416,7 +2900,11 @@
                      _activeSubTab = btn.dataset.subtab;
                      
                      document.getElementById('subtab-students').style.display = _activeSubTab === 'students' ? '' : 'none';
+                     document.getElementById('subtab-teachers').style.display = _activeSubTab === 'teachers' ? '' : 'none';
+                     document.getElementById('subtab-enrollments').style.display = _activeSubTab === 'enrollments' ? '' : 'none';
+                     document.getElementById('subtab-agenda').style.display = _activeSubTab === 'agenda' ? '' : 'none';
                      document.getElementById('subtab-tuitions').style.display = _activeSubTab === 'tuitions' ? '' : 'none';
+                     document.getElementById('subtab-teacherpayments').style.display = _activeSubTab === 'teacherpayments' ? '' : 'none';
                      document.getElementById('subtab-payments').style.display = _activeSubTab === 'payments' ? '' : 'none';
                      document.getElementById('subtab-expenses').style.display = _activeSubTab === 'expenses' ? '' : 'none';
                      
@@ -2491,6 +2979,7 @@
                      name: form.querySelector('[name="name"]').value,
                      phone: form.querySelector('[name="phone"]').value,
                      specialty: form.querySelector('[name="specialty"]').value,
+                     rate_per_class: form.querySelector('[name="rate_per_class"]').value || 0,
                      days_of_week: selectedDays
                  };
 
@@ -2524,6 +3013,93 @@
                  }
              });
 
+             // Vínculos (enrollments)
+             document.getElementById('btn-new-enrollment').addEventListener('click', () => openEnrollmentModal());
+             document.querySelectorAll('.btn-cancel-enrollment').forEach(b => b.addEventListener('click', closeEnrollmentModal));
+             document.getElementById('enrollment-status-filter').addEventListener('change', loadEnrollments);
+
+             document.getElementById('form-new-enrollment').addEventListener('submit', async (e) => {
+                 e.preventDefault();
+                 const form = e.target;
+                 const id = form.querySelector('[name="id"]').value;
+                 const payload = {
+                     student_id: form.querySelector('[name="student_id"]').value,
+                     teacher_id: form.querySelector('[name="teacher_id"]').value || null,
+                     instrument: form.querySelector('[name="instrument"]').value || null,
+                     day_of_week: form.querySelector('[name="day_of_week"]').value || null,
+                     class_time: form.querySelector('[name="class_time"]').value || null,
+                     duration_minutes: form.querySelector('[name="duration_minutes"]').value,
+                     classes_per_week: form.querySelector('[name="classes_per_week"]').value,
+                     monthly_fee: form.querySelector('[name="monthly_fee"]').value,
+                     status: form.querySelector('[name="status"]').value,
+                     notes: form.querySelector('[name="notes"]').value
+                 };
+
+                 try {
+                     let res;
+                     if (id) {
+                         res = await fetch('/api/admin-financial?resource=enrollments', {
+                             method: 'PATCH',
+                             headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                             body: JSON.stringify({ id, ...payload })
+                         });
+                     } else {
+                         res = await fetch('/api/admin-financial?resource=enrollments', {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                             body: JSON.stringify(payload)
+                         });
+                     }
+                     if (!res.ok) throw new Error((await res.json()).error);
+                     showToast('Vínculo salvo com sucesso!');
+                     closeEnrollmentModal();
+                     loadEnrollments();
+                 } catch (err) {
+                     showToast('Erro ao salvar vínculo: ' + err.message);
+                 }
+             });
+
+             // Pagamentos a Professores
+             document.getElementById('btn-new-teacherpayment').addEventListener('click', async () => {
+                 await populateTeacherPaymentSelect();
+                 const form = document.getElementById('form-new-teacherpayment');
+                 form.reset();
+                 const now = new Date();
+                 form.querySelector('[name="reference_month"]').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                 document.getElementById('modal-new-teacherpayment').style.display = 'flex';
+             });
+             document.querySelectorAll('.btn-cancel-teacherpayment').forEach(b => b.addEventListener('click', () => {
+                 document.getElementById('modal-new-teacherpayment').style.display = 'none';
+             }));
+             document.getElementById('teacherpayment-teacher-filter').addEventListener('change', loadFinancialData);
+             document.getElementById('teacherpayment-paid-filter').addEventListener('change', loadFinancialData);
+
+             document.getElementById('form-new-teacherpayment').addEventListener('submit', async (e) => {
+                 e.preventDefault();
+                 const form = e.target;
+                 const referenceMonthRaw = form.querySelector('[name="reference_month"]').value;
+                 const payload = {
+                     teacher_id: form.querySelector('[name="teacher_id"]').value,
+                     reference_month: referenceMonthRaw ? `${referenceMonthRaw}-01` : null,
+                     amount: form.querySelector('[name="amount"]').value,
+                     paid: form.querySelector('[name="paid"]').checked,
+                     notes: form.querySelector('[name="notes"]').value
+                 };
+                 try {
+                     const res = await fetch('/api/admin-financial?resource=teacher_payments', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json', 'x-admin-password': _password },
+                         body: JSON.stringify(payload)
+                     });
+                     if (!res.ok) throw new Error((await res.json()).error);
+                     showToast('Pagamento a professor registrado!');
+                     document.getElementById('modal-new-teacherpayment').style.display = 'none';
+                     loadFinancialData();
+                 } catch (err) {
+                     showToast('Erro ao registrar: ' + err.message);
+                 }
+             });
+
              // Mensalidades
              document.getElementById('btn-new-tuition').addEventListener('click', async () => {
                  await populateStudentSelects();
@@ -2536,7 +3112,10 @@
                  const form = document.getElementById('form-new-tuition');
                  form.reset();
                  form.querySelector('[name="due_date"]').value = dateStr;
-                 form.querySelector('[name="amount"]').value = "250.00"; 
+                 form.querySelector('[name="amount"]').value = "250.00";
+                 form.querySelector('[name="reference_month"]').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+                 await populateTuitionEnrollmentSelect(form.querySelector('[name="student_id"]').value);
 
                  document.getElementById('modal-new-tuition').style.display = 'flex';
              });
@@ -2546,9 +3125,20 @@
              document.getElementById('tuition-status-filter').addEventListener('change', loadFinancialData);
              document.getElementById('tuition-teacher-filter').addEventListener('change', renderTuitions);
 
+             document.querySelector('#form-new-tuition [name="student_id"]').addEventListener('change', (e) => {
+                 populateTuitionEnrollmentSelect(e.target.value);
+             });
+             document.querySelector('#form-new-tuition [name="enrollment_id"]').addEventListener('change', (e) => {
+                 const opt = e.target.selectedOptions[0];
+                 if (opt && opt.dataset.monthlyFee !== undefined) {
+                     document.querySelector('#form-new-tuition [name="amount"]').value = opt.dataset.monthlyFee;
+                 }
+             });
+
              document.getElementById('form-new-tuition').addEventListener('submit', async (e) => {
                  e.preventDefault();
                  const form = e.target;
+                 const referenceMonthRaw = form.querySelector('[name="reference_month"]').value; // 'YYYY-MM'
                  const payload = {
                      student_id: form.querySelector('[name="student_id"]').value,
                      amount: form.querySelector('[name="amount"]').value,
@@ -2556,10 +3146,8 @@
                      discount_amount: form.querySelector('[name="discount_amount"]').value,
                      discount_reason: form.querySelector('[name="discount_reason"]').value,
                      notes: form.querySelector('[name="notes"]').value,
-                     teacher_id: form.querySelector('[name="teacher_id"]').value || null,
-                     instrument: form.querySelector('[name="instrument"]').value || null,
-                     duration_minutes: form.querySelector('[name="duration_minutes"]').value ? parseInt(form.querySelector('[name="duration_minutes"]').value) : null,
-                     classes_per_week: form.querySelector('[name="classes_per_week"]').value ? parseInt(form.querySelector('[name="classes_per_week"]').value) : null
+                     enrollment_id: form.querySelector('[name="enrollment_id"]').value || null,
+                     reference_month: referenceMonthRaw ? `${referenceMonthRaw}-01` : null
                  };
 
                  try {
