@@ -1290,10 +1290,77 @@ Testes funcionais completos do Financeiro (Etapa 39, conforme roadmap já previs
 | 36 | Integração Pedagógica nas Mensalidades | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
 | 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ (pendente teste pós-deploy) |
-| 39 | Testes Funcionais do Financeiro | ⏳ |
+| 39 | teacher_payments no cálculo de outgoings do Resumo Financeiro | ✅ (pendente teste pós-deploy) |
 | 40 | Relatórios Financeiros | ⏳ |
 | 41 | Alunos (cadastro estendido) | ⏳ |
 | 42 | Turmas / Agenda (detalhamento) | 🟡 (Agenda básica já entregue na Etapa 38) |
+
+---
+
+# ETAPA 39 — TEACHER_PAYMENTS NO RESUMO FINANCEIRO
+
+**Data:** 08/07/2026
+
+**Horário:** 02:47 (horário de Brasília)
+
+**Agente Responsável:** Claude
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+Fechar a pendência deixada pelas Etapas 37/38: incluir `teacher_payments` no cálculo de `outgoings` do resumo financeiro (`handleSummary` em `admin-financial.js`), que até aqui só considerava `expenses` e `investments`, subestimando o quanto a escola efetivamente gasta no mês (o pagamento a professores ficava de fora do saldo).
+
+---
+
+## Implementações Realizadas
+
+- **API (`admin-financial.js` — `handleSummary`):** `outgoings` passa a somar também os `teacher_payments` com `paid = true` e `paid_at` dentro do mês/ano filtrado — mesmo padrão já usado para `expenses` (campo `paid_at`, timestamptz).
+- **API (`admin-financial.js` — `handleSummary`):** novo campo `pending_teacher_payments` na resposta do resumo, somando `teacher_payments` com `paid = false` cujo `reference_month` cai dentro do mês/ano filtrado — mesmo papel que `pending_tuitions` já cumpre para mensalidades, mas do lado do que a escola deve aos professores.
+- **UI (`painel-x9k2f.html`):** novo card de KPI "A Pagar a Professores" na grade de KPIs do Financeiro, exibindo `pending_teacher_payments`.
+- **UI (`painel-x9k2f.html` — `loadFinancialSummary`):** vínculo do novo campo `pending_teacher_payments` ao card de KPI recém-criado.
+
+---
+
+## Arquivos Alterados
+
+- `api/admin-financial.js` (`handleSummary`: outgoings + novo campo `pending_teacher_payments`)
+- `painel-x9k2f.html` (novo KPI card + binding em `loadFinancialSummary`)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Etapa exclusivamente de API/UI, sem mudança de schema.
+
+---
+
+## Testes
+
+✅ Sintaxe de `admin-financial.js` validada (`node --check`).
+✅ Sintaxe do JavaScript embutido em `painel-x9k2f.html` validada (extração + `node --check`).
+⚠ **Não testado em produção/deploy.** Antes de considerar esta etapa concluída de fato, é necessário:
+- Dar deploy do `admin-financial.js` e do `painel-x9k2f.html` atualizados na Vercel.
+- Testar manualmente: registrar um `teacher_payment` como pago dentro do mês corrente e conferir se `outgoings`/`Saldo do Mês` refletem o valor.
+- Testar manualmente: registrar um `teacher_payment` pendente com `reference_month` no mês corrente e conferir o card "A Pagar a Professores".
+
+---
+
+## Pendências
+
+- Rotina (manual ou agendada) de geração mensal de `tuitions` a partir dos `enrollments` ativos — ainda não implementada.
+- Rotina equivalente para gerar `teacher_payments` mensal a partir de `enrollments.teacher_id` + `teachers.rate_per_class` — hoje o valor é lançado manualmente.
+- Módulo "Alunos" (cadastro estendido: responsáveis, histórico) e detalhamento de Turmas seguem no roadmap (Etapas 41/42).
+- Testes funcionais ponta a ponta completos (vínculo → mensalidade → pagamento → pagamento a professor → resumo) ainda dependem do deploy — item já estava pendente desde a Etapa 38 e segue em aberto.
+
+---
+
+## Próxima Etapa
+
+Deploy das alterações desta etapa na Vercel e execução dos testes funcionais ponta a ponta do Financeiro (fluxo completo). Depois disso, avaliar prioridade entre Relatórios Financeiros (Etapa 40) e as rotinas automáticas de geração mensal de `tuitions`/`teacher_payments` registradas como pendência.
 
 ---
 
