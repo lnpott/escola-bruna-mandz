@@ -1,12 +1,18 @@
 /**
  * api/admin-financial.js
  * API financeira consolidada para o painel admin.
- * Roteamento interno por query string: ?resource=students|teachers|tuitions|payments|expenses|investments|summary
+ * Roteamento interno por query string: ?resource=students|teachers|enrollments|tuitions|payments|expenses|investments|teacher_payments|summary
 
  * Protegido por header 'x-admin-password'.
  *
- * Consolida os 6 endpoints anteriores em 1 único arquivo para respeitar o
+ * Consolida os endpoints em 1 único arquivo para respeitar o
  * limite de 12 Serverless Functions do Vercel Hobby plan.
+ *
+ * ── Etapa 37 ──────────────────────────────────────────────────────────────
+ * `tuitions` deixou de carregar dado pedagógico (teacher_id, instrument,
+ * duration_minutes, classes_per_week). Esses campos agora vivem em
+ * `enrollments`, referenciada por `tuitions.enrollment_id`.
+ * Ver painel_registro.md — Etapa 37 para o histórico completo da decisão.
  */
 
 import { getSupabase } from './_lib/supabase.js';
@@ -107,7 +113,7 @@ async function handleTeachers(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, phone, specialty, days_of_week } = req.body;
+        const { name, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
         const days = Array.isArray(days_of_week)
@@ -116,20 +122,28 @@ async function handleTeachers(req, res, supabase) {
 
         const { data, error } = await supabase
             .from('teachers')
-            .insert([{ id: genId('TE'), name, phone: phone || null, specialty: specialty || null, days_of_week: days }])
+            .insert([{
+                id: genId('TE'),
+                name,
+                phone: phone || null,
+                specialty: specialty || null,
+                days_of_week: days,
+                rate_per_class: rate_per_class !== undefined && rate_per_class !== null ? parseFloat(rate_per_class) : 0,
+            }])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ teacher: data });
     }
 
     if (method === 'PATCH') {
-        const { id, name, phone, specialty, days_of_week } = req.body;
+        const { id, name, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!id) return res.status(400).json({ error: 'id do professor é obrigatório.' });
 
         const upd = {};
         if (name !== undefined) upd.name = name;
         if (phone !== undefined) upd.phone = phone || null;
         if (specialty !== undefined) upd.specialty = specialty || null;
+        if (rate_per_class !== undefined) upd.rate_per_class = parseFloat(rate_per_class || 0);
 
         if (days_of_week !== undefined) {
             const days = Array.isArray(days_of_week)
@@ -158,15 +172,130 @@ async function handleTeachers(req, res, supabase) {
     return res.status(405).json({ error: 'Método não permitido.' });
 }
 
+// ── NOVO (Etapa 37): enrollments ───────────────────────────────────────────────
+// Dono do vínculo pedagógico: aluno + professor + instrumento + dia/horário +
+// valor mensal. Base tanto para a cobrança (tuitions) quanto para a Agenda.
+
+async function handleEnrollments(req, res, supabase) {
+    const { method } = req;
+
+    if (method === 'GET') {
+        const { student_id, teacher_id, status, day_of_week } = req.query;
+        let q = supabase
+            .from('enrollments')
+            .select('*, students(name), teachers(name, specialty)')
+            .order('day_of_week', { ascending: true });
+        if (student_id)  q = q.eq('student_id', student_id);
+        if (teacher_id)  q = q.eq('teacher_id', teacher_id);
+        if (status)      q = q.eq('status', status);
+        if (day_of_week) q = q.eq('day_of_week', day_of_week);
+        const { data, error } = await q;
+        if (error) throw error;
+        return res.status(200).json({ enrollments: data });
+    }
+
+    if (method === 'POST') {
+        const {
+            student_id,
+            teacher_id,
+            instrument,
+            day_of_week,
+            class_time,
+            duration_minutes,
+            classes_per_week,
+            monthly_fee,
+            status,
+            notes,
+        } = req.body;
+
+        if (!student_id) return res.status(400).json({ error: 'student_id é obrigatório.' });
+
+        const payload = {
+            id: genId('EN'),
+            student_id,
+            teacher_id: teacher_id || null,
+            instrument: instrument || null,
+            day_of_week: day_of_week || null,
+            class_time: class_time || null,
+            duration_minutes: duration_minutes !== undefined && duration_minutes !== null ? parseInt(duration_minutes, 10) : 60,
+            classes_per_week: classes_per_week !== undefined && classes_per_week !== null ? parseInt(classes_per_week, 10) : 1,
+            monthly_fee: monthly_fee !== undefined && monthly_fee !== null ? parseFloat(monthly_fee) : 0,
+            status: status || 'active',
+            notes: notes || null,
+        };
+
+        const { data, error } = await supabase
+            .from('enrollments')
+            .insert([payload])
+            .select('*, students(name), teachers(name, specialty)')
+            .single();
+        if (error) throw error;
+        return res.status(201).json({ enrollment: data });
+    }
+
+    if (method === 'PATCH') {
+        const {
+            id,
+            teacher_id,
+            instrument,
+            day_of_week,
+            class_time,
+            duration_minutes,
+            classes_per_week,
+            monthly_fee,
+            status,
+            notes,
+        } = req.body;
+
+        if (!id) return res.status(400).json({ error: 'ID do vínculo (enrollment) é obrigatório.' });
+
+        const upd = {};
+        if (teacher_id       !== undefined) upd.teacher_id       = teacher_id || null;
+        if (instrument       !== undefined) upd.instrument       = instrument || null;
+        if (day_of_week      !== undefined) upd.day_of_week      = day_of_week || null;
+        if (class_time       !== undefined) upd.class_time       = class_time || null;
+        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
+        if (classes_per_week !== undefined) upd.classes_per_week = parseInt(classes_per_week, 10);
+        if (monthly_fee      !== undefined) upd.monthly_fee      = parseFloat(monthly_fee);
+        if (status           !== undefined) upd.status           = status;
+        if (notes            !== undefined) upd.notes            = notes;
+
+        const { data, error } = await supabase
+            .from('enrollments')
+            .update(upd)
+            .eq('id', id)
+            .select('*, students(name), teachers(name, specialty)')
+            .single();
+        if (error) throw error;
+        return res.status(200).json({ enrollment: data });
+    }
+
+    if (method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'ID do vínculo (enrollment) é obrigatório na query string.' });
+        const { error } = await supabase.from('enrollments').delete().eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
+}
+
+// ── tuitions (Etapa 37: agora é só a cobrança mensal, sem dado pedagógico) ─────
+
 async function handleTuitions(req, res, supabase) {
 
     const { method } = req;
 
     if (method === 'GET') {
-        const { status, month, year, student_id } = req.query;
-        let q = supabase.from('tuitions').select('*, students(name)').order('due_date', { ascending: false });
-        if (status)     q = q.eq('status', status);
-        if (student_id) q = q.eq('student_id', student_id);
+        const { status, month, year, student_id, enrollment_id } = req.query;
+        let q = supabase
+            .from('tuitions')
+            .select('*, students(name), enrollments(instrument, teacher_id, teachers(name))')
+            .order('due_date', { ascending: false });
+        if (status)        q = q.eq('status', status);
+        if (student_id)    q = q.eq('student_id', student_id);
+        if (enrollment_id) q = q.eq('enrollment_id', enrollment_id);
         if (month && year) {
             const { dateStart, dateEnd } = monthRange(month, year);
             q = q.gte('due_date', dateStart).lte('due_date', dateEnd);
@@ -179,10 +308,8 @@ async function handleTuitions(req, res, supabase) {
     if (method === 'POST') {
         const {
             student_id,
-            teacher_id,
-            instrument,
-            duration_minutes,
-            classes_per_week,
+            enrollment_id,
+            reference_month,
             amount,
             discount_amount,
             discount_reason,
@@ -198,10 +325,8 @@ async function handleTuitions(req, res, supabase) {
         const payload = {
             id: genId('TU'),
             student_id,
-            teacher_id: teacher_id || null,
-            instrument: instrument || null,
-            duration_minutes: duration_minutes !== undefined && duration_minutes !== null ? parseInt(duration_minutes, 10) : 60,
-            classes_per_week: classes_per_week !== undefined && classes_per_week !== null ? parseInt(classes_per_week, 10) : 1,
+            enrollment_id: enrollment_id || null,
+            reference_month: reference_month || null,
             amount: parseFloat(amount),
             discount_amount: parseFloat(discount_amount || 0),
             discount_reason: discount_reason || null,
@@ -213,7 +338,7 @@ async function handleTuitions(req, res, supabase) {
         const { data, error } = await supabase
             .from('tuitions')
             .insert([payload])
-            .select('*, students(name)')
+            .select('*, students(name), enrollments(instrument, teacher_id, teachers(name))')
             .single();
 
         if (error) throw error;
@@ -224,6 +349,8 @@ async function handleTuitions(req, res, supabase) {
     if (method === 'PATCH') {
         const {
             id,
+            enrollment_id,
+            reference_month,
             status,
             payment_method,
             paid_at,
@@ -232,15 +359,13 @@ async function handleTuitions(req, res, supabase) {
             amount,
             notes,
             due_date,
-            teacher_id,
-            instrument,
-            duration_minutes,
-            classes_per_week,
         } = req.body;
 
         if (!id) return res.status(400).json({ error: 'ID da mensalidade é obrigatório.' });
 
         const upd = {};
+        if (enrollment_id    !== undefined) upd.enrollment_id    = enrollment_id || null;
+        if (reference_month  !== undefined) upd.reference_month  = reference_month || null;
         if (status           !== undefined) upd.status           = status;
         if (payment_method   !== undefined) upd.payment_method   = payment_method;
         if (paid_at          !== undefined) upd.paid_at          = paid_at;
@@ -250,11 +375,6 @@ async function handleTuitions(req, res, supabase) {
         if (notes            !== undefined) upd.notes            = notes;
         if (due_date         !== undefined) upd.due_date         = due_date;
 
-        if (teacher_id       !== undefined) upd.teacher_id = teacher_id || null;
-        if (instrument       !== undefined) upd.instrument = instrument || null;
-        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
-        if (classes_per_week !== undefined) upd.classes_per_week = parseInt(classes_per_week, 10);
-
         if (status === 'paid' && !upd.paid_at) upd.paid_at = new Date().toISOString();
         else if (status && status !== 'paid') { upd.paid_at = null; upd.payment_method = null; }
 
@@ -262,7 +382,7 @@ async function handleTuitions(req, res, supabase) {
             .from('tuitions')
             .update(upd)
             .eq('id', id)
-            .select('*, students(name)')
+            .select('*, students(name), enrollments(instrument, teacher_id, teachers(name))')
             .single();
 
         if (error) throw error;
@@ -416,6 +536,88 @@ async function handleInvestments(req, res, supabase) {
     return res.status(405).json({ error: 'Método não permitido.' });
 }
 
+// ── NOVO (Etapa 37): teacher_payments ──────────────────────────────────────────
+// Quanto pagar a cada professor por mês. Não tem cálculo automático ainda
+// (pendência registrada na Etapa 37) — o valor é lançado manualmente por ora.
+
+async function handleTeacherPayments(req, res, supabase) {
+    const { method } = req;
+
+    if (method === 'GET') {
+        const { teacher_id, month, year, paid } = req.query;
+        let q = supabase
+            .from('teacher_payments')
+            .select('*, teachers(name, specialty)')
+            .order('reference_month', { ascending: false });
+        if (teacher_id) q = q.eq('teacher_id', teacher_id);
+        if (paid !== undefined && paid !== '') q = q.eq('paid', paid === 'true');
+        if (month && year) {
+            const { dateStart, dateEnd } = monthRange(month, year);
+            q = q.gte('reference_month', dateStart).lte('reference_month', dateEnd);
+        }
+        const { data, error } = await q;
+        if (error) throw error;
+        return res.status(200).json({ teacher_payments: data });
+    }
+
+    if (method === 'POST') {
+        const { teacher_id, reference_month, amount, paid, paid_at, notes } = req.body;
+        if (!teacher_id || !reference_month || !amount)
+            return res.status(400).json({ error: 'teacher_id, reference_month e amount são obrigatórios.' });
+
+        const payload = {
+            id: genId('TP'),
+            teacher_id,
+            reference_month,
+            amount: parseFloat(amount),
+            paid: paid || false,
+            paid_at: paid ? (paid_at || new Date().toISOString()) : null,
+            notes: notes || null,
+        };
+
+        const { data, error } = await supabase
+            .from('teacher_payments')
+            .insert([payload])
+            .select('*, teachers(name, specialty)')
+            .single();
+        if (error) throw error;
+        return res.status(201).json({ teacher_payment: data });
+    }
+
+    if (method === 'PATCH') {
+        const { id, amount, paid, paid_at, notes } = req.body;
+        if (!id) return res.status(400).json({ error: 'ID do pagamento ao professor é obrigatório.' });
+
+        const upd = {};
+        if (amount !== undefined) upd.amount = parseFloat(amount);
+        if (notes  !== undefined) upd.notes  = notes;
+        if (paid   !== undefined) upd.paid   = paid;
+        if (paid_at !== undefined) upd.paid_at = paid_at;
+
+        if (paid === true  && !upd.paid_at) upd.paid_at = new Date().toISOString();
+        if (paid === false) upd.paid_at = null;
+
+        const { data, error } = await supabase
+            .from('teacher_payments')
+            .update(upd)
+            .eq('id', id)
+            .select('*, teachers(name, specialty)')
+            .single();
+        if (error) throw error;
+        return res.status(200).json({ teacher_payment: data });
+    }
+
+    if (method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'ID do pagamento ao professor é obrigatório na query string.' });
+        const { error } = await supabase.from('teacher_payments').delete().eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
+}
+
 async function handleSummary(req, res, supabase) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
 
@@ -441,6 +643,9 @@ async function handleSummary(req, res, supabase) {
     ]);
 
     for (const e of [e1, e2, e3, e4, e5, e6]) { if (e) throw e; }
+
+    // NOTA (Etapa 37, pendência): teacher_payments ainda não entra no
+    // cálculo de outgoings. Ver painel_registro.md — Etapa 37, "Próxima Etapa".
 
     const revenue  = paidTuitions.reduce((s,t) => s + Number(t.amount) - Number(t.discount_amount), 0)
                    + avulsoPayments.reduce((s,p) => s + Number(p.amount), 0);
@@ -474,16 +679,18 @@ export default async function handler(req, res) {
 
     try {
         switch (resource) {
-            case 'students':    return await handleStudents(req, res, supabase);
-            case 'teachers':    return await handleTeachers(req, res, supabase);
-            case 'tuitions':    return await handleTuitions(req, res, supabase);
-            case 'payments':    return await handlePayments(req, res, supabase);
-            case 'expenses':    return await handleExpenses(req, res, supabase);
-            case 'investments': return await handleInvestments(req, res, supabase);
-            case 'summary':     return await handleSummary(req, res, supabase);
+            case 'students':         return await handleStudents(req, res, supabase);
+            case 'teachers':         return await handleTeachers(req, res, supabase);
+            case 'enrollments':      return await handleEnrollments(req, res, supabase);
+            case 'tuitions':         return await handleTuitions(req, res, supabase);
+            case 'payments':         return await handlePayments(req, res, supabase);
+            case 'expenses':         return await handleExpenses(req, res, supabase);
+            case 'investments':      return await handleInvestments(req, res, supabase);
+            case 'teacher_payments': return await handleTeacherPayments(req, res, supabase);
+            case 'summary':          return await handleSummary(req, res, supabase);
 
             default:
-                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: students, tuitions, payments, expenses, investments, summary.' });
+                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary.' });
         }
     } catch (err) {
         return res.status(500).json({ error: 'Erro interno.', details: err.message });

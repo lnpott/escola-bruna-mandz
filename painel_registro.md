@@ -639,18 +639,37 @@ Maior organização e facilidade de manutenção.
 
 ---
 
+Data
+
+07/07/2026
+
+Decisão
+
+Criar tabela `enrollments` como dona do domínio pedagógico (aluno + professor + instrumento + dia/horário + valor mensal), separada de `tuitions` (cobrança financeira mensal).
+
+Motivo
+
+`tuitions` estava carregando dado pedagógico (`teacher_id`, `instrument`, `duration_minutes`, `classes_per_week`) que também seria necessário pelos módulos Turmas e Agenda, ainda não implementados. Isso geraria duplicação de dado entre módulos.
+
+Impacto
+
+Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha cobre tanto Turmas quanto Agenda na versão básica — a agenda passa a ser uma consulta sobre `enrollments` agrupada por `day_of_week`, sem tabela de calendário própria nesta fase. Ver Etapa 37 para detalhes completos.
+
+---
+
 # Roadmap do Painel
 
 | Etapa | Descrição | Status |
 |--------|-----------|--------|
-| 33 | Estrutura do Financeiro | 🔄 |
-| 34 | Cadastro Financeiro | ⏳ |
-| 35 | Mensalidades | ⏳ |
-| 36 | Fluxo de Caixa | ⏳ |
-| 37 | Relatórios | ⏳ |
-| 38 | Alunos | ⏳ |
-| 39 | Turmas | ⏳ |
-| 40 | Agenda | ⏳ |
+| 33 | Estrutura do Financeiro | ✅ |
+| 34 | Cadastro Financeiro | ✅ |
+| 35 | Mensalidades | ✅ |
+| 36 | Fluxo de Caixa | ✅ |
+| 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
+| 38 | Relatórios | ⏳ |
+| 39 | Alunos | ⏳ |
+| 40 | Turmas | ⏳ |
+| 41 | Agenda | ⏳ |
 
 ---
 
@@ -1083,6 +1102,100 @@ Testes funcionais do módulo financeiro em ambiente de produção e desenvolvime
 
 ---
 
+# ETAPA 37 — SEPARAÇÃO PEDAGÓGICO x FINANCEIRO (enrollments)
+
+**Data:** 07/07/2026
+
+**Horário:** [preencher — horário real em que a migration foi executada no Supabase]
+
+**Agente Responsável:** Claude
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+Separar o vínculo pedagógico (aluno + professor + instrumento + dia/horário + valor mensal) do registro de cobrança mensal, corrigindo a mistura de responsabilidades identificada entre os módulos Financeiro, Alunos e Turmas. Preparar o schema para suportar Agenda (Etapa 41) sem tabela adicional, e adicionar remuneração de professores.
+
+---
+
+## Decisão Arquitetural Registrada
+
+**Decisão:** Criar tabela `enrollments` como dona do domínio pedagógico. `tuitions` deixa de conter `teacher_id`, `instrument`, `duration_minutes`, `classes_per_week` e passa a representar apenas a cobrança mensal, referenciando `enrollment_id`.
+
+**Motivo:** `tuitions` (objeto financeiro) estava carregando dado pedagógico que também seria necessário pelos módulos Turmas e Agenda, ainda não implementados. Isso geraria duplicação de dado ou necessidade de sincronização manual entre módulos quando fossem construídos.
+
+**Impacto:** Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha cobre tanto "Turmas" quanto "Agenda" na versão básica — a agenda é uma consulta sobre `enrollments` agrupada por `day_of_week`, sem necessidade de tabela de calendário própria nesta fase.
+
+---
+
+## Implementações Realizadas
+
+- Criação da tabela `enrollments` (student_id, teacher_id, instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, status, notes)
+- Adição da coluna `rate_per_class` em `teachers` (quanto o professor cobra por aula)
+- Adição das colunas `enrollment_id` e `reference_month` em `tuitions`
+- Remoção das colunas `teacher_id`, `instrument`, `duration_minutes`, `classes_per_week` de `tuitions` (migradas para `enrollments`)
+- Backfill defensivo: qualquer `tuitions` pré-existente com dado pedagógico preenchido gerou um `enrollments` correspondente antes da remoção das colunas (nenhum registro afetado nesta execução — `tuitions` estava com 0 linhas no momento do planejamento)
+- Criação da tabela `teacher_payments` (teacher_id, reference_month, amount, paid, paid_at)
+- Criação de índices em `enrollments`, `tuitions.enrollment_id`, `tuitions.reference_month` e `teacher_payments`
+- Habilitação de RLS em `enrollments` e `teacher_payments`
+- **Migration executada no Supabase (SQL Editor).**
+
+---
+
+## Arquivos Alterados
+
+- `supabase/migrations/037_enrollments_e_pagamentos_professores.sql` (novo)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+**Novas tabelas:** `enrollments`, `teacher_payments`
+
+**Tabelas alteradas:**
+- `teachers`: + coluna `rate_per_class`
+- `tuitions`: + colunas `enrollment_id`, `reference_month`; − colunas `teacher_id`, `instrument`, `duration_minutes`, `classes_per_week`
+
+**Triggers criados:** `enrollments_set_updated_at`, `teacher_payments_set_updated_at`
+
+**RLS:** habilitado em `enrollments` e `teacher_payments`. **Policies ainda não criadas** — pendência abaixo.
+
+---
+
+## Testes
+
+✅ Migration executada no Supabase.
+⚠ Não testado via API (`admin-financial.js` ainda não foi atualizado para os novos resources).
+⚠ Não testado na UI do painel (`painel-x9k2f.html` ainda referencia os campos antigos de `tuitions`).
+
+---
+
+## Pendências
+
+- **Criar Policies de RLS para `enrollments` e `teacher_payments`** — o schema original não define policies explícitas para as tabelas existentes, apenas habilita RLS; confirmar qual é o padrão de policy usado hoje (provavelmente baseado em role de admin autenticado) e replicar
+- Atualizar `admin-financial.js` para:
+  - novo resource `enrollments` (CRUD)
+  - novo resource `teacher_payments` (CRUD)
+  - ajustar resource `tuitions` para trabalhar com `enrollment_id` + `reference_month` em vez dos campos removidos
+- Atualizar UI do `painel-x9k2f.html`:
+  - modal de mensalidades passa a selecionar um `enrollment` existente em vez de preencher dados pedagógicos direto
+  - novo modal/tela de cadastro de `enrollments` (vínculo aluno-professor)
+  - exibir `rate_per_class` no cadastro de professor
+- Construir view de Agenda básica: `enrollments` ativos agrupados por `day_of_week`
+- Rotina (manual ou agendada) de geração mensal de `tuitions` a partir dos `enrollments` ativos
+- Rotina equivalente para gerar `teacher_payments` mensal a partir de `enrollments.teacher_id` + `teachers.rate_per_class`
+
+---
+
+## Próxima Etapa
+
+Criar as Policies de RLS para `enrollments` e `teacher_payments`, e atualizar `admin-financial.js` para os novos resources antes de iniciar a UI dos módulos Alunos e Agenda.
+
+---
+
 # ROADMAP DO PAINEL
 
 | Etapa | Implementação | Status |
@@ -1091,10 +1204,12 @@ Testes funcionais do módulo financeiro em ambiente de produção e desenvolvime
 | 34 | Estrutura do Financeiro | ✅ |
 | 35 | Interface de Professores | ✅ |
 | 36 | Integração Pedagógica nas Mensalidades | ✅ |
-| 37 | Testes Funcionais do Financeiro | ⏳ |
-| 38 | Relatórios Financeiros | ⏳ |
-| 39 | Turmas | ⏳ |
-| 40 | Agenda | ⏳ |
+| 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
+| 38 | Policies de RLS + Atualização da API | ⏳ |
+| 39 | Testes Funcionais do Financeiro | ⏳ |
+| 40 | Relatórios Financeiros | ⏳ |
+| 41 | Alunos | ⏳ |
+| 42 | Turmas / Agenda | ⏳ |
 
 ---
 
