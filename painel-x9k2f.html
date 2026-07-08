@@ -293,6 +293,7 @@
                     <div class="kpi-card"><div class="kpi-label">Saldo do Mês</div><div class="kpi-value" id="fin-kpi-balance">R$ 0,00</div></div>
                     <div class="kpi-card"><div class="kpi-label">Pendentes do Mês</div><div class="kpi-value warn" id="fin-kpi-pending">R$ 0,00</div></div>
                     <div class="kpi-card"><div class="kpi-label">Alunos em Atraso</div><div class="kpi-value warn" id="fin-kpi-overdue-students">0</div></div>
+                    <div class="kpi-card"><div class="kpi-label">A Pagar a Professores</div><div class="kpi-value warn" id="fin-kpi-pending-teacher-payments">R$ 0,00</div></div>
                 </div>
 
                 <!-- Sub-abas -->
@@ -1809,6 +1810,7 @@
                      document.getElementById('fin-kpi-pending').textContent = money.format(s.pending_tuitions);
                      document.getElementById('fin-kpi-overdue-students').textContent = s.overdue_students;
                      document.getElementById('fin-kpi-overdue-students').className = 'kpi-value ' + (s.overdue_students > 0 ? 'warn' : '');
+                     document.getElementById('fin-kpi-pending-teacher-payments').textContent = money.format(s.pending_teacher_payments || 0);
                 } catch (e) {
                      showToast('Erro ao carregar resumo financeiro: ' + e.message);
                 }
