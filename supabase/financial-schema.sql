@@ -41,6 +41,14 @@ create trigger students_set_updated_at
 
 alter table public.students enable row level security;
 
+-- RLS policy: admin (authenticated) pode tudo; anon não tem acesso.
+-- Usa TO authenticated em vez do deprecated auth.role().
+create policy "admin manage students"
+    on public.students for all
+    to authenticated
+    using (true)
+    with check (true);
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 2. TABELA: teachers (Professores)
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -63,6 +71,12 @@ create trigger teachers_set_updated_at
     execute function public.set_updated_at();
 
 alter table public.teachers enable row level security;
+
+create policy "admin manage teachers"
+    on public.teachers for all
+    to authenticated
+    using (true)
+    with check (true);
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 3. TABELA: enrollments (Vínculos Pedagógicos)  — Etapa 37
@@ -103,6 +117,12 @@ create trigger enrollments_set_updated_at
     execute function public.set_updated_at();
 
 alter table public.enrollments enable row level security;
+
+create policy "admin manage enrollments"
+    on public.enrollments for all
+    to authenticated
+    using (true)
+    with check (true);
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 4. TABELA: tuitions (Mensalidades)
@@ -151,6 +171,12 @@ create trigger tuitions_set_updated_at
 
 alter table public.tuitions enable row level security;
 
+create policy "admin manage tuitions"
+    on public.tuitions for all
+    to authenticated
+    using (true)
+    with check (true);
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 5. TABELA: payments (Pagamentos Avulsos)
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -178,6 +204,12 @@ create index if not exists payments_category_idx on public.payments (category);
 create index if not exists payments_paid_at_idx on public.payments (paid_at);
 
 alter table public.payments enable row level security;
+
+create policy "admin manage payments"
+    on public.payments for all
+    to authenticated
+    using (true)
+    with check (true);
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 6. TABELA: expenses (Custos Fixos e Eventuais)
@@ -216,6 +248,12 @@ create trigger expenses_set_updated_at
 
 alter table public.expenses enable row level security;
 
+create policy "admin manage expenses"
+    on public.expenses for all
+    to authenticated
+    using (true)
+    with check (true);
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 7. TABELA: investments (Investimentos)
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -235,6 +273,12 @@ create table if not exists public.investments (
 create index if not exists investments_purchased_at_idx on public.investments (purchased_at);
 
 alter table public.investments enable row level security;
+
+create policy "admin manage investments"
+    on public.investments for all
+    to authenticated
+    using (true)
+    with check (true);
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 8. TABELA: teacher_payments (Pagamentos a Professores) — Etapa 37
@@ -258,3 +302,9 @@ create index if not exists teacher_payments_paid_at_idx on public.teacher_paymen
     where paid = true;                       -- para agregação mensal no resumo (outgoings)
 
 alter table public.teacher_payments enable row level security;
+
+create policy "admin manage teacher_payments"
+    on public.teacher_payments for all
+    to authenticated
+    using (true)
+    with check (true);

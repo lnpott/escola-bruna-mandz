@@ -13,7 +13,7 @@
 -- search_path = '' (vazio) previne search-path hijacking (segurança).
 create or replace function public.set_updated_at()
 returns trigger
-security definer
+security invoker
 set search_path = ''
 as $$
 begin
@@ -21,6 +21,12 @@ begin
     return new;
 end;
 $$ language plpgsql;
+
+-- Revoga EXECUTE de roles anônimas/autenticadas — função só deve ser chamada
+-- internamente por triggers, não diretamente pela API.
+-- A skill Supabase adverte: "SECURITY DEFINER functions in public are callable
+-- by all roles" — mesmo com SECURITY INVOKER, é boa prática restringir.
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TABELA: orders (pedidos da loja)
