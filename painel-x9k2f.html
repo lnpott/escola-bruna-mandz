@@ -634,6 +634,10 @@
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Endereço</label>
                         <input type="text" name="address" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                     </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento(s)</label>
+                        <input type="text" name="instruments" placeholder="Ex: Piano, Violao, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
                     <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a1a1aa;cursor:pointer">
                         <input type="checkbox" name="active" checked />
                         Aluno ativo
@@ -2082,7 +2086,7 @@ function switchTab(tab) {
                 
                 const filtered = _allStudents.filter(s => 
                     !searchVal || 
-                    [s.name, s.email, s.phone, s.address].filter(Boolean).join(' ').toLowerCase().includes(searchVal)
+                    [s.name, s.email, s.phone, s.address, s.instruments].filter(Boolean).join(' ').toLowerCase().includes(searchVal)
                 );
 
                 if (!filtered.length) {
@@ -2096,6 +2100,7 @@ function switchTab(tab) {
                         <td data-label="Nome"><strong>${s.name}</strong></td>
                         <td data-label="E-mail">${s.email || '—'}</td>
                         <td data-label="Telefone">${s.phone || '—'}</td>
+                        <td data-label="Instrumento">${s.instruments || 'u2014'}</td>
                         <td data-label="Status">
                             <span class="status-pill ${s.active ? 'status-approved' : 'status-rejected'}">
                                 ${s.active ? 'Ativo' : 'Inativo'}
@@ -2112,7 +2117,7 @@ function switchTab(tab) {
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Status</th><th>Ações</th>
+                                <th>ID</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Instrumento</th><th>Status</th><th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -2895,6 +2900,7 @@ function switchTab(tab) {
                     form.querySelector('[name="email"]').value = student.email || '';
                     form.querySelector('[name="phone"]').value = student.phone || '';
                     form.querySelector('[name="address"]').value = student.address || '';
+                    form.querySelector('[name="instruments"]').value = student.instruments || '';
                     form.querySelector('[name="active"]').checked = student.active;
                 } else {
                     document.getElementById('student-modal-title').textContent = 'Novo Aluno';
@@ -3174,6 +3180,7 @@ function switchTab(tab) {
                      email: form.querySelector('[name="email"]').value,
                      phone: form.querySelector('[name="phone"]').value,
                      address: form.querySelector('[name="address"]').value,
+                     instruments: form.querySelector('[name="instruments"]').value,
                      active: form.querySelector('[name="active"]').checked
                  };
 

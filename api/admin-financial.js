@@ -76,18 +76,19 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, email, phone, address, active } = req.body;
+        const { name, email, phone, address, active, instruments } = req.body;
         if (!name) return res.status(400).json({ error: 'Nome é obrigatório.' });
+        const instrumentsStr = Array.isArray(instruments) ? instruments.join(', ') : (instruments || '');
         const { data, error } = await supabase
             .from('students')
-            .insert([{ id: genId('ST'), name, email: email || null, phone: phone || null, address: address || null, active: active !== undefined ? active : true }])
+            .insert([{ id: genId('ST'), name, email: email || null, phone: phone || null, address: address || null, instruments: instrumentsStr, active: active !== undefined ? active : true }])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ student: data });
     }
 
     if (method === 'PATCH') {
-        const { id, name, email, phone, address, active } = req.body;
+        const { id, name, email, phone, address, active, instruments } = req.body;
         if (!id) return res.status(400).json({ error: 'ID do aluno é obrigatório.' });
         const upd = {};
         if (name    !== undefined) upd.name    = name;
@@ -95,6 +96,7 @@ async function handleStudents(req, res, supabase) {
         if (phone   !== undefined) upd.phone   = phone || null;
         if (address !== undefined) upd.address = address || null;
         if (active  !== undefined) upd.active  = active;
+        if (instruments !== undefined) upd.instruments = Array.isArray(instruments) ? instruments.join(', ') : instruments;
         const { data, error } = await supabase.from('students').update(upd).eq('id', id).select().single();
         if (error) throw error;
         return res.status(200).json({ student: data });

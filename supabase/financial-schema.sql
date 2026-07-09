@@ -13,6 +13,8 @@
 --   - tuitions ganhou enrollment_id, reference_month
 --   - Criadas tabelas: enrollments, teacher_payments
 --   - RLS: mesmas regras — acesso só via Service Role Key
+-- (09/07/2026): Adicionado campo instruments (text) à tabela students.
+--   Armazena instrumento(s) que o aluno toca (ex: "Piano, Violão").
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -25,6 +27,7 @@ create table if not exists public.students (
     email text,
     phone text,
     address text,
+    instruments text not null default '',   -- Instrumento(s) que o aluno toca (ex: "Piano, Violão")
     active boolean not null default true,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
