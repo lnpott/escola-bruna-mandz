@@ -130,6 +130,49 @@
             .upload-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 12px; }
             .upload-btn:hover { background: #27272a; border-color: #dc2626; }
 
+            /* ── Dashboard ─────────────────────────────────────────────────────────── */
+            .dash-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 0 0 16px; }
+            .dash-kpi-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 14px 16px; transition: border-color 0.2s; }
+            .dash-kpi-card:hover { border-color: #3f3f46; }
+            .dash-kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 8px; }
+            .dash-kpi-label { color: #71717a; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+            .dash-kpi-value { font-size: 22px; font-weight: 900; margin-top: 2px; color: #fff; }
+            .dash-kpi-value.good { color: #86efac; }
+            .dash-kpi-value.warn { color: #fcd34d; }
+            .dash-kpi-value.bad  { color: #fca5a5; }
+            .dash-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .dash-card { background: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+            .dash-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #27272a; }
+            .dash-card-header h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #a1a1aa; font-weight: 700; font-family: inherit; }
+            .dash-card-header h3 i { color: #dc2626; margin-right: 6px; }
+            .dash-badge { background: #dc2626; color: #fff; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+            .dash-card-body { padding: 8px 16px 12px; }
+            .dash-empty { text-align: center; padding: 16px 0; color: #52525b; font-size: 12px; }
+            .dash-class-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1f1f22; font-size: 12px; }
+            .dash-class-row:last-child { border-bottom: none; }
+            .dash-class-time { font-weight: 800; color: #f4f4f5; min-width: 48px; }
+            .dash-class-student { flex: 1; color: #e4e4e7; }
+            .dash-class-teacher { color: #71717a; font-size: 11px; }
+            .dash-alert-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1f1f22; font-size: 12px; }
+            .dash-alert-row:last-child { border-bottom: none; }
+            .dash-alert-icon { width: 20px; text-align: center; font-size: 11px; flex-shrink: 0; }
+            .dash-alert-text { flex: 1; color: #e4e4e7; }
+            .dash-alert-count { font-weight: 700; color: #fca5a5; }
+            .dash-order-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1f1f22; font-size: 12px; }
+            .dash-order-row:last-child { border-bottom: none; }
+            .dash-order-id { font-family: monospace; color: #ef4444; font-weight: 700; min-width: 100px; }
+            .dash-order-customer { flex: 1; color: #e4e4e7; }
+            .dash-order-total { font-weight: 800; color: #fff; }
+            .dash-stock-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1f1f22; font-size: 12px; }
+            .dash-stock-row:last-child { border-bottom: none; }
+            .dash-stock-name { flex: 1; color: #e4e4e7; }
+            .dash-stock-count { font-weight: 800; color: #fca5a5; }
+
+            @media (max-width: 720px) {
+                .dash-split { grid-template-columns: 1fr; }
+                .dash-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            }
+
             /* Mobile */
             @media (max-width: 720px) {
                 .panel-wrap { padding: 16px 12px 60px; }
@@ -229,9 +272,59 @@
 
             <!-- TABS -->
             <div class="nav-tabs">
-                <button class="nav-tab active" data-tab="orders">🧾 Pedidos</button>
+                <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+                <button class="nav-tab" data-tab="orders">🧾 Pedidos</button>
                 <button class="nav-tab" data-tab="products">📦 Produtos</button>
                 <button class="nav-tab" data-tab="financial">💰 Financeiro</button>
+            </div>
+
+            <!-- ABA DASHBOARD -->
+            <div id="tab-dashboard">
+                <div class="dash-kpi-grid" id="dash-kpi-grid"></div>
+
+                <!-- Linha: Próximas Aulas + Alertas -->
+                <div class="dash-split">
+                    <!-- Próximas Aulas -->
+                    <div class="dash-card">
+                        <div class="dash-card-header">
+                            <h3><i class="fas fa-calendar-day"></i> Aulas de Hoje</h3>
+                            <span class="dash-badge" id="dash-classes-count">0</span>
+                        </div>
+                        <div class="dash-card-body" id="dash-today-classes">
+                            <div class="dash-empty">Nenhuma aula hoje.</div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas -->
+                    <div class="dash-card">
+                        <div class="dash-card-header">
+                            <h3><i class="fas fa-bell"></i> Alertas</h3>
+                        </div>
+                        <div class="dash-card-body" id="dash-alerts">
+                            <div class="dash-empty">Nenhum alerta no momento.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linha: Pedidos Recentes -->
+                <div class="dash-card" style="margin-top:0">
+                    <div class="dash-card-header">
+                        <h3><i class="fas fa-shopping-bag"></i> Pedidos Recentes</h3>
+                    </div>
+                    <div class="dash-card-body" id="dash-recent-orders">
+                        <div class="dash-empty">Nenhum pedido recente.</div>
+                    </div>
+                </div>
+
+                <!-- Linha: Estoque Baixo -->
+                <div class="dash-card" style="margin-top:0">
+                    <div class="dash-card-header">
+                        <h3><i class="fas fa-box"></i> Produtos com Estoque Baixo</h3>
+                    </div>
+                    <div class="dash-card-body" id="dash-low-stock">
+                        <div class="dash-empty">Nenhum produto com estoque baixo.</div>
+                    </div>
+                </div>
             </div>
 
             <!-- ABA PEDIDOS -->
@@ -924,8 +1017,121 @@
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
         <script>
-            const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+            // ── Dashboard ────────────────────────────────────────────────────────
+
+            async function loadDashboard() {
+                try {
+                    const res = await fetch('/api/admin-financial?resource=dashboard', {
+                        headers: { 'x-admin-password': _password },
+                    });
+                    if (!res.ok) throw new Error('Erro ao carregar dashboard.');
+                    const { dashboard } = await res.json();
+                    renderDashboard(dashboard);
+                } catch (err) {
+                    console.error('Dashboard:', err.message);
+                }
+            }
+
+            function renderDashboard(d) {
+                const fin = d.financial;
+                const sch = d.school;
+                const sto = d.store;
+
+                document.getElementById('dash-kpi-grid').innerHTML = `
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(34,197,94,.12);color:#86efac"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="dash-kpi-label">Receita do Mês</div>
+                        <div class="dash-kpi-value good">${money.format(fin.revenue)}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-minus-circle"></i></div>
+                        <div class="dash-kpi-label">Despesas do Mês</div>
+                        <div class="dash-kpi-value warn">${money.format(fin.outgoings)}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(96,165,250,.12);color:#93c5fd"><i class="fas fa-scale-balanced"></i></div>
+                        <div class="dash-kpi-label">Saldo do Mês</div>
+                        <div class="dash-kpi-value ${fin.balance >= 0 ? 'good' : 'bad'}">${money.format(fin.balance)}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-clock"></i></div>
+                        <div class="dash-kpi-label">Mensalidades Pendentes</div>
+                        <div class="dash-kpi-value warn">${money.format(fin.pending_tuitions)}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(167,139,250,.12);color:#c4b5fd"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="dash-kpi-label">Alunos Ativos</div>
+                        <div class="dash-kpi-value">${sch.active_students}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(52,211,153,.12);color:#6ee7b7"><i class="fas fa-chalkboard-user"></i></div>
+                        <div class="dash-kpi-label">Professores</div>
+                        <div class="dash-kpi-value">${sch.active_teachers}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-clock"></i></div>
+                        <div class="dash-kpi-label">Pedidos Pendentes</div>
+                        <div class="dash-kpi-value ${sto.pending_orders > 0 ? 'warn' : ''}">${sto.pending_orders}</div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="dash-kpi-label">Alunos em Atraso</div>
+                        <div class="dash-kpi-value ${fin.overdue_students > 0 ? 'bad' : 'good'}">${fin.overdue_students}</div>
+                    </div>
+                `;
+
+                const classes = sch.today_classes || [];
+                document.getElementById('dash-classes-count').textContent = classes.length;
+                document.getElementById('dash-today-classes').innerHTML = classes.length
+                    ? classes.map(c => `
+                        <div class="dash-class-row">
+                            <span class="dash-class-time">${c.class_time || '--:--'}</span>
+                            <span class="dash-class-student">${c.students?.name || 'Aluno'}</span>
+                            <span class="dash-class-teacher">${c.teachers?.name || '—'} ${c.instrument ? '· ' + c.instrument : ''}</span>
+                        </div>
+                    `).join('')
+                    : '<div class="dash-empty">Nenhuma aula hoje. 🎉</div>';
+
+                const alerts = [];
+                if (fin.overdue_students > 0) alerts.push({ icon: '🔴', text: fin.overdue_students + ' aluno(s) com mensalidade em atraso' });
+                if (sto.pending_orders > 0) alerts.push({ icon: '🟡', text: sto.pending_orders + ' pedido(s) pendente(s) na loja' });
+                if (sto.low_stock_products?.length > 0) alerts.push({ icon: '🟠', text: sto.low_stock_products.length + ' produto(s) com estoque baixo' });
+
+                document.getElementById('dash-alerts').innerHTML = alerts.length
+                    ? alerts.map(a => `
+                        <div class="dash-alert-row">
+                            <span class="dash-alert-icon">${a.icon}</span>
+                            <span class="dash-alert-text">${a.text}</span>
+                        </div>
+                    `).join('')
+                    : '<div class="dash-empty">Nenhum alerta no momento. ✅</div>';
+
+                const orders = sto.recent_orders || [];
+                document.getElementById('dash-recent-orders').innerHTML = orders.length
+                    ? orders.map(o => `
+                        <div class="dash-order-row">
+                            <span class="dash-order-id">${o.id}</span>
+                            <span class="dash-order-customer">${o.customer_name || '—'}</span>
+                            <span class="dash-order-total">${money.format(o.total)}</span>
+                            <span class="status-pill status-${o.status}" style="font-size:10px;padding:1px 6px">${statusLabel(o.status)}</span>
+                        </div>
+                    `).join('')
+                    : '<div class="dash-empty">Nenhum pedido recente.</div>';
+
+                const lowStock = sto.low_stock_products || [];
+                document.getElementById('dash-low-stock').innerHTML = lowStock.length
+                    ? lowStock.map(p => `
+                        <div class="dash-stock-row">
+                            <span class="dash-stock-name">${p.name}</span>
+                            <span class="dash-stock-count">${p.stock} un.</span>
+                        </div>
+                    `).join('')
+                    : '<div class="dash-empty">Nenhum produto com estoque baixo. ✅</div>';
+            }
+
+const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
             const STORAGE_KEY = 'bruna_admin_session';
             const NEW_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutos
             const REFRESH_INTERVAL = 60;             // segundos
@@ -967,20 +1173,21 @@
 
             // ── Navegação entre abas ────────────────────────────────────────────────
 
-            function switchTab(tab) {
-                _activeTab = tab;
-                document.getElementById('tab-orders').style.display   = tab === 'orders'   ? '' : 'none';
-                document.getElementById('tab-products').style.display = tab === 'products' ? '' : 'none';
-                document.getElementById('tab-financial').style.display = tab === 'financial' ? '' : 'none';
-                document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
-                // Restringe a apenas as tabs principais (não as sub-tabs financeiras)
-                document.querySelectorAll('.nav-tabs > .nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-                if (tab === 'products' && !_allProducts.length) loadProducts();
-                if (tab === 'financial') {
-                    initFinancialPeriodFilter();
-                    loadFinancialData();
-                }
-            }
+function switchTab(tab) {
+    _activeTab = tab;
+    document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? '' : 'none';
+    document.getElementById('tab-orders').style.display    = tab === 'orders'    ? '' : 'none';
+    document.getElementById('tab-products').style.display  = tab === 'products'  ? '' : 'none';
+    document.getElementById('tab-financial').style.display = tab === 'financial' ? '' : 'none';
+    document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
+    document.querySelectorAll('.nav-tabs > .nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (tab === 'dashboard') loadDashboard();
+    if (tab === 'products' && !_allProducts.length) loadProducts();
+    if (tab === 'financial') {
+        initFinancialPeriodFilter();
+        loadFinancialData();
+    }
+}
 
             // Apenas tabs principais (não sub-tabs)
             document.querySelectorAll('.nav-tabs > .nav-tab').forEach(btn => {
@@ -2778,6 +2985,7 @@
                     panelScreen.style.display = 'block';
                     sessionStorage.setItem(STORAGE_KEY, password);
                     startAutoRefresh();
+                    switchTab('dashboard');
                 } catch (err) {
                     loginError.textContent = err.message || 'Não foi possível carregar o painel.';
                 }

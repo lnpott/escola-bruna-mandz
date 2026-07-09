@@ -34,8 +34,17 @@ function auth(req, res) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const DEFAULT_PAGE_LIMIT = 200;
+const MAX_PAGE_LIMIT = 1000;
+
 function genId(prefix) {
     return `${prefix}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+}
+
+function parsePagination(req) {
+    const limit = Math.min(parseInt(req.query.limit, 10) || DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    return { limit, offset };
 }
 
 function monthRange(month, year) {
@@ -56,10 +65,12 @@ async function handleStudents(req, res, supabase) {
     const { method } = req;
 
     if (method === 'GET') {
+        const { limit, offset } = parsePagination(req);
         const { data, error } = await supabase
             .from('students')
             .select('*')
-            .order('name', { ascending: true });
+            .order('name', { ascending: true })
+            .range(offset, offset + limit - 1);
         if (error) throw error;
         return res.status(200).json({ students: data });
     }
@@ -104,10 +115,12 @@ async function handleTeachers(req, res, supabase) {
     const { method } = req;
 
     if (method === 'GET') {
+        const { limit, offset } = parsePagination(req);
         const { data, error } = await supabase
             .from('teachers')
             .select('*')
-            .order('name', { ascending: true });
+            .order('name', { ascending: true })
+            .range(offset, offset + limit - 1);
         if (error) throw error;
         return res.status(200).json({ teachers: data });
     }
@@ -181,10 +194,12 @@ async function handleEnrollments(req, res, supabase) {
 
     if (method === 'GET') {
         const { student_id, teacher_id, status, day_of_week } = req.query;
+        const { limit, offset } = parsePagination(req);
         let q = supabase
             .from('enrollments')
-            .select('*, students(name), teachers(name, specialty)')
-            .order('day_of_week', { ascending: true });
+            .select('*, students(name), teachers(name, specialty)', { count: 'exact' })
+            .order('day_of_week', { ascending: true })
+            .range(offset, offset + limit - 1);
         if (student_id)  q = q.eq('student_id', student_id);
         if (teacher_id)  q = q.eq('teacher_id', teacher_id);
         if (status)      q = q.eq('status', status);
@@ -289,10 +304,12 @@ async function handleTuitions(req, res, supabase) {
 
     if (method === 'GET') {
         const { status, month, year, student_id, enrollment_id } = req.query;
+        const { limit, offset } = parsePagination(req);
         let q = supabase
             .from('tuitions')
-            .select('*, students(name), enrollments(instrument, teacher_id, teachers(name))')
-            .order('due_date', { ascending: false });
+            .select('*, students(name), enrollments(instrument, teacher_id, teachers(name))', { count: 'exact' })
+            .order('due_date', { ascending: false })
+            .range(offset, offset + limit - 1);
         if (status)        q = q.eq('status', status);
         if (student_id)    q = q.eq('student_id', student_id);
         if (enrollment_id) q = q.eq('enrollment_id', enrollment_id);
@@ -398,7 +415,8 @@ async function handlePayments(req, res, supabase) {
 
     if (method === 'GET') {
         const { category, month, year } = req.query;
-        let q = supabase.from('payments').select('*, students(name)').order('paid_at', { ascending: false });
+        const { limit, offset } = parsePagination(req);
+        let q = supabase.from('payments').select('*, students(name)', { count: 'exact' }).order('paid_at', { ascending: false }).range(offset, offset + limit - 1);
         if (category) q = q.eq('category', category);
         if (month && year) {
             const { tzStart, tzEnd } = monthRange(month, year);
@@ -430,7 +448,8 @@ async function handleExpenses(req, res, supabase) {
 
     if (method === 'GET') {
         const { paid, month, year, expense_type } = req.query;
-        let q = supabase.from('expenses').select('*').order('due_date', { ascending: false });
+        const { limit, offset } = parsePagination(req);
+        let q = supabase.from('expenses').select('*').order('due_date', { ascending: false }).range(offset, offset + limit - 1);
 
         if (expense_type) q = q.eq('expense_type', expense_type);
         if (paid !== undefined && paid !== '') q = q.eq('paid', paid === 'true');
@@ -510,7 +529,8 @@ async function handleInvestments(req, res, supabase) {
 
     if (method === 'GET') {
         const { category, month, year } = req.query;
-        let q = supabase.from('investments').select('*').order('purchased_at', { ascending: false });
+        const { limit, offset } = parsePagination(req);
+        let q = supabase.from('investments').select('*').order('purchased_at', { ascending: false }).range(offset, offset + limit - 1);
         if (category) q = q.eq('category', category);
         if (month && year) {
             const { dateStart, dateEnd } = monthRange(month, year);
@@ -545,10 +565,12 @@ async function handleTeacherPayments(req, res, supabase) {
 
     if (method === 'GET') {
         const { teacher_id, month, year, paid } = req.query;
+        const { limit, offset } = parsePagination(req);
         let q = supabase
             .from('teacher_payments')
-            .select('*, teachers(name, specialty)')
-            .order('reference_month', { ascending: false });
+            .select('*, teachers(name, specialty)', { count: 'exact' })
+            .order('reference_month', { ascending: false })
+            .range(offset, offset + limit - 1);
         if (teacher_id) q = q.eq('teacher_id', teacher_id);
         if (paid !== undefined && paid !== '') q = q.eq('paid', paid === 'true');
         if (month && year) {
@@ -626,6 +648,19 @@ async function handleSummary(req, res, supabase) {
 
     const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(month, year);
 
+    // ── Data de hoje para detecção de atrasados ───────────────────────────────
+    // Computada antes das queries para evitar SQL injection por string
+    // interpolation dentro do filtro .or().
+    const today = new Date().toISOString().split('T')[0];
+
+    // ── 8 queries paralelas para o resumo financeiro ──────────────────────────
+    // Cada query é suportada por índices específicos:
+    //   tuitions:         tuitions_paid_at_idx (partial WHERE status=paid)
+    //   payments:         payments_paid_at_idx
+    //   expenses:         expenses_paid_at_idx (partial WHERE paid=true)
+    //   investments:      investments_purchased_at_idx
+    //   teacher_payments: teacher_payments_paid_at_idx (partial WHERE paid=true)
+    //   pending tuitions: tuitions_status_idx + tuitions_due_date_idx
     const [
         { data: paidTuitions,  error: e1 },
         { data: avulsoPayments,error: e2 },
@@ -641,13 +676,10 @@ async function handleSummary(req, res, supabase) {
         supabase.from('expenses').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
         supabase.from('investments').select('amount').gte('purchased_at',dateStart).lte('purchased_at',dateEnd),
         supabase.from('tuitions').select('amount,discount_amount').in('status',['pending','overdue']).gte('due_date',dateStart).lte('due_date',dateEnd),
-        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${new Date().toISOString().split('T')[0]})`),
-        // Etapa 39: teacher_payments passa a entrar no cálculo de outgoings.
-        // `paid_at` é preenchido no momento do pagamento (ver handleTeacherPayments),
-        // então usamos o mesmo padrão de expenses/payments (paid_at dentro do mês).
+        // Busca alunos com status 'overdue' OU status 'pending' com due_date < hoje
+        // (usa today pré-computado para evitar string interpolation insegura)
+        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
         supabase.from('teacher_payments').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        // Pendente de pagamento no mês de referência (reference_month é date, sem timezone),
-        // para exibir "a pagar a professores" no resumo assim como pending_tuitions.
         supabase.from('teacher_payments').select('amount').eq('paid',false).gte('reference_month',dateStart).lte('reference_month',dateEnd),
     ]);
 
@@ -671,6 +703,82 @@ async function handleSummary(req, res, supabase) {
     });
 }
 
+// ── DASHBOARD: consolidado de indicadores para a tela inicial ────────────────
+
+async function handleDashboard(req, res, supabase) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const thisMonth = now.getMonth() + 1;
+    const thisYear = now.getFullYear();
+
+    // Mapeia dia da semana para o formato usado em enrollments
+    const dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+    const todayDay = dayNames[now.getDay()];
+
+    const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(thisMonth, thisYear);
+
+    // ── 10 queries paralelas ────────────────────────────────────────────────────
+    const [
+        { data: paidTuitions,       error: e1  },
+        { data: avulsoPayments,     error: e2  },
+        { data: paidExpenses,       error: e3  },
+        { data: investments,        error: e4  },
+        { data: pendingTuitions,    error: e5  },
+        { data: overdue,            error: e6  },
+        { data: activeStudents,     error: e7  },
+        { data: activeTeachers,     error: e8  },
+        { data: todayClasses,       error: e9  },
+        { data: pendingOrders,      error: e10 },
+        { data: recentOrders,       error: e11 },
+        { data: lowStock,           error: e12 },
+    ] = await Promise.all([
+        supabase.from('tuitions').select('amount,discount_amount').eq('status','paid').gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('payments').select('amount').gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('expenses').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('investments').select('amount').gte('purchased_at',dateStart).lte('purchased_at',dateEnd),
+        supabase.from('tuitions').select('amount,discount_amount').in('status',['pending','overdue']).gte('due_date',dateStart).lte('due_date',dateEnd),
+        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
+        supabase.from('students').select('id').eq('active', true),
+        supabase.from('teachers').select('id'),
+        supabase.from('enrollments').select('*, students(name), teachers(name, specialty)').eq('day_of_week', todayDay).eq('status', 'active').order('class_time', { ascending: true }),
+        supabase.from('orders').select('id').eq('status', 'pending'),
+        supabase.from('orders').select('id,customer_name,total,created_at,status').order('created_at', { ascending: false }).limit(5),
+        supabase.from('products').select('id,name,stock,active').lte('stock', 5).eq('active', true),
+    ]);
+
+    for (const e of [e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12]) { if (e) throw e; }
+
+    const revenue = paidTuitions.reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount), 0)
+                  + avulsoPayments.reduce((s, p) => s + Number(p.amount), 0);
+    const outgoings = paidExpenses.reduce((s, e) => s + Number(e.amount), 0)
+                    + investments.reduce((s, i) => s + Number(i.amount), 0);
+
+    return res.status(200).json({
+        dashboard: {
+            financial: {
+                revenue,
+                outgoings,
+                balance: revenue - outgoings,
+                pending_tuitions: pendingTuitions.reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount), 0),
+                overdue_students: new Set(overdue.map(t => t.student_id)).size,
+            },
+            school: {
+                active_students: activeStudents?.length ?? 0,
+                active_teachers: activeTeachers?.length ?? 0,
+                today_classes: todayClasses || [],
+                today_classes_count: todayClasses?.length ?? 0,
+            },
+            store: {
+                pending_orders: pendingOrders?.length ?? 0,
+                recent_orders: recentOrders || [],
+                low_stock_products: lowStock || [],
+            },
+        }
+    });
+}
+
 // ── Handler principal ─────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -687,6 +795,7 @@ export default async function handler(req, res) {
 
     try {
         switch (resource) {
+            case 'dashboard':        return await handleDashboard(req, res, supabase);
             case 'students':         return await handleStudents(req, res, supabase);
             case 'teachers':         return await handleTeachers(req, res, supabase);
             case 'enrollments':      return await handleEnrollments(req, res, supabase);
@@ -698,7 +807,7 @@ export default async function handler(req, res) {
             case 'summary':          return await handleSummary(req, res, supabase);
 
             default:
-                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary.' });
+                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary.' });
         }
     } catch (err) {
         return res.status(500).json({ error: 'Erro interno.', details: err.message });

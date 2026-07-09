@@ -20,62 +20,24 @@
  */
 
 import { getSupabase } from './_lib/supabase.js';
-
-function normalizeProductImage(image) {
-    if (!image || typeof image !== 'string') return '/brand/LOGOPRETO.png';
-
-    const value = image.trim();
-    if (!value) return '/brand/LOGOPRETO.png';
-
-    if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
-        return value;
-    }
-
-    if (value.startsWith('/')) {
-        if (value.startsWith('/merch/') || value.startsWith('/brand/') || value.startsWith('/media/') || value.startsWith('/products/')) {
-            return value;
-        }
-        return `/merch/${value.replace(/^\/+/, '')}`;
-    }
-
-    const fileName = value.replace(/^.*[\\/]/, '');
-    const knownMerchImages = [
-        'Pulseira.png',
-        'Paleta.png',
-        'Chaveiro.png',
-        'Copo.png',
-        'TSHIRT_PREMIUN.png',
-        'TSHIRT_PRO.png',
-        'TSHIRT_ROCK.png',
-    ];
-
-    return knownMerchImages.includes(fileName) ? `/merch/${fileName}` : '/brand/LOGOPRETO.png';
-}
+import { normalizeProductImage, normalizeVariants } from './_lib/normalize-product.js';
 
 function generateProductId() {
-    // Gera ID único no formato BM-XXXXXX
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
     return `BM-${randomPart}`;
 }
 
 function normalizeProduct(product) {
-    let variants = product?.variants || null;
-    if (Array.isArray(variants)) {
-        if (variants.length > 0 && typeof variants[0] === 'object' && variants[0] !== null) {
-            variants = variants[0];
-        } else {
-            variants = { sizes: variants };
-        }
-    }
     return {
         ...product,
         image: normalizeProductImage(product?.image),
-        variants: variants,
+        variants: normalizeVariants(product?.variants),
     };
 }
 
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image', 'variants',
+    'name', 'description', 'price', 'stock', 'active', 'category',
+    'badge', 'badge_color', 'image', 'variants',
 ];
 
 function auth(req, res) {
@@ -117,7 +79,6 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { name, description, price, stock, category, active, badge, badge_color, image } = req.body || {};
 
-        // Validações obrigatórias
         if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
         }
@@ -143,7 +104,9 @@ export default async function handler(req, res) {
                 badge: badge ? String(badge).trim() : null,
                 badge_color: badge_color ? String(badge_color).trim() : null,
                 image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',
-                variants: req.body.variants ? req.body.variants : (category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null),
+                variants: req.body.variants
+                    ? req.body.variants
+                    : (category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null),
             };
 
             const { data, error } = await supabase
@@ -169,7 +132,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'id do produto é obrigatório.' });
         }
 
-        // Filtra só os campos permitidos
         const updates = {};
         for (const key of ALLOWED_UPDATE_FIELDS) {
             if (key in fields) updates[key] = fields[key];
@@ -191,7 +153,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // Validações básicas
         if ('price' in updates && (isNaN(Number(updates.price)) || Number(updates.price) < 0)) {
             return res.status(400).json({ error: 'Preço inválido.' });
         }

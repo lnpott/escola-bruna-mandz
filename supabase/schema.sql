@@ -1,41 +1,75 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Schema Supabase — Loja Oficial Bruna Mandz
--- Cole este arquivo inteiro no SQL Editor do Supabase (Project > SQL Editor > New query)
--- e clique em "Run". Pode rodar de novo sem problema (usa IF NOT EXISTS).
+-- 
+-- Funcional: cole no SQL Editor do Supabase e execute.
+-- Pode rodar múltiplas vezes (usa IF NOT EXISTS / CREATE OR REPLACE).
 -- ═══════════════════════════════════════════════════════════════════════════
 
-create table if not exists public.orders (
-    id text primary key,                 -- mesmo ID gerado no front (ex: BM-123456)
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
-    status text not null default 'pending',
-        -- valores possíveis: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'refunded'
-    method text not null,                -- 'pix' | 'card'
-    customer_name text,
-    customer_email text,
-    customer_phone text,
-    items jsonb not null,                -- snapshot do carrinho no momento da compra
-    total numeric(10,2) not null,
-    mp_payment_id text,                  -- ID do pagamento no Mercado Pago (preenchido após criar)
-    mp_status text,                      -- status bruto retornado pelo Mercado Pago
-    mp_status_detail text,
-    earned_xp integer default 0,
-    customer_is_student boolean default false
-);
+-- ═══════════════════════════════════════════════════════════════════════════
+-- FUNÇÕES COMPARTILHADAS (definidas uma única vez)
+-- ═══════════════════════════════════════════════════════════════════════════
 
--- Índices úteis para o painel admin (listar por data, filtrar por status)
-create index if not exists orders_created_at_idx on public.orders (created_at desc);
-create index if not exists orders_status_idx on public.orders (status);
-create index if not exists orders_mp_payment_id_idx on public.orders (mp_payment_id);
-
--- Atualiza updated_at automaticamente a cada alteração
+-- Função genérica para atualizar updated_at automaticamente.
+-- search_path = '' (vazio) previne search-path hijacking (segurança).
 create or replace function public.set_updated_at()
-returns trigger as $$
+returns trigger
+security definer
+set search_path = ''
+as $$
 begin
     new.updated_at = now();
     return new;
 end;
 $$ language plpgsql;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- TABELA: orders (pedidos da loja)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+create table if not exists public.orders (
+    id text primary key,                    -- BM-XXXXXXXX-XXXX (gerado no front)
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
+    -- Valores restritos via CHECK para integridade dos dados
+    status text not null default 'pending'
+        constraint orders_status_check
+        check (status in ('pending', 'approved', 'rejected', 'cancelled', 'refunded')),
+    method text not null
+        constraint orders_method_check
+        check (method in ('pix', 'card', 'manual')),
+
+    customer_name text,
+    customer_email text,
+    customer_phone text,
+    items jsonb not null,                  -- snapshot do carrinho no momento da compra
+    total numeric(10,2) not null,
+    mp_payment_id text,                    -- ID do pagamento no Mercado Pago
+    mp_status text,                        -- status bruto retornado pelo Mercado Pago
+    mp_status_detail text,
+    earned_xp integer not null default 0,
+    customer_is_student boolean not null default false
+);
+
+-- ── Índices ────────────────────────────────────────────────────────────────────
+
+-- Índice composto para o painel admin: filtrar por status + ordenar por data.
+-- Cobre o caso de uso mais comum: "pedidos pendentes, mais recentes primeiro".
+create index if not exists orders_status_created_idx
+    on public.orders (status, created_at desc);
+
+-- Índice simples em created_at para consultas que não filtram por status
+-- (ex: KPI "receita do mês" que soma todos os pedidos aprovados).
+create index if not exists orders_created_at_idx
+    on public.orders (created_at desc);
+
+-- Índice parcial: só cria entrada para pedidos que têm mp_payment_id.
+-- Economiza espaço no índice (~20% dos pedidos têm mp_payment_id).
+create index if not exists orders_mp_payment_id_idx
+    on public.orders (mp_payment_id)
+    where mp_payment_id is not null;
+
+-- ── Trigger de updated_at ──────────────────────────────────────────────────────
 
 drop trigger if exists orders_set_updated_at on public.orders;
 create trigger orders_set_updated_at
@@ -43,11 +77,15 @@ create trigger orders_set_updated_at
     for each row
     execute function public.set_updated_at();
 
--- ─── Segurança (RLS) ──────────────────────────────────────────────────────────
--- Habilitamos RLS e NÃO criamos política pública de leitura/escrita.
--- Isso significa: só quem usar a Service Role Key (nosso backend na Vercel)
--- consegue ler/escrever. O navegador do cliente NUNCA acessa essa tabela direto.
+-- ── Segurança (RLS) ────────────────────────────────────────────────────────────
+-- RLS habilitado, mas SEM policies.
+-- Intencional: todo acesso é via Service Role Key (backend Vercel),
+-- que bypassa RLS. O navegador do cliente nunca acessa esta tabela.
 alter table public.orders enable row level security;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- TABELA: products (catálogo de produtos da loja)
+-- ═══════════════════════════════════════════════════════════════════════════
 
 create table if not exists public.products (
     id text primary key,
@@ -58,24 +96,29 @@ create table if not exists public.products (
     price numeric(10,2) not null default 0,
     stock integer not null default 0,
     active boolean not null default true,
-    category text not null default 'acessorios',
+    category text not null default 'acessorios'
+        constraint products_category_check
+        check (category in ('roupas', 'acessorios', 'kits')),
     badge text,
     badge_color text,
     image text,
-    reward_xp integer default 0,
-    variants jsonb default '[]'::jsonb
+    reward_xp integer not null default 0,
+    variants jsonb not null default '[]'::jsonb
 );
 
-create index if not exists products_active_idx on public.products (active);
-create index if not exists products_category_idx on public.products (category);
+-- ── Índices ────────────────────────────────────────────────────────────────────
 
-create or replace function public.set_updated_at()
-returns trigger as $$
-begin
-    new.updated_at = now();
-    return new;
-end;
-$$ language plpgsql;
+-- Índice parcial para a query pública: "produtos ativos, ordenados por data".
+-- WHERE active = true reduz o tamanho do índice (produtos inativos são raros).
+create index if not exists products_active_created_idx
+    on public.products (active, created_at)
+    where active = true;
+
+-- Índice para filtrar por categoria + ativo (uso no front-end tabs).
+create index if not exists products_category_active_idx
+    on public.products (category, active);
+
+-- ── Trigger de updated_at ──────────────────────────────────────────────────────
 
 drop trigger if exists products_set_updated_at on public.products;
 create trigger products_set_updated_at
@@ -83,34 +126,29 @@ create trigger products_set_updated_at
     for each row
     execute function public.set_updated_at();
 
+-- ── Segurança (RLS) ────────────────────────────────────────────────────────────
+-- Mesmo padrão da tabela orders: acesso exclusivo via Service Role Key.
 alter table public.products enable row level security;
 
--- ─── Storage: Bucket de Imagens de Produtos ────────────────────────────────────
--- Criar bucket para armazenar imagens de produtos (uploads do painel admin)
--- Cole isso no SQL Editor do Supabase DEPOIS de criar o bucket manualmente:
---
--- 1. No painel do Supabase, vá em Storage > Buckets
--- 2. Clique em "Create a new bucket"
--- 3. Nome: product-images
--- 4. Checkbox: Make it public
--- 5. Clique em "Create bucket"
--- 6. Em seguida, cole o SQL abaixo no SQL Editor para configurar as policies
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Storage: Bucket de Imagens de Produtos
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Criação manual no painel do Supabase:
+--   1. Storage > Create bucket > Nome: product-images, Make it public
+--   2. Depois cole no SQL Editor:
 --
 -- insert into storage.buckets (id, name, public)
 -- values ('product-images', 'product-images', true)
 -- on conflict do nothing;
 --
--- -- Policy: Leitura pública de imagens
--- create policy "public read"
+-- create policy "public read images"
 -- on storage.objects for select
 -- using (bucket_id = 'product-images');
 --
--- -- Policy: Upload somente com Service Role Key (protegido por senha no backend)
--- create policy "admin upload"
+-- create policy "admin upload images"
 -- on storage.objects for insert
 -- with check (bucket_id = 'product-images');
 --
--- -- Policy: Deletar somente com Service Role Key
--- create policy "admin delete"
+-- create policy "admin delete images"
 -- on storage.objects for delete
 -- using (bucket_id = 'product-images');
