@@ -103,7 +103,7 @@
             .field-row { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
             .field-label { font-size: 11px; color: #71717a; width: 72px; flex-shrink: 0; margin-top: 6px; }
             .field-input { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
-            .field-input:focus { outline: none; border-color: #dc2626; }
+            .field-input:focus-visible { outline: 2px solid #dc2626; outline-offset: 2px; border-color: #dc2626; }
             .field-textarea { width: 100%; min-height: 76px; resize: vertical; padding: 6px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; box-sizing: border-box; }
             .field-select { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #09090b; color: #e4e4e7; font-size: 13px; }
             .toggle-active { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #a1a1aa; margin-top: 2px; }
@@ -118,6 +118,36 @@
 
             /* Toast */
             .toast { position: fixed; bottom: 20px; right: 20px; background: #18181b; border: 1px solid #3f3f46; color: #e4e4e7; padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+
+            /* focus-visible global para todos os botões e controles */
+            button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+                outline: 2px solid #dc2626;
+                outline-offset: 2px;
+            }
+            button:focus:not(:focus-visible), select:focus:not(:focus-visible),
+            input:focus:not(:focus-visible), textarea:focus:not(:focus-visible) {
+                outline: none;
+            }
+
+            /* tabular-nums para valores monetários */
+            .kpi-value, .dash-kpi-value, .dash-order-total, .cart-line-total, .product-price {
+                font-variant-numeric: tabular-nums;
+            }
+
+            /* touch-action: manipulation em controles mobile */
+            button, select, .nav-tab, .size-btn, .qty-btn, .status-select {
+                touch-action: manipulation;
+            }
+
+            /* prefers-reduced-motion */
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                    scroll-behavior: auto !important;
+                }
+            }
 
             /* Modal de Crop */
             #modal-crop { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.85); z-index: 2000; justify-content: center; align-items: center; }
@@ -252,7 +282,7 @@
             <h2 style="margin:0 0 4px">Painel — Loja Oficial</h2>
             <p style="color:#a1a1aa;font-size:13px">Acesso restrito.</p>
             <input id="admin-password-input" type="password" placeholder="Senha" autocomplete="current-password" />
-            <div id="login-error" class="login-error"></div>
+            <div id="login-error" class="login-error" aria-live="polite" role="status"></div>
             <button id="login-submit">Entrar</button>
         </div>
 
@@ -287,7 +317,7 @@
                     <!-- Próximas Aulas -->
                     <div class="dash-card">
                         <div class="dash-card-header">
-                            <h3><i class="fas fa-calendar-day"></i> Aulas de Hoje</h3>
+                            <h3><i class="fas fa-calendar-day" aria-hidden="true"></i> Aulas de Hoje</h3>
                             <span class="dash-badge" id="dash-classes-count">0</span>
                         </div>
                         <div class="dash-card-body" id="dash-today-classes">
@@ -298,7 +328,7 @@
                     <!-- Alertas -->
                     <div class="dash-card">
                         <div class="dash-card-header">
-                            <h3><i class="fas fa-bell"></i> Alertas</h3>
+                            <h3><i class="fas fa-bell" aria-hidden="true"></i> Alertas</h3>
                         </div>
                         <div class="dash-card-body" id="dash-alerts">
                             <div class="dash-empty">Nenhum alerta no momento.</div>
@@ -309,7 +339,7 @@
                 <!-- Linha: Pedidos Recentes -->
                 <div class="dash-card" style="margin-top:0">
                     <div class="dash-card-header">
-                        <h3><i class="fas fa-shopping-bag"></i> Pedidos Recentes</h3>
+                        <h3><i class="fas fa-shopping-bag" aria-hidden="true"></i> Pedidos Recentes</h3>
                     </div>
                     <div class="dash-card-body" id="dash-recent-orders">
                         <div class="dash-empty">Nenhum pedido recente.</div>
@@ -319,7 +349,7 @@
                 <!-- Linha: Estoque Baixo -->
                 <div class="dash-card" style="margin-top:0">
                     <div class="dash-card-header">
-                        <h3><i class="fas fa-box"></i> Produtos com Estoque Baixo</h3>
+                        <h3><i class="fas fa-box" aria-hidden="true"></i> Produtos com Estoque Baixo</h3>
                     </div>
                     <div class="dash-card-body" id="dash-low-stock">
                         <div class="dash-empty">Nenhum produto com estoque baixo.</div>
@@ -577,7 +607,7 @@
                         <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Criar Produto</button>
                         <button type="button" id="btn-cancel-product" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
                     </div>
-                    <div id="form-status" style="font-size:12px;color:#a1a1aa;margin-top:8px"></div>
+                    <div id="form-status" style="font-size:12px;color:#a1a1aa;margin-top:8px" aria-live="polite" role="status"></div>
                 </form>
             </div>
         </div>
@@ -1041,42 +1071,42 @@
 
                 document.getElementById('dash-kpi-grid').innerHTML = `
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(34,197,94,.12);color:#86efac"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(34,197,94,.12);color:#86efac"><i class="fas fa-dollar-sign" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Receita do Mês</div>
                         <div class="dash-kpi-value good">${money.format(fin.revenue)}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-minus-circle"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-minus-circle" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Despesas do Mês</div>
                         <div class="dash-kpi-value warn">${money.format(fin.outgoings)}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(96,165,250,.12);color:#93c5fd"><i class="fas fa-scale-balanced"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(96,165,250,.12);color:#93c5fd"><i class="fas fa-scale-balanced" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Saldo do Mês</div>
                         <div class="dash-kpi-value ${fin.balance >= 0 ? 'good' : 'bad'}">${money.format(fin.balance)}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-clock"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-clock" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Mensalidades Pendentes</div>
                         <div class="dash-kpi-value warn">${money.format(fin.pending_tuitions)}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(167,139,250,.12);color:#c4b5fd"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(167,139,250,.12);color:#c4b5fd"><i class="fas fa-graduation-cap" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Alunos Ativos</div>
                         <div class="dash-kpi-value">${sch.active_students}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(52,211,153,.12);color:#6ee7b7"><i class="fas fa-chalkboard-user"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(52,211,153,.12);color:#6ee7b7"><i class="fas fa-chalkboard-user" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Professores</div>
                         <div class="dash-kpi-value">${sch.active_teachers}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-clock"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(251,191,36,.12);color:#fcd34d"><i class="fas fa-clock" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Pedidos Pendentes</div>
                         <div class="dash-kpi-value ${sto.pending_orders > 0 ? 'warn' : ''}">${sto.pending_orders}</div>
                     </div>
                     <div class="dash-kpi-card">
-                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="dash-kpi-icon" style="background:rgba(248,113,113,.12);color:#fca5a5"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></div>
                         <div class="dash-kpi-label">Alunos em Atraso</div>
                         <div class="dash-kpi-value ${fin.overdue_students > 0 ? 'bad' : 'good'}">${fin.overdue_students}</div>
                     </div>
@@ -1162,6 +1192,14 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
 
             const statusLabel = s => STATUS_LABELS[s] || s;
             const isNew = o => (Date.now() - new Date(o.created_at).getTime()) < NEW_THRESHOLD_MS;
+
+            // js-cache-storage: cache da senha em memória — evita sessionStorage.getItem() repetido
+            const _passwordCache = { value: null };
+            function getPassword() {
+                if (_passwordCache.value) return _passwordCache.value;
+                _passwordCache.value = sessionStorage.getItem(STORAGE_KEY);
+                return _passwordCache.value;
+            }
 
             function showToast(msg) {
                 const el = document.createElement('div');
@@ -1298,7 +1336,7 @@ function switchTab(tab) {
                     return `
                     <tr data-order-row="${o.id}" class="${novinho?'row-new':''}">
                         <td data-label="Pedido">
-                            <button class="expand-btn" data-expand="${o.id}" title="Ver itens">${expanded?'▼':'▶'}</button>
+                            <button class="expand-btn" data-expand="${o.id}" title="Ver itens" aria-label="Alternar detalhes do pedido">${expanded?'▼':'▶'}</button>
                             <strong> ${o.id}</strong>
                             ${novinho?'<span class="badge-new">NOVO</span>':''}
                         </td>
@@ -1480,7 +1518,7 @@ function switchTab(tab) {
             }
 
             async function createProduct(productData) {
-                const password = sessionStorage.getItem(STORAGE_KEY);
+                const password = getPassword();
                 if (!password) throw new Error('Sessão expirada');
 
                 const response = await fetch('/api/admin-products', {
@@ -1686,7 +1724,7 @@ function switchTab(tab) {
                         const formData = new FormData();
                         formData.append('file', new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
 
-                        const password = sessionStorage.getItem(STORAGE_KEY);
+                        const password = getPassword();
                         if (!password) throw new Error('Sessão expirada');
 
                         const response = await fetch('/api/upload-image', {
@@ -1798,7 +1836,7 @@ function switchTab(tab) {
                             const formData = new FormData();
                             formData.append('file', new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
 
-                            const password = sessionStorage.getItem(STORAGE_KEY);
+                            const password = getPassword();
                             if (!password) throw new Error('Sessão expirada');
 
                             const response = await fetch('/api/upload-image', {
@@ -1877,7 +1915,7 @@ function switchTab(tab) {
                     const formData = new FormData();
                     formData.append('file', file);
 
-                    const password = sessionStorage.getItem(STORAGE_KEY);
+                    const password = getPassword();
                     if (!password) throw new Error('Sessão expirada');
 
                     const response = await fetch('/api/upload-image', {
@@ -3580,6 +3618,7 @@ function switchTab(tab) {
             document.getElementById('logout-btn').addEventListener('click', () => {
                 clearInterval(_timer);
                 sessionStorage.removeItem(STORAGE_KEY);
+                _passwordCache.value = null;
                 location.reload();
             });
             searchInput.addEventListener('input', applyFiltersAndRender);
