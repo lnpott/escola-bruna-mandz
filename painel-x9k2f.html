@@ -273,6 +273,60 @@
             .btn-action-danger:hover {
                 background: #450a0a !important;
             }
+
+            /* ── Agenda Semanal ───────────────────────────────────────────────────── */
+            .agenda-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+            .agenda-toolbar h2 { margin: 0; font-size: 16px; color: #e4e4e7; }
+            .agenda-nav-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 13px; font-weight: 600; }
+            .agenda-nav-btn:hover { background: #27272a; border-color: #dc2626; }
+            .agenda-week-label { color: #a1a1aa; font-size: 13px; font-weight: 600; min-width: 200px; text-align: center; }
+            .agenda-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+            .agenda-day-header { text-align: center; padding: 6px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a; font-weight: 700; border-bottom: 1px solid #27272a; }
+            .agenda-day-header.today { color: #dc2626; }
+            .agenda-day-cell { min-height: 120px; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 6px; }
+            .agenda-day-cell.today { border-color: #dc2626; }
+            .agenda-day-cell.other-month { opacity: 0.4; }
+            .agenda-day-number { font-size: 11px; font-weight: 700; color: #a1a1aa; margin-bottom: 4px; }
+            .agenda-day-number.today { color: #dc2626; }
+            .agenda-lesson-card { font-size: 10px; padding: 4px 6px; border-radius: 4px; margin-bottom: 3px; cursor: pointer; border-left: 3px solid #fcd34d; background: #09090b; transition: all 0.15s; }
+            .agenda-lesson-card:hover { background: #1a1a1d; }
+            .agenda-lesson-card.completed { border-left-color: #22c55e; opacity: 0.7; }
+            .agenda-lesson-card.cancelled { border-left-color: #dc2626; opacity: 0.5; text-decoration: line-through; }
+            .agenda-lesson-time { font-weight: 700; color: #e4e4e7; }
+            .agenda-lesson-student { color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .agenda-summary { display: flex; gap: 16px; margin-bottom: 12px; color: #a1a1aa; font-size: 12px; }
+            .agenda-summary span { color: #e4e4e7; font-weight: 700; }
+            .agenda-summary .scheduled-count { color: #fcd34d; }
+            .agenda-summary .completed-count { color: #86efac; }
+            @media (max-width: 720px) {
+                .agenda-grid { grid-template-columns: repeat(1, 1fr); }
+                .agenda-week-label { min-width: auto; }
+            }
+
+            /* ── Aulas CRUD - Melhorias visuais ──────────────────────────────────── */
+            .lesson-week-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+            .lesson-week-nav button { padding: 4px 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #18181b; color: #a1a1aa; cursor: pointer; font-size: 11px; }
+            .lesson-week-nav button:hover { background: #27272a; border-color: #dc2626; }
+            .lesson-week-nav .week-label { font-size: 12px; color: #a1a1aa; font-weight: 600; flex: 1; }
+
+            .lesson-day-group { background: #18181b; border: 1px solid #27272a; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+            .lesson-day-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #111113; border-bottom: 1px solid #27272a; }
+            .lesson-day-header .day-name { font-weight: 700; font-size: 13px; color: #e4e4e7; }
+            .lesson-day-header .day-count { font-size: 11px; color: #71717a; }
+            .lesson-card { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #1f1f22; transition: background 0.15s; }
+            .lesson-card:last-child { border-bottom: none; }
+            .lesson-card:hover { background: #1a1a1d; }
+            .lesson-card.completed { opacity: 0.65; }
+            .lesson-card .status-bar { width: 3px; border-radius: 2px; min-height: 36px; flex-shrink: 0; }
+            .lesson-card .status-bar.scheduled { background: #fcd34d; }
+            .lesson-card .status-bar.completed { background: #22c55e; }
+            .lesson-card .status-bar.cancelled { background: #dc2626; }
+            .lesson-card .lesson-time { font-weight: 700; font-size: 12px; color: #e4e4e7; min-width: 56px; }
+            .lesson-card .lesson-info { flex: 1; min-width: 0; }
+            .lesson-card .lesson-info .student-name { font-size: 13px; font-weight: 600; color: #e4e4e7; }
+            .lesson-card .lesson-info .teacher-name { font-size: 11px; color: #71717a; }
+            .lesson-card .lesson-type-badge { font-size: 9px; padding: 1px 5px; border-radius: 999px; background: #27272a; color: #fcd34d; margin-left: 4px; vertical-align: middle; }
+            .lesson-card .lesson-actions { display: flex; gap: 4px; flex-shrink: 0; }
         </style>
     </head>
     <body>
@@ -303,6 +357,7 @@
             <!-- TABS -->
             <div class="nav-tabs">
                 <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+                <button class="nav-tab" data-tab="agenda">📅 Agenda</button>
                 <button class="nav-tab" data-tab="orders">🧾 Pedidos</button>
                 <button class="nav-tab" data-tab="products">📦 Produtos</button>
                 <button class="nav-tab" data-tab="financial">💰 Financeiro</button>
@@ -354,6 +409,24 @@
                     <div class="dash-card-body" id="dash-low-stock">
                         <div class="dash-empty">Nenhum produto com estoque baixo.</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ABA AGENDA SEMANAL -->
+            <div id="tab-agenda" style="display:none">
+                <div class="agenda-toolbar">
+                    <button class="agenda-nav-btn" id="agenda-prev-week">◀</button>
+                    <span class="agenda-week-label" id="agenda-week-label">Carregando...</span>
+                    <button class="agenda-nav-btn" id="agenda-next-week">▶</button>
+                    <button class="agenda-nav-btn" id="agenda-today-btn" style="margin-left:auto;font-size:11px">Hoje</button>
+                </div>
+                <div class="agenda-summary" id="agenda-summary">
+                    <span>Total: <span id="agenda-total-count">0</span></span>
+                    <span>📌 Agendadas: <span class="scheduled-count" id="agenda-scheduled-count">0</span></span>
+                    <span>✅ Realizadas: <span class="completed-count" id="agenda-completed-count">0</span></span>
+                </div>
+                <div class="agenda-grid" id="agenda-grid">
+                    <div class="empty-state">Carregando agenda...</div>
                 </div>
             </div>
 
@@ -1185,16 +1258,37 @@
                 `;
 
                 const classes = sch.today_classes || [];
+                var scheduled = classes.filter(function(c){ return c.status === 'scheduled' || !c.status; });
+                var completed = classes.filter(function(c){ return c.status === 'completed'; });
                 document.getElementById('dash-classes-count').textContent = classes.length;
-                document.getElementById('dash-today-classes').innerHTML = classes.length
-                    ? classes.map(c => `
-                        <div class="dash-class-row">
-                            <span class="dash-class-time">${c.start_time || c.class_time || '--:--'}</span>
-                            <span class="dash-class-student">${c.students?.name || 'Aluno'}</span>
-                            <span class="dash-class-teacher">${c.teachers?.name || '—'} ${c.instrument ? '· ' + c.instrument : ''}</span>
-                        </div>
-                    `).join('')
-                    : '<div class="dash-empty">Nenhuma aula hoje. 🎉</div>';
+                if (!classes.length) {
+                    document.getElementById('dash-today-classes').innerHTML = '<div class="dash-empty">Nenhuma aula hoje. 🎉</div>';
+                } else {
+                    var html = '';
+                    if (scheduled.length) {
+                        html += '<div style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:.05em;padding:8px 0 4px;font-weight:700">📌 Próximas (' + scheduled.length + ')</div>';
+                        html += scheduled.map(function(c) {
+                            var typ = c.lesson_type && c.lesson_type !== 'regular' ? '<span style="font-size:9px;color:#fcd34d;margin-left:4px">(' + c.lesson_type.replace('_',' ') + ')</span>' : '';
+                            var dur = c.duration_minutes ? '<span style="font-size:10px;color:#52525b;margin-left:4px">' + c.duration_minutes + 'min</span>' : '';
+                            return '<div class="dash-class-row">' +
+                                '<span class="dash-class-time">' + (c.start_time || c.class_time || '--:--') + '</span>' +
+                                '<span class="dash-class-student">' + (c.students?.name || 'Aluno') + typ + '</span>' +
+                                '<span class="dash-class-teacher">' + (c.teachers?.name || '—') + (c.instrument ? ' · ' + c.instrument : '') + dur + '</span>' +
+                            '</div>';
+                        }).join('');
+                    }
+                    if (completed.length) {
+                        html += '<div style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:.05em;padding:8px 0 4px;font-weight:700;border-top:1px solid #1f1f22;margin-top:4px">✅ Realizadas (' + completed.length + ')</div>';
+                        html += completed.map(function(c) {
+                            return '<div class="dash-class-row" style="opacity:0.6">' +
+                                '<span class="dash-class-time">' + (c.start_time || c.class_time || '--:--') + '</span>' +
+                                '<span class="dash-class-student">' + (c.students?.name || 'Aluno') + '</span>' +
+                                '<span class="dash-class-teacher">' + (c.teachers?.name || '—') + (c.instrument ? ' · ' + c.instrument : '') + '</span>' +
+                            '</div>';
+                        }).join('');
+                    }
+                    document.getElementById('dash-today-classes').innerHTML = html;
+                }
 
                 const alerts = [];
                 if (fin.overdue_students > 0) alerts.push({ icon: '🔴', text: fin.overdue_students + ' aluno(s) com mensalidade em atraso' });
@@ -1295,33 +1389,40 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
                 lessons.forEach(function(l) { var d = l.date; if (!byDate[d]) byDate[d] = []; byDate[d].push(l); });
                 var sortedDates = Object.keys(byDate).sort();
                 var labels = { scheduled:'Agendada', completed:'Realizada', cancelled:'Cancelada', make_up:'Reposi\u00e7\u00e3o' };
-                var classes = { scheduled:'status-pending', completed:'status-approved', cancelled:'status-rejected', make_up:'status-pending' };
                 area.innerHTML = sortedDates.map(function(date) {
                     var items = byDate[date].sort(function(a,b) { return (a.start_time||'').localeCompare(b.start_time||''); });
                     var dayName = new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long'});
                     var fmtDate = new Date(date+'T12:00:00').toLocaleDateString('pt-BR');
-                    var rows = items.map(function(l) {
-                        var badge = l.lesson_type !== 'regular' ? '<span style="font-size:10px;color:#fcd34d;margin-left:4px">('+l.lesson_type+')</span>' : '';
-                        return '<tr data-lesson-id="'+l.id+'">' +
-                            '<td style="font-weight:700">'+(l.start_time||'--:--')+' - '+(l.end_time||'--:--')+'</td>' +
-                            '<td>'+(l.students?.name||'\u2014')+badge+'</td>' +
-                            '<td>'+(l.teachers?.name||'\u2014')+'</td>' +
-                            '<td>'+(l.instrument||'\u2014')+'</td>' +
-                            '<td><span class="status-pill '+(classes[l.status]||'status-pending')+'">'+(labels[l.status]||l.status)+'</span></td>' +
-                            '<td><span id="attendance-badge-'+l.id+'" style="font-size:11px;color:#71717a">\u2014</span></td>' +
-                            '<td>' +
-                                '<button class="btn-action-small btn-attendance-lesson" data-lesson-id="'+l.id+'" title="Presen\u00e7a">\ud83d\udc64</button> ' +
+                    var today = new Date(); var todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+                    var isToday = date === todayStr;
+                    var cards = items.map(function(l) {
+                        var typeLabel = '';
+                        if (l.lesson_type === 'make_up') typeLabel = '<span class="lesson-type-badge">Reposi\u00e7\u00e3o</span>';
+                        else if (l.lesson_type === 'trial') typeLabel = '<span class="lesson-type-badge">Experimental</span>';
+                        else if (l.lesson_type === 'extra') typeLabel = '<span class="lesson-type-badge">Extra</span>';
+                        var completedClass = l.status === 'completed' ? 'completed' : '';
+                        var statusBar = '<div class="status-bar ' + (l.status || 'scheduled') + '"></div>';
+                        var attIcon = l.status === 'completed'
+                            ? '<span style="font-size:11px;color:#86efac;font-weight:700">\u2714\ufe0f</span>'
+                            : '<button class="btn-action-small btn-attendance-lesson" data-lesson-id="'+l.id+'" title="Presen\u00e7a">\ud83d\udc64</button>';
+                        return '<div class="lesson-card ' + completedClass + '" data-lesson-id="'+l.id+'">' +
+                            statusBar +
+                            '<div class="lesson-time">' + (l.start_time||'--:--') + '</div>' +
+                            '<div class="lesson-info">' +
+                                '<div class="student-name">' + (l.students?.name||'\u2014') + typeLabel + '</div>' +
+                                '<div class="teacher-name">' + (l.teachers?.name||'\u2014') + (l.instrument ? ' \u00b7 ' + l.instrument : '') + '</div>' +
+                            '</div>' +
+                            '<div class="lesson-actions">' +
+                                attIcon + ' ' +
                                 '<button class="btn-action-small btn-edit-lesson" data-lesson-id="'+l.id+'" title="Editar">\u270f\ufe0f</button> ' +
                                 '<button class="btn-action-small btn-action-danger btn-delete-lesson" data-lesson-id="'+l.id+'" title="Excluir">\ud83d\uddd1\ufe0f</button>' +
-                            '</td></tr>';
+                            '</div></div>';
                     }).join('');
-                    return '<div style="margin-bottom:16px;background:#18181b;border:1px solid #27272a;border-radius:12px;overflow:hidden">' +
-                        '<div style="background:#09090b;padding:10px 16px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center">' +
-                        '<span style="font-weight:700;font-size:14px;color:#e4e4e7">'+dayName+', '+fmtDate+'</span>' +
-                        '<span style="font-size:12px;color:#71717a">'+items.length+' aula(s)</span></div>' +
-                        '<table style="margin:0"><thead><tr><th style="width:80px">Hor\u00e1rio</th><th>Aluno</th><th>Professor</th><th>Instrumento</th><th style="width:100px">Status</th><th style="width:150px">Presen\u00e7a</th><th style="width:80px">A\u00e7\u00f5es</th></tr></thead><tbody>' +
-                        rows +
-                        '</tbody></table></div>';
+                    return '<div class="lesson-day-group">' +
+                        '<div class="lesson-day-header">' +
+                            '<span class="day-name">' + dayName.charAt(0).toUpperCase() + dayName.slice(1) + (isToday ? ' <span style="color:#dc2626;font-size:10px;font-weight:400">(Hoje)</span>' : '') + '</span>' +
+                            '<span class="day-count">' + fmtDate + ' \u00b7 ' + items.length + ' aula' + (items.length > 1 ? 's' : '') + '</span>' +
+                        '</div>' + cards + '</div>';
                 }).join('');
                 area.querySelectorAll('.btn-attendance-lesson').forEach(function(b) {
                     b.addEventListener('click', function(){ openAttendanceModal(b.dataset.lessonId); });
@@ -1438,6 +1539,98 @@ function closeLessonModal() {
                 if (modal) modal.style.display='none';
             }
 
+            // ── AGENDA SEMANAL ──────────────────────────────────────────
+
+            var _agendaWeekOffset = 0;
+
+            function getWeekRange(offset) {
+                var now = new Date();
+                var day = now.getDay();
+                var diff = day === 0 ? -6 : 1 - day;
+                var monday = new Date(now);
+                monday.setDate(now.getDate() + diff + (offset * 7));
+                var sunday = new Date(monday);
+                sunday.setDate(monday.getDate() + 6);
+                return { monday: monday, sunday: sunday };
+            }
+
+            function formatDate(d) {
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+
+            async function loadWeekAgenda() {
+                var grid = document.getElementById('agenda-grid');
+                if (!grid) return;
+                grid.innerHTML = '<div class="empty-state">Carregando agenda...</div>';
+                var range = getWeekRange(_agendaWeekOffset);
+                var dateFrom = formatDate(range.monday);
+                var dateTo = formatDate(range.sunday);
+                try {
+                    var url = '/api/admin-financial?resource=lessons&date_from=' + dateFrom + '&date_to=' + dateTo + '&limit=200';
+                    var res = await fetch(url, { headers: { 'x-admin-password': _password } });
+                    if (!res.ok) throw new Error('Erro ao carregar agenda.');
+                    var data = await res.json();
+                    var lessons = data.lessons || [];
+                    renderWeekAgenda(lessons, range);
+                } catch (err) {
+                    grid.innerHTML = '<div class="empty-state" style="color:#fca5a5">Erro: ' + err.message + '</div>';
+                }
+            }
+
+            function renderWeekAgenda(lessons, range) {
+                var grid = document.getElementById('agenda-grid');
+                if (!grid) return;
+                var byDate = {};
+                lessons.forEach(function(l) {
+                    var d = l.date;
+                    if (!byDate[d]) byDate[d] = [];
+                    byDate[d].push(l);
+                });
+                var days = [];
+                var today = new Date();
+                var todayStr = formatDate(today);
+                for (var i = 0; i < 7; i++) {
+                    var d = new Date(range.monday);
+                    d.setDate(range.monday.getDate() + i);
+                    var dateStr = formatDate(d);
+                    days.push({ date: d, dateStr: dateStr, isToday: dateStr === todayStr, items: byDate[dateStr] || [] });
+                }
+                var dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+                var headers = days.map(function(day) {
+                    var cls = 'agenda-day-header' + (day.isToday ? ' today' : '');
+                    var dayIdx = day.date.getDay();
+                    return '<div class="' + cls + '">' + dayNames[dayIdx].charAt(0).toUpperCase() + dayNames[dayIdx].slice(1) + '<br><span style="font-size:14px">' + day.date.getDate() + '</span></div>';
+                }).join('');
+                var cells = days.map(function(day) {
+                    var cls = 'agenda-day-cell' + (day.isToday ? ' today' : '');
+                    var cards = day.items.sort(function(a,b) { return (a.start_time||'').localeCompare(b.start_time||''); }).map(function(l) {
+                        var s = l.status || 'scheduled';
+                        var typeLabel = '';
+                        if (l.lesson_type && l.lesson_type !== 'regular') typeLabel = ' ' + l.lesson_type.replace('_',' ');
+                        var studentName = l.students?.name || '\u2014';
+                        return '<div class="agenda-lesson-card ' + s + '" data-lesson-id="' + l.id + '" onclick="openAttendanceModal(' + l.id + ')">' +
+                            '<div class="agenda-lesson-time">' + (l.start_time||'--:--') + typeLabel + '</div>' +
+                            '<div class="agenda-lesson-student">' + studentName + '</div>' +
+                        '</div>';
+                    }).join('');
+                    var defaultHtml = !day.items.length ? '<div style="font-size:10px;color:#52525b;text-align:center;padding-top:8px">\u2014</div>' : '';
+                    return '<div class="' + cls + '"><div class="agenda-day-number' + (day.isToday ? ' today' : '') + '">' + day.date.getDate() + '/' + (day.date.getMonth()+1) + '</div>' + defaultHtml + cards + '</div>';
+                }).join('');
+                grid.innerHTML = headers + cells;
+                var weekLabel = document.getElementById('agenda-week-label');
+                if (weekLabel) {
+                    var opts = { weekday:'long', day:'numeric', month:'long' };
+                    weekLabel.textContent = range.monday.toLocaleDateString('pt-BR', opts) + ' \u2014 ' + range.sunday.toLocaleDateString('pt-BR', opts);
+                }
+                var total = lessons.length;
+                var scheduled = lessons.filter(function(l) { return l.status === 'scheduled' || !l.status; }).length;
+                var completed = lessons.filter(function(l) { return l.status === 'completed'; }).length;
+                document.getElementById('agenda-total-count').textContent = total;
+                document.getElementById('agenda-scheduled-count').textContent = scheduled;
+                document.getElementById('agenda-completed-count').textContent = completed;
+            }
+
+
             let _allTeacherPayments = [];
             const DAY_MAP = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
             const DAY_ORDER = ['seg','ter','qua','qui','sex','sab','dom'];
@@ -1466,12 +1659,14 @@ function closeLessonModal() {
 function switchTab(tab) {
     _activeTab = tab;
     document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? '' : 'none';
+    document.getElementById('tab-agenda').style.display    = tab === 'agenda'    ? '' : 'none';
     document.getElementById('tab-orders').style.display    = tab === 'orders'    ? '' : 'none';
     document.getElementById('tab-products').style.display  = tab === 'products'  ? '' : 'none';
     document.getElementById('tab-financial').style.display = tab === 'financial' ? '' : 'none';
     document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
     document.querySelectorAll('.nav-tabs > .nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     if (tab === 'dashboard') loadDashboard();
+    if (tab === 'agenda') loadWeekAgenda();
     if (tab === 'products' && !_allProducts.length) loadProducts();
     if (tab === 'financial') {
         initFinancialPeriodFilter();
@@ -3521,6 +3716,20 @@ function switchTab(tab) {
              document.getElementById('enrollment-status-filter').addEventListener('change', loadEnrollments);
 
              
+            // ── Agenda Semanal ────────────────────────────────────────────
+            document.getElementById('agenda-prev-week').addEventListener('click', function() {
+                _agendaWeekOffset--;
+                loadWeekAgenda();
+            });
+            document.getElementById('agenda-next-week').addEventListener('click', function() {
+                _agendaWeekOffset++;
+                loadWeekAgenda();
+            });
+            document.getElementById('agenda-today-btn').addEventListener('click', function() {
+                _agendaWeekOffset = 0;
+                loadWeekAgenda();
+            });
+
             // ---- Eventos: Aulas ----
             var bnl = document.getElementById('btn-new-lesson');
             if(bnl) bnl.addEventListener('click',function(){ openLessonModal(); });
