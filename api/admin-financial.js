@@ -76,19 +76,29 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, email, phone, address, active, instruments } = req.body;
+        const { name, email, phone, address, active, instruments, guardian_name, guardian_phone } = req.body;
         if (!name) return res.status(400).json({ error: 'Nome é obrigatório.' });
         const instrumentsStr = Array.isArray(instruments) ? instruments.join(', ') : (instruments || '');
         const { data, error } = await supabase
             .from('students')
-            .insert([{ id: genId('ST'), name, email: email || null, phone: phone || null, address: address || null, instruments: instrumentsStr, active: active !== undefined ? active : true }])
+            .insert([{ 
+                id: genId('ST'), 
+                name, 
+                email: email || null, 
+                phone: phone || null, 
+                address: address || null, 
+                instruments: instrumentsStr, 
+                active: active !== undefined ? active : true,
+                guardian_name: guardian_name || null,
+                guardian_phone: guardian_phone || null
+            }])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ student: data });
     }
 
     if (method === 'PATCH') {
-        const { id, name, email, phone, address, active, instruments } = req.body;
+        const { id, name, email, phone, address, active, instruments, guardian_name, guardian_phone } = req.body;
         if (!id) return res.status(400).json({ error: 'ID do aluno é obrigatório.' });
         const upd = {};
         if (name    !== undefined) upd.name    = name;
@@ -97,6 +107,8 @@ async function handleStudents(req, res, supabase) {
         if (address !== undefined) upd.address = address || null;
         if (active  !== undefined) upd.active  = active;
         if (instruments !== undefined) upd.instruments = Array.isArray(instruments) ? instruments.join(', ') : instruments;
+        if (guardian_name !== undefined) upd.guardian_name = guardian_name || null;
+        if (guardian_phone !== undefined) upd.guardian_phone = guardian_phone || null;
         const { data, error } = await supabase.from('students').update(upd).eq('id', id).select().single();
         if (error) throw error;
         return res.status(200).json({ student: data });
@@ -247,6 +259,40 @@ async function handleEnrollments(req, res, supabase) {
             .select('*, students(name), teachers(name, specialty)')
             .single();
         if (error) throw error;
+
+        // Auto-generate tuition for the current month if active
+        if (payload.status === 'active' && payload.monthly_fee > 0) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const reference_month = `${year}-${month}`;
+            
+            // Creates a new tuition for THIS enrollment.
+            // `tuitions.enrollment_id` already exists (added in migration Etapa 37),
+            // so each enrollment generates its own independent tuition. This allows a
+            // student with multiple active enrollments (e.g. Piano + Violão) to have
+            // separate monthly fees.
+            
+            const tuitionPayload = {
+                id: genId('TU'),
+                student_id: payload.student_id,
+                enrollment_id: payload.id,
+                amount: payload.monthly_fee,
+                due_date: `${reference_month}-10`, // Default due date to 10th
+                status: 'pending',
+                reference_month: reference_month,
+                notes: `Mensalidade gerada automaticamente pela matrícula de ${payload.instrument || 'Aula'}`
+            };
+            
+            try {
+                await supabase.from('tuitions').insert([tuitionPayload]);
+            } catch (tuitionErr) {
+                // Tuition creation failed silently — enrollment was already saved.
+                // Log the error so it can be diagnosed, but don't block the response.
+                console.error('Auto-generate tuition failed:', tuitionErr.message);
+            }
+        }
+
         return res.status(201).json({ enrollment: data });
     }
 
@@ -957,6 +1003,66 @@ async function handleSummary(req, res, supabase) {
     });
 }
 
+// ── FECHAMENTO DE MÊS (Geração Automática) ──────────────────────────────────
+async function handleGenerateMonthlyBilling(req, res, supabase) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
+    
+    // Default to current month if not provided
+    let { reference_month } = req.body;
+    if (!reference_month) {
+        const now = new Date();
+        reference_month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    try {
+        // 1. Fetch all active enrollments
+        const { data: activeEnrollments, error: enrollErr } = await supabase
+            .from('enrollments')
+            .select('*')
+            .eq('status', 'active');
+        if (enrollErr) throw enrollErr;
+
+        // 2. Fetch all tuitions for this reference_month to prevent duplicates
+        const { data: existingTuitions, error: tuiErr } = await supabase
+            .from('tuitions')
+            .select('enrollment_id')
+            .eq('reference_month', reference_month)
+            .not('enrollment_id', 'is', null);
+        if (tuiErr) throw tuiErr;
+
+        const existingEnrollmentIds = new Set(existingTuitions.map(t => t.enrollment_id));
+
+        const tuitionsToInsert = [];
+        
+        for (const en of activeEnrollments) {
+            if (!existingEnrollmentIds.has(en.id) && en.monthly_fee > 0) {
+                tuitionsToInsert.push({
+                    id: genId('TU'),
+                    student_id: en.student_id,
+                    enrollment_id: en.id,
+                    amount: en.monthly_fee,
+                    due_date: `${reference_month}-10`,
+                    status: 'pending',
+                    reference_month: reference_month,
+                    notes: `Mensalidade (automática) ${en.instrument || 'Aula'}`
+                });
+            }
+        }
+
+        let insertedTuitions = 0;
+        if (tuitionsToInsert.length > 0) {
+            const { error: insErr } = await supabase.from('tuitions').insert(tuitionsToInsert);
+            if (insErr) throw insErr;
+            insertedTuitions = tuitionsToInsert.length;
+        }
+
+        return res.status(200).json({ success: true, tuitions_generated: insertedTuitions });
+
+    } catch (error) {
+        return res.status(500).json({ error: 'Erro ao gerar fechamento', details: error.message });
+    }
+}
+
 // ── DASHBOARD: consolidado de indicadores para a tela inicial ────────────────
 
 async function handleDashboard(req, res, supabase) {
@@ -1057,9 +1163,10 @@ export default async function handler(req, res) {
             case 'lessons':          return await handleLessons(req, res, supabase);
             case 'attendance':       return await handleAttendance(req, res, supabase);
             case 'summary':          return await handleSummary(req, res, supabase);
+            case 'generate_monthly_billing': return await handleGenerateMonthlyBilling(req, res, supabase);
 
             default:
-                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
+                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary, generate_monthly_billing.' });
         }
     } catch (err) {
         return res.status(500).json({ error: 'Erro interno.', details: err.message });

@@ -1509,3 +1509,52 @@ A visão semanal foi completamente substituída por um calendário mensal:
 
 Conforme prioridade definida pelo usuário, implementar **Mensalidades Automáticas**: ao criar um vínculo (enrollment) com status active, gerar automaticamente a tuition do mês corrente no backend (`handleEnrollments` em `admin-financial.js`).
 
+---
+
+# ETAPA 41 — ADIÇÃO DE BOTÃO "NOVA AULA" NA AGENDA MENSAL
+
+**Data:** 10/07/2026
+
+**Objetivo:**
+Facilitar o agendamento de novas aulas avulsas ou reposições adicionando um botão "Nova Aula" diretamente na tela de Agenda Mensal.
+
+**Implementações Realizadas:**
+- Inserido o botão "➕ Nova Aula" na barra de ferramentas (`agenda-toolbar`) da Agenda Mensal (`#tab-agenda`).
+- O botão aciona a função já existente `openLessonModal()`, reutilizando o fluxo completo de criação de aulas.
+
+**Arquivos Alterados:**
+- `painel-x9k2f.html` (inserção do elemento `<button>` na toolbar da agenda).
+
+**Testes:**
+- Validação visual da posição do botão ao lado de "Hoje".
+- Confirmação de que o botão abre o modal corretamente e possui os mesmos estilos da toolbar.
+
+---
+
+# ETAPA 42 — CORREÇÕES PÓS-REVISÃO
+
+**Data:** 10/07/2026
+
+**Objetivo:**
+Corrigir problemas identificados na revisão das implementações recentes: numeração duplicada, stale comments, falta de try/catch na geração de mensalidades, e hiding do select de aluno no modal de matrícula.
+
+**Implementações Realizadas:**
+- Corrigida numeração duplicada da etapa anterior (ETAPA 38 → ETAPA 41)
+- Removido stale comment incorreto sobre `enrollment_id` em `handleEnrollments`
+- Adicionado try/catch na geração automática de tuition ao criar enrollment
+- Implementado hiding do select de aluno ao criar matrícula a partir do perfil do aluno
+
+**Arquivos Alterados:**
+- `painel_registro.md` (este registro)
+- `api/admin-financial.js` (stale comment + try/catch)
+- `painel-x9k2f.html` (hiding do select de aluno)
+
+**Alterações no Banco:**
+Nenhuma.
+
+**Testes:**
+✅ `node --check` validado em `api/admin-financial.js`
+✅ `npm run build` passou
+
+**Próxima Etapa:**
+Testes funcionais ponta a ponta pós-deploy.
