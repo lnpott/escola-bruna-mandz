@@ -1347,6 +1347,49 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
                     });
                 });
             }
+async function openLessonModal(lesson) {
+    var modal = document.getElementById('modal-new-lesson');
+    var form = document.getElementById('form-new-lesson');
+    var title = document.getElementById('lesson-modal-title');
+    if (!modal || !form) return;
+    // Clear form
+    form.reset();
+    document.getElementById('form-lesson-status').textContent = '';
+    // Populate enrollment select
+    loadEnrollments().then(function(){
+        if (lesson) {
+            // Edit mode
+            title.textContent = 'Editar Aula';
+            form.querySelector('[name="id"]').value = lesson.id;
+            form.querySelector('[name="enrollment_id"]').value = lesson.enrollment_id || '';
+            form.querySelector('[name="date"]').value = lesson.date || '';
+            form.querySelector('[name="start_time"]').value = lesson.start_time || '';
+            form.querySelector('[name="duration_minutes"]').value = lesson.duration_minutes || 60;
+            form.querySelector('[name="lesson_type"]').value = lesson.lesson_type || 'regular';
+            form.querySelector('[name="notes"]').value = lesson.notes || '';
+            var preview = document.getElementById('lesson-enrollment-preview');
+            if (preview && lesson.students) {
+                preview.innerHTML = '<small style="color:#a1a1aa">Vinculo: ' + (lesson.students.name || '') + ' - ' + (lesson.teachers?.name || '') + ' (' + (lesson.instruments?.name || '') + ')</small>';
+                preview.style.display = 'block';
+            }
+        } else {
+            // New mode
+            title.textContent = 'Nova Aula';
+            form.querySelector('[name="id"]').value = '';
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var yyyy = today.getFullYear();
+            form.querySelector('[name="date"]').value = yyyy + '-' + mm + '-' + dd;
+            form.querySelector('[name="duration_minutes"]').value = 60;
+            form.querySelector('[name="lesson_type"]').value = 'regular';
+            var preview = document.getElementById('lesson-enrollment-preview');
+            if (preview) { preview.style.display = 'none'; }
+        }
+        modal.style.display = 'flex';
+    });
+}
+
 function closeLessonModal() {
                 var modal = document.getElementById('modal-new-lesson');
                 if (modal) modal.style.display='none';
