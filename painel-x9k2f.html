@@ -274,33 +274,50 @@
                 background: #450a0a !important;
             }
 
-            /* ── Agenda Semanal ───────────────────────────────────────────────────── */
+            /* ── Agenda Mensal (Calendário) ─────────────────────────────────────────── */
             .agenda-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
             .agenda-toolbar h2 { margin: 0; font-size: 16px; color: #e4e4e7; }
             .agenda-nav-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7; cursor: pointer; font-size: 13px; font-weight: 600; }
             .agenda-nav-btn:hover { background: #27272a; border-color: #dc2626; }
-            .agenda-week-label { color: #a1a1aa; font-size: 13px; font-weight: 600; min-width: 200px; text-align: center; }
-            .agenda-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-            .agenda-day-header { text-align: center; padding: 6px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a; font-weight: 700; border-bottom: 1px solid #27272a; }
-            .agenda-day-header.today { color: #dc2626; }
-            .agenda-day-cell { min-height: 120px; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 6px; }
+            .agenda-month-label { color: #e4e4e7; font-size: 16px; font-weight: 700; min-width: 220px; text-align: center; }
+            .agenda-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+            .agenda-cal-header { text-align: center; padding: 6px 2px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a; font-weight: 700; border-bottom: 1px solid #27272a; }
+            .agenda-cal-header.weekend { color: #52525b; }
+            .agenda-day-cell { min-height: 80px; background: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 4px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+            .agenda-day-cell:hover { border-color: #3f3f46; background: #1e1e21; }
             .agenda-day-cell.today { border-color: #dc2626; }
-            .agenda-day-cell.other-month { opacity: 0.4; }
-            .agenda-day-number { font-size: 11px; font-weight: 700; color: #a1a1aa; margin-bottom: 4px; }
+            .agenda-day-cell.other-month { opacity: 0.35; }
+            .agenda-day-cell.has-lessons { border-left: 3px solid #fcd34d; }
+            .agenda-day-number { font-size: 10px; font-weight: 700; color: #a1a1aa; margin-bottom: 2px; }
             .agenda-day-number.today { color: #dc2626; }
-            .agenda-lesson-card { font-size: 10px; padding: 4px 6px; border-radius: 4px; margin-bottom: 3px; cursor: pointer; border-left: 3px solid #fcd34d; background: #09090b; transition: all 0.15s; }
-            .agenda-lesson-card:hover { background: #1a1a1d; }
-            .agenda-lesson-card.completed { border-left-color: #22c55e; opacity: 0.7; }
-            .agenda-lesson-card.cancelled { border-left-color: #dc2626; opacity: 0.5; text-decoration: line-through; }
-            .agenda-lesson-time { font-weight: 700; color: #e4e4e7; }
-            .agenda-lesson-student { color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .agenda-lesson-marker { font-size: 9px; padding: 1px 3px; border-radius: 2px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e4e4e7; line-height: 1.3; }
+            .agenda-lesson-marker .time { color: #fcd34d; font-weight: 600; }
+            .agenda-lesson-marker .name { color: #a1a1aa; }
+            .agenda-lesson-marker.completed { opacity: 0.55; }
+            .agenda-lesson-marker.completed .time { color: #86efac; }
             .agenda-summary { display: flex; gap: 16px; margin-bottom: 12px; color: #a1a1aa; font-size: 12px; }
             .agenda-summary span { color: #e4e4e7; font-weight: 700; }
             .agenda-summary .scheduled-count { color: #fcd34d; }
             .agenda-summary .completed-count { color: #86efac; }
+            .agenda-more-link { font-size: 9px; color: #52525b; font-weight: 600; cursor: pointer; padding: 1px; }
+            .agenda-more-link:hover { color: #a1a1aa; }
+
+            /* Modal de detalhe do dia na Agenda */
+            #agenda-day-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.7); z-index: 1000; justify-content: center; align-items: center; }
+            #agenda-day-modal .modal-content { background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+            #agenda-day-modal h2 { margin: 0 0 16px; font-size: 16px; color: #e4e4e7; }
+            #agenda-day-modal .lesson-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #1f1f22; font-size: 13px; gap: 10px; }
+            #agenda-day-modal .lesson-item:last-child { border-bottom: none; }
+            #agenda-day-modal .lesson-time { font-weight: 700; color: #fcd34d; min-width: 50px; }
+            #agenda-day-modal .lesson-student { flex: 1; color: #e4e4e7; }
+            #agenda-day-modal .lesson-teacher { color: #71717a; font-size: 11px; }
+            #agenda-day-modal .lesson-status { font-size: 11px; }
+            #agenda-day-modal .close-btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #3f3f46; background: none; color: #a1a1aa; cursor: pointer; margin-top: 12px; }
             @media (max-width: 720px) {
-                .agenda-grid { grid-template-columns: repeat(1, 1fr); }
-                .agenda-week-label { min-width: auto; }
+                .agenda-calendar { grid-template-columns: repeat(7, 1fr); gap: 2px; }
+                .agenda-day-cell { min-height: 60px; padding: 2px; }
+                .agenda-month-label { min-width: auto; font-size: 14px; }
+                .agenda-lesson-marker { font-size: 8px; }
             }
 
             /* ── Aulas CRUD - Melhorias visuais ──────────────────────────────────── */
@@ -412,12 +429,12 @@
                 </div>
             </div>
 
-            <!-- ABA AGENDA SEMANAL -->
+            <!-- ABA AGENDA MENSAL -->
             <div id="tab-agenda" style="display:none">
                 <div class="agenda-toolbar">
-                    <button class="agenda-nav-btn" id="agenda-prev-week">◀</button>
-                    <span class="agenda-week-label" id="agenda-week-label">Carregando...</span>
-                    <button class="agenda-nav-btn" id="agenda-next-week">▶</button>
+                    <button class="agenda-nav-btn" id="agenda-prev-month">◀</button>
+                    <span class="agenda-month-label" id="agenda-month-label">Carregando...</span>
+                    <button class="agenda-nav-btn" id="agenda-next-month">▶</button>
                     <button class="agenda-nav-btn" id="agenda-today-btn" style="margin-left:auto;font-size:11px">Hoje</button>
                 </div>
                 <div class="agenda-summary" id="agenda-summary">
@@ -425,8 +442,17 @@
                     <span>📌 Agendadas: <span class="scheduled-count" id="agenda-scheduled-count">0</span></span>
                     <span>✅ Realizadas: <span class="completed-count" id="agenda-completed-count">0</span></span>
                 </div>
-                <div class="agenda-grid" id="agenda-grid">
+                <div class="agenda-calendar" id="agenda-calendar">
                     <div class="empty-state">Carregando agenda...</div>
+                </div>
+            </div>
+
+            <!-- MODAL: Detalhe do Dia na Agenda -->
+            <div id="agenda-day-modal">
+                <div class="modal-content">
+                    <h2 id="agenda-day-modal-title">Carregando...</h2>
+                    <div id="agenda-day-modal-body"></div>
+                    <button class="close-btn" id="agenda-day-modal-close">Fechar</button>
                 </div>
             </div>
 
@@ -1539,95 +1565,216 @@ function closeLessonModal() {
                 if (modal) modal.style.display='none';
             }
 
-            // ── AGENDA SEMANAL ──────────────────────────────────────────
+            // ── AGENDA MENSAL (Calendário) ──────────────────────────────
 
-            var _agendaWeekOffset = 0;
+            var _agendaMonthOffset = 0;
 
-            function getWeekRange(offset) {
+            function getMonthRange(offset) {
                 var now = new Date();
-                var day = now.getDay();
-                var diff = day === 0 ? -6 : 1 - day;
-                var monday = new Date(now);
-                monday.setDate(now.getDate() + diff + (offset * 7));
-                var sunday = new Date(monday);
-                sunday.setDate(monday.getDate() + 6);
-                return { monday: monday, sunday: sunday };
+                var year = now.getFullYear();
+                var month = now.getMonth() + offset;
+                // Adjust for overflow
+                var firstDay = new Date(year, month, 1);
+                var lastDay = new Date(year, month + 1, 0);
+                // Start from the Sunday of the week containing the 1st
+                var start = new Date(firstDay);
+                start.setDate(firstDay.getDate() - firstDay.getDay());
+                // End at the Saturday of the week containing the last day
+                var end = new Date(lastDay);
+                end.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+                return { month: month, year: firstDay.getFullYear(), firstDay: firstDay, lastDay: lastDay, start: start, end: end };
             }
 
             function formatDate(d) {
                 return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             }
 
-            async function loadWeekAgenda() {
-                var grid = document.getElementById('agenda-grid');
-                if (!grid) return;
-                grid.innerHTML = '<div class="empty-state">Carregando agenda...</div>';
-                var range = getWeekRange(_agendaWeekOffset);
-                var dateFrom = formatDate(range.monday);
-                var dateTo = formatDate(range.sunday);
+            async function loadMonthAgenda() {
+                var cal = document.getElementById('agenda-calendar');
+                if (!cal) return;
+                cal.innerHTML = '<div class="empty-state">Carregando agenda...</div>';
+                var range = getMonthRange(_agendaMonthOffset);
+                var dateFrom = formatDate(range.start);
+                var dateTo = formatDate(range.end);
                 try {
-                    var url = '/api/admin-financial?resource=lessons&date_from=' + dateFrom + '&date_to=' + dateTo + '&limit=200';
+                    var url = '/api/admin-financial?resource=lessons&date_from=' + dateFrom + '&date_to=' + dateTo + '&limit=500';
                     var res = await fetch(url, { headers: { 'x-admin-password': _password } });
                     if (!res.ok) throw new Error('Erro ao carregar agenda.');
                     var data = await res.json();
                     var lessons = data.lessons || [];
-                    renderWeekAgenda(lessons, range);
+                    renderMonthAgenda(lessons, range);
                 } catch (err) {
-                    grid.innerHTML = '<div class="empty-state" style="color:#fca5a5">Erro: ' + err.message + '</div>';
+                    cal.innerHTML = '<div class="empty-state" style="color:#fca5a5">Erro: ' + err.message + '</div>';
                 }
             }
 
-            function renderWeekAgenda(lessons, range) {
-                var grid = document.getElementById('agenda-grid');
-                if (!grid) return;
+            function renderMonthAgenda(lessons, range) {
+                var cal = document.getElementById('agenda-calendar');
+                if (!cal) return;
                 var byDate = {};
                 lessons.forEach(function(l) {
                     var d = l.date;
                     if (!byDate[d]) byDate[d] = [];
                     byDate[d].push(l);
                 });
-                var days = [];
                 var today = new Date();
                 var todayStr = formatDate(today);
-                for (var i = 0; i < 7; i++) {
-                    var d = new Date(range.monday);
-                    d.setDate(range.monday.getDate() + i);
+                var monthNames = ['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                var dayHeaderNames = ['Dom','Seg','Ter','Qua','Qui','Sex','S\u00e1b'];
+
+                // Month label
+                var monthLabel = document.getElementById('agenda-month-label');
+                if (monthLabel) {
+                    monthLabel.textContent = monthNames[range.month] + ' ' + range.year;
+                }
+
+                // Generate all days from start to end
+                var days = [];
+                var d = new Date(range.start);
+                while (d <= range.end) {
                     var dateStr = formatDate(d);
-                    days.push({ date: d, dateStr: dateStr, isToday: dateStr === todayStr, items: byDate[dateStr] || [] });
+                    var isCurrentMonth = d.getMonth() === range.month;
+                    days.push({
+                        date: new Date(d),
+                        dateStr: dateStr,
+                        isToday: dateStr === todayStr,
+                        isCurrentMonth: isCurrentMonth,
+                        dayOfWeek: d.getDay(),
+                        items: byDate[dateStr] || []
+                    });
+                    d.setDate(d.getDate() + 1);
                 }
-                var dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-                var headers = days.map(function(day) {
-                    var cls = 'agenda-day-header' + (day.isToday ? ' today' : '');
-                    var dayIdx = day.date.getDay();
-                    return '<div class="' + cls + '">' + dayNames[dayIdx].charAt(0).toUpperCase() + dayNames[dayIdx].slice(1) + '<br><span style="font-size:14px">' + day.date.getDate() + '</span></div>';
-                }).join('');
-                var cells = days.map(function(day) {
-                    var cls = 'agenda-day-cell' + (day.isToday ? ' today' : '');
-                    var cards = day.items.sort(function(a,b) { return (a.start_time||'').localeCompare(b.start_time||''); }).map(function(l) {
+
+                // Build calendar HTML
+                var html = '';
+                // Day name headers
+                for (var i = 0; i < 7; i++) {
+                    var isWeekend = (i === 0 || i === 6);
+                    html += '<div class="agenda-cal-header' + (isWeekend ? ' weekend' : '') + '">' + dayHeaderNames[i] + '</div>';
+                }
+                // Day cells
+                days.forEach(function(day) {
+                    var cls = 'agenda-day-cell';
+                    if (day.isToday) cls += ' today';
+                    if (!day.isCurrentMonth) cls += ' other-month';
+                    if (day.items.length > 0) cls += ' has-lessons';
+                    var dayNumCls = 'agenda-day-number' + (day.isToday ? ' today' : '');
+
+                    // Build lesson markers (max 3 visible, then "+ N mais")
+                    var markers = '';
+                    var maxVisible = 3;
+                    var sorted = day.items.sort(function(a,b) { return (a.start_time||'').localeCompare(b.start_time||''); });
+                    var visibleItems = sorted.slice(0, maxVisible);
+                    var remaining = sorted.length - maxVisible;
+                    visibleItems.forEach(function(l) {
                         var s = l.status || 'scheduled';
-                        var typeLabel = '';
-                        if (l.lesson_type && l.lesson_type !== 'regular') typeLabel = ' ' + l.lesson_type.replace('_',' ');
-                        var studentName = l.students?.name || '\u2014';
-                        return '<div class="agenda-lesson-card ' + s + '" data-lesson-id="' + l.id + '" onclick="openAttendanceModal(' + l.id + ')">' +
-                            '<div class="agenda-lesson-time">' + (l.start_time||'--:--') + typeLabel + '</div>' +
-                            '<div class="agenda-lesson-student">' + studentName + '</div>' +
+                        var time = l.start_time || '--:--';
+                        var name = l.students?.name || '\u2014';
+                        markers += '<div class="agenda-lesson-marker ' + s + '" data-lesson-id="' + l.id + '">' +
+                            '<span class="time">' + time + '</span> <span class="name">' + name + '</span>' +
                         '</div>';
-                    }).join('');
-                    var defaultHtml = !day.items.length ? '<div style="font-size:10px;color:#52525b;text-align:center;padding-top:8px">\u2014</div>' : '';
-                    return '<div class="' + cls + '"><div class="agenda-day-number' + (day.isToday ? ' today' : '') + '">' + day.date.getDate() + '/' + (day.date.getMonth()+1) + '</div>' + defaultHtml + cards + '</div>';
-                }).join('');
-                grid.innerHTML = headers + cells;
-                var weekLabel = document.getElementById('agenda-week-label');
-                if (weekLabel) {
-                    var opts = { weekday:'long', day:'numeric', month:'long' };
-                    weekLabel.textContent = range.monday.toLocaleDateString('pt-BR', opts) + ' \u2014 ' + range.sunday.toLocaleDateString('pt-BR', opts);
-                }
-                var total = lessons.length;
-                var scheduled = lessons.filter(function(l) { return l.status === 'scheduled' || !l.status; }).length;
-                var completed = lessons.filter(function(l) { return l.status === 'completed'; }).length;
+                    });
+                    if (remaining > 0) {
+                        markers += '<div class="agenda-more-link" data-date="' + day.dateStr + '">+' + remaining + ' mais</div>';
+                    }
+
+                    var dayNum = day.date.getDate();
+                    html += '<div class="' + cls + '" data-date="' + day.dateStr + '">' +
+                        '<div class="' + dayNumCls + '">' + dayNum + '</div>' +
+                        markers +
+                    '</div>';
+                });
+
+                cal.innerHTML = html;
+
+                // Click handlers for day cells and more links
+                cal.querySelectorAll('.agenda-day-cell').forEach(function(cell) {
+                    cell.addEventListener('click', function() {
+                        openAgendaDayModal(this.dataset.date);
+                    });
+                });
+                cal.querySelectorAll('.agenda-more-link').forEach(function(link) {
+                    link.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        openAgendaDayModal(this.dataset.date);
+                    });
+                });
+                // Click handlers for lesson markers (open attendance)
+                cal.querySelectorAll('.agenda-lesson-marker').forEach(function(marker) {
+                    marker.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        openAttendanceModal(this.dataset.lessonId);
+                    });
+                });
+
+                // Summary counts (only for current month)
+                var total = 0, scheduled = 0, completed = 0;
+                days.forEach(function(day) {
+                    if (day.isCurrentMonth) {
+                        total += day.items.length;
+                        day.items.forEach(function(l) {
+                            if (l.status === 'completed') completed++;
+                            else scheduled++;
+                        });
+                    }
+                });
                 document.getElementById('agenda-total-count').textContent = total;
                 document.getElementById('agenda-scheduled-count').textContent = scheduled;
                 document.getElementById('agenda-completed-count').textContent = completed;
+            }
+
+            function openAgendaDayModal(dateStr) {
+                var modal = document.getElementById('agenda-day-modal');
+                var title = document.getElementById('agenda-day-modal-title');
+                var body = document.getElementById('agenda-day-modal-body');
+                if (!modal || !body) return;
+                // Format date
+                var parts = dateStr.split('-');
+                var d = new Date(parts[0], parts[1]-1, parts[2]);
+                var dayName = d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+                title.textContent = dayName;
+                // Find lessons for this day from the calendar
+                var cells = document.querySelectorAll('#agenda-calendar .agenda-day-cell[data-date="' + dateStr + '"]');
+                var markers = cells.length ? cells[0].querySelectorAll('.agenda-lesson-marker') : [];
+                if (!markers.length) {
+                    body.innerHTML = '<div class="dash-empty">Nenhuma aula neste dia.</div>';
+                } else {
+                    var html = '';
+                    markers.forEach(function(m) {
+                        var lessonId = m.dataset.lessonId;
+                        var time = m.querySelector('.time')?.textContent || '--:--';
+                        var name = m.querySelector('.name')?.textContent || '\u2014';
+                        var cls = m.classList.contains('completed') ? 'completed' : '';
+                        // Find full lesson data
+                        var lesson = null;
+                        if (_allLessons && lessonId) {
+                            lesson = _allLessons.find(function(x) { return String(x.id) === String(lessonId); });
+                        }
+                        var teacher = lesson?.teachers?.name || '';
+                        var status = lesson?.status || 'scheduled';
+                        var statusLabels = { scheduled:'Agendada', completed:'Realizada', cancelled:'Cancelada', make_up:'Reposi\u00e7\u00e3o' };
+                        var statusIcon = status === 'completed' ? '\u2705' : status === 'cancelled' ? '\u274c' : '\ud83d\udcc5';
+                        html += '<div class="lesson-item">' +
+                            '<span class="lesson-time">' + time + '</span>' +
+                            '<span class="lesson-student">' + name + (teacher ? '<br><span class="lesson-teacher">' + teacher + '</span>' : '') + '</span>' +
+                            '<span class="lesson-status">' + statusIcon + ' ' + (statusLabels[status] || status) + '</span>' +
+                            '<button class="btn-action-small btn-attendance-lesson" data-lesson-id="' + lessonId + '" title="Presen\u00e7a">\ud83d\udc64</button>' +
+                        '</div>';
+                    });
+                    body.innerHTML = html;
+                    // Attach attendance listeners
+                    body.querySelectorAll('.btn-attendance-lesson').forEach(function(b) {
+                        b.addEventListener('click', function() {
+                            openAttendanceModal(this.dataset.lessonId);
+                        });
+                    });
+                }
+                modal.style.display = 'flex';
+            }
+
+            function closeAgendaDayModal() {
+                var modal = document.getElementById('agenda-day-modal');
+                if (modal) modal.style.display = 'none';
             }
 
 
@@ -1666,7 +1813,7 @@ function switchTab(tab) {
     document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
     document.querySelectorAll('.nav-tabs > .nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     if (tab === 'dashboard') loadDashboard();
-    if (tab === 'agenda') loadWeekAgenda();
+    if (tab === 'agenda') loadMonthAgenda();
     if (tab === 'products' && !_allProducts.length) loadProducts();
     if (tab === 'financial') {
         initFinancialPeriodFilter();
@@ -3716,18 +3863,22 @@ function switchTab(tab) {
              document.getElementById('enrollment-status-filter').addEventListener('change', loadEnrollments);
 
              
-            // ── Agenda Semanal ────────────────────────────────────────────
-            document.getElementById('agenda-prev-week').addEventListener('click', function() {
-                _agendaWeekOffset--;
-                loadWeekAgenda();
+            // ── Agenda Mensal ───────────────────────────────────────────
+            document.getElementById('agenda-prev-month').addEventListener('click', function() {
+                _agendaMonthOffset--;
+                loadMonthAgenda();
             });
-            document.getElementById('agenda-next-week').addEventListener('click', function() {
-                _agendaWeekOffset++;
-                loadWeekAgenda();
+            document.getElementById('agenda-next-month').addEventListener('click', function() {
+                _agendaMonthOffset++;
+                loadMonthAgenda();
             });
             document.getElementById('agenda-today-btn').addEventListener('click', function() {
-                _agendaWeekOffset = 0;
-                loadWeekAgenda();
+                _agendaMonthOffset = 0;
+                loadMonthAgenda();
+            });
+            document.getElementById('agenda-day-modal-close').addEventListener('click', closeAgendaDayModal);
+            document.getElementById('agenda-day-modal').addEventListener('click', function(e) {
+                if (e.target === this) closeAgendaDayModal();
             });
 
             // ---- Eventos: Aulas ----
