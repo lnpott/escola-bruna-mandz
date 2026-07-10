@@ -15,6 +15,10 @@
 --   - RLS: mesmas regras — acesso só via Service Role Key
 -- (09/07/2026): Adicionado campo instruments (text) à tabela students.
 --   Armazena instrumento(s) que o aluno toca (ex: "Piano, Violão").
+-- (09/07/2026): Migration lessons + attendance.
+--   - lessons: aula real em data específica (referencia enrollment)
+--   - attendance: presença do aluno na aula
+--   - 8 lessons geradas automaticamente dos enrollments ativos
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -308,6 +312,98 @@ alter table public.teacher_payments enable row level security;
 
 create policy "admin manage teacher_payments"
     on public.teacher_payments for all
+    to authenticated
+    using (true)
+    with check (true);
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 9. TABELA: lessons (Aulas)  — 09/07/2026
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Aula real em data específica. Referencia o enrollment (contrato pedagógico)
+-- mas copia student_id, teacher_id e instrument para manter histórico
+-- mesmo se o enrollment mudar no futuro.
+--
+-- A partial unique index lessons_no_overlap_active impede que um professor
+-- tenha duas aulas no mesmo horário, EXCETO se uma delas foi cancelada.
+
+create table if not exists public.lessons (
+    id text primary key,                        -- LS-XXXXXX
+    enrollment_id text not null references public.enrollments(id) on delete cascade,
+    student_id text not null references public.students(id) on delete cascade,
+    teacher_id text references public.teachers(id) on delete set null,
+    instrument text,
+    date date not null,
+    start_time text not null,                   -- HH:MM
+    end_time text not null,                     -- HH:MM (deve ser > start_time)
+    duration_minutes integer not null default 60,
+    lesson_type text not null default 'regular'
+        constraint lessons_type_check
+        check (lesson_type in ('regular', 'make_up', 'extra', 'trial')),
+    status text not null default 'scheduled'
+        constraint lessons_status_check
+        check (status in ('scheduled', 'completed', 'cancelled', 'make_up')),
+    notes text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
+    constraint lessons_end_after_start check (end_time > start_time)
+);
+
+-- Partial unique index: professor não pode ter duas aulas não-canceladas
+-- no mesmo horário. Aulas canceladas liberam o slot.
+create unique index if not exists lessons_no_overlap_active
+    on public.lessons (teacher_id, date, start_time)
+    where status != 'cancelled';
+
+-- Dashboard "Aulas de Hoje" + ordenação por horário
+create index if not exists lessons_date_status_idx on public.lessons (date, status, start_time);
+create index if not exists lessons_enrollment_id_idx on public.lessons (enrollment_id);
+create index if not exists lessons_student_id_idx on public.lessons (student_id);
+create index if not exists lessons_teacher_id_idx on public.lessons (teacher_id);
+create index if not exists lessons_type_idx on public.lessons (lesson_type);
+
+drop trigger if exists lessons_set_updated_at on public.lessons;
+create trigger lessons_set_updated_at
+    before update on public.lessons
+    for each row
+    execute function public.set_updated_at();
+
+alter table public.lessons enable row level security;
+
+create policy "admin manage lessons"
+    on public.lessons for all
+    to authenticated
+    using (true)
+    with check (true);
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 10. TABELA: attendance (Frequência)  — 09/07/2026
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Registro de presença do aluno em uma aula.
+
+create table if not exists public.attendance (
+    id text primary key,                        -- AT-XXXXXX
+    lesson_id text not null references public.lessons(id) on delete cascade,
+    student_id text not null references public.students(id) on delete cascade,
+    status text not null default 'present'
+        constraint attendance_status_check
+        check (status in ('present', 'absent', 'excused', 'late')),
+    late_minutes integer not null default 0,
+    notes text,
+    recorded_at timestamptz not null default now(),
+    recorded_by text,
+
+    constraint attendance_unique_student_lesson unique (lesson_id, student_id)
+);
+
+create index if not exists attendance_lesson_id_idx on public.attendance (lesson_id);
+create index if not exists attendance_student_id_idx on public.attendance (student_id);
+create index if not exists attendance_status_idx on public.attendance (status);
+
+alter table public.attendance enable row level security;
+
+create policy "admin manage attendance"
+    on public.attendance for all
     to authenticated
     using (true)
     with check (true);

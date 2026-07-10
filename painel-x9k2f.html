@@ -423,8 +423,7 @@
                 <div class="sub-nav-tabs" style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid #27272a;padding-bottom:0">
                     <button class="nav-tab active" data-subtab="students">🎓 Alunos</button>
                     <button class="nav-tab" data-subtab="teachers">👨‍🏫 Professores</button>
-                    <button class="nav-tab" data-subtab="enrollments">🔗 Vínculos</button>
-                    <button class="nav-tab" data-subtab="agenda">🗓️ Agenda</button>
+                    <button class="nav-tab" data-subtab="enrollments">🔗 Vínculos</button>                        <button class="nav-tab" data-subtab="lessons">📅 Aulas</button>
                     <button class="nav-tab" data-subtab="tuitions">💵 Mensalidades</button>
                     <button class="nav-tab" data-subtab="teacherpayments">💸 Pagto Professores</button>
                     <button class="nav-tab" data-subtab="payments">🧾 Receitas Avulsas</button>
@@ -462,12 +461,25 @@
                     <div id="enrollments-area" style="margin-top: 12px;"></div>
                 </div>
 
-                <!-- Sub-aba AGENDA (derivada dos vínculos ativos, agrupada por dia) -->
-                <div id="subtab-agenda" style="display:none">
-                    <div class="empty-state" style="text-align:left;padding:0 0 12px;color:#71717a;font-size:12px">
-                        Agenda básica: mostra todos os vínculos ativos agrupados por dia da semana. Para mudar um horário, edite o vínculo em "🔗 Vínculos".
+                <!-- Sub-aba AULAS (lessons com data específica) -->
+                <div id="subtab-lessons" style="display:none">
+                    <div class="products-toolbar">
+                        <label style="color:#a1a1aa;font-size:12px;font-weight:700;text-transform:uppercase">Período:</label>
+                        <input id="lesson-date-from" type="date" style="padding:6px;border-radius:6px;background:#18181b;border:1px solid #3f3f46;color:#fff" />
+                        <label style="color:#a1a1aa;font-size:12px;font-weight:700;text-transform:uppercase">até</label>
+                        <input id="lesson-date-to" type="date" style="padding:6px;border-radius:6px;background:#18181b;border:1px solid #3f3f46;color:#fff" />
+                        <select id="lesson-status-filter" style="padding:6px;border-radius:6px;background:#18181b;border:1px solid #3f3f46;color:#fff">
+                            <option value="">Todos os status</option>
+                            <option value="scheduled">Agendada</option>
+                            <option value="completed">Realizada</option>
+                            <option value="cancelled">Cancelada</option>
+                        </select>
+                        <button id="btn-new-lesson" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Nova Aula</button>
                     </div>
-                    <div id="agenda-area" style="margin-top: 12px;"></div>
+                    <div class="empty-state" style="text-align:left;padding:0 0 12px;color:#71717a;font-size:12px">
+                        📅 Aulas com data específica. Crie aulas avulsas ou gere em massa a partir dos vínculos ativos. Clique em uma aula para registrar presença.
+                    </div>
+                    <div id="lessons-area" style="margin-top: 12px;"></div>
                 </div>
 
                 <!-- Sub-aba MENSALIDADES -->
@@ -726,34 +738,8 @@
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento</label>
                         <input type="text" name="instrument" placeholder="Ex: Piano, Violão, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Dia da Semana</label>
-                            <select name="day_of_week" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
-                                <option value="">—</option>
-                                <option value="seg">Segunda</option>
-                                <option value="ter">Terça</option>
-                                <option value="qua">Quarta</option>
-                                <option value="qui">Quinta</option>
-                                <option value="sex">Sexta</option>
-                                <option value="sab">Sábado</option>
-                                <option value="dom">Domingo</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Horário</label>
-                            <input type="time" name="class_time" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Duração (min)</label>
-                            <input type="number" name="duration_minutes" min="15" step="15" value="60" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
-                        </div>
-                        <div>
-                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Aulas por Semana</label>
-                            <input type="number" name="classes_per_week" min="1" max="7" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
-                        </div>
+                    <div style="font-size:12px;color:#52525b;border-top:1px solid #27272a;padding-top:8px;margin-top:4px">
+                        <em>💡 Para definir horários, vá até &quot;📅 Aulas&quot;.</em>
                     </div>
                     <div>
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Mensalidade do Aluno (R$)</label>
@@ -948,6 +934,88 @@
             </div>
         </div>
 
+        <!-- MODAL: Nova Aula -->
+        <div id="modal-new-lesson" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto">
+                <h2 style="margin:0 0 16px;color:#e4e4e7" id="lesson-modal-title">Nova Aula</h2>
+                <form id="form-new-lesson" style="display:flex;flex-direction:column;gap:12px">
+                    <input type="hidden" name="id" />
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Vínculo (Aluno + Professor + Instrumento) *</label>
+                        <select name="enrollment_id" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Selecione um vínculo ativo...</option>
+                        </select>
+                        <div id="lesson-enrollment-preview" style="font-size:11px;color:#71717a;margin-top:4px;min-height:14px"></div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Data *</label>
+                        <input type="date" name="date" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Horário Início *</label>
+                            <input type="time" name="start_time" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Duração (min)</label>
+                            <input type="number" name="duration_minutes" min="15" step="15" value="60" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Tipo de Aula</label>
+                        <select name="lesson_type" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="regular">Regular</option>
+                            <option value="make_up">Reposição</option>
+                            <option value="extra">Extra</option>
+                            <option value="trial">Aula Experimental</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Observações</label>
+                        <textarea name="notes" placeholder="Notas sobre a aula..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-family:inherit;min-height:50px"></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Criar Aula</button>
+                        <button type="button" class="btn-cancel-lesson" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                    <div id="form-lesson-status" style="font-size:12px;color:#a1a1aa;margin-top:8px" aria-live="polite" role="status"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: Registrar Presença -->
+        <div id="modal-attendance" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
+            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:450px;width:90%">
+                <h2 style="margin:0 0 16px;color:#e4e4e7" id="attendance-modal-title">Registrar Presença</h2>
+                <div id="attendance-lesson-info" style="font-size:13px;color:#a1a1aa;margin-bottom:16px;padding:8px 12px;background:#09090b;border-radius:8px;border:1px solid #27272a"></div>
+                <form id="form-attendance" style="display:flex;flex-direction:column;gap:12px">
+                    <input type="hidden" name="lesson_id" />
+                    <input type="hidden" name="student_id" />
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Status da Presença</label>
+                        <select name="status" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="present">✅ Presente</option>
+                            <option value="absent">❌ Ausente</option>
+                            <option value="excused">🟡 Justificado</option>
+                            <option value="late">🟠 Atrasado</option>
+                        </select>
+                    </div>
+                    <div id="attendance-late-field" style="display:none">
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Minutos de Atraso</label>
+                        <input type="number" name="late_minutes" min="0" max="120" value="5" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Observações</label>
+                        <textarea name="notes" placeholder="Notas sobre a presença..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-family:inherit;min-height:50px"></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button type="submit" style="flex:1;padding:10px;border-radius:6px;border:none;background:#22c55e;color:#000;font-weight:600;cursor:pointer">Registrar</button>
+                        <button type="button" class="btn-cancel-attendance" style="flex:1;padding:10px;border-radius:6px;border:1px solid #3f3f46;background:none;color:#a1a1aa;cursor:pointer">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- MODAL: Novo Custo Fixo -->
         <div id="modal-new-expense" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center">
             <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px;max-width:500px;width:90%">
@@ -1121,7 +1189,7 @@
                 document.getElementById('dash-today-classes').innerHTML = classes.length
                     ? classes.map(c => `
                         <div class="dash-class-row">
-                            <span class="dash-class-time">${c.class_time || '--:--'}</span>
+                            <span class="dash-class-time">${c.start_time || c.class_time || '--:--'}</span>
                             <span class="dash-class-student">${c.students?.name || 'Aluno'}</span>
                             <span class="dash-class-teacher">${c.teachers?.name || '—'} ${c.instrument ? '· ' + c.instrument : ''}</span>
                         </div>
@@ -1190,6 +1258,7 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
             let _timer      = null;
             let _expandedRows = new Set(); // IDs de pedidos com detalhe aberto
             let _allEnrollments = [];
+            let _allLessons = [];
             let _allTeacherPayments = [];
             const DAY_MAP = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
             const DAY_ORDER = ['seg','ter','qua','qui','sex','sab','dom'];
@@ -2303,8 +2372,7 @@ function switchTab(tab) {
                             <td data-label="Aluno"><strong>${en.students?.name || 'Aluno Excluído'}</strong></td>
                             <td data-label="Professor">${en.teachers?.name || '—'}</td>
                             <td data-label="Instrumento">${en.instrument || '—'}</td>
-                            <td data-label="Dia/Horário">${day}${time}</td>
-                            <td data-label="Duração">${en.duration_minutes} min × ${en.classes_per_week}x/sem</td>
+                            
                             <td data-label="Mensalidade">${money.format(en.monthly_fee)}</td>
                             <td data-label="Status"><span class="status-pill ${en.status === 'active' ? 'status-approved' : 'status-rejected'}">${en.status === 'active' ? 'Ativo' : 'Inativo'}</span></td>
                             <td data-label="Ações">
@@ -2319,7 +2387,7 @@ function switchTab(tab) {
                     <table>
                         <thead>
                             <tr>
-                                <th>Aluno</th><th>Professor</th><th>Instrumento</th><th>Dia/Horário</th><th>Duração</th><th>Mensalidade</th><th>Status</th><th>Ações</th>
+                                <th>Aluno</th><th>Professor</th><th>Instrumento</th><th>Mensalidade</th><th>Status</th><th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -3273,7 +3341,57 @@ function switchTab(tab) {
              document.querySelectorAll('.btn-cancel-enrollment').forEach(b => b.addEventListener('click', closeEnrollmentModal));
              document.getElementById('enrollment-status-filter').addEventListener('change', loadEnrollments);
 
-             document.getElementById('form-new-enrollment').addEventListener('submit', async (e) => {
+             
+            // ---- Eventos: Aulas ----
+            var bnl = document.getElementById('btn-new-lesson');
+            if(bnl) bnl.addEventListener('click',function(){ openLessonModal(); });
+            document.querySelectorAll('.btn-cancel-lesson').forEach(function(b){b.addEventListener('click',closeLessonModal);});
+            document.querySelectorAll('.btn-cancel-attendance').forEach(function(b){b.addEventListener('click',closeAttendanceModal);});
+            var ldf = document.getElementById('lesson-date-from'); if(ldf) ldf.addEventListener('change',loadLessons);
+            var ldt = document.getElementById('lesson-date-to'); if(ldt) ldt.addEventListener('change',loadLessons);
+            var lsf = document.getElementById('lesson-status-filter'); if(lsf) lsf.addEventListener('change',loadLessons);
+            document.getElementById('form-new-lesson').addEventListener('submit', async function(e){
+                e.preventDefault();
+                var f=e.target; var se=document.getElementById('form-lesson-status'); se.textContent='Salvando...';
+                var id = f.querySelector('[name="id"]').value;
+                var p = {
+                    enrollment_id: f.querySelector('[name="enrollment_id"]').value,
+                    date: f.querySelector('[name="date"]').value,
+                    start_time: f.querySelector('[name="start_time"]').value,
+                    duration_minutes: parseInt(f.querySelector('[name="duration_minutes"]').value,10)||60,
+                    lesson_type: f.querySelector('[name="lesson_type"]').value||'regular',
+                    notes: f.querySelector('[name="notes"]').value.trim()||null
+                };
+                if(id) p.id=id;
+                try{
+                    var m=id?'PATCH':'POST';
+                    var r=await fetch('/api/admin-financial?resource=lessons',{method:m,headers:{'Content-Type':'application/json','x-admin-password':_password},body:JSON.stringify(p)});
+                    var d=await r.json();
+                    if(!r.ok){
+                        if(r.status===409) throw new Error('Professor j\u00e1 tem aula neste hor\u00e1rio.');
+                        throw new Error(d.error||'Erro');
+                    }
+                    showToast(id?'Aula atualizada!':'Aula criada!'); closeLessonModal(); loadLessons();
+                }catch(err){ se.textContent='Erro: '+err.message; se.style.color='#fca5a5'; setTimeout(function(){se.textContent='';se.style.color='';},4000); }
+            });
+            document.getElementById('form-attendance').addEventListener('submit', async function(e){
+                e.preventDefault();
+                var f=e.target;
+                var p={
+                    lesson_id: f.querySelector('[name="lesson_id"]').value,
+                    student_id: f.querySelector('[name="student_id"]').value,
+                    status: f.querySelector('[name="status"]').value,
+                    late_minutes: parseInt(f.querySelector('[name="late_minutes"]').value,10)||0,
+                    notes: f.querySelector('[name="notes"]').value.trim()||null
+                };
+                try{
+                    var r=await fetch('/api/admin-financial?resource=attendance',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':_password},body:JSON.stringify(p)});
+                    if(!r.ok){ var d=await r.json(); throw new Error(d.error||'Erro'); }
+                    showToast('Presen\u00e7a registrada!'); closeAttendanceModal(); loadLessons();
+                }catch(err){ showToast('Erro: '+err.message); }
+            });
+
+document.getElementById('form-new-enrollment').addEventListener('submit', async (e) => {
                  e.preventDefault();
                  const form = e.target;
                  const id = form.querySelector('[name="id"]').value;

@@ -1,7 +1,7 @@
 /**
  * api/admin-financial.js
  * API financeira consolidada para o painel admin.
- * Roteamento interno por query string: ?resource=students|teachers|enrollments|tuitions|payments|expenses|investments|teacher_payments|summary
+ * Roteamento interno por query string: ?resource=students|teachers|enrollments|tuitions|payments|expenses|investments|teacher_payments|lessons|attendance|summary
 
  * Protegido por header 'x-admin-password'.
  *
@@ -642,6 +642,258 @@ async function handleTeacherPayments(req, res, supabase) {
     return res.status(405).json({ error: 'Método não permitido.' });
 }
 
+// ── NOVO (09/07/2026): lessons ─────────────────────────────────────────────────
+// Aula real em data específica. Cada lesson é uma ocorrência concreta de um
+// enrollment (vínculo pedagógico) em uma data e horário definidos.
+
+async function handleLessons(req, res, supabase) {
+    const { method } = req;
+
+    if (method === 'GET') {
+        const { date, date_from, date_to, student_id, teacher_id, enrollment_id, status, lesson_type } = req.query;
+        const { limit, offset } = parsePagination(req);
+        let q = supabase
+            .from('lessons')
+            .select('*, enrollments!inner(monthly_fee, day_of_week), students(name), teachers(name, specialty)', { count: 'exact' })
+            .order('date', { ascending: true })
+            .order('start_time', { ascending: true })
+            .range(offset, offset + limit - 1);
+
+        if (date)         q = q.eq('date', date);
+        if (date_from)    q = q.gte('date', date_from);
+        if (date_to)      q = q.lte('date', date_to);
+        if (student_id)   q = q.eq('student_id', student_id);
+        if (teacher_id)   q = q.eq('teacher_id', teacher_id);
+        if (enrollment_id) q = q.eq('enrollment_id', enrollment_id);
+        if (status)       q = q.eq('status', status);
+        if (lesson_type)  q = q.eq('lesson_type', lesson_type);
+
+        const { data, error } = await q;
+        if (error) throw error;
+        return res.status(200).json({ lessons: data });
+    }
+
+    if (method === 'POST') {
+        const {
+            enrollment_id,
+            date,
+            start_time,
+            duration_minutes,
+            status,
+            lesson_type,
+            notes,
+        } = req.body;
+
+        if (!enrollment_id || !date || !start_time) {
+            return res.status(400).json({ error: 'enrollment_id, date e start_time são obrigatórios.' });
+        }
+
+        // Busca dados do enrollment para copiar student_id, teacher_id, instrument
+        const { data: enrollment, error: enrollmentError } = await supabase
+            .from('enrollments')
+            .select('*, students(name), teachers(name, specialty)')
+            .eq('id', enrollment_id)
+            .single();
+
+        if (enrollmentError || !enrollment) {
+            return res.status(404).json({ error: 'Vínculo (enrollment) não encontrado.' });
+        }
+
+        if (enrollment.status !== 'active') {
+            return res.status(400).json({ error: 'Não é possível criar aula para um vínculo inativo.' });
+        }
+
+        const dur = duration_minutes !== undefined && duration_minutes !== null
+            ? parseInt(duration_minutes, 10)
+            : (enrollment.duration_minutes || 60);
+
+        // Calcula end_time = start_time + duration_minutes
+        const endTime = (() => {
+            const [h, m] = start_time.split(':').map(Number);
+            const totalMin = h * 60 + m + dur;
+            const eh = Math.floor(totalMin / 60) % 24;
+            const em = totalMin % 60;
+            return `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+        })();
+
+        const payload = {
+            id: genId('LS'),
+            enrollment_id,
+            student_id: enrollment.student_id,
+            teacher_id: enrollment.teacher_id,
+            instrument: enrollment.instrument,
+            date,
+            start_time,
+            end_time: endTime,
+            duration_minutes: dur,
+            lesson_type: lesson_type || 'regular',
+            status: status || 'scheduled',
+            notes: notes || null,
+        };
+
+        const { data, error } = await supabase
+            .from('lessons')
+            .insert([payload])
+            .select('*, enrollments(monthly_fee, day_of_week), students(name), teachers(name, specialty)')
+            .single();
+
+        if (error) {
+            // unique_violation (professor já tem aula neste horário)
+            if (error.code === '23505') {
+                return res.status(409).json({ error: 'Professor já tem aula neste horário. Escolha outro horário ou professor.' });
+            }
+            throw error;
+        }
+
+        return res.status(201).json({ lesson: data });
+    }
+
+    if (method === 'PATCH') {
+        const {
+            id,
+            date,
+            start_time,
+            duration_minutes,
+            status,
+            lesson_type,
+            notes,
+        } = req.body;
+
+        if (!id) return res.status(400).json({ error: 'ID da aula é obrigatório.' });
+
+        const upd = {};
+        if (date !== undefined)             upd.date = date;
+        if (start_time !== undefined)       upd.start_time = start_time;
+        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
+        if (status !== undefined)           upd.status = status;
+        if (lesson_type !== undefined)      upd.lesson_type = lesson_type;
+        if (notes !== undefined)            upd.notes = notes;
+
+        // Se start_time ou duration_minutes mudaram, recalcula end_time
+        if (start_time !== undefined || duration_minutes !== undefined) {
+            const currentStart = start_time;
+            const currentDur = duration_minutes !== undefined ? parseInt(duration_minutes, 10) : undefined;
+
+            // Precisamos dos valores atuais para recalcular
+            const { data: currentLesson } = await supabase
+                .from('lessons')
+                .select('start_time, duration_minutes')
+                .eq('id', id)
+                .single();
+
+            const finalStart = currentStart || currentLesson.start_time;
+            const finalDur = currentDur || currentLesson.duration_minutes;
+
+            const [h, m] = finalStart.split(':').map(Number);
+            const totalMin = h * 60 + m + finalDur;
+            const eh = Math.floor(totalMin / 60) % 24;
+            const em = totalMin % 60;
+            upd.end_time = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+        }
+
+        const { data, error } = await supabase
+            .from('lessons')
+            .update(upd)
+            .eq('id', id)
+            .select('*, enrollments(monthly_fee, day_of_week), students(name), teachers(name, specialty)')
+            .single();
+
+        if (error) {
+            if (error.code === '23505') {
+                return res.status(409).json({ error: 'Professor já tem aula neste horário. Verifique conflitos de agenda.' });
+            }
+            throw error;
+        }
+
+        return res.status(200).json({ lesson: data });
+    }
+
+    if (method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'ID da aula é obrigatório na query string.' });
+        const { error } = await supabase.from('lessons').delete().eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
+}
+
+// ── NOVO (09/07/2026): attendance ──────────────────────────────────────────────
+// Registro de presença do aluno em uma aula.
+
+async function handleAttendance(req, res, supabase) {
+    const { method } = req;
+
+    if (method === 'GET') {
+        const { lesson_id, student_id, status } = req.query;
+        const { limit, offset } = parsePagination(req);
+        let q = supabase
+            .from('attendance')
+            .select('*, lessons(date, start_time, end_time, students(name)), students!attendance_student_id_fkey(name)', { count: 'exact' })
+            .order('recorded_at', { ascending: false })
+            .range(offset, offset + limit - 1);
+
+        if (lesson_id)  q = q.eq('lesson_id', lesson_id);
+        if (student_id) q = q.eq('student_id', student_id);
+        if (status)     q = q.eq('status', status);
+
+        const { data, error } = await q;
+        if (error) throw error;
+        return res.status(200).json({ attendance: data });
+    }
+
+    if (method === 'POST') {
+        const { lesson_id, student_id, status: attStatus, late_minutes, notes } = req.body;
+
+        if (!lesson_id || !student_id) {
+            return res.status(400).json({ error: 'lesson_id e student_id são obrigatórios.' });
+        }
+
+        const payload = {
+            id: genId('AT'),
+            lesson_id,
+            student_id,
+            status: attStatus || 'present',
+            late_minutes: late_minutes !== undefined ? parseInt(late_minutes, 10) : 0,
+            notes: notes || null,
+            recorded_at: new Date().toISOString(),
+        };
+
+        // Upsert: se já existe registro para esta lesson + student, atualiza
+        const { data, error } = await supabase
+            .from('attendance')
+            .upsert(payload, { onConflict: 'lesson_id, student_id', ignoreDuplicates: false })
+            .select('*, lessons(date, start_time, end_time, students(name)), students!attendance_student_id_fkey(name)')
+            .single();
+
+        if (error) throw error;
+        return res.status(201).json({ attendance: data });
+    }
+
+    if (method === 'PATCH') {
+        const { id, status: attStatus, late_minutes, notes } = req.body;
+        if (!id) return res.status(400).json({ error: 'ID do registro de presença é obrigatório.' });
+
+        const upd = {};
+        if (attStatus !== undefined)    upd.status = attStatus;
+        if (late_minutes !== undefined) upd.late_minutes = parseInt(late_minutes, 10);
+        if (notes !== undefined)        upd.notes = notes;
+
+        const { data, error } = await supabase
+            .from('attendance')
+            .update(upd)
+            .eq('id', id)
+            .select('*, lessons(date, start_time, end_time, students(name)), students!attendance_student_id_fkey(name)')
+            .single();
+
+        if (error) throw error;
+        return res.status(200).json({ attendance: data });
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
+}
+
 async function handleSummary(req, res, supabase) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
 
@@ -715,10 +967,6 @@ async function handleDashboard(req, res, supabase) {
     const thisMonth = now.getMonth() + 1;
     const thisYear = now.getFullYear();
 
-    // Mapeia dia da semana para o formato usado em enrollments
-    const dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-    const todayDay = dayNames[now.getDay()];
-
     const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(thisMonth, thisYear);
 
     // ── 10 queries paralelas ────────────────────────────────────────────────────
@@ -744,7 +992,7 @@ async function handleDashboard(req, res, supabase) {
         supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
         supabase.from('students').select('id').eq('active', true),
         supabase.from('teachers').select('id'),
-        supabase.from('enrollments').select('*, students(name), teachers(name, specialty)').eq('day_of_week', todayDay).eq('status', 'active').order('class_time', { ascending: true }),
+        supabase.from('lessons').select('*, enrollments(monthly_fee), students(name), teachers(name, specialty)').eq('date', today).in('status', ['scheduled', 'completed']).order('start_time', { ascending: true }),
         supabase.from('orders').select('id').eq('status', 'pending'),
         supabase.from('orders').select('id,customer_name,total,created_at,status').order('created_at', { ascending: false }).limit(5),
         supabase.from('products').select('id,name,stock,active').lte('stock', 5).eq('active', true),
@@ -806,10 +1054,12 @@ export default async function handler(req, res) {
             case 'expenses':         return await handleExpenses(req, res, supabase);
             case 'investments':      return await handleInvestments(req, res, supabase);
             case 'teacher_payments': return await handleTeacherPayments(req, res, supabase);
+            case 'lessons':          return await handleLessons(req, res, supabase);
+            case 'attendance':       return await handleAttendance(req, res, supabase);
             case 'summary':          return await handleSummary(req, res, supabase);
 
             default:
-                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary.' });
+                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
         }
     } catch (err) {
         return res.status(500).json({ error: 'Erro interno.', details: err.message });

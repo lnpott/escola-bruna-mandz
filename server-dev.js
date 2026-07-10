@@ -80,8 +80,6 @@ async function handleDashboard(res) {
   const today = now.toISOString().split('T')[0];
   const thisMonth = now.getMonth() + 1;
   const thisYear = now.getFullYear();
-  const dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-  const todayDay = dayNames[now.getDay()];
   const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(thisMonth, thisYear);
 
   const [
@@ -98,7 +96,7 @@ async function handleDashboard(res) {
     supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
     supabase.from('students').select('id').eq('active', true),
     supabase.from('teachers').select('id'),
-    supabase.from('enrollments').select('*, students(name), teachers(name, specialty)').eq('day_of_week', todayDay).eq('status', 'active').order('class_time', { ascending: true }),
+    supabase.from('lessons').select('*, enrollments(monthly_fee), students(name), teachers(name, specialty)').eq('date', today).in('status', ['scheduled', 'completed']).order('start_time', { ascending: true }),
     supabase.from('orders').select('id').eq('status', 'pending'),
     supabase.from('orders').select('id,customer_name,total,created_at,status').order('created_at', { ascending: false }).limit(5),
     supabase.from('products').select('id,name,stock,active').lte('stock', 5).eq('active', true),
@@ -189,6 +187,8 @@ async function handleFinancial(req, res) {
     expenses: { table: 'expenses', orderBy: 'due_date', select: '*' },
     investments: { table: 'investments', orderBy: 'purchased_at', select: '*' },
     teacher_payments: { table: 'teacher_payments', orderBy: 'reference_month', select: '*, teachers(name, specialty)' },
+    lessons: { table: 'lessons', orderBy: 'date', select: '*, enrollments(monthly_fee, day_of_week), students(name), teachers(name, specialty)' },
+    attendance: { table: 'attendance', orderBy: 'recorded_at', select: '*, lessons(date, start_time, end_time, students(name)), students!attendance_student_id_fkey(name)' },
   };
 
   const cfg = validResources[resource];
