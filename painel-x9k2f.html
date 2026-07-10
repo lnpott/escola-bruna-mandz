@@ -1294,34 +1294,35 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
                 var byDate = {};
                 lessons.forEach(function(l) { var d = l.date; if (!byDate[d]) byDate[d] = []; byDate[d].push(l); });
                 var sortedDates = Object.keys(byDate).sort();
-                var statusLabels = { scheduled:'Agendada', completed:'Realizada', cancelled:'Cancelada', make_up:'Reposi\u00e7\u00e3o' };
-                var statusClasses = { scheduled:'status-pending', completed:'status-approved', cancelled:'status-rejected', make_up:'status-pending' };
+                var labels = { scheduled:'Agendada', completed:'Realizada', cancelled:'Cancelada', make_up:'Reposi\u00e7\u00e3o' };
+                var classes = { scheduled:'status-pending', completed:'status-approved', cancelled:'status-rejected', make_up:'status-pending' };
                 area.innerHTML = sortedDates.map(function(date) {
                     var items = byDate[date].sort(function(a,b) { return (a.start_time||'').localeCompare(b.start_time||''); });
                     var dayName = new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long'});
                     var fmtDate = new Date(date+'T12:00:00').toLocaleDateString('pt-BR');
-                    return '<div style="margin-bottom:16px;background:#18181b;border:1px solid #27272a;border-radius:12px;overflow:hidden">'
-                        + '<div style="background:#09090b;padding:10px 16px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center">'
-                        + '<span style="font-weight:700;font-size:14px;color:#e4e4e7">'+dayName+', '+fmtDate+'</span>'
-                        + '<span style="font-size:12px;color:#71717a">'+items.length+' aula(s)</span></div>'
-                        + '<table style="margin:0"><thead><tr><th style="width:80px">Hor\u00e1rio</th><th>Aluno</th><th>Professor</th><th>Instrumento</th><th style="width:100px">Status</th><th style="width:150px">Presen\u00e7a</th><th style="width:80px">A\u00e7\u00f5es</th></tr></thead><tbody>'
-                        + items.map(function(l) {
-                            var badge = l.lesson_type !== 'regular' ? '<span style="font-size:10px;color:#fcd34d;margin-left:4px">('+l.lesson_type+')</span>' : '';
-                            return '<tr data-lesson-id="'+l.id+'">'
-                                + '<td style="font-weight:700">'+(l.start_time||'--:--')+' - '+(l.end_time||'--:--')+'</td>'
-                                + '<td>'+(l.students?.name||'\u2014')+badge+'</td>'
-                                + '<td>'+(l.teachers?.name||'\u2014')+'</td>'
-                                + '<td>'+(l.instrument||'\u2014')+'</td>'
-                                + '<td><span class="status-pill '+(statusClasses[l.status]||'status-pending')+'">'+(statusLabels[l.status]||l.status)+'</span></td>'
-                                + '<td><span id="attendance-badge-'+l.id+'" style="font-size:11px;color:#71717a">\u2014</span></td>'
-                                + '<td>'
-                                    + '<button class="btn-action-small btn-attendance-lesson" data-lesson-id="'+l.id+'" title="Presen\u00e7a">\ud83d\udc64</button> '
-                                    + '<button class="btn-action-small btn-edit-lesson" data-lesson-id="'+l.id+'" title="Editar">\u270f\ufe0f</button> '
-                                    + '<button class="btn-action-small btn-action-danger btn-delete-lesson" data-lesson-id="'+l.id+'" title="Excluir">\ud83d\uddd1\ufe0f</button>'
-                                + '</td></tr>';
-                        }).join('') + '</tbody></table></div>';
-
-                // Attach event listeners to lesson action buttons
+                    var rows = items.map(function(l) {
+                        var badge = l.lesson_type !== 'regular' ? '<span style="font-size:10px;color:#fcd34d;margin-left:4px">('+l.lesson_type+')</span>' : '';
+                        return '<tr data-lesson-id="'+l.id+'">' +
+                            '<td style="font-weight:700">'+(l.start_time||'--:--')+' - '+(l.end_time||'--:--')+'</td>' +
+                            '<td>'+(l.students?.name||'\u2014')+badge+'</td>' +
+                            '<td>'+(l.teachers?.name||'\u2014')+'</td>' +
+                            '<td>'+(l.instrument||'\u2014')+'</td>' +
+                            '<td><span class="status-pill '+(classes[l.status]||'status-pending')+'">'+(labels[l.status]||l.status)+'</span></td>' +
+                            '<td><span id="attendance-badge-'+l.id+'" style="font-size:11px;color:#71717a">\u2014</span></td>' +
+                            '<td>' +
+                                '<button class="btn-action-small btn-attendance-lesson" data-lesson-id="'+l.id+'" title="Presen\u00e7a">\ud83d\udc64</button> ' +
+                                '<button class="btn-action-small btn-edit-lesson" data-lesson-id="'+l.id+'" title="Editar">\u270f\ufe0f</button> ' +
+                                '<button class="btn-action-small btn-action-danger btn-delete-lesson" data-lesson-id="'+l.id+'" title="Excluir">\ud83d\uddd1\ufe0f</button>' +
+                            '</td></tr>';
+                    }).join('');
+                    return '<div style="margin-bottom:16px;background:#18181b;border:1px solid #27272a;border-radius:12px;overflow:hidden">' +
+                        '<div style="background:#09090b;padding:10px 16px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center">' +
+                        '<span style="font-weight:700;font-size:14px;color:#e4e4e7">'+dayName+', '+fmtDate+'</span>' +
+                        '<span style="font-size:12px;color:#71717a">'+items.length+' aula(s)</span></div>' +
+                        '<table style="margin:0"><thead><tr><th style="width:80px">Hor\u00e1rio</th><th>Aluno</th><th>Professor</th><th>Instrumento</th><th style="width:100px">Status</th><th style="width:150px">Presen\u00e7a</th><th style="width:80px">A\u00e7\u00f5es</th></tr></thead><tbody>' +
+                        rows +
+                        '</tbody></table></div>';
+                }).join('');
                 area.querySelectorAll('.btn-attendance-lesson').forEach(function(b) {
                     b.addEventListener('click', function(){ openAttendanceModal(b.dataset.lessonId); });
                 });
@@ -1346,53 +1347,7 @@ const money      = new Intl.NumberFormat('pt-BR', { style: 'currency', currency:
                     });
                 });
             }
-
-            async function openLessonModal(lesson) {
-                lesson = lesson || null;
-                var modal = document.getElementById('modal-new-lesson');
-                var form = document.getElementById('form-new-lesson');
-                if (!modal || !form) { showToast('Erro: modal nao encontrado'); return; }
-                form.reset();
-                var statusEl = document.getElementById('form-lesson-status');
-                if (statusEl) statusEl.textContent = '';
-                var sel = form.querySelector('[name="enrollment_id"]');
-                if (!sel) return;
-                sel.innerHTML = '<option value="">Carregando...</option>';
-                try {
-                    var r = await fetch('/api/admin-financial?resource=enrollments&status=active&limit=500',{headers:{'x-admin-password':_password}});
-                    var d = await r.json(); var enrs = d.enrollments||[];
-                    sel.innerHTML = '<option value="">Selecione um v\u00ednculo ativo...</option>';
-                    enrs.forEach(function(e){
-                        var o = document.createElement('option'); o.value = e.id;
-                        o.textContent = (e.students?.name||'Aluno')+' - '+(e.instrument||'\u2014')+' (Prof: '+(e.teachers?.name||'\u2014')+')';
-                        sel.appendChild(o);
-                    });
-                } catch(err) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
-                sel.onchange = function(){
-                    var p = document.getElementById('lesson-enrollment-preview');
-                    if (p) p.textContent = sel.value ? 'Selecionado: '+sel.options[sel.selectedIndex].text : '';
-                };
-                if (lesson) {
-                    var titleEl = document.getElementById('lesson-modal-title');
-                    if (titleEl) titleEl.textContent='Editar Aula';
-                    var idField = form.querySelector('[name="id"]'); if(idField) idField.value=lesson.id;
-                    var enrField = form.querySelector('[name="enrollment_id"]'); if(enrField) enrField.value=lesson.enrollment_id;
-                    var dateField = form.querySelector('[name="date"]'); if(dateField) dateField.value=lesson.date;
-                    var startField = form.querySelector('[name="start_time"]'); if(startField) startField.value=lesson.start_time;
-                    var durField = form.querySelector('[name="duration_minutes"]'); if(durField) durField.value=lesson.duration_minutes||60;
-                    var typeField = form.querySelector('[name="lesson_type"]'); if(typeField) typeField.value=lesson.lesson_type||'regular';
-                    var notesField = form.querySelector('[name="notes"]'); if(notesField) notesField.value=lesson.notes||'';
-                    if(sel.onchange) sel.onchange();
-                } else {
-                    var titleEl = document.getElementById('lesson-modal-title');
-                    if (titleEl) titleEl.textContent='Nova Aula';
-                    var dateField = form.querySelector('[name="date"]');
-                    if (dateField) dateField.value=new Date().toISOString().split('T')[0];
-                }
-                modal.style.display='flex';
-            }
-
-            function closeLessonModal() {
+function closeLessonModal() {
                 var modal = document.getElementById('modal-new-lesson');
                 if (modal) modal.style.display='none';
             }
