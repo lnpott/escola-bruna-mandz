@@ -293,7 +293,7 @@ Cada módulo deverá possuir documentação própria neste arquivo conforme sua 
 | Financeiro | 🔄 Em desenvolvimento |
 | Alunos | ⏳ Planejado |
 | Turmas | ⏳ Planejado |
-| Agenda | ⏳ Planejado |
+| Agenda | ✅ Estável (calendário mensal) |
 | Relatórios | ⏳ Planejado |
 | Configurações | 🔄 Em evolução |
 
@@ -1381,3 +1381,131 @@ Sempre que uma nova implementação for concluída:
 O objetivo deste documento é garantir a continuidade do desenvolvimento por qualquer agente (IA ou desenvolvedor), preservando o histórico técnico e as decisões arquiteturais do projeto.
 
 **Se uma implementação não estiver registrada neste documento, ela não deverá ser considerada oficialmente concluída.**
+
+# ETAPA 40 — AGENDA MENSAL (CALENDÁRIO) + SPEC DAS PRÓXIMAS PRIORIDADES
+
+**Data:** 10/07/2026
+
+**Horário:** 14:30 (horário de Brasília)
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** c806225
+
+---
+
+## Objetivo
+
+Substituir a visão semanal da Agenda por um calendário mensal no estilo Google Calendar, após constatar que o usuário precisa de uma visão panorâmica do mês inteiro. Paralelamente, foi conduzida uma entrevista completa com o usuário para entender o estado atual do sistema, pontos de dor e prioridades, resultando em um spec documentando as próximas 3 melhorias.
+
+---
+
+## Processo: Entrevista com o Usuário
+
+Foram realizadas **3 rodadas de perguntas** via ferramenta de entrevista para entender:
+
+**Rodada 1 — Macro:**
+- Dashboard está ok (revisitar depois)
+- **Agenda:** visão semanal "não adianta" — precisa de calendário mensal tipo Google Calendar
+- **Financeiro:** mensalidade do aluno vinculada a vínculos "está uma merda" — criação confusa
+- **Próxima prioridade:** Cadastro de Alunos (expandido)
+
+**Rodada 2 — Detalhamento:**
+- Agenda mensal: grade com dias do mês, clique no dia para **ver as aulas** (não precisa criar)
+- Mensalidades: gerar **automaticamente** ao criar vínculo ativo
+- Alunos: dados básicos+ (responsável: nome e telefone)
+
+**Rodada 3 — Refinamento:**
+- Na grade mensal, mostrar **nome do aluno + horário** visíveis no calendário (não só bolinha)
+- Geração automática ao criar vínculo (sem botão "gerar todas")
+- Campos de aluno confirmados: Nome, E-mail, Telefone, Endereço, Instrumento(s), **Responsável (nome e telefone)**
+
+---
+
+## Spec Criado
+
+Foi criado o arquivo **`docs/proxima-etapa-spec.md`** documentando:
+
+1. **Auditoria completa do estado atual** — tudo que já é funcional vs. documentado mas não implementado
+2. **3 prioridades identificadas:**
+   - 🔴 **Prioridade 1:** Agenda Mensal (calendário Google Calendar)
+   - 🟡 **Prioridade 2:** Mensalidades Automáticas ao criar vínculo
+   - 🟢 **Prioridade 3:** Alunos Expandido (campo responsável)
+3. **Especificação técnica detalhada** de cada melhoria com critérios de aceite
+
+---
+
+## Implementação: Agenda Mensal
+
+A visão semanal foi completamente substituída por um calendário mensal:
+
+### Funcionalidades implementadas
+
+| Funcionalidade | Descrição |
+|---------------|-----------|
+| **Grade Mensal** | Grid 7xN com dias do mês, cabeçalho Dom-Sáb |
+| **Navegação** | Botões ◀ ▶ para navegar entre meses + "Hoje" |
+| **Dias adjacentes** | Dias de meses anteriores/posteriores aparecem com opacidade reduzida |
+| **Indicadores** | Cada dia mostra até 3 aulas com **horário + nome do aluno** visíveis |
+| **"+N mais"** | Se dia tem mais de 3 aulas, link "+N mais" para ver todas |
+| **Clique no dia** | Abre modal com lista completa de aulas, status e botão de presença |
+| **Clique na aula** | Abre o modal de presença (openAttendanceModal) |
+| **Resumo** | Total, agendadas e realizadas do mês no topo |
+| **Sem API nova** | Mesmo endpoint `resource=lessons` com `date_from`/`date_to` |
+
+### Mudanças técnicas
+
+| O que | Detalhe |
+|-------|---------|
+| `getWeekRange()` → `getMonthRange()` | Cálculo agora vai do primeiro ao último dia do mês, estendendo para semanas completas |
+| `loadWeekAgenda()` → `loadMonthAgenda()` | Fetch usa o range do mês completo, limit=500 |
+| `renderWeekAgenda()` → `renderMonthAgenda()` | Gera grid 7xN com cells, markers, "+N mais" |
+| `agenda-grid` → `agenda-calendar` | Classe CSS renomeada |
+| `agenda-week-label` → `agenda-month-label` | Label do mês no toolbar |
+| Novo CSS | `.agenda-calendar`, `.agenda-cal-header`, `.agenda-lesson-marker`, `#agenda-day-modal` |
+| Novo modal | `#agenda-day-modal` com lista de aulas do dia e botão de presença |
+| Event listeners | IDs atualizados: `agenda-prev-month`, `agenda-next-month` |
+| CSS removido | `.agenda-grid`, `.agenda-week-label`, `.agenda-day-header` antigos |
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` (238 inserções, 87 deleções — substituição completa da agenda semanal pela mensal)
+- `docs/proxima-etapa-spec.md` **(NOVO)** — spec com auditoria do sistema e próximas 3 prioridades
+- `painel_registro.md` (este registro)
+- `fix-agenda-month.cjs` (script de transformação, removido após uso)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma.** Etapa exclusivamente de frontend. A API continua a mesma (`resource=lessons` com filtro de data).
+
+---
+
+## Testes
+
+- `npm run build` passou (1.62s, sem warnings)
+- Sintaxe JavaScript validada (node --check)
+- Todos os IDs referenciados no JS existem no HTML
+- Event listeners ligam a elementos que estão sempre no DOM
+- Grade mensal calcula corretamente o número de dias por mês (inclusive fevereiro)
+- **Não testado em produção/deploy** — depende do push para Vercel
+
+---
+
+## Pendências
+
+- **Prioridade 2:** Mensalidades Automáticas — implementar geração de tuition ao criar enrollment
+- **Prioridade 3:** Alunos Expandido — adicionar campos guardian_name/guardian_phone no modal e banco
+- **Melhoria futura:** O modal de detalhe do dia depende de `_allLessons` (populado só ao visitar Financeiro > Aulas) — idealmente guardar teacher/status nos data attributes das markers
+- **Melhoria futura:** Filtro por professor na visualização mensal da agenda
+- Testes funcionais ponta a ponta pós-deploy
+
+---
+
+## Próxima Etapa
+
+Conforme prioridade definida pelo usuário, implementar **Mensalidades Automáticas**: ao criar um vínculo (enrollment) com status active, gerar automaticamente a tuition do mês corrente no backend (`handleEnrollments` em `admin-financial.js`).
+
