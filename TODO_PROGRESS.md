@@ -11,6 +11,7 @@
 ## ✅ Migrações atualizadas
 
 - [x] **045-add-cpf.sql** — Agora cobre também: `email` em teachers, `active` em teachers, conversão de `days_of_week` de `text[]` para `text`
+- [x] **046-add-guardian-fields.sql** — Adiciona `guardian_name` e `guardian_phone` em students (campos que já estavam na API e frontend mas não haviam sido formalizados no schema)
 
 ## ✅ Correções de bugs (jul/2026)
 
