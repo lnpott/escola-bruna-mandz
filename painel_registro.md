@@ -2813,4 +2813,77 @@ Antes da implementação, foi realizada uma leitura completa de:
 
 Testes funcionais ponta a ponta no navegador, ou implementar melhorias pendentes: exportação CSV, filtro paid/unpaid, edição de investimentos.
 
+# ETAPA 57 — MCP GIT NO BLACKBOX + EVIDÊNCIAS + ONBOARDING
+
+**Data:** 11/07/2026
+
+**Horário:** 00:00 (preencher)
+
+**Agente Responsável:** BLACKBOXAI
+
+**Commit Git:** 44e54c2
+
+---
+
+## Objetivo
+
+Aplicar o Implementation Plan para garantir que o MCP server de Git está configurado no Blackbox (server name exigido) e registrar evidências do diagnóstico do backend/Supabase no repositório, incluindo materiais de onboarding para continuidade do trabalho.
+
+---
+
+## Implementações Realizadas
+
+- **Evidências (novo arquivo):**
+  - Criado `MCP_GIT_VERIFICATION.md` com:
+    - instruções da chamada do tool `git_status`
+    - seção de diagnóstico de consistência dos endpoints admin com os schemas do Supabase
+
+- **Plano (documentação):**
+  - Atualizado `implementation_plan.md` para refletir o estado real (MCP Git já configurado no `blackbox_mcp_settings.json`) e reforçar o registro da evidência do tool `git_status`.
+
+- **Commit/push:**
+  - Alterações commitadas e publicadas no branch `blackboxai/mcp-git-server` (commit `44e54c2`).
+
+- **Testes:**
+  - Executado `npm test`.
+  - Resultado: **2 testes aprovados, 0 falhas** (webhook assinatura válida e inválida).
+
+- **Onboarding (materiais):**
+  - Criado `README_ONBOARDING.md` com guia de setup/testes e instruções de como preencher a evidência do `git_status`.
+
+---
+
+## Arquivos Alterados
+
+- `implementation_plan.md`
+- `MCP_GIT_VERIFICATION.md` (novo)
+- `README_ONBOARDING.md` (novo)
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm test`: pass (2/2)
+⚠ Não executado tool `git_status` via Blackbox neste momento; evidencia do comando fica documentada em `MCP_GIT_VERIFICATION.md` para preenchimento com output real após execução pelo agente.
+
+---
+
+## Pendências
+
+- Executar a demonstração real do tool MCP Git `git_status` no Blackbox e preencher `MCP_GIT_VERIFICATION.md` com o output.
+- Testar endpoints admin principais via Blackbox/HTTP (ideal: dashboard, summary, products, orders) e preencher evidências finais no mesmo arquivo.
+- Após validação, seguir com merge no main conforme fluxo do projeto.
+
+---
+
+## Próxima Etapa
+
+Preencher evidência do `git_status` (output real) e validar endpoints críticos do painel admin no ambiente alvo (via Blackbox ou chamadas HTTP), então fazer o merge para `main`.
+
 ---
