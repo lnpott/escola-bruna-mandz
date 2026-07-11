@@ -2,201 +2,189 @@
 
 ## Objetivo
 
-Este documento descreve os módulos principais do sistema Escola Bruna Mandz.
+Este documento descreve os módulos **realmente implementados** no sistema Escola Bruna Mandz, dentro do painel administrativo (`painel-x9k2f.html`) e da loja pública.
 
-O sistema será desenvolvido através de um painel administrativo, onde todos os módulos serão acessados e gerenciados pelos usuários autorizados.
-
-Este documento descreve somente o escopo conhecido de cada módulo. Regras específicas de funcionamento serão definidas em `BUSINESS_RULES.md`.
+> Revisão de 10/07/2026: reescrito para refletir o que existe no código hoje. A versão anterior descrevia módulos genéricos de planejamento, sem relação com a implementação real (nomes de tabelas incorretos, funcionalidades listadas como "a definir" que já estão prontas há várias etapas).
 
 ---
 
-# Estrutura Geral
-
-O sistema possui os seguintes módulos principais:
+# Estrutura Geral (abas do painel)
 
 ```
 Dashboard
-
-Alunos
-
-Professores
-
 Agenda
-
+Pedidos
+Produtos
 Financeiro
-
-Loja
-
-Configurações
+  ├── Alunos
+  ├── Professores
+  ├── Vínculos
+  ├── Aulas (+ Presença)
+  ├── Mensalidades
+  ├── Pagto Professores
+  ├── Receitas Avulsas
+  └── Custos & Investimentos
 ```
+
+Não há aba de "Configurações", "Portal do Professor" ou "Portal do Aluno" — esses são itens de roadmap futuro, não módulos existentes (ver `ROADMAP.MD`).
 
 ---
 
 # Dashboard
 
 ## Objetivo
+Visão geral rápida da operação da escola e da loja.
 
-Apresentar uma visão geral das informações importantes da escola.
-
-## Responsabilidade
-
-Centralizar indicadores e informações resumidas para facilitar a administração.
-
-## Informações apresentadas
-
-A definir.
+## O que mostra hoje
+- KPIs financeiros: receita, despesas, saldo, pendências, alunos em atraso
+- Aulas de hoje (agendadas / realizadas)
+- Alertas: inadimplência, pedidos pendentes, estoque baixo
+- Pedidos recentes da loja
+- Produtos com estoque baixo
 
 ---
 
 # Alunos
 
 ## Objetivo
+Cadastro e gestão dos alunos.
 
-Gerenciar os alunos cadastrados na escola.
+## Campos reais (tabela `students`)
+- Nome, e-mail, telefone, endereço, instrumento(s), ativo/inativo
 
-## Responsabilidades
+## Pendente (não implementado ainda)
+- Dados de responsável (guardian_name, guardian_phone) — priorizado, ver `proxima-etapa-spec.md`
 
-- Cadastro de alunos.
-- Consulta de alunos.
-- Edição de informações.
-- Visualização de dados relacionados ao aluno.
-
-## Integrações
-
-Relaciona-se com:
-
-- Agenda.
-- Financeiro.
-
-Detalhamento das relações:
-
-A definir.
+## Integrações reais
+- **Vínculos**: um aluno pode ter um ou mais vínculos (um por instrumento/professor)
+- **Mensalidades**: geradas a partir do vínculo, referenciam `student_id`
 
 ---
 
 # Professores
 
 ## Objetivo
+Cadastro e gestão dos professores.
 
-Gerenciar os professores da escola.
+## Campos reais (tabela `teachers`)
+- Nome, telefone, especialidade, dias de atendimento (`days_of_week`), valor por aula (`rate_per_class`) — quanto a escola paga ao professor, não quanto o aluno paga
 
-## Responsabilidades
+## Integrações reais
+- **Vínculos**: um professor pode ter vários vínculos com alunos diferentes
+- **Pagamentos a Professores**: lançados manualmente por mês, sem cálculo automático a partir de `rate_per_class` ainda (pendente, ver `BUSINESS_RULES.md`)
 
-- Cadastro de professores.
-- Consulta de professores.
-- Edição de informações.
-- Gerenciamento das informações relacionadas aos professores.
+---
 
-## Integrações
+# Vínculos (Enrollments)
 
-Relaciona-se com:
+## Objetivo
+É o módulo central que conecta aluno + professor + instrumento + horário + valor da mensalidade. Existe justamente para não duplicar dado pedagógico em outras tabelas.
 
-- Agenda.
+## Campos reais (tabela `enrollments`)
+- `student_id`, `teacher_id`, `instrument`, `day_of_week`, `class_time`, `duration_minutes`, `classes_per_week`, `monthly_fee`, `status` (active/inactive), `notes`
 
-Detalhamento das relações:
+## Regra de negócio real
+Ao criar um vínculo com `status='active'` e `monthly_fee > 0`, o sistema **gera automaticamente** a mensalidade (`tuitions`) do mês corrente, referenciando esse vínculo.
 
-A definir.
+## Integrações reais
+- **Agenda**: a visão mensal é derivada dos vínculos ativos com dia/horário definidos
+- **Mensalidades**: cada vínculo pode gerar mensalidades mês a mês
+- **Aulas**: cada vínculo pode ter aulas individuais agendadas (`lessons`)
 
 ---
 
 # Agenda
 
 ## Objetivo
+Visualização mensal (estilo calendário) das aulas da escola.
 
-Gerenciar a organização das aulas da escola.
+## Funcionalidades reais
+- Grade mensal com navegação entre meses e botão "Hoje"
+- Cada dia mostra até 3 aulas (horário + nome do aluno), com "+N mais" se houver mais
+- Clique no dia abre modal com a lista completa de aulas e permite marcar presença
+- Botão "Nova Aula" para agendar aula avulsa/reposição
 
-## Responsabilidades
-
-- Visualização dos horários.
-- Organização das aulas.
-- Controle da agenda.
-
-## Integrações
-
-Relaciona-se com:
-
-- Alunos.
-- Professores.
-
-Detalhamento das relações:
-
-A definir.
+## Origem dos dados
+A agenda **não tem tabela própria** — é uma visualização sobre `lessons` (filtrando por intervalo de datas do mês).
 
 ---
 
-# Financeiro
+# Aulas (Lessons) + Presença (Attendance)
 
 ## Objetivo
+Registrar aulas individuais (regulares, reposição, extra, aula experimental) e a presença de cada aluno.
 
-Gerenciar as informações financeiras da escola.
+## Campos reais (tabela `lessons`)
+- `enrollment_id`, `student_id`, `teacher_id`, `instrument`, `date`, `start_time`, `end_time`, `duration_minutes`, `lesson_type` (`regular` | `make_up` | `extra` | `trial`), `status` (`scheduled` | `completed` | `cancelled` | `make_up`)
 
-## Responsabilidades
+## Campos reais (tabela `attendance`)
+- `lesson_id`, `student_id`, `status` (`present` | `absent` | `excused` | `late`), `late_minutes`, `notes`
 
-- Controle financeiro.
-- Visualização de movimentações.
-- Gestão das informações financeiras.
+---
 
-## Integrações
+# Mensalidades (Tuitions)
 
-Relaciona-se com:
+## Objetivo
+Cobrança mensal do aluno.
 
-- Alunos.
-- Loja.
-- Outros módulos conforme regras definidas.
+## Campos reais (tabela `tuitions`)
+- `student_id`, `enrollment_id` (opcional — pode existir mensalidade avulsa sem vínculo), `reference_month`, `amount`, `discount_amount`, `discount_reason`, `due_date`, `status` (`pending`|`paid`|`overdue`|`cancelled`), `payment_method`, `paid_at`, `notes`
 
-Detalhamento das relações:
+## Regra real
+Geradas automaticamente ao criar um vínculo ativo (ver módulo Vínculos), mas também podem ser criadas manualmente (mensalidade avulsa).
 
-A definir.
+---
+
+# Pagamentos a Professores (Teacher Payments)
+
+## Objetivo
+Registrar quanto foi pago a cada professor, por mês.
+
+## Campos reais (tabela `teacher_payments`)
+- `teacher_id`, `reference_month`, `amount`, `paid`, `paid_at`, `notes`
+
+## Estado real
+CRUD manual — **não há** cálculo automático a partir de `rate_per_class × aulas dadas no mês` ainda. Isso é uma pergunta em aberto (ver `proxima-etapa-spec.md`, seção 6).
+
+---
+
+# Receitas Avulsas (Payments) e Custos & Investimentos (Expenses/Investments)
+
+## Objetivo
+Registrar receitas fora da mensalidade, custos fixos/variáveis e investimentos da escola.
+
+## Campos reais
+- `payments`: categoria, valor, aluno relacionado (opcional)
+- `expenses`: `expense_type` (`fixed`|`variable`), categoria, valor, vencimento, pago/não pago
+- `investments`: valor, data de compra, descrição
 
 ---
 
 # Loja
 
 ## Objetivo
+Venda de produtos (camisetas, acessórios, kits) com checkout via Mercado Pago (PIX e Cartão), servindo mais como ferramenta de conversão/confiança do que como receita principal.
 
-Gerenciar a operação de vendas da escola.
+## Campos reais (tabela `products`)
+- Nome, descrição, preço, estoque, categoria (`roupas`|`acessorios`|`kits`), badge, imagem, XP de recompensa, variantes (tamanho, jsonb)
 
-## Responsabilidades
+## Campos reais (tabela `orders`)
+- Status (`pending`|`approved`|`rejected`|`cancelled`|`refunded`), método (`pix`|`card`|`manual`), dados do cliente, itens (snapshot em jsonb), total, dados do pagamento no Mercado Pago
 
-- Cadastro de produtos.
-- Controle das vendas.
-- Gerenciamento das informações da loja.
-
-## Integrações
-
-Relaciona-se com:
-
-- Financeiro.
-
-Detalhamento das relações:
-
-A definir.
-
----
-
-# Configurações
-
-## Objetivo
-
-Gerenciar as configurações gerais do sistema.
-
-## Responsabilidades
-
-A definir.
+## Integrações reais
+- Webhook do Mercado Pago atualiza o status do pedido automaticamente
+- E-mail de notificação de novo pedido via Resend
 
 ---
 
 # Regras Gerais dos Módulos
 
-- Cada módulo deve possuir responsabilidade própria.
-- Um módulo não deve assumir responsabilidades de outro módulo.
-- Alterações que afetem mais de um módulo devem ser documentadas.
-- Novas funcionalidades devem ser associadas a um módulo existente ou justificar a criação de um novo módulo.
+- Cada módulo (`resource=` na API) tem sua própria função `handleX` dentro de `admin-financial.js` (ou arquivo próprio, no caso da Loja).
+- Novo módulo financeiro/pedagógico **não** deve virar uma nova Serverless Function — deve entrar como novo `resource=` em `admin-financial.js`, por causa do limite de functions da Vercel.
+- Nenhum módulo acessa o Supabase diretamente do frontend.
 
 ---
 
 # Evolução
 
-Este documento será atualizado conforme as regras de negócio e funcionalidades forem definidas.
-
-Nenhuma funcionalidade deve ser considerada existente apenas por estar planejada neste documento.
+Módulos futuros (não implementados, apenas planejados) estão documentados em `ROADMAP.MD` — por exemplo, Portal do Professor, Portal do Aluno e Configurações/Permissões. Nenhuma funcionalidade deve ser considerada existente apenas por estar listada lá.

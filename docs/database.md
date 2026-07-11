@@ -2,414 +2,180 @@
 
 ## Objetivo
 
-Este documento define a estrutura do banco de dados da aplicação.
+Este documento descreve a estrutura **real** do banco de dados, conforme aplicada no Supabase (PostgreSQL).
 
-Ele é a referência oficial para criação de tabelas, relacionamentos, regras de integridade e evolução do banco.
-
-Toda alteração na estrutura do banco deve ser documentada neste arquivo antes da implementação.
+> Revisão de 10/07/2026: reescrito para refletir o schema real (`supabase/schema.sql` + `supabase/financial-schema.sql` + `supabase/migrations/`). A versão anterior descrevia um schema idealizado (IDs em UUID, tabelas como `charges`, `financial_transactions`, `stock_movements` que nunca existiram, RLS por perfil de usuário) que não corresponde ao banco real.
 
 ---
 
 # Tecnologia
 
 Banco de Dados: PostgreSQL
-
 Plataforma: Supabase
 
 ---
 
-# Convenções
+# Convenções reais
 
 ## Nome das tabelas
-
-Todas as tabelas devem utilizar:
-
-- letras minúsculas
-- snake_case
-- nomes no plural
-
-Exemplos:
+snake_case, plural — isso bateu com o planejamento original e foi seguido:
 
 ```
-students
-teachers
-enrollments
-lessons
-payments
-products
-sales
+students, teachers, enrollments, lessons, attendance,
+tuitions, payments, expenses, investments, teacher_payments,
+orders, products
 ```
-
----
 
 ## Colunas
+snake_case, incluindo `created_at` / `updated_at` (via trigger `set_updated_at`).
 
-Todas as tabelas deverão utilizar snake_case.
+## Chave primária — DIFERENTE do planejado originalmente
 
-Exemplo:
+As tabelas **não** usam `id UUID`. Usam `id TEXT`, com prefixo legível por tabela, gerado no backend (função `genId()`):
 
 ```
-first_name
-birth_date
-created_at
-updated_at
-deleted_at
+ST-XXXXXX   students
+TE-XXXXXX   teachers
+EN-XXXXXX   enrollments
+TU-XXXXXX   tuitions
+TP-XXXXXX   teacher_payments
+LS-XXXXXX   lessons
+AT-XXXXXX   attendance
+BM-XXXXXXXX-XXXX   orders (gerado no frontend)
 ```
+
+Essa escolha foi deliberada: IDs legíveis facilitam debug manual no SQL Editor e em logs, e evitam a necessidade da extensão `pgcrypto`/`uuid-ossp`.
+
+## Exclusão de registros
+Usa `active boolean` (students) ou `status` (enrollments, tuitions, lessons, orders) em vez de soft-delete genérico com `deleted_at`. Não há coluna `deleted_at` em nenhuma tabela hoje.
 
 ---
 
-## Chave Primária
-
-Todas as tabelas utilizarão:
-
-```
-id UUID
-```
-
-Gerado automaticamente pelo PostgreSQL.
-
----
-
-## Auditoria
-
-Sempre que aplicável, as tabelas possuirão:
-
-```
-created_at
-updated_at
-deleted_at
-created_by
-updated_by
-```
-
----
-
-# Módulos do Banco
-
-O banco será dividido pelos mesmos módulos da aplicação.
+# Estrutura Real
 
 ```
 students
+│
+├── enrollments (student_id)
+│      │
+│      ├── lessons (enrollment_id)
+│      │      │
+│      │      └── attendance (lesson_id)
+│      │
+│      └── tuitions (enrollment_id, opcional)
+│
+└── payments (student_id, opcional — receita avulsa)
 
 teachers
-
-schedule
-
-finance
-
-store
-
-settings
-```
-
----
-
-# Estrutura Geral
-
-```
-students
 │
-└── enrollments
-     │
-     ├── lessons
-     │      │
-     │      └── attendance
-     │
-     ├── charges
-     │      │
-     │      └── payments
-     │
-     └── teachers
+├── enrollments (teacher_id, opcional)
+├── lessons (teacher_id, opcional)
+└── teacher_payments (teacher_id)
 
-finance
-│
-├── expenses
-├── financial_transactions
-└── categories
+expenses          (sem relação com aluno/professor — custo fixo/variável da escola)
+investments       (sem relação com aluno/professor)
 
-store
-│
-├── products
-├── stock
-├── sales
-└── sale_items
+orders            (loja — sem FK para products; snapshot em jsonb)
+products          (loja)
 ```
+
+Não existem as tabelas `charges`, `financial_transactions`, `stock_movements`, `student_contacts`, `student_documents`, `teacher_availability`, `teacher_specialties`, `lesson_notes`, `categories` (para produtos) mencionadas em versões anteriores deste documento — nunca foram criadas.
 
 ---
 
-# Módulo Alunos
+# Tabelas — Módulo Alunos/Vínculos/Aulas
 
-Responsável pelos dados acadêmicos.
+## `students`
+`id, name, email, phone, address, instruments, active, created_at, updated_at`
 
-Principais tabelas:
+## `enrollments`
+`id, student_id (FK), teacher_id (FK, nullable), instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, status, notes, created_at, updated_at`
 
-```
-students
+## `lessons`
+`id, enrollment_id (FK), student_id (FK), teacher_id (FK, nullable), instrument, date, start_time, end_time, duration_minutes, lesson_type (regular|make_up|extra|trial), status (scheduled|completed|cancelled|make_up), created_at, updated_at`
 
-student_contacts
-
-student_documents
-
-enrollments
-```
-
----
-
-# Módulo Professores
-
-Responsável pelos dados dos professores.
-
-Principais tabelas:
-
-```
-teachers
-
-teacher_availability
-
-teacher_specialties
-```
+## `attendance`
+`id, lesson_id (FK), student_id (FK), status (present|absent|excused|late), late_minutes, notes, recorded_at, recorded_by`
+Constraint: único por `(lesson_id, student_id)`.
 
 ---
 
-# Módulo Agenda
+# Tabelas — Módulo Professores
 
-Responsável pelo calendário da escola.
-
-Principais tabelas:
-
-```
-lessons
-
-attendance
-
-lesson_notes
-```
+## `teachers`
+`id, name, phone, specialty, days_of_week (text[]), rate_per_class, created_at, updated_at`
 
 ---
 
-# Módulo Financeiro
+# Tabelas — Módulo Financeiro
 
-Responsável pelo controle financeiro.
+## `tuitions`
+`id, student_id (FK), enrollment_id (FK, nullable), reference_month, amount, discount_amount, discount_reason, due_date, status (pending|paid|overdue|cancelled), payment_method, paid_at, notes, created_at, updated_at`
 
-Principais tabelas:
+## `teacher_payments`
+`id, teacher_id (FK), reference_month, amount, paid, paid_at, notes, created_at, updated_at`
 
-```
-charges
+## `payments`
+Receitas avulsas — categoria, valor, aluno relacionado (opcional).
 
-payments
+## `expenses`
+`expense_type (fixed|variable)`, categoria, valor, vencimento, pago/não pago.
 
-expenses
-
-expense_categories
-
-financial_transactions
-```
-
-A tabela `financial_transactions` será a fonte oficial para indicadores financeiros e fluxo de caixa.
+## `investments`
+Valor, data de compra, descrição.
 
 ---
 
-# Módulo Loja
+# Tabelas — Módulo Loja
 
-Responsável pelas vendas e estoque.
+## `products`
+`id, name, description, price, stock, active, category (roupas|acessorios|kits), badge, badge_color, image, reward_xp, variants (jsonb), created_at, updated_at`
 
-Principais tabelas:
-
-```
-categories
-
-products
-
-stock_movements
-
-sales
-
-sale_items
-```
-
----
-
-# Relacionamentos Principais
-
-```
-Student
-
-↓
-
-Enrollment
-
-↓
-
-Lesson
-
-↓
-
-Attendance
-```
-
----
-
-```
-Student
-
-↓
-
-Enrollment
-
-↓
-
-Charge
-
-↓
-
-Payment
-```
-
----
-
-```
-Teacher
-
-↓
-
-Lesson
-```
-
----
-
-```
-Sale
-
-↓
-
-Sale Items
-
-↓
-
-Products
-```
+## `orders`
+`id, status (pending|approved|rejected|cancelled|refunded), method (pix|card|manual), customer_name, customer_email, customer_phone, items (jsonb), total, mp_payment_id, mp_status, mp_status_detail, earned_xp, customer_is_student, created_at, updated_at`
 
 ---
 
 # Integridade
 
-O banco deverá utilizar:
+O que é usado de fato:
+- Primary Keys (texto, com prefixo)
+- Foreign Keys (`references ... on delete cascade` ou `on delete set null`, conforme o caso)
+- Constraints `CHECK` para campos de enum (ex: `status`, `category`, `lesson_type`)
+- Índices (`create index if not exists`) nas colunas mais consultadas (status, datas de referência, FKs)
+- Triggers `set_updated_at` para manter `updated_at` automático
 
-- Primary Keys
-- Foreign Keys
-- Constraints
-- Índices
-- Views
-- Functions
-- Triggers
-
-Sempre que possível, regras críticas deverão permanecer no banco de dados.
+O que **não** é usado: Views, Functions de negócio no banco, Triggers de auditoria. Toda regra de negócio (ex: geração automática de mensalidade) vive no backend (`api/admin-financial.js`), não no banco.
 
 ---
 
-# Exclusão de Registros
+# Segurança (RLS) — decisão real, não "a definir"
 
-Registros históricos não deverão ser removidos.
+Todas as tabelas financeiras/pedagógicas têm RLS **habilitado**, mas **sem policies**. Isso é intencional, não uma pendência:
 
-Utilizar:
+- O frontend nunca fala diretamente com o Supabase para essas tabelas — só via `api/admin-financial.js`.
+- O backend usa a **Service Role Key**, que ignora RLS por completo.
+- O acesso ao backend é protegido por senha única (`ADMIN_PASSWORD`, header `x-admin-password`).
 
-```
-deleted_at
-```
-
-ou
-
-```
-active = false
-```
-
-A exclusão física será utilizada apenas quando realmente necessária.
+Não há perfis de acesso (Administrador / Secretaria / Financeiro / Professor) implementados — é um acesso único, tudo ou nada. Se perfis diferenciados forem necessários no futuro, a decisão de arquitetura precisa mudar (provavelmente adotando Supabase Auth de verdade), e este documento deve ser atualizado quando isso acontecer.
 
 ---
 
-# Views
+# Migrations
 
-As Views serão utilizadas para simplificar consultas e alimentar dashboards.
-
-Exemplos:
-
-```
-vw_dashboard
-
-vw_student_history
-
-vw_financial_summary
-
-vw_teacher_schedule
-
-vw_store_sales
-```
-
----
-
-# Functions
-
-Functions serão utilizadas para regras de negócio compartilhadas.
-
-Exemplos:
-
-- cálculo de mensalidade
-- geração automática de cobranças
-- atualização de estoque
-- cálculo de fluxo de caixa
-
----
-
-# Triggers
-
-Triggers serão utilizadas apenas quando agregarem consistência ao banco.
-
-Exemplos:
-
-- atualizar `updated_at`
-- registrar auditoria
-- gerar movimentação financeira
-- atualizar estoque após venda
-
----
-
-# Segurança
-
-O acesso aos dados será controlado por Row Level Security (RLS).
-
-As permissões serão definidas conforme o perfil do usuário.
-
-Perfis previstos:
-
-- Administrador
-- Secretaria
-- Financeiro
-- Professor
-
----
-
-# Migrações
-
-Toda alteração estrutural deverá ser realizada através de migrations.
-
-Nenhuma alteração deverá ser feita diretamente em produção.
+Ficam em `supabase/migrations/` (por mudança de schema) e são espelhadas em `supabase/financial-schema.sql` (schema consolidado, usado para recriar o banco do zero). São escritas de forma idempotente (`IF NOT EXISTS`, `DO` blocks) porque, na prática, algumas migrations já foram aplicadas manualmente no SQL Editor do Supabase antes de serem commitadas — então precisam ser seguras para rodar de novo sem erro.
 
 ---
 
 # Seeds
 
-O projeto possuirá seeds para facilitar:
-
-- desenvolvimento
-- testes
-- demonstrações
+`supabase/seed-escola.sql` (dados de alunos/professores/vínculos de exemplo) e `supabase/seed-products.sql` (produtos da loja), usados em desenvolvimento local via `server-dev.js`.
 
 ---
 
 # Evolução do Banco
 
-Novas tabelas deverão seguir os padrões definidos neste documento.
-
-Sempre que um módulo for expandido, sua estrutura deverá ser documentada antes da implementação.
-
-Este documento representa a referência oficial da estrutura do banco de dados do projeto.
+Toda nova tabela ou coluna deve:
+1. Ser criada via migration idempotente em `supabase/migrations/`
+2. Ser espelhada em `financial-schema.sql` (ou `schema.sql`, se for da Loja)
+3. Ter este documento atualizado **depois** de aplicada — não antes, como planejamento.

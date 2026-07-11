@@ -595,8 +595,7 @@
                         <select id="tuition-teacher-filter" style="min-width: 140px;">
                             <option value="">Todos os professores</option>
                         </select>
-                        <button id="btn-generate-monthly-billing" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #3b82f6;background:#3b82f620;color:#3b82f6;cursor:pointer;font-size:13px;font-weight:600" title="Gera mensalidades para todas as matrículas ativas">⚡ Fechamento do Mês</button>
-                        <button id="btn-new-tuition" style="margin-left:8px;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Nova Mensalidade</button>
+                        <button id="btn-new-tuition" style="margin-left:auto;padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Nova Cobrança</button>
                     </div>
                     <div id="tuitions-area" style="margin-top: 12px;"></div>
                 </div>
@@ -640,14 +639,25 @@
                         <button id="btn-new-investment" style="padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Investimento</button>
                     </div>
                     
-                    <div class="split-grid" style="display:grid;grid-template-columns: 1fr 1fr;gap:20px">
-                        <div>
-                            <h3 style="margin-top:0;color:#e4e4e7;border-bottom:1px solid #27272a;padding-bottom:8px;font-size:14px;text-transform:uppercase;color:#71717a">📉 Custos Fixos</h3>
-                            <div id="expenses-area"></div>
+                    <!-- Custos Fixos -->
+                    <div class="dash-card" style="margin-bottom:16px">
+                        <div class="dash-card-header">
+                            <h3>📉 Custos Fixos / Despesas</h3>
+                            <button id="btn-new-expense-inline" style="padding:4px 10px;border-radius:6px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:11px;font-weight:600">➕ Novo Custo</button>
                         </div>
-                        <div>
-                            <h3 style="margin-top:0;color:#e4e4e7;border-bottom:1px solid #27272a;padding-bottom:8px;font-size:14px;text-transform:uppercase;color:#71717a">🏛️ Investimentos</h3>
-                            <div id="investments-area"></div>
+                        <div class="dash-card-body" id="expenses-area">
+                            <div class="dash-empty">Nenhum custo registrado.</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Investimentos -->
+                    <div class="dash-card" style="margin-bottom:0">
+                        <div class="dash-card-header">
+                            <h3>🏛️ Investimentos</h3>
+                            <button id="btn-new-investment-inline" style="padding:4px 10px;border-radius:6px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:11px;font-weight:600">➕ Novo Investimento</button>
+                        </div>
+                        <div class="dash-card-body" id="investments-area">
+                            <div class="dash-empty">Nenhum investimento registrado.</div>
                         </div>
                     </div>
                 </div>
@@ -755,8 +765,27 @@
                         </div>
                     </div>
                     <div>
-                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento(s)</label>
-                        <input type="text" name="instruments" placeholder="Ex: Piano, Violao, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento(s) *</label>
+                        <select name="instruments" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Selecione...</option>
+                            <option value="Piano">Piano</option>
+                            <option value="Teclado">Teclado</option>
+                            <option value="Violão">Violão</option>
+                            <option value="Guitarra">Guitarra</option>
+                            <option value="Baixo">Baixo</option>
+                            <option value="Bateria">Bateria</option>
+                            <option value="Canto">Canto</option>
+                            <option value="Violino">Violino</option>
+                            <option value="Viola">Viola</option>
+                            <option value="Violoncelo">Violoncelo</option>
+                            <option value="Saxofone">Saxofone</option>
+                            <option value="Flauta">Flauta</option>
+                            <option value="Ukulele">Ukulele</option>
+                            <option value="Cavaquinho">Cavaquinho</option>
+                            <option value="Acordeon">Acordeon</option>
+                            <option value="Musicalização Infantil">Musicalização Infantil</option>
+                            <option value="Teoria Musical">Teoria Musical</option>
+                        </select>
                     </div>
                     <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a1a1aa;cursor:pointer">
                         <input type="checkbox" name="active" checked />

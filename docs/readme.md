@@ -1,119 +1,97 @@
 # Escola Bruna Mandz
 
-Sistema de gestão para escolas de música desenvolvido para centralizar a administração acadêmica, financeira e comercial em uma única plataforma.
+Sistema de gestão para a escola de música Bruna Mandz: painel administrativo (alunos, professores, vínculos, agenda, aulas/presença, financeiro) + loja pública com checkout via Mercado Pago.
 
-Este repositório contém o código-fonte, a documentação e a estrutura do sistema utilizado pela Escola Bruna Mandz.
+> Revisão de 10/07/2026: esta versão do documento foi reescrita para refletir a stack e a estrutura **realmente implementadas**. A versão anterior descrevia um monorepo com React/TypeScript/Tailwind que nunca existiu neste repositório.
 
 ---
 
 # Objetivo
 
-O projeto tem como objetivo substituir controles manuais e planilhas por um sistema único, organizado e de fácil manutenção.
-
-O sistema foi projetado para crescer de forma modular, permitindo a adição de novas funcionalidades sem grandes alterações na arquitetura.
+Substituir controle manual/planilhas da escola por um painel único, simples de manter, sem exigir infraestrutura de build complexa.
 
 ---
 
-# Funcionalidades
-
-O sistema é dividido nos seguintes módulos:
-
-- Dashboard
-- Alunos
-- Professores
-- Agenda
-- Financeiro
-- Loja
-- Configurações
-
-Cada módulo possui responsabilidades independentes, compartilhando autenticação, permissões e banco de dados.
-
----
-
-# Stack
+# Stack real
 
 ## Frontend
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
+- Vite (bundler/dev server)
+- JavaScript puro (Vanilla JS) — sem framework, sem TypeScript
+- HTML + CSS inline
 
 ## Backend
 
-- Supabase
+- Vercel Serverless Functions (`api/*.js`)
+- `@supabase/supabase-js` (usado só no backend, com Service Role Key)
+- `mercadopago` (SDK oficial, para PIX e Cartão)
+- `formidable` (upload de imagem de produto)
 
 ## Banco de Dados
 
-- PostgreSQL
+- PostgreSQL via Supabase
 
 ## Autenticação
 
-- Supabase Auth
-
-## Armazenamento
-
-- Supabase Storage
+- Senha única de administrador (`ADMIN_PASSWORD`), validada via header `x-admin-password`. **Não** usa Supabase Auth.
 
 ## Deploy
 
-- Vercel
+- Vercel (frontend + serverless functions)
+- Supabase (banco de produção)
 
 ---
 
-# Estrutura do Repositório
+# Estrutura real do repositório
 
 ```
-apps/
-    web/
+api/                  → Serverless functions (Vercel)
+  _lib/                  → helpers compartilhados (cliente Supabase)
+  admin-financial.js     → API consolidada do painel (13 recursos)
+  admin-orders.js        → gestão de pedidos da loja
+  admin-products.js      → gestão de produtos da loja
+  create-payment.js, verify-mp-payment.js, webhook.js, config.js, ...
 
-docs/
+docs/                 → documentação (este diretório)
 
-supabase/
+src/                  → scripts de entrada usados pelo Vite
+  main.js
+  global-bridge.js
 
-docker/
+store/                → loja pública (carrinho, checkout, estilos)
 
-packages/
+public/               → assets estáticos, PWA manifest, service worker
+
+supabase/             → schema.sql, financial-schema.sql, migrations/, seeds
+
+painel-x9k2f.html     → painel administrativo (arquivo único, ~4400 linhas)
+index.html            → página da loja pública
+
+painel_registro.md    → histórico de desenvolvimento do painel, por etapa
+loja_registro.md       → histórico de desenvolvimento da loja
 ```
 
-## Descrição
-
-| Pasta | Responsabilidade |
-|--------|------------------|
-| apps/web | Aplicação principal |
-| docs | Documentação oficial do projeto |
-| supabase | Banco de dados, migrations, seeds e políticas |
-| docker | Ambiente de desenvolvimento |
-| packages | Bibliotecas compartilhadas (quando necessário) |
+Não existem as pastas `apps/web`, `packages/`, `docker/` mencionadas em versões anteriores deste documento — eram planejamento, não implementação.
 
 ---
 
-# Organização da Aplicação
+# Módulos reais do Painel Administrativo
 
-A aplicação é organizada por domínio de negócio.
+- **Dashboard** — KPIs financeiros, aulas do dia, alertas, pedidos recentes, estoque baixo
+- **Agenda** — calendário mensal (estilo Google Calendar) das aulas
+- **Pedidos** — gestão de pedidos da loja
+- **Produtos** — CRUD de produtos da loja
+- **Financeiro** (com sub-abas):
+  - Alunos
+  - Professores
+  - Vínculos (enrollments — aluno + professor + instrumento + dia/horário + mensalidade)
+  - Aulas (lessons) + Presença (attendance)
+  - Mensalidades (tuitions) — geradas automaticamente ao criar um vínculo ativo
+  - Pagamentos a Professores (teacher_payments) — lançamento manual
+  - Receitas Avulsas (payments)
+  - Custos & Investimentos (expenses, investments)
 
-```
-features/
-
-    dashboard/
-
-    students/
-
-    teachers/
-
-    schedule/
-
-    finance/
-
-    store/
-
-    settings/
-
-shared/
-```
-
-Cada módulo contém apenas regras relacionadas ao seu domínio.
+Ver `modules.md` para detalhes de cada um.
 
 ---
 
@@ -124,163 +102,54 @@ Usuário
 
 ↓
 
-Login
+Acessa /painel-x9k2f.html
 
 ↓
 
-Dashboard
+Informa a senha de admin (ADMIN_PASSWORD)
 
 ↓
 
-Seleciona um módulo
+Navega pelas abas/sub-abas
 
 ↓
 
-Executa uma operação
+Cada ação chama fetch() para /api/admin-financial?resource=X
 
 ↓
 
-Banco de Dados
+Backend valida a senha, usa a Service Role Key para falar com o Supabase
 
 ↓
 
-Interface atualizada
+Resposta atualiza a interface (sem recarregar a página)
 ```
-
----
-
-# Módulos
-
-## Dashboard
-
-Apresenta informações resumidas sobre a operação da escola.
-
-Responsabilidades:
-
-- Indicadores
-- Agenda do dia
-- Alertas
-- Resumo financeiro
-
----
-
-## Alunos
-
-Responsável pelo gerenciamento dos alunos.
-
-Principais funcionalidades:
-
-- Cadastro
-- Consulta
-- Edição
-- Matrículas
-- Histórico
-
----
-
-## Professores
-
-Responsável pelo gerenciamento dos professores.
-
-Principais funcionalidades:
-
-- Cadastro
-- Especialidades
-- Disponibilidade
-- Agenda
-
----
-
-## Agenda
-
-Responsável pelo gerenciamento das aulas.
-
-Principais funcionalidades:
-
-- Agendamento
-- Reposição
-- Cancelamento
-- Frequência
-- Histórico
-
----
-
-## Financeiro
-
-Responsável pelo controle financeiro da escola.
-
-Principais funcionalidades:
-
-- Cobranças
-- Recebimentos
-- Despesas
-- Fluxo de Caixa
-- Inadimplência
-
----
-
-## Loja
-
-Responsável pela operação comercial.
-
-Principais funcionalidades:
-
-- Produtos
-- Categorias
-- Estoque
-- Vendas
-- Caixa
-
----
-
-## Configurações
-
-Responsável pelas configurações gerais do sistema.
-
-Principais funcionalidades:
-
-- Usuários
-- Permissões
-- Dados da escola
-- Preferências
 
 ---
 
 # Princípios do Projeto
 
-O desenvolvimento seguirá os seguintes princípios:
-
-- Simplicidade antes de complexidade.
-- Código limpo e organizado.
-- Arquitetura modular.
-- Regras de negócio centralizadas.
-- Documentação sempre atualizada.
-- Evolução incremental.
+- Simplicidade antes de complexidade — um HTML único é uma escolha deliberada, não um problema a resolver.
+- Respeitar o limite de 12 Serverless Functions do plano Hobby da Vercel: novos recursos entram como `resource=` dentro de `admin-financial.js`.
+- Nenhuma regra de negócio ou acesso a dado financeiro acontece no frontend — tudo passa pela API.
+- Migrations idempotentes (`IF NOT EXISTS`, `DO` blocks), porque às vezes são aplicadas manualmente no SQL Editor do Supabase antes de serem commitadas.
+- Documentação deve refletir o que existe, não o que se planeja construir — planejamento vive em `ROADMAP.MD` e em specs de etapa (ex: `proxima-etapa-spec.md`).
 
 ---
 
 # Documentação
 
-Toda documentação oficial encontra-se na pasta `docs`.
-
-Arquivos principais:
-
 | Arquivo | Descrição |
 |----------|-----------|
-| README.md | Visão geral do projeto |
-| ARCHITECTURE.md | Arquitetura da aplicação |
-| DATABASE.md | Modelagem e estrutura do banco |
-| MODULES.md | Documentação dos módulos |
-| ROADMAP.md | Planejamento e evolução do sistema |
+| `docs/readme.md` | Este documento — visão geral real do projeto |
+| `docs/ARCHITECTURE.MD` | Arquitetura técnica real |
+| `docs/database.md` | Schema e relacionamentos reais do banco |
+| `docs/modules.md` | Descrição dos módulos reais |
+| `docs/BUSINESS_RULES.md` | Regras de negócio já implementadas e pendentes |
+| `docs/ROADMAP.MD` | Planejamento futuro (não confundir com o que já existe) |
+| `docs/CONFIGURACAO_ENV.md` | Setup de ambiente local/produção |
+| `docs/PUBLICACAO.md` | Checklist de publicação da loja |
+| `docs/proxima-etapa-spec.md` | Spec da próxima etapa, com auditoria do estado atual |
+| `painel_registro.md` | Histórico completo de desenvolvimento do painel, por etapa |
 
-Esses documentos representam a fonte oficial de informação do projeto.
-
-Sempre que houver alteração estrutural, a documentação correspondente deverá ser atualizada antes ou junto da implementação.
-
----
-
-# Objetivo da Documentação
-
-A documentação existe para que qualquer desenvolvedor ou IA consiga compreender a arquitetura, o funcionamento e a organização do projeto sem depender do histórico das conversas.
-
-Toda decisão permanente deve estar documentada.
+Sempre que houver mudança estrutural real, o documento correspondente deve ser atualizado **junto** com a implementação — não antes, como planejamento especulativo.

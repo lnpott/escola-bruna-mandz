@@ -9,3 +9,6 @@ backups/
 # Backups — nunca commitar dados de clientes
 backup_dados.json
 supabase/backup_dados.json
+
+# Supabase CLI temp files
+supabase/.temp/

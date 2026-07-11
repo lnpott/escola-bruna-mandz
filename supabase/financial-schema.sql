@@ -102,6 +102,11 @@ create table if not exists public.enrollments (
     duration_minutes integer not null default 60,
     classes_per_week integer not null default 1,
     monthly_fee numeric(10,2) not null default 0.00,
+    billing_type text not null default 'monthly'
+        constraint enrollments_billing_type_check
+        check (billing_type in ('weekly', 'monthly', 'full')),
+    total_amount numeric(10,2),           -- para 'full': valor total do curso
+    installments integer not null default 1,  -- para 'full' parcelado
     status text not null default 'active'
         constraint enrollments_status_check
         check (status in ('active', 'inactive', 'cancelled')),
@@ -143,6 +148,10 @@ create table if not exists public.tuitions (
     reference_month text,                   -- Etapa 37: formato 'YYYY-MM'
 
     amount numeric(10,2) not null default 0.00,
+    billing_type text
+        constraint tuitions_billing_type_check
+        check (billing_type in ('weekly', 'monthly', 'full')),
+    installment_number integer,           -- para 'full' parcelado, nº da parcela
     discount_amount numeric(10,2) not null default 0.00,
     discount_reason text,
     due_date date not null,

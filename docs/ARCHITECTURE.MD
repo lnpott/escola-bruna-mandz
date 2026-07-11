@@ -2,32 +2,33 @@
 
 ## Objetivo
 
-Este documento descreve a arquitetura técnica do sistema Escola Bruna Mandz.
+Este documento descreve a arquitetura técnica **real** do sistema Escola Bruna Mandz, conforme implementada no repositório.
 
-O objetivo é definir como a aplicação será organizada para facilitar desenvolvimento, manutenção e evolução.
+> Revisão de 10/07/2026: a versão anterior deste documento descrevia uma arquitetura planejada (monorepo, React/TypeScript, Supabase Auth) que nunca foi implementada. Este documento foi reescrito para refletir o código de fato existente no repositório.
 
 ---
 
 # Visão Geral
 
-O sistema será uma aplicação web acessada através de um painel administrativo.
+O sistema é uma aplicação web simples, sem build step no frontend além do empacotamento do Vite, acessada por um painel administrativo protegido por senha.
 
-Arquitetura principal:
+Arquitetura real:
 
 ```
-Usuário
+Usuário (navegador)
 
 ↓
 
-Frontend Web
+painel-x9k2f.html  (HTML + CSS + JS puro, um único arquivo, ~4400 linhas)
++ index.html / store (Loja pública)
 
-↓
+↓  fetch() para /api/*
 
-Supabase
+Vercel Serverless Functions  (api/*.js)
 
-↓
+↓  Service Role Key (bypassa RLS)
 
-PostgreSQL
+Supabase (PostgreSQL)
 ```
 
 ---
@@ -36,213 +37,88 @@ PostgreSQL
 
 ## Frontend
 
-Tecnologias utilizadas:
+Tecnologias realmente utilizadas:
 
-- React
-- TypeScript
-- Vite
+- Vite (apenas como bundler/dev server, sem framework)
+- JavaScript puro (Vanilla JS) — **não há React, TypeScript, Tailwind ou shadcn/ui**
+- HTML + CSS inline nos próprios arquivos
 
-Responsabilidades:
+Estrutura real do frontend:
 
-- Interface do usuário.
-- Navegação.
-- Componentes visuais.
-- Interação com o sistema.
+- `painel-x9k2f.html` — painel administrativo completo (Dashboard, Agenda, Pedidos, Produtos, Financeiro), em um único arquivo autocontido, sem dependências externas de build
+- `index.html` + `store/` — loja pública (carrinho, checkout Mercado Pago)
+- `src/main.js`, `src/global-bridge.js` — scripts de entrada/ponte usados pelo Vite
+- `public/` — assets estáticos (mídia, manifest PWA, service worker)
+
+Não há divisão em `features/`, `components/`, `services/`, `hooks/` como um app React teria. Cada tela é uma seção dentro do HTML único, com suas próprias funções JS e event listeners.
 
 ---
 
 ## Backend
 
-O sistema utilizará Supabase como plataforma backend.
+O backend é composto por **Vercel Serverless Functions** (arquivos em `api/`), não por um servidor próprio.
 
 Responsabilidades:
 
-- Banco de dados.
-- Autenticação.
-- Controle de acesso.
-- Armazenamento de arquivos.
+- Autenticação simples do painel via header `x-admin-password`, validado contra a variável de ambiente `ADMIN_PASSWORD`.
+- Toda comunicação com o Supabase usa a **Service Role Key** (nunca a chave anônima), o que faz o backend ignorar o RLS — daí a importância de nenhuma rota admin ficar exposta sem checar a senha primeiro.
+- Integração com Mercado Pago (criação de pagamento, verificação, webhook).
+
+Arquivos principais:
+
+```
+api/
+├── admin-financial.js   → API consolidada do painel (13 recursos, ver database.md)
+├── admin-orders.js      → gestão de pedidos da loja
+├── admin-products.js    → gestão de produtos da loja
+├── config.js            → expõe a Public Key do Mercado Pago ao frontend
+├── create-payment.js    → cria pagamento (PIX/Cartão) no Mercado Pago
+├── verify-mp-payment.js → verifica status de um pagamento
+├── webhook.js           → recebe notificações do Mercado Pago
+├── order-status.js      → consulta status de pedido
+├── update-order-status.js
+├── notify-new-order.js  → envia e-mail via Resend
+├── upload-image.js      → upload de imagem de produto
+└── _lib/                → helpers compartilhados (cliente Supabase, etc.)
+```
+
+**Limitação real importante:** o plano Hobby da Vercel permite no máximo 12 Serverless Functions. Por isso, novos recursos administrativos (vínculos, mensalidades, aulas, pagamentos a professores etc.) são adicionados como um novo `resource=` dentro de `api/admin-financial.js`, e não como arquivos novos em `api/`.
 
 ---
 
 ## Banco de Dados
 
-Tecnologia:
+Tecnologia: PostgreSQL via Supabase.
 
-- PostgreSQL
-
-Responsabilidades:
-
-- Armazenamento dos dados.
-- Relacionamentos.
-- Consultas.
-- Integridade das informações.
-
----
-
-# Estrutura da Aplicação
-
-A aplicação será organizada por módulos de negócio.
-
-Estrutura prevista:
-
-```
-src/
-
-├── components/
-
-├── features/
-
-│   ├── dashboard/
-
-│   ├── students/
-
-│   ├── teachers/
-
-│   ├── schedule/
-
-│   ├── finance/
-
-│   └── store/
-
-├── pages/
-
-├── services/
-
-├── hooks/
-
-├── lib/
-
-├── types/
-
-└── utils/
-```
-
----
-
-# Organização por Módulo
-
-Cada módulo deve concentrar seus próprios arquivos relacionados.
-
-Exemplo:
-
-```
-features/students/
-
-components/
-
-pages/
-
-services/
-
-hooks/
-
-types/
-```
-
-O objetivo é manter cada área do sistema organizada e independente.
+Ver `database.md` para a lista completa de tabelas, convenções e decisão de segurança (RLS).
 
 ---
 
 # Comunicação com o Banco
 
-A aplicação utilizará o Supabase para comunicação com o banco de dados.
-
-Fluxo:
+Fluxo real (sem camada de "Service" no frontend, sem SDK do Supabase no cliente):
 
 ```
-Componente
+Frontend (fetch)
 
 ↓
 
-Service
+/api/admin-financial?resource=X   (protegido por x-admin-password)
 
-↓
+↓  @supabase/supabase-js com Service Role Key
 
-Supabase Client
-
-↓
-
-Banco PostgreSQL
+PostgreSQL (Supabase)
 ```
 
----
-
-# Serviços
-
-Os Services serão responsáveis por concentrar a comunicação com o banco.
-
-Exemplos:
-
-```
-studentsService
-
-teachersService
-
-scheduleService
-
-financeService
-
-storeService
-```
-
-Responsabilidades:
-
-- Buscar dados.
-- Criar registros.
-- Atualizar registros.
-- Remover registros quando permitido.
-
----
-
-# Componentes
-
-Os componentes serão divididos em:
-
-## Componentes específicos
-
-Pertencem a um módulo.
-
-Exemplo:
-
-```
-features/students/components
-```
-
----
-
-## Componentes compartilhados
-
-Utilizados por várias áreas.
-
-Exemplo:
-
-```
-components/ui
-```
+O frontend **nunca** importa `@supabase/supabase-js` nem fala diretamente com o Supabase. Toda leitura/escrita passa pela API.
 
 ---
 
 # Autenticação
 
-A autenticação será realizada utilizando Supabase Auth.
+Não há Supabase Auth, login de usuário, nem perfis de permissão.
 
-Responsabilidades:
-
-- Login.
-- Controle de sessão.
-- Identificação do usuário.
-
-As regras de permissão serão definidas conforme os perfis de acesso do sistema.
-
----
-
-# Controle de Acesso
-
-O sistema possuirá controle de acesso baseado em usuários e permissões.
-
-Detalhamento:
-
-A definir em `BUSINESS_RULES.md`.
+O que existe: uma única senha de administrador (`ADMIN_PASSWORD`), enviada em todo request ao painel via header `x-admin-password` e validada no backend. Não há diferenciação de papéis (admin / secretaria / professor) hoje — é tudo ou nada.
 
 ---
 
@@ -250,27 +126,19 @@ A definir em `BUSINESS_RULES.md`.
 
 ## Desenvolvimento
 
-Ambiente utilizado para criação e testes locais.
-
----
+- `npm run dev` — Vite dev server, com um proxy local (`server-dev.js`) para simular as functions da Vercel.
+- Dados de exemplo via `supabase/seed-escola.sql` e `supabase/seed-products.sql`.
 
 ## Produção
 
-Ambiente utilizado pela escola.
+- Hospedado na Vercel, com Supabase como banco de produção.
 
 ---
 
 # Deploy
 
-O sistema será hospedado utilizando:
-
-- Vercel para aplicação web.
-- Supabase para backend e banco de dados.
-
-Fluxo:
-
 ```
-Código
+Código (git push)
 
 ↓
 
@@ -278,41 +146,26 @@ GitHub
 
 ↓
 
-Deploy
+Vercel (build automático via vite build)
 
 ↓
 
 Aplicação publicada
 ```
 
----
-
-# Princípios Arquiteturais
-
-## Organização
-
-O código deve permanecer organizado por responsabilidade.
+Checklist real de publicação em `docs/PUBLICACAO.md`.
 
 ---
 
-## Manutenção
+# Princípios Arquiteturais Reais
 
-Alterações devem evitar impacto desnecessário em outras áreas do sistema.
-
----
-
-## Evolução
-
-Novos módulos devem seguir a estrutura existente.
-
----
-
-## Simplicidade
-
-A solução mais simples que atende ao problema deve ser priorizada.
+- **Simplicidade radical**: um arquivo HTML único para o painel é intencional, não um débito técnico — evita build step e complexidade de bundling para uma aplicação de uso interno.
+- **Um recurso, uma rota**: novos domínios de dado viram `resource=` dentro de `admin-financial.js`, respeitando o limite de functions da Vercel.
+- **Nenhum acesso direto do frontend ao Supabase**: toda regra de negócio e toda query passam pelo backend.
+- **Migrations idempotentes**: alterações de schema usam `IF NOT EXISTS` / `DO` blocks defensivos, pois às vezes são rodadas manualmente no SQL Editor antes de serem commitadas.
 
 ---
 
 # Alterações de Arquitetura
 
-Qualquer mudança significativa na arquitetura deve ser registrada neste documento antes de ser aplicada ao projeto.
+Qualquer mudança significativa na arquitetura (ex: migrar para um framework, dividir a API em mais arquivos, adotar Supabase Auth) deve ser registrada neste documento **depois** de implementada e confirmada no código — não como planejamento aspiracional.

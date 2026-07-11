@@ -233,11 +233,19 @@ async function handleEnrollments(req, res, supabase) {
             duration_minutes,
             classes_per_week,
             monthly_fee,
+            billing_type,
+            total_amount,
+            installments,
             status,
             notes,
         } = req.body;
 
         if (!student_id) return res.status(400).json({ error: 'student_id é obrigatório.' });
+
+        const bt = billing_type || 'monthly';
+        if (bt === 'full' && (!total_amount || parseFloat(total_amount) <= 0)) {
+            return res.status(400).json({ error: 'Para cobrança Completa, o valor total (total_amount) é obrigatório.' });
+        }
 
         const payload = {
             id: genId('EN'),
@@ -249,6 +257,9 @@ async function handleEnrollments(req, res, supabase) {
             duration_minutes: duration_minutes !== undefined && duration_minutes !== null ? parseInt(duration_minutes, 10) : 60,
             classes_per_week: classes_per_week !== undefined && classes_per_week !== null ? parseInt(classes_per_week, 10) : 1,
             monthly_fee: monthly_fee !== undefined && monthly_fee !== null ? parseFloat(monthly_fee) : 0,
+            billing_type: bt,
+            total_amount: bt === 'full' ? parseFloat(total_amount) : null,
+            installments: parseFloat(installments || 1),
             status: status || 'active',
             notes: notes || null,
         };
@@ -259,39 +270,6 @@ async function handleEnrollments(req, res, supabase) {
             .select('*, students(name), teachers(name, specialty)')
             .single();
         if (error) throw error;
-
-        // Auto-generate tuition for the current month if active
-        if (payload.status === 'active' && payload.monthly_fee > 0) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const reference_month = `${year}-${month}`;
-            
-            // Creates a new tuition for THIS enrollment.
-            // `tuitions.enrollment_id` already exists (added in migration Etapa 37),
-            // so each enrollment generates its own independent tuition. This allows a
-            // student with multiple active enrollments (e.g. Piano + Violão) to have
-            // separate monthly fees.
-            
-            const tuitionPayload = {
-                id: genId('TU'),
-                student_id: payload.student_id,
-                enrollment_id: payload.id,
-                amount: payload.monthly_fee,
-                due_date: `${reference_month}-10`, // Default due date to 10th
-                status: 'pending',
-                reference_month: reference_month,
-                notes: `Mensalidade gerada automaticamente pela matrícula de ${payload.instrument || 'Aula'}`
-            };
-            
-            try {
-                await supabase.from('tuitions').insert([tuitionPayload]);
-            } catch (tuitionErr) {
-                // Tuition creation failed silently — enrollment was already saved.
-                // Log the error so it can be diagnosed, but don't block the response.
-                console.error('Auto-generate tuition failed:', tuitionErr.message);
-            }
-        }
 
         return res.status(201).json({ enrollment: data });
     }
@@ -306,6 +284,9 @@ async function handleEnrollments(req, res, supabase) {
             duration_minutes,
             classes_per_week,
             monthly_fee,
+            billing_type,
+            total_amount,
+            installments,
             status,
             notes,
         } = req.body;
@@ -320,6 +301,9 @@ async function handleEnrollments(req, res, supabase) {
         if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
         if (classes_per_week !== undefined) upd.classes_per_week = parseInt(classes_per_week, 10);
         if (monthly_fee      !== undefined) upd.monthly_fee      = parseFloat(monthly_fee);
+        if (billing_type     !== undefined) upd.billing_type     = billing_type;
+        if (total_amount     !== undefined) upd.total_amount     = total_amount ? parseFloat(total_amount) : null;
+        if (installments     !== undefined) upd.installments     = parseInt(installments, 10);
         if (status           !== undefined) upd.status           = status;
         if (notes            !== undefined) upd.notes            = notes;
 
@@ -376,6 +360,8 @@ async function handleTuitions(req, res, supabase) {
             enrollment_id,
             reference_month,
             amount,
+            billing_type,
+            installment_number,
             discount_amount,
             discount_reason,
             due_date,
@@ -393,6 +379,8 @@ async function handleTuitions(req, res, supabase) {
             enrollment_id: enrollment_id || null,
             reference_month: reference_month || null,
             amount: parseFloat(amount),
+            billing_type: billing_type || null,
+            installment_number: installment_number !== undefined && installment_number !== null ? parseInt(installment_number, 10) : null,
             discount_amount: parseFloat(discount_amount || 0),
             discount_reason: discount_reason || null,
             due_date,
@@ -419,6 +407,8 @@ async function handleTuitions(req, res, supabase) {
             status,
             payment_method,
             paid_at,
+            billing_type,
+            installment_number,
             discount_amount,
             discount_reason,
             amount,
@@ -429,16 +419,18 @@ async function handleTuitions(req, res, supabase) {
         if (!id) return res.status(400).json({ error: 'ID da mensalidade é obrigatório.' });
 
         const upd = {};
-        if (enrollment_id    !== undefined) upd.enrollment_id    = enrollment_id || null;
-        if (reference_month  !== undefined) upd.reference_month  = reference_month || null;
-        if (status           !== undefined) upd.status           = status;
-        if (payment_method   !== undefined) upd.payment_method   = payment_method;
-        if (paid_at          !== undefined) upd.paid_at          = paid_at;
-        if (discount_amount  !== undefined) upd.discount_amount  = parseFloat(discount_amount || 0);
-        if (discount_reason  !== undefined) upd.discount_reason  = discount_reason;
-        if (amount           !== undefined) upd.amount           = parseFloat(amount);
-        if (notes            !== undefined) upd.notes            = notes;
-        if (due_date         !== undefined) upd.due_date         = due_date;
+        if (enrollment_id       !== undefined) upd.enrollment_id       = enrollment_id || null;
+        if (reference_month     !== undefined) upd.reference_month     = reference_month || null;
+        if (status              !== undefined) upd.status              = status;
+        if (payment_method      !== undefined) upd.payment_method      = payment_method;
+        if (paid_at             !== undefined) upd.paid_at             = paid_at;
+        if (billing_type        !== undefined) upd.billing_type        = billing_type;
+        if (installment_number  !== undefined) upd.installment_number  = parseInt(installment_number, 10);
+        if (discount_amount     !== undefined) upd.discount_amount     = parseFloat(discount_amount || 0);
+        if (discount_reason     !== undefined) upd.discount_reason     = discount_reason;
+        if (amount              !== undefined) upd.amount              = parseFloat(amount);
+        if (notes               !== undefined) upd.notes               = notes;
+        if (due_date            !== undefined) upd.due_date            = due_date;
 
         if (status === 'paid' && !upd.paid_at) upd.paid_at = new Date().toISOString();
         else if (status && status !== 'paid') { upd.paid_at = null; upd.payment_method = null; }
@@ -1003,66 +995,6 @@ async function handleSummary(req, res, supabase) {
     });
 }
 
-// ── FECHAMENTO DE MÊS (Geração Automática) ──────────────────────────────────
-async function handleGenerateMonthlyBilling(req, res, supabase) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
-    
-    // Default to current month if not provided
-    let { reference_month } = req.body;
-    if (!reference_month) {
-        const now = new Date();
-        reference_month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    }
-
-    try {
-        // 1. Fetch all active enrollments
-        const { data: activeEnrollments, error: enrollErr } = await supabase
-            .from('enrollments')
-            .select('*')
-            .eq('status', 'active');
-        if (enrollErr) throw enrollErr;
-
-        // 2. Fetch all tuitions for this reference_month to prevent duplicates
-        const { data: existingTuitions, error: tuiErr } = await supabase
-            .from('tuitions')
-            .select('enrollment_id')
-            .eq('reference_month', reference_month)
-            .not('enrollment_id', 'is', null);
-        if (tuiErr) throw tuiErr;
-
-        const existingEnrollmentIds = new Set(existingTuitions.map(t => t.enrollment_id));
-
-        const tuitionsToInsert = [];
-        
-        for (const en of activeEnrollments) {
-            if (!existingEnrollmentIds.has(en.id) && en.monthly_fee > 0) {
-                tuitionsToInsert.push({
-                    id: genId('TU'),
-                    student_id: en.student_id,
-                    enrollment_id: en.id,
-                    amount: en.monthly_fee,
-                    due_date: `${reference_month}-10`,
-                    status: 'pending',
-                    reference_month: reference_month,
-                    notes: `Mensalidade (automática) ${en.instrument || 'Aula'}`
-                });
-            }
-        }
-
-        let insertedTuitions = 0;
-        if (tuitionsToInsert.length > 0) {
-            const { error: insErr } = await supabase.from('tuitions').insert(tuitionsToInsert);
-            if (insErr) throw insErr;
-            insertedTuitions = tuitionsToInsert.length;
-        }
-
-        return res.status(200).json({ success: true, tuitions_generated: insertedTuitions });
-
-    } catch (error) {
-        return res.status(500).json({ error: 'Erro ao gerar fechamento', details: error.message });
-    }
-}
-
 // ── DASHBOARD: consolidado de indicadores para a tela inicial ────────────────
 
 async function handleDashboard(req, res, supabase) {
@@ -1163,10 +1095,9 @@ export default async function handler(req, res) {
             case 'lessons':          return await handleLessons(req, res, supabase);
             case 'attendance':       return await handleAttendance(req, res, supabase);
             case 'summary':          return await handleSummary(req, res, supabase);
-            case 'generate_monthly_billing': return await handleGenerateMonthlyBilling(req, res, supabase);
 
             default:
-                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary, generate_monthly_billing.' });
+                return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
         }
     } catch (err) {
         return res.status(500).json({ error: 'Erro interno.', details: err.message });

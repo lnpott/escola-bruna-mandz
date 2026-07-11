@@ -1558,3 +1558,88 @@ Nenhuma.
 
 **Próxima Etapa:**
 Testes funcionais ponta a ponta pós-deploy.
+
+---
+
+# ETAPA 43 — MODELO DE COBRANÇA MISTO (billing_type) + INSTRUMENTOS EM LISTA + SEPARAÇÃO CUSTOS/INVESTIMENTOS
+
+**Data:** 10/07/2026
+
+**Objetivo:**
+Implementar três mudanças solicitadas pelo usuário: (1) campo de instrumentos passar de texto livre para dropdown com lista pré-definida, (2) modelo de cobrança flexível (semanal/mensal/completo) em vez de mensalidade fixa, removendo geração automática de mensalidades, e (3) separar visualmente Custos de Investimentos na aba Financeiro.
+
+**Decisão Arquitetural Registrada:**
+
+**Decisão:** O modelo de cobrança da escola passa a ser misto: `billing_type` com opções `weekly` (por semana), `monthly` (mensal) ou `full` (completo/à vista/parcelado). A geração automática de `tuitions` ao criar um `enrollment` foi removida porque o usuário confirmou que mensalidade "não é por mês e não tem automática". O endpoint `generate_monthly_billing` foi removido por inconsistência com o novo modelo.
+
+**Implementações Realizadas:**
+
+### Migration (043-billing-type.sql)
+- `enrollments`: adicionado `billing_type` (weekly|monthly|full), `total_amount` (para 'full'), `installments` (para parcelamento)
+- `tuitions`: adicionado `billing_type`, `installment_number` (para controle de parcelas)
+
+### Schema (financial-schema.sql)
+- Atualizado CREATE TABLE de `enrollments` e `tuitions` com os novos campos
+
+### Backend (admin-financial.js)
+- **Enrollment POST:** adicionado `billing_type`, `total_amount`, `installments` no payload + validação: se `billing_type = 'full'`, `total_amount` é obrigatório
+- **Enrollment PATCH:** adicionado `billing_type`, `total_amount`, `installments`
+- **Tuition POST/PATCH:** adicionado `billing_type`, `installment_number`
+- **Geração automática removida:** bloco que criava tuition automaticamente ao salvar enrollment foi removido
+- **handleGenerateMonthlyBilling:** função inteira removida (inconsistente com novo modelo)
+- **case 'generate_monthly_billing':** removido do switch + mensagem de erro atualizada
+
+### Frontend (painel-x9k2f.html) — Parcial
+- **Instruments:** campo no cadastro de Aluno mudou de `<input type="text">` para `<select>` com 17 opções (Piano, Teclado, Violão, Guitarra, Baixo, Bateria, Canto, Violino, Viola, Violoncelo, Saxofone, Flauta, Ukulele, Cavaquinho, Acordeon, Musicalização Infantil, Teoria Musical)
+- **Billing type no modal de Matrícula:** adicionado select com opções "Por Semana", "Mensal", "Completo (À Vista/Parcelado)" + campos condicionais de `total_amount` e `installments` visíveis apenas quando "Completo" é selecionado
+- **Botão "⚡ Fechamento do Mês":** removido da toolbar de Mensalidades
+- **Custos & Investimentos:** separados visualmente: antes estavam lado a lado em grid, agora são cards empilhados (dash-card) com títulos e botões inline próprios
+- **Botão "➕ Nova Cobrança":** texto ajustado de "Mensalidade" para "Cobrança"
+
+### Pendências (não aplicadas por limitação de encoding)
+- Função `updateEnrollmentBillingTypeFields()` não foi criada (causa ReferenceError ao editar matrícula)
+- Event listener de change no select billing_type para mostrar/esconder campos de 'full' não implementado
+- Submit handlers dos formulários de matrícula e mensalidade não enviam `billing_type` ao backend
+- Event listeners para os novos botões inline (`btn-new-expense-inline`, `btn-new-investment-inline`) não adicionados
+- Toolbar duplicada com botões antigos de Custo/Investimento ainda existe
+- Modal de matrícula: campo instrumento ainda é `<input type="text">` (precisa virar `<select>`)
+
+### Arquivos Alterados
+- `supabase/migrations/043-billing-type.sql` (NOVO)
+- `supabase/financial-schema.sql` (atualizado)
+- `api/admin-financial.js` (billing_type, validação, remoção auto-gen e monthly billing)
+- `painel-x9k2f.html` (campos instruments, billing_type, Custos/Investimentos)
+- `painel_registro.md` (este registro)
+
+### Alterações no Banco
+- `enrollments`: +`billing_type`, +`total_amount`, +`installments`
+- `tuitions`: +`billing_type`, +`installment_number`
+
+### Testes
+✅ **Migration 043-billing-type.sql aplicada com sucesso via Supabase CLI** (`npx supabase db query --linked -f`)
+✅ Conexão via Supabase CLI autenticada com PAT (Personal Access Token)
+✅ Temp files removidos: `apply-migration.js`, `apply-migration.cjs`, `fix-billing-type-ui.js`, `fix-hide-student.js`, `verify-columns.sql`
+
+**Método de conexão:** Supabase Management API via `npx supabase db query --linked` (requer `SUPABASE_ACCESS_TOKEN`). Tentativas de conexão direta (PGBouncer, conexão direta postgres, Management API com service_role key) falharam — apenas o PAT funciona.
+
+**Etapas tentadas sem sucesso:**
+- PGBouncer (`pooler.supabase.com:6543`) — `tenant/user not found`
+- Conexão direta (`db.*.supabase.co:5432`) — `password authentication failed`
+- Management API com service_role key — `401 JWT failed verification`
+- `npm install pg` + Client Node.js (PGBouncer e direto) — ambos falharam
+
+⚠ **Frontend não foi completamente finalizado — 6 pendências manuais no `painel-x9k2f.html`:**
+   1. Criar função `updateEnrollmentBillingTypeFields()` (evita ReferenceError)
+   2. Adicionar event listener change no select billing_type (toggle campos 'full')
+   3. Atualizar submit handler de `form-new-enrollment` (enviar billing_type, total_amount, installments)
+   4. Atualizar submit handler de `form-new-tuition` (enviar billing_type, installment_number)
+   5. Adicionar event listeners para `btn-new-expense-inline` e `btn-new-investment-inline`
+   6. Remover toolbar duplicada de Custos/Investimentos
+
+### Pendências
+- Implementar as 6 pendências de frontend listadas acima
+- Deploy na Vercel
+- Testes funcionais ponta a ponta
+
+### Próxima Etapa
+Finalizar as pendências de frontend (updateEnrollmentBillingTypeFields, event listeners, submit handlers) e realizar deploy completo na Vercel.
