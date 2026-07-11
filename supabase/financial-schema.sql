@@ -36,11 +36,19 @@ create table if not exists public.students (
     phone text,
     address text,
     instruments text not null default '',   -- Instrumento(s) que o aluno toca (ex: "Piano, Violão")
+    status text not null default 'active'
+        constraint students_status_check
+        check (status in ('lead', 'interested', 'enrolled', 'active', 'suspended', 'completed', 'cancelled')),
+    enrolled_at timestamptz,                -- Data de matrícula/primeira aula
+    source text                             -- Origem do lead
+        constraint students_source_check
+        check (source in ('website', 'indicacao', 'social', 'presencial', 'outro')),
     active boolean not null default true,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
+create index if not exists students_status_idx on public.students (status);
 create index if not exists students_active_idx on public.students (active)
     where active = true;
 

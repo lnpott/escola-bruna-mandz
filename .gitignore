@@ -12,3 +12,9 @@ supabase/backup_dados.json
 
 # Supabase CLI temp files
 supabase/.temp/
+
+# Ignorar arquivos temporários e de sistema
+.agents/
+*.zip
+*.backup.html
+scripts/

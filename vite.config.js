@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
+    plugins: [react()],
     root: '.',
     base: './',
+    resolve: {
+        alias: {
+            '@': resolve(__dirname, 'app/src'),
+        },
+    },
     server: {
         port: 5173,
         host: true,
@@ -19,11 +26,11 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: resolve(__dirname, 'index.html'),
-                // Painel admin escondido — precisa ser listado aqui para o Vite
-                // incluí-lo no build. Se você renomear o arquivo, atualize aqui também.
+                app: resolve(__dirname, 'app/index.html'),
                 painel: resolve(__dirname, 'painel-x9k2f.html'),
+                academic: resolve(__dirname, 'academic/index.html'),
+                commercial: resolve(__dirname, 'commercial/index.html'),
             },
         },
     },
 });
-

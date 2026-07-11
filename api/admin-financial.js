@@ -76,9 +76,14 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, cpf, email, phone, address, active, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
+        const { name, cpf, email, phone, address, active, status, enrolled_at, source, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
         if (!name) return res.status(400).json({ error: 'Nome é obrigatório.' });
         const instrumentsStr = Array.isArray(instruments) ? instruments.join(', ') : (instruments || '');
+
+        // Se status foi fornecido, usa ele. Senão, deriva de active (backwards compat)
+        const finalStatus = status || (active !== false ? 'active' : 'cancelled');
+        const finalActive = active !== undefined ? active : (finalStatus === 'active' || finalStatus === 'enrolled');
+
         const { data, error } = await supabase
             .from('students')
             .insert([{ 
@@ -89,7 +94,10 @@ async function handleStudents(req, res, supabase) {
                 phone: phone || null, 
                 address: address || null, 
                 instruments: instrumentsStr, 
-                active: active !== undefined ? active : true,
+                active: finalActive,
+                status: finalStatus,
+                enrolled_at: enrolled_at || null,
+                source: source || null,
                 guardian_name: guardian_name || null,
                 guardian_cpf: guardian_cpf || null,
                 guardian_phone: guardian_phone || null
@@ -100,7 +108,7 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'PATCH') {
-        const { id, name, cpf, email, phone, address, active, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
+        const { id, name, cpf, email, phone, address, active, status, enrolled_at, source, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
         if (!id) return res.status(400).json({ error: 'ID do aluno é obrigatório.' });
         const upd = {};
         if (name    !== undefined) upd.name    = name;
@@ -109,6 +117,16 @@ async function handleStudents(req, res, supabase) {
         if (phone   !== undefined) upd.phone   = phone || null;
         if (address !== undefined) upd.address = address || null;
         if (active  !== undefined) upd.active  = active;
+        if (status  !== undefined) {
+            upd.status  = status;
+            // Sincroniza active para backwards compatibility
+            upd.active  = (status === 'active' || status === 'enrolled');
+        } else if (active !== undefined) {
+            // Se active foi enviado sem status, deriva status de active (backwards compat)
+            upd.status  = active ? 'active' : 'cancelled';
+        }
+        if (enrolled_at !== undefined) upd.enrolled_at = enrolled_at || null;
+        if (source     !== undefined) upd.source     = source || null;
         if (instruments !== undefined) upd.instruments = Array.isArray(instruments) ? instruments.join(', ') : instruments;
         if (guardian_name !== undefined) upd.guardian_name = guardian_name || null;
         if (guardian_cpf  !== undefined) upd.guardian_cpf  = guardian_cpf || null;
