@@ -2,6 +2,49 @@ import type { Student, Teacher, StudentsResponse, TeachersResponse, DashboardDat
 
 const API_BASE = '/api/admin-financial';
 
+// ── Auth ──────────────────────────────────────────────────────────
+/**
+ * Verifica se a senha admin está armazenada na sessão.
+ */
+export function isAuthenticated(): boolean {
+    return !!sessionStorage.getItem('admin_password');
+}
+
+/**
+ * Testa uma senha contra a API. Se retornar true, a senha é válida.
+ */
+export async function verifyPassword(password: string): Promise<boolean> {
+    try {
+        const response = await fetch(`${API_BASE}?resource=students&limit=1`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-password': password,
+            },
+        });
+        return response.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Salva a senha na sessão e retorna true se for válida.
+ */
+export async function login(password: string): Promise<boolean> {
+    const valid = await verifyPassword(password);
+    if (valid) {
+        sessionStorage.setItem('admin_password', password);
+    }
+    return valid;
+}
+
+/**
+ * Remove a senha da sessão (logout).
+ */
+export function logout(): void {
+    sessionStorage.removeItem('admin_password');
+}
+
 async function request<T>(
     resource: string,
     options: RequestInit = {}
