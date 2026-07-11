@@ -1,0 +1,333 @@
+/* ── Dashboard Page ─────────────────────────────────────────── */
+.dash-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.dash-page h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 4px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.dash-header-subtitle {
+    color: #71717a;
+    font-size: 12px;
+    margin: 0;
+}
+
+.dash-countdown {
+    color: #52525b;
+}
+
+.dash-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── KPI Grid ──────────────────────────────────────────────── */
+.dash-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 0 0 16px;
+}
+
+.dash-kpi-card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+}
+
+.dash-kpi-card:hover {
+    border-color: #3f3f46;
+}
+
+.dash-kpi-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.dash-kpi-label {
+    color: #71717a;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.dash-kpi-value {
+    font-size: 22px;
+    font-weight: 900;
+    margin-top: 2px;
+    color: #fff;
+}
+
+.dash-kpi-value.good {
+    color: #86efac;
+}
+
+.dash-kpi-value.warn {
+    color: #fcd34d;
+}
+
+.dash-kpi-value.bad {
+    color: #fca5a5;
+}
+
+.dash-kpi-subtitle {
+    color: #52525b;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+/* ── Split Row ─────────────────────────────────────────────── */
+.dash-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+.dash-card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.dash-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #27272a;
+}
+
+.dash-card-header h3 {
+    margin: 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #a1a1aa;
+    font-weight: 700;
+    font-family: inherit;
+}
+
+.dash-card-body {
+    padding: 8px 16px 12px;
+}
+
+.dash-empty {
+    text-align: center;
+    padding: 16px 0;
+    color: #52525b;
+    font-size: 12px;
+}
+
+.dash-badge {
+    background: #dc2626;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.dash-view-link {
+    color: #dc2626;
+    font-size: 11px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+
+.dash-view-link:hover {
+    color: #f87171;
+}
+
+/* ── Class Row ─────────────────────────────────────────────── */
+.dash-class-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #1f1f22;
+    font-size: 12px;
+}
+
+.dash-class-row:last-child {
+    border-bottom: none;
+}
+
+.dash-class-row.completed {
+    opacity: 0.65;
+}
+
+.dash-class-time {
+    font-weight: 800;
+    color: #f4f4f5;
+    min-width: 48px;
+}
+
+.dash-class-student {
+    flex: 1;
+    color: #e4e4e7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-class-teacher {
+    color: #71717a;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.dash-class-status {
+    font-size: 11px;
+}
+
+/* ── Alert Row ─────────────────────────────────────────────── */
+.dash-alert-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #1f1f22;
+    font-size: 12px;
+}
+
+.dash-alert-row:last-child {
+    border-bottom: none;
+}
+
+.dash-alert-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.dash-alert-text {
+    flex: 1;
+    color: #e4e4e7;
+}
+
+.dash-alert-text strong {
+    color: #fca5a5;
+}
+
+/* ── Order Row ─────────────────────────────────────────────── */
+.dash-order-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #1f1f22;
+    font-size: 12px;
+}
+
+.dash-order-row:last-child {
+    border-bottom: none;
+}
+
+.dash-order-row.row-new {
+    background: #0f1f0f;
+    border-radius: 4px;
+}
+
+.dash-order-id {
+    font-family: monospace;
+    color: #ef4444;
+    font-weight: 700;
+    min-width: 90px;
+    font-size: 11px;
+}
+
+.dash-order-customer {
+    flex: 1;
+    color: #e4e4e7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-order-total {
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+}
+
+/* ── Stock Row ─────────────────────────────────────────────── */
+.dash-stock-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #1f1f22;
+    font-size: 12px;
+}
+
+.dash-stock-row:last-child {
+    border-bottom: none;
+}
+
+.dash-stock-name {
+    flex: 1;
+    color: #e4e4e7;
+}
+
+.dash-stock-count {
+    font-weight: 800;
+    color: #fca5a5;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 720px) {
+    .dash-page {
+        padding: 16px 12px;
+    }
+
+    .dash-header {
+        flex-direction: column;
+    }
+
+    .dash-split {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .dash-kpi-card {
+        padding: 12px;
+    }
+
+    .dash-kpi-value {
+        font-size: 18px;
+    }
+}

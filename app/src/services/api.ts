@@ -1,4 +1,4 @@
-import type { Student, StudentsResponse } from '@/types';
+import type { Student, Teacher, StudentsResponse, TeachersResponse, DashboardData, Lesson, Enrollment, LessonsResponse, EnrollmentsResponse, Payment, Expense, Investment, TeacherPayment, FinancialSummary, PaymentsResponse, ExpensesResponse, InvestmentsResponse, TeacherPaymentsResponse } from '@/types';
 
 const API_BASE = '/api/admin-financial';
 
@@ -60,8 +60,315 @@ export async function updateStudent(
     return data.student;
 }
 
+// ── Dashboard ─────────────────────────────────────────────────
+
+export async function fetchDashboard(): Promise<DashboardData['dashboard']> {
+    const data = await request<DashboardData>('dashboard');
+    return data.dashboard;
+}
+
+// ── Teachers ───────────────────────────────────────────────────
+
+export async function fetchTeachers(): Promise<Teacher[]> {
+    const data = await request<TeachersResponse>('teachers');
+    return data.teachers;
+}
+
+export async function createTeacher(
+    teacher: Omit<Teacher, 'id' | 'active' | 'created_at' | 'updated_at'>
+): Promise<Teacher> {
+    const data = await request<{ teacher: Teacher }>('teachers', {
+        method: 'POST',
+        body: JSON.stringify(teacher),
+    });
+    return data.teacher;
+}
+
+export async function updateTeacher(
+    id: string,
+    updates: Partial<Teacher>
+): Promise<Teacher> {
+    const data = await request<{ teacher: Teacher }>('teachers', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.teacher;
+}
+
+export async function deleteTeacher(id: string): Promise<void> {
+    await request(`teachers&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
+}
+
 export async function deleteStudent(id: string): Promise<void> {
     await request(`students&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
+}
+
+// ── Agenda / Lessons ──────────────────────────────────────────────
+
+export async function fetchLessons(params: {
+    date_from?: string;
+    date_to?: string;
+    date?: string;
+    student_id?: string;
+    teacher_id?: string;
+    status?: string;
+    limit?: number;
+}): Promise<Lesson[]> {
+    const searchParams = new URLSearchParams({ resource: 'lessons' });
+    if (params.date_from) searchParams.set('date_from', params.date_from);
+    if (params.date_to) searchParams.set('date_to', params.date_to);
+    if (params.date) searchParams.set('date', params.date);
+    if (params.student_id) searchParams.set('student_id', params.student_id);
+    if (params.teacher_id) searchParams.set('teacher_id', params.teacher_id);
+    if (params.status) searchParams.set('status', params.status);
+    if (params.limit) searchParams.set('limit', String(params.limit));
+
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?${searchParams.toString()}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: LessonsResponse = await response.json();
+    return data.lessons;
+}
+
+export async function createLesson(
+    lesson: Omit<Lesson, 'id' | 'created_at' | 'updated_at' | 'end_time'> & { duration_minutes: number }
+): Promise<Lesson> {
+    const data = await request<{ lesson: Lesson }>('lessons', {
+        method: 'POST',
+        body: JSON.stringify(lesson),
+    });
+    return data.lesson;
+}
+
+export async function updateLesson(
+    id: string,
+    updates: Partial<Lesson>
+): Promise<Lesson> {
+    const data = await request<{ lesson: Lesson }>('lessons', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.lesson;
+}
+
+export async function deleteLesson(id: string): Promise<void> {
+    await request(`lessons&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
+}
+
+// ── Enrollments ──────────────────────────────────────────────────
+
+export async function fetchEnrollments(params?: {
+    status?: string;
+}): Promise<Enrollment[]> {
+    const searchParams = new URLSearchParams({ resource: 'enrollments' });
+    if (params?.status) searchParams.set('status', params.status);
+
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?${searchParams.toString()}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: EnrollmentsResponse = await response.json();
+    return data.enrollments;
+}
+
+export async function createEnrollment(
+    enrollment: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'students' | 'teachers'>
+): Promise<Enrollment> {
+    const data = await request<{ enrollment: Enrollment }>('enrollments', {
+        method: 'POST',
+        body: JSON.stringify(enrollment),
+    });
+    return data.enrollment;
+}
+
+export async function updateEnrollment(
+    id: string,
+    updates: Partial<Enrollment>
+): Promise<Enrollment> {
+    const data = await request<{ enrollment: Enrollment }>('enrollments', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.enrollment;
+}
+
+export async function deleteEnrollment(id: string): Promise<void> {
+    await request(`enrollments&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
+}
+
+// ── Financial Summary ───────────────────────────────────────────────
+
+export async function fetchFinancialSummary(month: number, year: number): Promise<FinancialSummary['summary']> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=summary&month=${month}&year=${year}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: FinancialSummary = await response.json();
+    return data.summary;
+}
+
+// ── Payments (Receitas Avulsas) ──────────────────────────────────────
+
+export async function fetchPayments(month: number, year: number, category?: string): Promise<Payment[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    let url = `${API_BASE}?resource=payments&month=${month}&year=${year}`;
+    if (category) url += `&category=${encodeURIComponent(category)}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: PaymentsResponse = await response.json();
+    return data.payments;
+}
+
+export async function createPayment(
+    payment: { student_id?: string; description: string; amount: number; payment_method: string; paid_at: string; category: string }
+): Promise<Payment> {
+    const data = await request<{ payment: Payment }>('payments', {
+        method: 'POST',
+        body: JSON.stringify(payment),
+    });
+    return data.payment;
+}
+
+// ── Expenses (Custos) ───────────────────────────────────────────────
+
+export async function fetchExpenses(month: number, year: number, paid?: boolean): Promise<Expense[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    let url = `${API_BASE}?resource=expenses&month=${month}&year=${year}`;
+    if (paid !== undefined) url += `&paid=${paid}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: ExpensesResponse = await response.json();
+    return data.expenses;
+}
+
+export async function createExpense(
+    expense: { description: string; amount: number; category: string; due_date: string; paid?: boolean; expense_type?: string }
+): Promise<Expense> {
+    const data = await request<{ expense: Expense }>('expenses', {
+        method: 'POST',
+        body: JSON.stringify(expense),
+    });
+    return data.expense;
+}
+
+export async function updateExpense(
+    id: string,
+    updates: Partial<Expense>
+): Promise<Expense> {
+    const data = await request<{ expense: Expense }>('expenses', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.expense;
+}
+
+// ── Investments ─────────────────────────────────────────────────────
+
+export async function fetchInvestments(month: number, year: number): Promise<Investment[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=investments&month=${month}&year=${year}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: InvestmentsResponse = await response.json();
+    return data.investments;
+}
+
+export async function createInvestment(
+    investment: { description: string; amount: number; category: string; purchased_at: string; notes?: string }
+): Promise<Investment> {
+    const data = await request<{ investment: Investment }>('investments', {
+        method: 'POST',
+        body: JSON.stringify(investment),
+    });
+    return data.investment;
+}
+
+// ── Teacher Payments (Pagamentos a Professores) ─────────────────────
+
+export async function fetchTeacherPayments(month: number, year: number, paid?: boolean): Promise<TeacherPayment[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    let url = `${API_BASE}?resource=teacher_payments&month=${month}&year=${year}`;
+    if (paid !== undefined) url += `&paid=${paid}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: TeacherPaymentsResponse = await response.json();
+    return data.teacher_payments;
+}
+
+export async function createTeacherPayment(
+    tp: { teacher_id: string; reference_month: string; amount: number; paid?: boolean; paid_at?: string; notes?: string }
+): Promise<TeacherPayment> {
+    const data = await request<{ teacher_payment: TeacherPayment }>('teacher_payments', {
+        method: 'POST',
+        body: JSON.stringify(tp),
+    });
+    return data.teacher_payment;
+}
+
+export async function updateTeacherPayment(
+    id: string,
+    updates: Partial<TeacherPayment>
+): Promise<TeacherPayment> {
+    const data = await request<{ teacher_payment: TeacherPayment }>('teacher_payments', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.teacher_payment;
+}
+
+export async function deleteTeacherPayment(id: string): Promise<void> {
+    await request(`teacher_payments&id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
     });
 }
