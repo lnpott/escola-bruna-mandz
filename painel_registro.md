@@ -686,6 +686,7 @@ Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha 
 | 53 | Matrículas (Enrollments) React | ✅ |
 | 54 | Financeiro React | ✅ |
 | 55 | Admin React | ✅ |
+| 56 | Correção Portal → React | ✅ |
 | — | Testes funcionais ponta a ponta | ⏳ |
 
 ---
@@ -1318,6 +1319,13 @@ Testes funcionais completos do Financeiro (Etapa 39, conforme roadmap já previs
 | 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
 | 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
 | 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
+| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
+| 51 | Dashboard + Students + Teachers React | ✅ |
+| 52 | Agenda Mensal React | ✅ |
+| 53 | Matrículas (Enrollments) React | ✅ |
+| 54 | Financeiro React | ✅ |
+| 55 | Admin React | ✅ |
+| 56 | Correção Portal → React | ✅ |
 | — | Testes funcionais ponta a ponta | ⏳ |
 
 ---
@@ -2635,5 +2643,96 @@ Criar a página de Administração em React, oferecendo uma visão geral do sist
 ## Próxima Etapa
 
 Testes funcionais no navegador com browser-use, ou iniciar melhorias como exportação CSV, filtro paid/unpaid, edição de investimentos.
+
+
+# ETAPA 56 — CORREÇÃO PORTAL → REACT (painel-x9k2f.html)
+
+**Data:** 11/07/2026
+
+**Horário:** 11:39
+
+**Agente Responsável:** Antigravity (Claude Opus 4.6)
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+Corrigir o portal de login (`painel-x9k2f.html`) que ainda apontava o card "Módulo Acadêmico" para o painel HTML clássico (`academic/index.html`), mesmo após toda a funcionalidade acadêmica ter sido migrada para React nas Etapas 50–55. Alinhar o portal com a arquitetura atual documentada no `painel_registro.md`.
+
+---
+
+## Análise Realizada
+
+Antes da implementação, foi realizada uma leitura completa de:
+- `painel_registro.md` (2639 linhas, Etapas 33–55)
+- `TODO_PROGRESS.md` (99 linhas)
+- `painel-x9k2f.html` (271 linhas — portal de login)
+- `app/src/App.tsx` — rotas React com AuthGuard
+- `app/src/services/api.ts` — autenticação via sessionStorage
+- `vite.config.js` — entry points e base path
+- `vercel.json` — rewrites de produção
+
+### Problemas Identificados
+
+| # | Problema | Severidade | Ação |
+|---|----------|------------|------|
+| 1 | Card "Módulo Acadêmico" apontava para `academic/index.html` (Vanilla JS ~295KB) em vez de `/app/` (React) | 🔴 Crítico | Corrigido |
+| 2 | Propagação de senha via `sessionStorage('admin_password')` | 🟢 OK | Verificado — mesma chave usada pelo portal e pelo React |
+| 3 | `vite.config.js` com `base: './'` | 🟡 Monitor | Mantido (conservador) — não há evidência de 404 em produção |
+| 4 | `vercel.json` sem rewrite para portal | 🔵 Baixo | Funciona via arquivo estático |
+
+---
+
+## Implementações Realizadas
+
+### Portal (`painel-x9k2f.html`)
+- Card "Módulo Acadêmico": `href` alterado de `academic/index.html` para `/app/`
+- Descrição atualizada: "Dashboard, Alunos, Professores, Matrículas, Agenda, Financeiro e Administração."
+- Card "Módulo Comercial" mantido apontando para `commercial/index.html` (não migrado para React)
+
+### Fluxo de autenticação verificado
+- Portal salva `sessionStorage.setItem('admin_password', pass)` ao fazer login
+- React lê `sessionStorage.getItem('admin_password')` no `AuthGuard`
+- Como ambos compartilham o mesmo origin, o `sessionStorage` é compartilhado na mesma aba
+- Resultado: usuário faz login no portal → clica em "Módulo Acadêmico" → React detecta autenticação válida → vai direto para Home (sem pedir senha novamente)
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` (href do card acadêmico + descrição)
+- `painel_registro.md` (este registro + Roadmap atualizado)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma.** Etapa exclusivamente de frontend.
+
+---
+
+## Testes
+
+✅ `npm run build` — 3.16s, 0 warnings, todos os 5 entry points compilados
+✅ Verificação de sessionStorage: mesma chave `admin_password` no portal e no React
+✅ Verificação de fluxo: portal → login → sessionStorage → `/app/` → AuthGuard detecta sessão → Home
+⚠ Não testado em produção — depende do push para Vercel
+
+---
+
+## Pendências
+
+- Deploy na Vercel (git push)
+- Teste manual: login no portal → clicar "Módulo Acadêmico" → verificar que React abre autenticado
+- Monitorar `base: './'` no `vite.config.js` — se aparecerem 404 de assets, mudar para `base: '/'`
+- Testes funcionais ponta a ponta (pendência carregada desde Etapa 38)
+
+---
+
+## Próxima Etapa
+
+Testes funcionais ponta a ponta no navegador, ou implementar melhorias pendentes: exportação CSV, filtro paid/unpaid, edição de investimentos.
 
 ---
