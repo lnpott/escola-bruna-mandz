@@ -94,7 +94,7 @@ function DashboardLayout() {
 
 export default function App() {
     return (
-        <BrowserRouter>
+        <BrowserRouter basename="/app">
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard" element={<DashboardLayout />} />
