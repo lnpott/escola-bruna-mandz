@@ -1,43 +1,81 @@
-# Atualizações Diversas (CPFs, Menus, Correções)
+# Refatoração Modular do Painel (Separation of Concerns)
 
-Este plano aborda as correções solicitadas para o painel de alunos, professores, agenda e correções de bugs.
+O sistema atual (`painel-x9k2f.html`) é um monólito de +4500 linhas que mistura as lógicas de gestão acadêmica e comercial. Com base no princípio de *Separation of Concerns*, vamos dividir o sistema em domínios específicos.
 
-## Proposed Changes
+## User Review Required
 
-### 1. Campos de CPF (Banco de Dados e Interface)
-- **Banco de Dados:** Criar uma *migration* (`045-add-cpf.sql`) para adicionar as colunas `cpf` e `guardian_cpf` na tabela `students`, e a coluna `cpf` na tabela `teachers`.
-- **API (`admin-financial.js`):** Atualizar os endpoints de salvar/editar Alunos e Professores para aceitarem e gravarem esses novos campos.
-- **Frontend (`painel-x9k2f.html`):** 
-  - Inserir os campos de CPF (Aluno e Responsável) no formulário de Novo Aluno.
-  - Inserir campo de CPF no formulário de Novo Professor.
-  - Adicionar as colunas de CPF nas tabelas de visualização (substituindo a coluna ID).
+> [!WARNING]
+> Esta refatoração dividirá completamente o `painel-x9k2f.html` em novas páginas e arquivos JS separados. O antigo arquivo será mantido como backup inicial, mas o roteamento do sistema será alterado. Isso afetará as URLs de acesso e a estrutura das APIs.
 
-### 2. Ocultar IDs
-- Remover as colunas de `ID` de todas as tabelas (Alunos, Professores, Vínculos, Aulas, Mensalidades, etc.), já que são apenas para controle interno e poluem a visão.
-
-### 3. Reestruturação do Menu Professores
-- O menu **Professores** sairá de dentro de Financeiro e ganhará uma **Aba Principal** dedicada, posicionada ao lado da aba de Alunos.
-
-### 4. Correção do Formulário de Aulas / Vínculos (Bug de Matrícula)
-- **Problema:** A tela de "Novo Vínculo" estava quebrando ao abrir (erro `Cannot set properties of null`) porque os campos de horário e dia da semana foram removidos do HTML no passado, mas o JavaScript continuou tentando manipulá-los.
-- **Solução:** Remover essas referências mortas do JavaScript (`class_time`, `day_of_week`, etc.) da tela de matrícula. A definição de horários será feita diretamente no momento de criar uma **Aula** (menu Agenda/Aulas), não no vínculo geral.
-- Renomear o título do modal de "Novo Vínculo" para "Nova Matrícula/Aula", ajustando a lógica de instrumentos para que liste dinamicamente se o professor tocar mais de um.
-
-### 5. Ajuste de Horários (Segundos)
-- Remover a precisão de segundos (`:00`) na listagem de horários pela interface. Sempre formataremos para horas e minutos curtos (ex: `14:30`).
+> [!CAUTION]
+> As políticas de RLS (Row Level Security) propostas exigirão que os usuários tenham um `role` ou `perfil` definido no Supabase (ex: `academic_admin`, `commercial_admin`, `teacher`). Por favor, confirme como os papéis dos usuários estão estruturados atualmente na tabela `auth.users` ou em uma tabela de `profiles`.
 
 ## Open Questions
 
-> [!WARNING]
-> Os campos de CPF (`cpf` e `guardian_cpf`) devem ser obrigatórios no cadastro do aluno/professor, ou podem ser deixados em branco (opcionais)?
+1. Como os papéis de usuário (roles) estão sendo controlados atualmente? Temos uma tabela `profiles` associada aos usuários autenticados, ou devemos basear as restrições de RLS no campo de metadados do `auth.users`?
+2. A página inicial (Central de Roteamento) deve estar na raiz `/index.html` substituindo o acesso atual, ou `/admin/index.html`?
+3. Podemos remover completamente as operações da loja/pedidos da API `admin-financial.js` e focar em APIs separadas (`api/admin-academic.js` e `api/admin-commercial.js`)?
 
-> [!IMPORTANT]
-> Em relação aos horários, você deseja que os campos de Dia/Horário sejam reinseridos no Vínculo do aluno, ou manteremos o padrão atual onde o vínculo é só financeiro/pedagógico e a **Aula** (dia e hora reais) é marcada avulsa na aba de Aulas/Agenda?
+## Proposed Changes
+
+### 1. Estrutura de Diretórios Sugerida
+
+A estrutura será reorganizada para isolar os domínios:
+
+```text
+/
+├── index.html                 # Roteador de Contexto (Landing page do Admin)
+├── academic/
+│   ├── index.html             # UI do Painel Acadêmico (Alunos, Professores, Agenda)
+│   └── js/main.js             # Lógica e chamadas de API do módulo acadêmico
+├── commercial/
+│   ├── index.html             # UI do Painel Comercial (Loja, Pedidos, Financeiro)
+│   └── js/main.js             # Lógica e chamadas de API do módulo comercial
+├── api/
+│   ├── admin-academic.js      # Endpoints: students, teachers, lessons, attendance
+│   └── admin-commercial.js    # Endpoints: products, orders, financials
+└── supabase/
+    └── migrations/
+        └── 048-rls-separation.sql # Novas regras de segurança (RLS)
+```
+
+### 2. Fragmentação de Interface
+
+- **Painel Acadêmico (`/academic/index.html`)**: Conterá exclusivamente os modais, tabelas e lógicas referentes a **Alunos**, **Professores**, e **Agenda**.
+- **Painel Comercial (`/commercial/index.html`)**: Conterá **Pedidos**, **Produtos**, e **Financeiro / Mensalidades**.
+- **Navegação Central (`/index.html`)**: Uma tela inicial simples onde o usuário, após o login, verá dois cards grandes ("Módulo Acadêmico" e "Módulo Comercial"). A exibição desses cards pode ser condicionada ao perfil do usuário.
+
+### 3. Segurança (RLS Supabase)
+
+Será criado o arquivo `048-rls-separation.sql` com políticas RLS para reforçar a segurança diretamente no banco. 
+
+*Exemplo técnico da implementação:*
+```sql
+-- Habilitar RLS nas tabelas chave
+ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financial_transactions ENABLE ROW LEVEL SECURITY;
+
+-- Política Acadêmica: Apenas admins acadêmicos ou professores podem ver alunos/agenda
+CREATE POLICY "academic_access" ON public.students
+FOR ALL USING (
+    (auth.jwt() ->> 'role') IN ('academic_admin', 'super_admin', 'teacher')
+);
+
+-- Política Comercial: Apenas admins comerciais podem ver financeiro
+CREATE POLICY "commercial_access" ON public.financial_transactions
+FOR ALL USING (
+    (auth.jwt() ->> 'role') IN ('commercial_admin', 'super_admin')
+);
+```
+*(Nota: As políticas exatas serão ajustadas conforme a resposta sobre a gestão de roles).*
 
 ## Verification Plan
 
 ### Manual Verification
-- Acessar o sistema, verificar se a aba "Professores" está visível no topo.
-- Cadastrar um novo Aluno preenchendo os campos de CPF e verificar se salvam.
-- Abrir o modal de cadastro/edição na aba Alunos e confirmar que ele abre perfeitamente sem o erro `TypeError`.
-- Verificar se as tabelas perderam a coluna "ID".
+1. Acessar a nova rota `/index.html` e verificar se a Landing Page de seleção de módulo é exibida corretamente.
+2. Entrar no **Módulo Acadêmico** e garantir que as funções de Cadastrar Aluno, Cadastrar Professor e Nova Aula funcionam via a nova API `admin-academic.js`.
+3. Entrar no **Módulo Comercial** e garantir que Loja, Pedidos e Financeiro operam corretamente isolados.
+4. Testar o acesso direto ao banco usando chaves JWT com perfis diferentes para validar o bloqueio do RLS.
