@@ -344,7 +344,7 @@ create policy "admin manage teacher_payments"
 
 create table if not exists public.lessons (
     id text primary key,                        -- LS-XXXXXX
-    enrollment_id text not null references public.enrollments(id) on delete cascade,
+    enrollment_id text references public.enrollments(id) on delete cascade,
     student_id text not null references public.students(id) on delete cascade,
     teacher_id text references public.teachers(id) on delete set null,
     instrument text,

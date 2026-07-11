@@ -698,7 +698,7 @@ async function handleLessons(req, res, supabase) {
         const { limit, offset } = parsePagination(req);
         let q = supabase
             .from('lessons')
-            .select('*, enrollments!inner(monthly_fee, day_of_week), students(name), teachers(name, specialty)', { count: 'exact' })
+            .select('*, enrollments(monthly_fee, day_of_week), students(name), teachers(name, specialty)', { count: 'exact' })
             .order('date', { ascending: true })
             .order('start_time', { ascending: true })
             .range(offset, offset + limit - 1);
