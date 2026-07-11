@@ -1,6 +1,12 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "rewrites": [
-        { "source": "/app/:path(.*)", "destination": "/app/index.html" }
+        { "source": "/app/:path(.*)", "destination": "/app/index.html" },
+        { "source": "/comercial", "destination": "/commercial/index.html" },
+        { "source": "/comercial/:path(.*)", "destination": "/commercial/index.html" },
+        { "source": "/commercial", "destination": "/commercial/index.html" },
+        { "source": "/commercial/:path(.*)", "destination": "/commercial/index.html" },
+        { "source": "/academico", "destination": "/academic/index.html" },
+        { "source": "/academico/:path(.*)", "destination": "/academic/index.html" }
     ]
 }
