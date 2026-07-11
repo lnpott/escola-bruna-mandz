@@ -64,6 +64,6 @@ export default async function handler(req, res) {
         });
     } catch (err) {
         console.error('verify-mp-payment: erro:', err.message);
-        return res.status(500).json({ error: 'Erro interno.', details: err.message });
+        return res.status(500).json({ error: 'Erro interno.' });
     }
 }

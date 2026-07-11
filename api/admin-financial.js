@@ -58,6 +58,107 @@ function monthRange(month, year) {
     };
 }
 
+/**
+ * Converte valor para número float de forma segura.
+ * Previne NaN no banco de dados quando input inválido é recebido.
+ * @param {*} value - Valor a converter
+ * @param {number} fallback - Valor padrão se inválido/ausente
+ * @param {number} min - Valor mínimo aceito (default -Infinity = sem validação)
+ * @returns {number}
+ */
+function safeFloat(value, fallback = 0, min = -Infinity) {
+    if (value === undefined || value === null) return fallback;
+    const num = parseFloat(value);
+    if (isNaN(num)) return fallback;
+    if (num < min) return fallback;
+    return num;
+}
+
+/**
+ * Converte valor para inteiro de forma segura.
+ * Previne NaN no banco de dados quando input inválido é recebido.
+ * @param {*} value - Valor a converter
+ * @param {number} fallback - Valor padrão se inválido/ausente
+ * @param {number} min - Valor mínimo aceito (default -Infinity = sem validação)
+ * @returns {number}
+ */
+/**
+ * Resolve o timestamp de paid_at baseado na mudança do campo paid.
+ * Se marcado como pago sem data, define paid_at = agora.
+ * Se desmarcado (paid = false), limpa paid_at.
+ * @param {Object} upd - Objeto de updates sendo construído
+ * @param {boolean|undefined} paid - Novo valor do campo paid
+ */
+function resolvePaidTimestamp(upd, paid) {
+    if (paid === true && !upd.paid_at) {
+        upd.paid_at = new Date().toISOString();
+    }
+    if (paid === false) {
+        upd.paid_at = null;
+    }
+}
+
+function safeInt(value, fallback = 0, min = -Infinity) {
+    if (value === undefined || value === null) return fallback;
+    const num = parseInt(value, 10);
+    if (isNaN(num)) return fallback;
+    if (num < min) return fallback;
+    return num;
+}
+
+// ── Helpers financeiros compartilhados ─────────────────────────────────────────
+// Extraído para eliminar duplicação entre handleSummary e handleDashboard.
+
+/**
+ * Executa as 8 queries financeiras compartilhadas e retorna os indicadores
+ * calculados (revenue, outgoings, balance, pending_tuitions, etc.).
+ * @param {Object} supabase - Cliente Supabase autenticado
+ * @param {number|string} month - Mês (1-12)
+ * @param {number|string} year - Ano (ex: 2026)
+ * @returns {Promise<Object>} financial summary object
+ */
+async function computeFinancialSummary(supabase, month, year) {
+    const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(month, year);
+    const today = new Date().toISOString().split('T')[0];
+
+    const [
+        { data: paidTuitions,  error: e1 },
+        { data: avulsoPayments,error: e2 },
+        { data: paidExpenses,  error: e3 },
+        { data: investments,   error: e4 },
+        { data: pendingTuitions, error: e5 },
+        { data: overdueTuitions, error: e6 },
+        { data: paidTeacherPayments, error: e7 },
+        { data: pendingTeacherPayments, error: e8 },
+    ] = await Promise.all([
+        supabase.from('tuitions').select('amount,discount_amount').eq('status','paid').gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('payments').select('amount').gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('expenses').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('investments').select('amount').gte('purchased_at',dateStart).lte('purchased_at',dateEnd),
+        supabase.from('tuitions').select('amount,discount_amount').in('status',['pending','overdue']).gte('due_date',dateStart).lte('due_date',dateEnd),
+        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
+        supabase.from('teacher_payments').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
+        supabase.from('teacher_payments').select('amount').eq('paid',false).gte('reference_month',dateStart).lte('reference_month',dateEnd),
+    ]);
+
+    for (const e of [e1, e2, e3, e4, e5, e6, e7, e8]) { if (e) throw e; }
+
+    const revenue  = paidTuitions.reduce((s,t) => s + Number(t.amount) - Number(t.discount_amount), 0)
+                   + avulsoPayments.reduce((s,p) => s + Number(p.amount), 0);
+    const outgoings = paidExpenses.reduce((s,e) => s + Number(e.amount), 0)
+                    + investments.reduce((s,i) => s + Number(i.amount), 0)
+                    + paidTeacherPayments.reduce((s,p) => s + Number(p.amount), 0);
+
+    return {
+        revenue,
+        outgoings,
+        balance: revenue - outgoings,
+        pending_tuitions: pendingTuitions.reduce((s,t) => s + Number(t.amount) - Number(t.discount_amount), 0),
+        overdue_students: new Set(overdueTuitions.map(t => t.student_id)).size,
+        pending_teacher_payments: pendingTeacherPayments.reduce((s,p) => s + Number(p.amount), 0),
+    };
+}
+
 // ── Handlers por resource ─────────────────────────────────────────────────────
 
 async function handleStudents(req, res, supabase) {
@@ -180,7 +281,7 @@ async function handleTeachers(req, res, supabase) {
                 phone: phone || null,
                 specialty: specialty || null,
                 days_of_week: daysCsv,
-                rate_per_class: rate_per_class !== undefined && rate_per_class !== null ? parseFloat(rate_per_class) : 0,
+                rate_per_class: safeFloat(rate_per_class, 0),
             }])
             .select().single();
         if (error) throw error;
@@ -196,7 +297,7 @@ async function handleTeachers(req, res, supabase) {
         if (cpf !== undefined) upd.cpf = cpf || null;
         if (phone !== undefined) upd.phone = phone || null;
         if (specialty !== undefined) upd.specialty = specialty || null;
-        if (rate_per_class !== undefined) upd.rate_per_class = parseFloat(rate_per_class || 0);
+        if (rate_per_class !== undefined) upd.rate_per_class = safeFloat(rate_per_class, 0);
 
         if (days_of_week !== undefined) {
             // Schema real: teachers.days_of_week é TEXT.
@@ -270,7 +371,7 @@ async function handleEnrollments(req, res, supabase) {
         if (!student_id) return res.status(400).json({ error: 'student_id é obrigatório.' });
 
         const bt = billing_type || 'monthly';
-        if (bt === 'full' && (!total_amount || parseFloat(total_amount) <= 0)) {
+        if (bt === 'full' && safeFloat(total_amount, 0) <= 0) {
             return res.status(400).json({ error: 'Para cobrança Completa, o valor total (total_amount) é obrigatório.' });
         }
 
@@ -281,12 +382,12 @@ async function handleEnrollments(req, res, supabase) {
             instrument: instrument || null,
             day_of_week: day_of_week || null,
             class_time: class_time || null,
-            duration_minutes: duration_minutes !== undefined && duration_minutes !== null ? parseInt(duration_minutes, 10) : 60,
-            classes_per_week: classes_per_week !== undefined && classes_per_week !== null ? parseInt(classes_per_week, 10) : 1,
-            monthly_fee: monthly_fee !== undefined && monthly_fee !== null ? parseFloat(monthly_fee) : 0,
+            duration_minutes: safeInt(duration_minutes, 60),
+            classes_per_week: safeInt(classes_per_week, 1),
+            monthly_fee: safeFloat(monthly_fee, 0),
             billing_type: bt,
-            total_amount: bt === 'full' ? parseFloat(total_amount) : null,
-            installments: parseFloat(installments || 1),
+            total_amount: bt === 'full' ? safeFloat(total_amount, 0, 0) : null,
+            installments: safeInt(installments, 1),
             status: status || 'active',
             notes: notes || null,
         };
@@ -325,12 +426,12 @@ async function handleEnrollments(req, res, supabase) {
         if (instrument       !== undefined) upd.instrument       = instrument || null;
         if (day_of_week      !== undefined) upd.day_of_week      = day_of_week || null;
         if (class_time       !== undefined) upd.class_time       = class_time || null;
-        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
-        if (classes_per_week !== undefined) upd.classes_per_week = parseInt(classes_per_week, 10);
-        if (monthly_fee      !== undefined) upd.monthly_fee      = parseFloat(monthly_fee);
+        if (duration_minutes !== undefined) upd.duration_minutes = safeInt(duration_minutes, 60);
+        if (classes_per_week !== undefined) upd.classes_per_week = safeInt(classes_per_week, 1);
+        if (monthly_fee      !== undefined) upd.monthly_fee      = safeFloat(monthly_fee, 0);
         if (billing_type     !== undefined) upd.billing_type     = billing_type;
-        if (total_amount     !== undefined) upd.total_amount     = total_amount ? parseFloat(total_amount) : null;
-        if (installments     !== undefined) upd.installments     = parseInt(installments, 10);
+        if (total_amount     !== undefined) upd.total_amount     = total_amount ? safeFloat(total_amount, 0, 0) : null;
+        if (installments     !== undefined) upd.installments     = safeInt(installments, 1);
         if (status           !== undefined) upd.status           = status;
         if (notes            !== undefined) upd.notes            = notes;
 
@@ -405,10 +506,10 @@ async function handleTuitions(req, res, supabase) {
             student_id,
             enrollment_id: enrollment_id || null,
             reference_month: reference_month || null,
-            amount: parseFloat(amount),
+            amount: safeFloat(amount, 0, 0),
             billing_type: billing_type || null,
-            installment_number: installment_number !== undefined && installment_number !== null ? parseInt(installment_number, 10) : null,
-            discount_amount: parseFloat(discount_amount || 0),
+            installment_number: safeInt(installment_number, null),
+            discount_amount: safeFloat(discount_amount, 0),
             discount_reason: discount_reason || null,
             due_date,
             status: status || 'pending',
@@ -452,10 +553,10 @@ async function handleTuitions(req, res, supabase) {
         if (payment_method      !== undefined) upd.payment_method      = payment_method;
         if (paid_at             !== undefined) upd.paid_at             = paid_at;
         if (billing_type        !== undefined) upd.billing_type        = billing_type;
-        if (installment_number  !== undefined) upd.installment_number  = parseInt(installment_number, 10);
-        if (discount_amount     !== undefined) upd.discount_amount     = parseFloat(discount_amount || 0);
+        if (installment_number  !== undefined) upd.installment_number  = safeInt(installment_number, null);
+        if (discount_amount     !== undefined) upd.discount_amount     = safeFloat(discount_amount, 0);
         if (discount_reason     !== undefined) upd.discount_reason     = discount_reason;
-        if (amount              !== undefined) upd.amount              = parseFloat(amount);
+        if (amount              !== undefined) upd.amount              = safeFloat(amount, 0, 0);
         if (notes               !== undefined) upd.notes               = notes;
         if (due_date            !== undefined) upd.due_date            = due_date;
 
@@ -500,7 +601,7 @@ async function handlePayments(req, res, supabase) {
             return res.status(400).json({ error: 'descrição, valor e forma de pagamento são obrigatórios.' });
         const { data, error } = await supabase
             .from('payments')
-            .insert([{ id: genId('PA'), student_id: student_id || null, description, amount: parseFloat(amount), payment_method, paid_at: paid_at || new Date().toISOString(), category: category || 'outro' }])
+            .insert([{ id: genId('PA'), student_id: student_id || null, description, amount: safeFloat(amount, 0, 0), payment_method, paid_at: paid_at || new Date().toISOString(), category: category || 'outro' }])
             .select('*, students(name)').single();
         if (error) throw error;
         return res.status(201).json({ payment: data });
@@ -541,7 +642,7 @@ async function handleExpenses(req, res, supabase) {
         const payload = {
             id: genId('EX'),
             description,
-            amount: parseFloat(amount),
+            amount: safeFloat(amount, 0, 0),
             category: category || 'outro',
             due_date,
             expense_type: expense_type || 'fixed',
@@ -566,15 +667,14 @@ async function handleExpenses(req, res, supabase) {
 
         const upd = {};
         if (description !== undefined) upd.description = description;
-        if (amount      !== undefined) upd.amount      = parseFloat(amount);
+        if (amount      !== undefined) upd.amount      = safeFloat(amount, 0, 0);
         if (category    !== undefined) upd.category    = category;
         if (due_date    !== undefined) upd.due_date    = due_date;
         if (expense_type !== undefined) upd.expense_type = expense_type;
         if (paid        !== undefined) upd.paid        = paid;
         if (paid_at     !== undefined) upd.paid_at     = paid_at;
 
-        if (paid === true  && !upd.paid_at) upd.paid_at = new Date().toISOString();
-        if (paid === false) upd.paid_at = null;
+        resolvePaidTimestamp(upd, paid);
 
         const { data, error } = await supabase
             .from('expenses')
@@ -614,7 +714,7 @@ async function handleInvestments(req, res, supabase) {
             return res.status(400).json({ error: 'descrição, valor e data de compra são obrigatórios.' });
         const { data, error } = await supabase
             .from('investments')
-            .insert([{ id: genId('IN'), description, amount: parseFloat(amount), category: category || 'outro', purchased_at, notes: notes || null }])
+            .insert([{ id: genId('IN'), description, amount: safeFloat(amount, 0, 0), category: category || 'outro', purchased_at, notes: notes || null }])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ investment: data });
@@ -658,7 +758,7 @@ async function handleTeacherPayments(req, res, supabase) {
             id: genId('TP'),
             teacher_id,
             reference_month,
-            amount: parseFloat(amount),
+            amount: safeFloat(amount, 0, 0),
             paid: paid || false,
             paid_at: paid ? (paid_at || new Date().toISOString()) : null,
             notes: notes || null,
@@ -678,13 +778,12 @@ async function handleTeacherPayments(req, res, supabase) {
         if (!id) return res.status(400).json({ error: 'ID do pagamento ao professor é obrigatório.' });
 
         const upd = {};
-        if (amount !== undefined) upd.amount = parseFloat(amount);
+        if (amount !== undefined) upd.amount = safeFloat(amount, 0, 0);
         if (notes  !== undefined) upd.notes  = notes;
         if (paid   !== undefined) upd.paid   = paid;
         if (paid_at !== undefined) upd.paid_at = paid_at;
 
-        if (paid === true  && !upd.paid_at) upd.paid_at = new Date().toISOString();
-        if (paid === false) upd.paid_at = null;
+        resolvePaidTimestamp(upd, paid);
 
         const { data, error } = await supabase
             .from('teacher_payments')
@@ -760,9 +859,7 @@ async function handleLessons(req, res, supabase) {
         let lessonTeacherId = teacher_id || null;
         let lessonInstrument = instrument || null;
         let lessonEnrollmentId = enrollment_id || null;
-        let lessonDuration = duration_minutes !== undefined && duration_minutes !== null
-            ? parseInt(duration_minutes, 10)
-            : 60;
+        let lessonDuration = safeInt(duration_minutes, 60);
 
         // Se enrollment_id foi fornecido, busca os dados do vínculo
         if (enrollment_id) {
@@ -849,7 +946,7 @@ async function handleLessons(req, res, supabase) {
         const upd = {};
         if (date !== undefined)             upd.date = date;
         if (start_time !== undefined)       upd.start_time = start_time;
-        if (duration_minutes !== undefined) upd.duration_minutes = parseInt(duration_minutes, 10);
+        if (duration_minutes !== undefined) upd.duration_minutes = safeInt(duration_minutes, 60);
         if (status !== undefined)           upd.status = status;
         if (lesson_type !== undefined)      upd.lesson_type = lesson_type;
         if (notes !== undefined)            upd.notes = notes;
@@ -857,7 +954,7 @@ async function handleLessons(req, res, supabase) {
         // Se start_time ou duration_minutes mudaram, recalcula end_time
         if (start_time !== undefined || duration_minutes !== undefined) {
             const currentStart = start_time;
-            const currentDur = duration_minutes !== undefined ? parseInt(duration_minutes, 10) : undefined;
+            const currentDur = duration_minutes !== undefined ? safeInt(duration_minutes, 60) : undefined;
 
             // Precisamos dos valores atuais para recalcular
             const { data: currentLesson } = await supabase
@@ -940,7 +1037,7 @@ async function handleAttendance(req, res, supabase) {
             lesson_id,
             student_id,
             status: attStatus || 'present',
-            late_minutes: late_minutes !== undefined ? parseInt(late_minutes, 10) : 0,
+            late_minutes: safeInt(late_minutes, 0),
             notes: notes || null,
             recorded_at: new Date().toISOString(),
         };
@@ -962,7 +1059,7 @@ async function handleAttendance(req, res, supabase) {
 
         const upd = {};
         if (attStatus !== undefined)    upd.status = attStatus;
-        if (late_minutes !== undefined) upd.late_minutes = parseInt(late_minutes, 10);
+        if (late_minutes !== undefined) upd.late_minutes = safeInt(late_minutes, 0);
         if (notes !== undefined)        upd.notes = notes;
 
         const { data, error } = await supabase
@@ -979,70 +1076,20 @@ async function handleAttendance(req, res, supabase) {
     return res.status(405).json({ error: 'Método não permitido.' });
 }
 
+// ── SUMMARY: resumo financeiro (usa computeFinancialSummary) ─────────────────
+
 async function handleSummary(req, res, supabase) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
 
     const { month, year } = req.query;
     if (!month || !year) return res.status(400).json({ error: 'Parâmetros month e year são obrigatórios.' });
 
-    const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(month, year);
+    const financial = await computeFinancialSummary(supabase, month, year);
 
-    // ── Data de hoje para detecção de atrasados ───────────────────────────────
-    // Computada antes das queries para evitar SQL injection por string
-    // interpolation dentro do filtro .or().
-    const today = new Date().toISOString().split('T')[0];
-
-    // ── 8 queries paralelas para o resumo financeiro ──────────────────────────
-    // Cada query é suportada por índices específicos:
-    //   tuitions:         tuitions_paid_at_idx (partial WHERE status=paid)
-    //   payments:         payments_paid_at_idx
-    //   expenses:         expenses_paid_at_idx (partial WHERE paid=true)
-    //   investments:      investments_purchased_at_idx
-    //   teacher_payments: teacher_payments_paid_at_idx (partial WHERE paid=true)
-    //   pending tuitions: tuitions_status_idx + tuitions_due_date_idx
-    const [
-        { data: paidTuitions,  error: e1 },
-        { data: avulsoPayments,error: e2 },
-        { data: paidExpenses,  error: e3 },
-        { data: investments,   error: e4 },
-        { data: pendingTuitions, error: e5 },
-        { data: overdueTuitions, error: e6 },
-        { data: paidTeacherPayments, error: e7 },
-        { data: pendingTeacherPayments, error: e8 },
-    ] = await Promise.all([
-        supabase.from('tuitions').select('amount,discount_amount').eq('status','paid').gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('payments').select('amount').gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('expenses').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('investments').select('amount').gte('purchased_at',dateStart).lte('purchased_at',dateEnd),
-        supabase.from('tuitions').select('amount,discount_amount').in('status',['pending','overdue']).gte('due_date',dateStart).lte('due_date',dateEnd),
-        // Busca alunos com status 'overdue' OU status 'pending' com due_date < hoje
-        // (usa today pré-computado para evitar string interpolation insegura)
-        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
-        supabase.from('teacher_payments').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('teacher_payments').select('amount').eq('paid',false).gte('reference_month',dateStart).lte('reference_month',dateEnd),
-    ]);
-
-    for (const e of [e1, e2, e3, e4, e5, e6, e7, e8]) { if (e) throw e; }
-
-    const revenue  = paidTuitions.reduce((s,t) => s + Number(t.amount) - Number(t.discount_amount), 0)
-                   + avulsoPayments.reduce((s,p) => s + Number(p.amount), 0);
-    const outgoings = paidExpenses.reduce((s,e) => s + Number(e.amount), 0)
-                    + investments.reduce((s,i) => s + Number(i.amount), 0)
-                    + paidTeacherPayments.reduce((s,p) => s + Number(p.amount), 0);
-
-    return res.status(200).json({
-        summary: {
-            revenue,
-            outgoings,
-            balance:          revenue - outgoings,
-            pending_tuitions: pendingTuitions.reduce((s,t) => s + Number(t.amount) - Number(t.discount_amount), 0),
-            overdue_students: new Set(overdueTuitions.map(t => t.student_id)).size,
-            pending_teacher_payments: pendingTeacherPayments.reduce((s,p) => s + Number(p.amount), 0),
-        }
-    });
+    return res.status(200).json({ summary: financial });
 }
 
-// ── DASHBOARD: consolidado de indicadores para a tela inicial ────────────────
+// ── DASHBOARD: consolidado de indicadores (usa computeFinancialSummary) ──────
 
 async function handleDashboard(req, res, supabase) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
@@ -1052,16 +1099,11 @@ async function handleDashboard(req, res, supabase) {
     const thisMonth = now.getMonth() + 1;
     const thisYear = now.getFullYear();
 
-    const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(thisMonth, thisYear);
+    // 1) Reusa a lógica financeira (elimina ~50 linhas de queries duplicadas)
+    const financial = await computeFinancialSummary(supabase, thisMonth, thisYear);
 
-    // ── 10 queries paralelas ────────────────────────────────────────────────────
+    // 2) Queries específicas do dashboard (escola + loja)
     const [
-        { data: paidTuitions,       error: e1  },
-        { data: avulsoPayments,     error: e2  },
-        { data: paidExpenses,       error: e3  },
-        { data: investments,        error: e4  },
-        { data: pendingTuitions,    error: e5  },
-        { data: overdue,            error: e6  },
         { data: activeStudents,     error: e7  },
         { data: activeTeachers,     error: e8  },
         { data: todayClasses,       error: e9  },
@@ -1069,12 +1111,6 @@ async function handleDashboard(req, res, supabase) {
         { data: recentOrders,       error: e11 },
         { data: lowStock,           error: e12 },
     ] = await Promise.all([
-        supabase.from('tuitions').select('amount,discount_amount').eq('status','paid').gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('payments').select('amount').gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('expenses').select('amount').eq('paid',true).gte('paid_at',tzStart).lte('paid_at',tzEnd),
-        supabase.from('investments').select('amount').gte('purchased_at',dateStart).lte('purchased_at',dateEnd),
-        supabase.from('tuitions').select('amount,discount_amount').in('status',['pending','overdue']).gte('due_date',dateStart).lte('due_date',dateEnd),
-        supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
         supabase.from('students').select('id').eq('active', true),
         supabase.from('teachers').select('id'),
         supabase.from('lessons').select('*, enrollments(monthly_fee), students(name), teachers(name, specialty)').eq('date', today).in('status', ['scheduled', 'completed']).order('start_time', { ascending: true }),
@@ -1083,21 +1119,16 @@ async function handleDashboard(req, res, supabase) {
         supabase.from('products').select('id,name,stock,active').lte('stock', 5).eq('active', true),
     ]);
 
-    for (const e of [e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12]) { if (e) throw e; }
-
-    const revenue = paidTuitions.reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount), 0)
-                  + avulsoPayments.reduce((s, p) => s + Number(p.amount), 0);
-    const outgoings = paidExpenses.reduce((s, e) => s + Number(e.amount), 0)
-                    + investments.reduce((s, i) => s + Number(i.amount), 0);
+    for (const e of [e7, e8, e9, e10, e11, e12]) { if (e) throw e; }
 
     return res.status(200).json({
         dashboard: {
             financial: {
-                revenue,
-                outgoings,
-                balance: revenue - outgoings,
-                pending_tuitions: pendingTuitions.reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount), 0),
-                overdue_students: new Set(overdue.map(t => t.student_id)).size,
+                revenue: financial.revenue,
+                outgoings: financial.outgoings,
+                balance: financial.balance,
+                pending_tuitions: financial.pending_tuitions,
+                overdue_students: financial.overdue_students,
             },
             school: {
                 active_students: activeStudents?.length ?? 0,
@@ -1123,7 +1154,8 @@ export default async function handler(req, res) {
     try {
         supabase = getSupabase();
     } catch (err) {
-        return res.status(500).json({ error: 'Supabase não configurado.', details: err.message });
+        console.error('Supabase não configurado:', err.message);
+        return res.status(500).json({ error: 'Supabase não configurado.' });
     }
 
     const { resource } = req.query;
@@ -1147,6 +1179,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
         }
     } catch (err) {
-        return res.status(500).json({ error: 'Erro interno.', details: err.message });
+        console.error('Erro interno:', err.message);
+        return res.status(500).json({ error: 'Erro interno.' });
     }
 }

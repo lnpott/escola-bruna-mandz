@@ -54,10 +54,8 @@ export default async function handler(req, res) {
     try {
         supabase = getSupabase();
     } catch (err) {
-        return res.status(500).json({
-            error: 'Supabase não configurado.',
-            details: err.message,
-        });
+        console.error('Supabase não configurado:', err.message);
+        return res.status(500).json({ error: 'Supabase não configurado.' });
     }
 
     // ── GET: listar todos os produtos ─────────────────────────────────────────
@@ -71,7 +69,8 @@ export default async function handler(req, res) {
             if (error) throw new Error(error.message);
             return res.status(200).json({ products: (data || []).map(normalizeProduct) });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message });
+            console.error('Erro ao buscar produtos:', err.message);
+            return res.status(500).json({ error: 'Erro ao buscar produtos.' });
         }
     }
 
@@ -120,7 +119,8 @@ export default async function handler(req, res) {
 
             return res.status(201).json({ product: normalizeProduct(data) });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao criar produto.', details: err.message });
+            console.error('Erro ao criar produto:', err.message);
+            return res.status(500).json({ error: 'Erro ao criar produto.' });
         }
     }
 
@@ -176,7 +176,8 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ product: normalizeProduct(data) });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao atualizar produto.', details: err.message });
+            console.error('Erro ao atualizar produto:', err.message);
+            return res.status(500).json({ error: 'Erro ao atualizar produto.' });
         }
     }
 

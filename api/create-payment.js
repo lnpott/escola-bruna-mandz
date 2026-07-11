@@ -198,10 +198,8 @@ export default async function handler(req, res) {
             });
         }
     } catch (err) {
-        console.error('Erro Mercado Pago:', err);
-        return res
-            .status(502)
-            .json({ error: 'Falha ao criar pagamento no Mercado Pago.', details: err.message });
+        console.error('Erro Mercado Pago:', err);            return res.status(502)
+            .json({ error: 'Falha ao criar pagamento no Mercado Pago.' });
     }
 }
 
