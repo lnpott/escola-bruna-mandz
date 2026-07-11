@@ -165,9 +165,11 @@ async function handleTeachers(req, res, supabase) {
         const { name, cpf, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
-        const days = Array.isArray(days_of_week)
-            ? days_of_week
-            : (typeof days_of_week === 'string' ? days_of_week.split(',').map(s => s.trim()).filter(Boolean) : []);
+        // Schema real (supabase/financial-schema.sql): teachers.days_of_week é TEXT.
+        // Aceita input como array ou string e normaliza para CSV/string.
+        const daysCsv = Array.isArray(days_of_week)
+            ? days_of_week.map(s => String(s).trim()).filter(Boolean).join(', ')
+            : (typeof days_of_week === 'string' ? days_of_week.trim() : null);
 
         const { data, error } = await supabase
             .from('teachers')
@@ -177,7 +179,7 @@ async function handleTeachers(req, res, supabase) {
                 cpf: cpf || null,
                 phone: phone || null,
                 specialty: specialty || null,
-                days_of_week: days,
+                days_of_week: daysCsv,
                 rate_per_class: rate_per_class !== undefined && rate_per_class !== null ? parseFloat(rate_per_class) : 0,
             }])
             .select().single();
@@ -197,10 +199,11 @@ async function handleTeachers(req, res, supabase) {
         if (rate_per_class !== undefined) upd.rate_per_class = parseFloat(rate_per_class || 0);
 
         if (days_of_week !== undefined) {
-            const days = Array.isArray(days_of_week)
-                ? days_of_week
-                : (typeof days_of_week === 'string' ? days_of_week.split(',').map(s => s.trim()).filter(Boolean) : []);
-            upd.days_of_week = days;
+            // Schema real: teachers.days_of_week é TEXT.
+            const daysCsv = Array.isArray(days_of_week)
+                ? days_of_week.map(s => String(s).trim()).filter(Boolean).join(', ')
+                : (typeof days_of_week === 'string' ? days_of_week.trim() : null);
+            upd.days_of_week = daysCsv;
         }
 
         const { data, error } = await supabase
