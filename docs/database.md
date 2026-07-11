@@ -88,11 +88,17 @@ Não existem as tabelas `charges`, `financial_transactions`, `stock_movements`, 
 ## `students`
 `id, name, cpf, email, phone, address, instruments, active, guardian_name, guardian_cpf, guardian_phone, created_at, updated_at`
 
+> `cpf` e `guardian_cpf` adicionados na migration 045; `guardian_name` e `guardian_phone` adicionados na migration 046.
+
 ## `enrollments`
-`id, student_id (FK), teacher_id (FK, nullable), instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, status, notes, created_at, updated_at`
+`id, student_id (FK), teacher_id (FK, nullable), instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, billing_type (weekly|monthly|full), total_amount, installments, status (active|inactive), notes, created_at, updated_at`
+
+> `billing_type`, `total_amount` e `installments` adicionados na migration 043 para suportar modelo de cobrança misto.
 
 ## `lessons`
-`id, enrollment_id (FK), student_id (FK), teacher_id (FK, nullable), instrument, date, start_time, end_time, duration_minutes, lesson_type (regular|make_up|extra|trial), status (scheduled|completed|cancelled|make_up), created_at, updated_at`
+`id, enrollment_id (FK, nullable), student_id (FK), teacher_id (FK, nullable), instrument, date, start_time, end_time, duration_minutes, lesson_type (regular|make_up|extra|trial), status (scheduled|completed|cancelled|make_up), created_at, updated_at`
+
+> `enrollment_id` foi tornado **nullable** na migration 047 — necessário para criar aulas avulsas sem vínculo, informando `student_id`, `teacher_id` e `instrument` diretamente. A FK usa `on delete set null`.
 
 ## `attendance`
 `id, lesson_id (FK), student_id (FK), status (present|absent|excused|late), late_minutes, notes, recorded_at, recorded_by`
@@ -103,14 +109,18 @@ Constraint: único por `(lesson_id, student_id)`.
 # Tabelas — Módulo Professores
 
 ## `teachers`
-`id, name, cpf, email, phone, specialty, days_of_week (text), rate_per_class, active, created_at, updated_at`
+`id, name, cpf, email, phone, specialty, days_of_week (text — convertido de text[] para text na migration 045), rate_per_class, active boolean, created_at, updated_at`
+
+> `cpf`, `email` e `active` adicionados na migration 045. `days_of_week` convertido de array para texto simples.
 
 ---
 
 # Tabelas — Módulo Financeiro
 
 ## `tuitions`
-`id, student_id (FK), enrollment_id (FK, nullable), reference_month, amount, discount_amount, discount_reason, due_date, status (pending|paid|overdue|cancelled), payment_method, paid_at, notes, created_at, updated_at`
+`id, student_id (FK), enrollment_id (FK, nullable), reference_month, amount, discount_amount, discount_reason, due_date, status (pending|paid|overdue|cancelled), payment_method, paid_at, billing_type, installment_number, notes, created_at, updated_at`
+
+> `billing_type` e `installment_number` adicionados na migration 043.
 
 ## `teacher_payments`
 `id, teacher_id (FK), reference_month, amount, paid, paid_at, notes, created_at, updated_at`
@@ -145,7 +155,7 @@ O que é usado de fato:
 - Índices (`create index if not exists`) nas colunas mais consultadas (status, datas de referência, FKs)
 - Triggers `set_updated_at` para manter `updated_at` automático
 
-O que **não** é usado: Views, Functions de negócio no banco, Triggers de auditoria. Toda regra de negócio (ex: geração automática de mensalidade) vive no backend (`api/admin-financial.js`), não no banco.
+O que **não** é usado: Views, Functions de negócio no banco, Triggers de auditoria. Toda regra de negócio (ex: geração automática de mensalidade, removida na ETAPA 43) vivia no backend (`api/admin-financial.js`), não no banco.
 
 ---
 
@@ -160,16 +170,16 @@ Todas as tabelas financeiras/pedagógicas têm RLS **habilitado**, mas **sem pol
 Não há perfis de acesso (Administrador / Secretaria / Financeiro / Professor) implementados — é um acesso único, tudo ou nada. Se perfis diferenciados forem necessários no futuro, a decisão de arquitetura precisa mudar (provavelmente adotando Supabase Auth de verdade), e este documento deve ser atualizado quando isso acontecer.
 
 ---
-# Migration destacada: 045-add-cpf.sql
-
-Além de adicionar `cpf` e `guardian_cpf` em `students` e `cpf` em `teachers`:
-- Adiciona `email` em `teachers` (coluna que estava no schema consolidado mas faltava na migration)
-- Adiciona `active boolean not null default true` em `teachers`
-- Converte `days_of_week` de `text[]` para `text` usando `array_to_string` (com `DO` block que só executa se a coluna ainda for do tipo array)
-
 # Migrations
 
-Ficam em `supabase/migrations/` (por mudança de schema) e são espelhadas em `supabase/financial-schema.sql` (schema consolidado, usado para recriar o banco do zero). São escritas de forma idempotente (`IF NOT EXISTS`, `DO` blocks) porque, na prática, algumas migrations já foram aplicadas manualmente no SQL Editor do Supabase antes de serem commitadas — então precisam ser seguras para rodar de novo sem erro.
+Todas as migrations ficam em `supabase/migrations/` e são espelhadas em `supabase/financial-schema.sql` (schema consolidado). São idempotentes (`IF NOT EXISTS`, `DO` blocks).
+
+| Migration | O que adiciona | Status |
+|-----------|---------------|--------|
+| `043-billing-type.sql` | `billing_type`, `total_amount`, `installments` em enrollments; `billing_type`, `installment_number` em tuitions | ✅ Aplicada |
+| `045-add-cpf.sql` | `cpf`, `guardian_cpf` em students; `cpf`, `email`, `active` em teachers; `days_of_week` text[]→text | ✅ Aplicada |
+| `046-add-guardian-fields.sql` | `guardian_name`, `guardian_phone` em students | ✅ Aplicada |
+| `047-make-enrollment-id-nullable.sql` | `enrollment_id` nullable em lessons (FK `on delete set null`) | ✅ Aplicada |
 
 ---
 

@@ -661,15 +661,24 @@ Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha 
 
 | Etapa | Descrição | Status |
 |--------|-----------|--------|
-| 33 | Estrutura do Financeiro | ✅ |
-| 34 | Cadastro Financeiro | ✅ |
-| 35 | Mensalidades | ✅ |
-| 36 | Fluxo de Caixa | ✅ |
+| 33 | Documentação do Painel | ✅ |
+| 34 | Estrutura do Financeiro | ✅ |
+| 35 | Interface de Professores | ✅ |
+| 36 | Integração Pedagógica nas Mensalidades | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Relatórios | ⏳ |
-| 39 | Alunos | ⏳ |
-| 40 | Turmas | ⏳ |
-| 41 | Agenda | ⏳ |
+| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
+| 39 | teacher_payments no Resumo Financeiro | ✅ |
+| 40 | Agenda Mensal + Spec Prioridades | ✅ |
+| 41 | Botão Nova Aula na Agenda | ✅ |
+| 42 | Correções Pós-Revisão | ✅ |
+| 43 | billing_type + Separação Custos/Investimentos | ✅ |
+| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
+| 45 | Correção SyntaxError + Botão Faltante | ✅ |
+| 46 | Reestruturação de Abas e Menu | ✅ |
+| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
+| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
+| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
+| — | Testes funcionais ponta a ponta | ⏳ |
 
 ---
 
@@ -1289,11 +1298,19 @@ Testes funcionais completos do Financeiro (Etapa 39, conforme roadmap já previs
 | 35 | Interface de Professores | ✅ |
 | 36 | Integração Pedagógica nas Mensalidades | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ (pendente teste pós-deploy) |
-| 39 | teacher_payments no cálculo de outgoings do Resumo Financeiro | ✅ (pendente teste pós-deploy) |
-| 40 | Relatórios Financeiros | ⏳ |
-| 41 | Alunos (cadastro estendido) | ⏳ |
-| 42 | Turmas / Agenda (detalhamento) | 🟡 (Agenda básica já entregue na Etapa 38) |
+| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
+| 39 | teacher_payments no Resumo Financeiro | ✅ |
+| 40 | Agenda Mensal + Spec Prioridades | ✅ |
+| 41 | Botão Nova Aula na Agenda | ✅ |
+| 42 | Correções Pós-Revisão | ✅ |
+| 43 | billing_type + Separação Custos/Investimentos | ✅ |
+| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
+| 45 | Correção SyntaxError + Botão Faltante | ✅ |
+| 46 | Reestruturação de Abas e Menu | ✅ |
+| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
+| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
+| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
+| — | Testes funcionais ponta a ponta | ⏳ |
 
 ---
 
@@ -1796,23 +1813,21 @@ Testes funcionais do fluxo billing_type no ambiente de produção após deploy n
 
 ---
 
-# ETAPA 46
+# ETAPA 46 — REESTRUTURAÇÃO DE ABAS E MENU
 
 **Data:** 11/07/2026
 
 **Horário:** 02:18
 
-**Agente Responsável:**
-Gemini
+**Agente Responsável:** Gemini + Buffy (Freebuff)
 
-**Commit Git:**
-Pendente
+**Commit Git:** 50e1567 (ETAPA 44), 898a630 (ETAPA 45), ee940a0, 38b2fb4, 25c65f2, c9bedba, 4ab86c9
 
 ---
 
 ## Objetivo
 
-Reestruturar as abas e o fluxo de administração geral do painel, separando a Loja, atualizando nomes e simplificando a parte de mensalidades e professores.
+Reestruturar as abas e o fluxo de administração geral do painel, separando a Loja, atualizando nomes e simplificando a parte de mensalidades e professores. Correções contínuas de bugs (SyntaxError, botão faltante) e implementação de melhorias (CPF, guardian fields, modal de aula refatorado) foram feitas nas etapas subsequentes.
 
 ---
 
@@ -1821,9 +1836,10 @@ Reestruturar as abas e o fluxo de administração geral do painel, separando a L
 - **Nomenclatura Global:** Título do painel atualizado de "Loja Bruna Mandz" para "Painel de Administração".
 - **Nova Aba Loja:** Criada aba principal `Loja` englobando as sub-abas `Pedidos` e `Produtos`.
 - **Nova Aba Alunos:** Removida a sub-aba "Alunos" do Financeiro e elevada a Aba Principal `Alunos`.
+- **Nova Aba Professores:** Removida sub-aba "Professores" do Financeiro e elevada a Aba Principal `Professores`.
 - **Desmembramento Financeiro:** "Custos & Investimentos" separados em duas sub-abas "Custos" e "Investimentos".
-- **Fim das Mensalidades Avulsas:** Remoção da sub-aba "Mensalidades" do Financeiro. O botão de "Nova Cobrança" foi movido para a lista de Alunos, vinculando a cobrança diretamente ao aluno selecionado.
-- **Pagamentos a Professores Simplificado:** Removida sub-aba avulsa "Pagto Professores", passando essa responsabilidade para a gestão de vínculo de Aulas.
+- **Fim das Mensalidades Avulsas:** Remoção da sub-aba "Mensalidades" do Financeiro.
+- **Pagamentos a Professores Simplificado:** Removida sub-aba avulsa "Pagto Professores".
 
 ---
 
@@ -1845,12 +1861,213 @@ Reestruturar as abas e o fluxo de administração geral do painel, separando a L
 
 ---
 
-## Pendências
+## Pendências (resolvidas nas etapas seguintes)
 
-- Finalizar a integração de exibição das mensalidades vinculadas diretamente ao perfil do aluno.
+- ❌ Campos CPF em alunos e professores → 📍 Resolvido na ETAPA 47
+- ❌ Guardian fields (migration 046) → 📍 Resolvido na ETAPA 48
+- ❌ Bug: erro 500 ao criar aula sem vínculo → 📍 Resolvido na ETAPA 49
+- ❌ SyntaxError + botão faltante btn-generate-monthly-billing → 📍 Resolvido na ETAPA 45
 
 ---
 
 ## Próxima Etapa
 
-Adaptar visualização das cobranças no modal de dados do Aluno e remover dependências antigas.
+Implementar campos CPF em alunos e professores (migration 045 + API + frontend).
+
+
+# ETAPA 47 — CAMPOS CPF EM ALUNOS E PROFESSORES + TEACHERS TAB PRINCIPAL
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 38b2fb4
+
+---
+
+## Objetivo
+
+Adicionar campos de CPF em alunos (students) e professores (teachers), incluindo CPF do responsável. Mover a aba Professores do Financeiro para navegação principal. Ocultar colunas de ID em todas as tabelas do painel. Refatorar o modal de matrícula (safeGet/safeSet).
+
+---
+
+## Implementações Realizadas
+
+### Migration 045-add-cpf.sql
+- students: adicionado cpf e guardian_cpf
+- teachers: adicionado cpf, email, active boolean not null default true
+- teachers.days_of_week: convertido de text[] para text (com DO block defensivo)
+
+### API (admin-financial.js)
+- handleStudents POST/PATCH: aceita cpf, guardian_cpf
+- handleTeachers POST/PATCH: aceita cpf
+
+### Frontend (painel-x9k2f.html)
+- Modal de Aluno: campo CPF + campo CPF do Responsável
+- Modal de Professor: campo CPF
+- Tabelas: colunas ID removidas de todas as listagens (Alunos, Professores, Vínculos, etc.)
+- Aba Professores movida do Financeiro para navegação principal (ao lado de Alunos)
+- Formulário de matrícula: refatorado com safeGet/safeSet, removidas referências mortas
+- Modal renomeado de "Vínculo" para "Matrícula"
+
+---
+
+## Arquivos Alterados
+
+- supabase/migrations/045-add-cpf.sql (NOVO)
+- supabase/financial-schema.sql (atualizado com novas colunas)
+- api/admin-financial.js (campos CPF)
+- painel-x9k2f.html (modais, tabelas, abas)
+
+---
+
+## Testes
+
+✅ git push realizado com sucesso
+
+---
+
+## Pendências
+
+- Guardian fields (guardian_name, guardian_phone) estavam na API/frontend mas faltavam no schema — ver ETAPA 48
+
+---
+
+## Próxima Etapa
+
+Adicionar guardian_name e guardian_phone formalmente no schema (migration 046)
+
+
+---
+
+# ETAPA 48 — MIGRATION 046: GUARDIAN_NAME + GUARDIAN_PHONE
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 25c65f2
+
+---
+
+## Objetivo
+
+Corrigir lacuna identificada na verificação de migrations: os campos guardian_name e guardian_phone existiam na API e frontend mas não estavam formalizados no schema (financial-schema.sql) nem em nenhuma migration. Criar migration 046 e atualizar schema consolidado.
+
+---
+
+## Implementações Realizadas
+
+### Migration 046-add-guardian-fields.sql
+- students: adicionado guardian_name text, guardian_phone text (IF NOT EXISTS)
+
+### Schema (financial-schema.sql)
+- Adicionados guardian_name e guardian_phone no CREATE TABLE de students
+
+---
+
+## Arquivos Alterados
+
+- supabase/migrations/046-add-guardian-fields.sql (NOVO)
+- supabase/financial-schema.sql (atualizado)
+- TODO_PROGRESS.md (atualizado)
+
+---
+
+## Alterações no Banco
+
+Migration 046 aplicada no Supabase SQL Editor.
+
+---
+
+## Testes
+
+✅ SQL idempotente (IF NOT EXISTS)
+✅ Migration aplicada no Supabase
+
+---
+
+## Próxima Etapa
+
+Refatorar modal de Nova Aula (3 selects separados) e corrigir erro 500 ao criar aula sem vínculo
+
+
+---
+
+# ETAPA 49 — MODAL DE AULA REFATORADO + ERRO 500 CORRIGIDO (MIGRATION 047)
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 4ab86c9
+
+---
+
+## Objetivo
+
+Corrigir dois bugs no fluxo de criação de aulas: (1) modal de Nova Aula usava dropdown único de enrollment_id que nunca era populado, substituído por 3 selects separados (Aluno, Professor, Instrumento); (2) erro 500 ao criar aula porque enrollment_id era NOT NULL no banco mas passava a ser null com o novo modal. Documentação atualizada nos 3 docs principais.
+
+---
+
+## Implementações Realizadas
+
+### Correção 1: Modal de Nova Aula refatorado
+- Antes: dropdown único de "Vínculo (Aluno + Professor + Instrumento)" que nunca era populado
+- Depois: 3 selects separados:
+  - Aluno — lista de alunos ativos
+  - Professor — lista de professores (com especialidade)
+  - Instrumento — filtrado dinamicamente pela especialidade do professor selecionado
+- Filtro de instrumentos: matching exato (s.toLowerCase() === inst.toLowerCase()) com fallback para as próprias especialidades do professor
+- Submit handler atualizado para enviar student_id + teacher_id + instrument
+
+### Correção 2: API de lessons atualizada
+- handleLessons POST: aceita student_id + teacher_id + instrument diretamente
+- Mantém compatibilidade com enrollment_id (backwards compatible)
+- handleLessons GET: INNER JOIN —> LEFT JOIN em enrollments (para aulas sem vínculo)
+
+### Migration 047-make-enrollment-id-nullable.sql
+- lessons.enrollment_id: removido NOT NULL constraint
+- Necessário para criar aulas avulsas informando student_id/teacher_id/instrument diretamente
+
+### Documentos atualizados
+- docs/modules.md: estrutura de abas, billing_type, geração automática removida, modal de aula
+- docs/database.md: billing_type, enrollment_id nullable, migrations 046/047
+- docs/BUSINESS_RULES.md: guardian_fields implementado, auto-gen tuition removida
+- TODO_PROGRESS.md: migration 047, LEFT JOIN, bug fixes
+- painel_registro.md: ETAPAS 46-49, roadmap
+
+---
+
+## Arquivos Alterados
+
+- supabase/migrations/047-make-enrollment-id-nullable.sql (NOVO)
+- supabase/financial-schema.sql (enrollment_id nullable + FK on delete set null)
+- api/admin-financial.js (LEFT JOIN em lessons GET)
+- painel-x9k2f.html (modal de aula refatorado)
+- docs/modules.md (atualizado)
+- docs/database.md (atualizado)
+- docs/BUSINESS_RULES.md (atualizado)
+- TODO_PROGRESS.md (atualizado)
+- painel_registro.md (este registro)
+
+---
+
+## Testes
+
+✅ Migration 047 executada no Supabase SQL Editor
+✅ Teste no navegador: modal de aula abre com 3 selects, filtro de instrumento funciona
+✅ Comits e push realizados
+
+---
+
+## Pendências
+
+- Testes funcionais ponta a ponta em produção
+- Forçar hard refresh nos navegadores dos usuários
+
+---
+
+## Próxima Etapa
+
+Testes funcionais completos no ambiente de produção.

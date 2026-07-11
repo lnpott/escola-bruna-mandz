@@ -18,10 +18,11 @@ O sistema administra a escola através de um painel único, protegido por senha 
 
 ## Implementado
 - Cadastro, consulta, edição e inativação (`active = false`) de alunos
-- Campos: nome, e-mail, telefone, endereço, instrumento(s)
+- Campos: nome, **CPF**, e-mail, telefone, endereço, instrumento(s)
+- Campos de responsável: `guardian_name`, `guardian_cpf`, `guardian_phone` (implementados via migration 046)
 
 ## Pendente
-- Campos de responsável (`guardian_name`, `guardian_phone`) — priorizado, ainda não implementado
+- Nenhuma pendência atual para este módulo
 
 ---
 
@@ -39,9 +40,8 @@ O sistema administra a escola através de um painel único, protegido por senha 
 # Módulo de Vínculos (Enrollments)
 
 ## Implementado
-- Um vínculo conecta: aluno + professor (opcional) + instrumento + dia da semana + horário + duração + aulas por semana + mensalidade do aluno + status (ativo/inativo)
-- **Regra automática:** ao criar um vínculo com `status='active'` e `monthly_fee > 0`, o sistema gera automaticamente uma mensalidade (`tuitions`) para o mês corrente, vinculada a esse enrollment. Devido a mês/aluno diferentes, um mesmo aluno com múltiplos vínculos ativos (ex: Piano + Violão) gera uma mensalidade por vínculo, não uma mensalidade combinada.
-- Se a geração automática da mensalidade falhar, o vínculo **ainda é salvo** (o erro é registrado no log do servidor, não bloqueia o cadastro).
+- Um vínculo conecta: aluno + professor (opcional) + instrumento + dia da semana + horário + duração + aulas por semana + mensalidade do aluno + **billing_type** (weekly|monthly|full) + total_amount + installments + status (ativo/inativo)
+- **⚠️ Geração automática de mensalidade REMOVIDA (ETAPA 43).** Anteriormente, criar um vínculo ativo gerava automaticamente a tuition do mês corrente. A funcionalidade foi removida porque o modelo de cobrança da escola (billing_type misto) não se encaixa em geração automática mensal. Cobranças são criadas manualmente conforme necessidade.
 
 ## Em aberto
 - Se um vínculo for excluído, mensalidades já geradas automaticamente **não** são canceladas nem excluídas — permanecem como estavam, só perdem a referência ao vínculo (`enrollment_id` vira nulo, via `on delete set null` na FK de `tuitions`... na prática as mensalidades já geradas mantêm o `enrollment_id` até que o vínculo seja de fato removido, e nesse caso a FK aponta para `null`). Isso ainda não foi decidido como regra explícita — é só o comportamento atual do banco.

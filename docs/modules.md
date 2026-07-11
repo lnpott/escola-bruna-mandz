@@ -13,18 +13,24 @@ Este documento descreve os módulos **realmente implementados** no sistema Escol
 ```
 Dashboard
 Agenda
-Pedidos
-Produtos
+Alunos
+Professores
 Financeiro
-  ├── Alunos
-  ├── Professores
   ├── Vínculos
   ├── Aulas (+ Presença)
-  ├── Mensalidades
-  ├── Pagto Professores
   ├── Receitas Avulsas
-  └── Custos & Investimentos
+  ├── Custos
+  └── Investimentos
+Loja
+  ├── Pedidos
+  └── Produtos
 ```
+
+> ⚠️ **Mudanças recentes (jul/2026):**
+> - **Alunos** e **Professores** foram movidos para abas principais (não são mais sub-abas do Financeiro)
+> - **Mensalidades** e **Pagto Professores** foram removidos como sub-abas autônomas (cobranças são gerenciadas via perfil do aluno)
+> - **Custos** e **Investimentos** foram separados em sub-abas distintas
+> - **Loja** virou aba principal com sub-abas Pedidos e Produtos
 
 Não há aba de "Configurações", "Portal do Professor" ou "Portal do Aluno" — esses são itens de roadmap futuro, não módulos existentes (ver `ROADMAP.MD`).
 
@@ -50,8 +56,9 @@ Visão geral rápida da operação da escola e da loja.
 Cadastro e gestão dos alunos.
 
 ## Campos reais (tabela `students`)
-- Nome, CPF, e-mail, telefone, endereço, instrumento(s), ativo/inativo
+- Nome, **CPF**, e-mail, telefone, endereço, instrumento(s), ativo/inativo
 - Responsável: `guardian_name`, `guardian_cpf`, `guardian_phone` (para alunos menores)
+- *CPF e campos de responsável adicionados via migrations 045 e 046*
 
 ## Integrações reais
 - **Vínculos**: um aluno pode ter um ou mais vínculos (um por instrumento/professor)
@@ -65,8 +72,8 @@ Cadastro e gestão dos alunos.
 Cadastro e gestão dos professores.
 
 ## Campos reais (tabela `teachers`)
-- Nome, CPF, e-mail, telefone, especialidade, dias de atendimento (`days_of_week`, texto), valor por aula (`rate_per_class`) — quanto a escola paga ao professor, não quanto o aluno paga
-- Ativo/inativo
+- Nome, **CPF**, e-mail, telefone, especialidade, dias de atendimento (`days_of_week`, texto — convertido de `text[]` para `text` na migration 045), valor por aula (`rate_per_class`) — quanto a escola paga ao professor, não quanto o aluno paga
+- **Ativo/inativo** (`active boolean`, adicionado na migration 045)
 
 ## Integrações reais
 - **Vínculos**: um professor pode ter vários vínculos com alunos diferentes
@@ -80,13 +87,19 @@ Cadastro e gestão dos professores.
 É o módulo central que conecta aluno + professor + instrumento + horário + valor da mensalidade. Existe justamente para não duplicar dado pedagógico em outras tabelas.
 
 ## Campos reais (tabela `enrollments`)
-- `student_id`, `teacher_id`, `instrument`, `day_of_week`, `class_time`, `duration_minutes`, `classes_per_week`, `monthly_fee`, `billing_type` (monthly|weekly|full), `total_amount`, `installments`, `status` (active/inactive), `notes`
+- `student_id`, `teacher_id`, `instrument`, `day_of_week`, `class_time`, `duration_minutes`, `classes_per_week`, `monthly_fee`, **`billing_type`** (monthly|weekly|full), **`total_amount`**, **`installments`**, `status` (active/inactive), `notes`
+
+> `billing_type`, `total_amount` e `installments` foram adicionados na migration 043 para suportar modelo de cobrança misto (semanal/mensal/completo).
 
 ## Regra de negócio real
-Ao criar um vínculo com `status='active'` e `monthly_fee > 0`, o sistema **gera automaticamente** a mensalidade (`tuitions`) do mês corrente, referenciando esse vínculo.
+⚠️ **Geração automática de mensalidade foi REMOVIDA na ETAPA 43.** Anteriormente, ao criar um vínculo ativo o sistema gerava automaticamente a tuition do mês corrente. Após a introdução do `billing_type`, o usuário confirmou que mensalidade "não é por mês e não tem automática", então a geração automática foi removida.
 
 ## Criação de aulas
-O modal de Nova Aula (na Agenda ou na aba Aulas) permite selecionar **Aluno**, **Professor** e **Instrumento** separadamente. O instrumento é filtrado conforme a especialidade do professor selecionado. A API aceita tanto `enrollment_id` (vínculo existente) quanto os campos diretos `student_id` + `teacher_id` + `instrument`.
+O modal de Nova Aula (na Agenda ou na aba Aulas) permite selecionar **Aluno**, **Professor** e **Instrumento** separadamente (3 selects, substituindo o dropdown único de enrollment_id). O instrumento é filtrado dinamicamente conforme a especialidade do professor selecionado (matching exato, com fallback para as próprias especialidades do professor).
+
+A API (`handleLessons POST`) aceita tanto `enrollment_id` (vínculo existente) quanto os campos diretos `student_id` + `teacher_id` + `instrument`. Na prática, o frontend sempre envia os campos diretos.
+
+> A coluna `enrollment_id` na tabela `lessons` foi tornado **nullable** (migration 047) para suportar aulas avulsas sem vínculo.
 
 ## Integrações reais
 - **Agenda**: a visão mensal é derivada dos vínculos ativos com dia/horário definidos
@@ -133,7 +146,9 @@ Cobrança mensal do aluno.
 - `student_id`, `enrollment_id` (opcional — pode existir mensalidade avulsa sem vínculo), `reference_month`, `amount`, `discount_amount`, `discount_reason`, `due_date`, `status` (`pending`|`paid`|`overdue`|`cancelled`), `payment_method`, `paid_at`, `notes`
 
 ## Regra real
-Geradas automaticamente ao criar um vínculo ativo (ver módulo Vínculos), mas também podem ser criadas manualmente (mensalidade avulsa).
+⚠️ **Geração automática foi removida na ETAPA 43.** Anteriormente, ao criar um vínculo ativo o sistema gerava automaticamente a tuition do mês corrente. O modelo de cobrança foi alterado para `billing_type` misto (weekly/monthly/full) e o usuário confirmou que mensalidade "não é por mês e não tem automática". As cobranças são criadas manualmente conforme necessidade.
+
+Também podem ser criadas mensalidades avulsas (sem vínculo) para receitas eventuais.
 
 ---
 

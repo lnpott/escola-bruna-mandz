@@ -19,6 +19,14 @@
 - [x] **Modal de Nova Aula refatorado** — Substituído dropdown único de enrollment_id por selects separados: Aluno, Professor, Instrumento (com filtro por especialidade do professor)
 - [x] **API de aulas flexível** — `handleLessons POST` aceita `student_id` + `teacher_id` + `instrument` diretamente, mantendo compatibilidade com `enrollment_id`
 - [x] **Filtro de instrumentos por especialidade** — Matching exato com fallback para as próprias especialidades do professor
+- [x] **Erro 500 ao criar aula** — `enrollment_id` tornado nullable em `lessons` (migration 047) + LEFT JOIN no GET (em vez de INNER JOIN)
+
+## ✅ Migrações aplicadas no Supabase
+
+- [x] **043-billing-type.sql** — billing_type, total_amount, installments em enrollments; billing_type, installment_number em tuitions
+- [x] **045-add-cpf.sql** — CPF em students/teachers; email+active em teachers; days_of_week text
+- [x] **046-add-guardian-fields.sql** — guardian_name, guardian_phone em students
+- [x] **047-make-enrollment-id-nullable.sql** — enrollment_id nullable em lessons (FK on delete set null)
 
 ## Etapas
 
@@ -26,11 +34,9 @@
 - [x] Etapa 2: Atualizar backend api/admin-financial.js
 - [x] Etapa 3: Atualizar painel painel-x9k2f.html (Agenda Mensal + Dashboard aulas + Aulas CRUD cards)
 - [x] Etapa 4: Criar spec com proximas prioridades (docs/proxima-etapa-spec.md)
-- [x] Etapa 6: Alunos Expandido (campos responsavel + CPF) — guardian_name, guardian_phone, guardian_cpf adicionados
-- [ ] **Etapa 5: Mensalidades Automaticas ao criar vinculo**
-- [ ] **Etapa 7: Testes funcionais ponta a ponta pos-deploy**
+- [x] Etapa 5: Alunos Expandido (campos responsavel + CPF) — guardian_name, guardian_phone, guardian_cpf adicionados
+- [ ] **Etapa 6: Testes funcionais ponta a ponta pos-deploy**
 
 ## Próximas pendências
 
-1. 🔴 **Mensalidades Automáticas** — Ao criar enrollment com status='active', gerar tuition automaticamente para o mês corrente
-2. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
+1. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
