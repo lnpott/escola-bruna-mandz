@@ -5,6 +5,7 @@ import Dashboard from '@/pages/Dashboard';
 import Agenda from '@/pages/Agenda';
 import Enrollments from '@/pages/Enrollments';
 import Financial from '@/pages/Financial';
+import Admin from '@/pages/Admin';
 import Login from '@/pages/Login';
 import { isAuthenticated, logout } from '@/services/api';
 import './styles/global.css';
@@ -151,6 +152,7 @@ export default function App() {
                 <Route path="/academico/turmas" element={<AuthGuard><Enrollments /></AuthGuard>} />
                 <Route path="/agenda" element={<AuthGuard><Agenda /></AuthGuard>} />
                 <Route path="/financeiro" element={<AuthGuard><Financial /></AuthGuard>} />
+                <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
                 <Route path="*" element={
                     <AuthGuard>
                         <div className="app-container">
