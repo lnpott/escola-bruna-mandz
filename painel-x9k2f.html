@@ -634,11 +634,9 @@
 
                 <!-- Sub-aba CUSTOS & INVESTIMENTOS -->
                 <div id="subtab-expenses" style="display:none">
-                    <div class="products-toolbar" style="margin-bottom:12px; display:flex; gap:10px; justify-content:flex-end">
-                        <button id="btn-new-expense" style="padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Custo Fixo</button>
-                        <button id="btn-new-investment" style="padding:8px 14px;border-radius:8px;border:1px solid #22c55e;background:none;color:#22c55e;cursor:pointer;font-size:13px;font-weight:600">➕ Novo Investimento</button>
-                    </div>
-                    
+                    <!-- Botoes ocultos para listeners JS -->
+                    <button id="btn-new-expense" style="display:none"></button>
+                    <button id="btn-new-investment" style="display:none"></button>
                     <!-- Custos Fixos -->
                     <div class="dash-card" style="margin-bottom:16px">
                         <div class="dash-card-header">
@@ -883,7 +881,26 @@
                     </div>
                     <div>
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Instrumento</label>
-                        <input type="text" name="instrument" placeholder="Ex: Piano, Violão, Canto..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                        <select name="instrument" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Selecione...</option>
+                            <option value="Piano">Piano</option>
+                            <option value="Teclado">Teclado</option>
+                            <option value="Violão">Violão</option>
+                            <option value="Guitarra">Guitarra</option>
+                            <option value="Baixo">Baixo</option>
+                            <option value="Bateria">Bateria</option>
+                            <option value="Canto">Canto</option>
+                            <option value="Violino">Violino</option>
+                            <option value="Viola">Viola</option>
+                            <option value="Violoncelo">Violoncelo</option>
+                            <option value="Saxofone">Saxofone</option>
+                            <option value="Flauta">Flauta</option>
+                            <option value="Ukulele">Ukulele</option>
+                            <option value="Cavaquinho">Cavaquinho</option>
+                            <option value="Acordeon">Acordeon</option>
+                            <option value="Musicalização Infantil">Musicalização Infantil</option>
+                            <option value="Teoria Musical">Teoria Musical</option>
+                        </select>
                     </div>
                     <div style="font-size:12px;color:#52525b;border-top:1px solid #27272a;padding-top:8px;margin-top:4px">
                         <em>💡 Para definir horários, vá até &quot;📅 Aulas&quot;.</em>
@@ -891,6 +908,26 @@
                     <div>
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Mensalidade do Aluno (R$)</label>
                         <input type="number" name="monthly_fee" step="0.01" min="0" value="250.00" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Tipo de Cobrança</label>
+                        <select name="billing_type" id="enrollment-billing-type" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="monthly">Mensal</option>
+                            <option value="weekly">Por Semana</option>
+                            <option value="full">Completo (À Vista / Parcelado)</option>
+                        </select>
+                    </div>
+                    <div id="enrollment-full-fields" style="display:none;border:1px solid #27272a;border-radius:8px;padding:12px;background:#111113">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                            <div>
+                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Valor Total (R$)</label>
+                                <input type="number" name="total_amount" step="0.01" min="0" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Parcelas</label>
+                                <input type="number" name="installments" min="1" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Status</label>
@@ -929,6 +966,19 @@
                             <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Vencimento *</label>
                             <input type="date" name="due_date" required style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                         </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Tipo de Cobrança</label>
+                        <select name="billing_type" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7">
+                            <option value="">Mensalidade avulsa (sem tipo)</option>
+                            <option value="monthly">Mensal</option>
+                            <option value="weekly">Por Semana</option>
+                            <option value="full">Completo (À Vista / Parcelado)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px">Nº da Parcela (para Completo)</label>
+                        <input type="number" name="installment_number" min="1" value="1" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7" />
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div>
@@ -3037,6 +3087,9 @@ function switchTab(tab) {
                     form.querySelector('[name="duration_minutes"]').value = enrollment.duration_minutes;
                     form.querySelector('[name="classes_per_week"]').value = enrollment.classes_per_week;
                     form.querySelector('[name="monthly_fee"]').value = enrollment.monthly_fee;
+                    form.querySelector('[name="billing_type"]').value = enrollment.billing_type || 'monthly';
+                    form.querySelector('[name="total_amount"]').value = enrollment.total_amount || '';
+                    form.querySelector('[name="installments"]').value = enrollment.installments || 1;
                     form.querySelector('[name="status"]').value = enrollment.status;
                     form.querySelector('[name="notes"]').value = enrollment.notes || '';
                 } else {
@@ -3045,10 +3098,16 @@ function switchTab(tab) {
                 }
 
                 modal.style.display = 'flex';
-            }
+                updateEnrollmentBillingTypeFields();
 
             function closeEnrollmentModal() {
                 document.getElementById('modal-new-enrollment').style.display = 'none';
+            }
+
+            function updateEnrollmentBillingTypeFields() {
+                var bt = document.querySelector('#form-new-enrollment [name="billing_type"]');
+                var ff = document.getElementById('enrollment-full-fields');
+                if (bt && ff) ff.style.display = bt.value === 'full' ? 'block' : 'none';
             }
 
             // Sub-aba: Agenda (derivada dos vínculos ativos)
@@ -3960,7 +4019,8 @@ function switchTab(tab) {
              document.querySelectorAll('.btn-cancel-enrollment').forEach(b => b.addEventListener('click', closeEnrollmentModal));
              document.getElementById('enrollment-status-filter').addEventListener('change', loadEnrollments);
 
-             
+              // billing_type toggle for enrollment modal
+              document.querySelector('#form-new-enrollment [name=\"billing_type\"]')?.addEventListener('change', updateEnrollmentBillingTypeFields);
             // ── Agenda Mensal ───────────────────────────────────────────
             document.getElementById('agenda-prev-month').addEventListener('click', function() {
                 _agendaMonthOffset--;
@@ -4041,6 +4101,9 @@ document.getElementById('form-new-enrollment').addEventListener('submit', async 
                      duration_minutes: form.querySelector('[name="duration_minutes"]').value,
                      classes_per_week: form.querySelector('[name="classes_per_week"]').value,
                      monthly_fee: form.querySelector('[name="monthly_fee"]').value,
+                    billing_type: form.querySelector('[name=\"billing_type\"]').value || 'monthly',
+                    total_amount: form.querySelector('[name=\"total_amount\"]').value || null,
+                    installments: form.querySelector('[name=\"installments\"]').value || 1,
                      status: form.querySelector('[name="status"]').value,
                      notes: form.querySelector('[name="notes"]').value
                  };
@@ -4180,6 +4243,8 @@ document.getElementById('form-new-enrollment').addEventListener('submit', async 
                      discount_amount: form.querySelector('[name="discount_amount"]').value,
                      discount_reason: form.querySelector('[name="discount_reason"]').value,
                      notes: form.querySelector('[name="notes"]').value,
+                      billing_type: form.querySelector('[name=\"billing_type\"]').value || null,
+                      installment_number: form.querySelector('[name=\"installment_number\"]').value || null,
                      enrollment_id: form.querySelector('[name="enrollment_id"]').value || null,
                      reference_month: referenceMonthRaw ? `${referenceMonthRaw}-01` : null
                  };
@@ -4291,7 +4356,19 @@ document.getElementById('form-new-enrollment').addEventListener('submit', async 
                  }
              });
 
-             document.getElementById('btn-new-expense').addEventListener('click', () => {
+             document.getElementById('btn-new-expense-inline')?.addEventListener('click', function() {
+                  document.getElementById('btn-new-expense')?.click();
+              });
+              document.getElementById('btn-new-investment-inline')?.addEventListener('click', function() {
+                  document.getElementById('btn-new-investment')?.click();
+              });
+              document.getElementById('btn-new-expense-inline')?.addEventListener('click', function() {
+                  document.getElementById('btn-new-expense')?.click();
+              });
+              document.getElementById('btn-new-investment-inline')?.addEventListener('click', function() {
+                  document.getElementById('btn-new-investment')?.click();
+              });
+              document.getElementById('btn-new-expense').addEventListener('click', () => {
                  const form = document.getElementById('form-new-expense');
                  form.reset();
                  expensePaidDateContainer.style.display = 'none';
