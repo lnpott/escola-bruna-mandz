@@ -1793,3 +1793,64 @@ Corrigir dois erros críticos de JavaScript que impediam o carregamento do Paine
 ## Próxima Etapa
 
 Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
+
+---
+
+# ETAPA 46
+
+**Data:** 11/07/2026
+
+**Horário:** 02:18
+
+**Agente Responsável:**
+Gemini
+
+**Commit Git:**
+Pendente
+
+---
+
+## Objetivo
+
+Reestruturar as abas e o fluxo de administração geral do painel, separando a Loja, atualizando nomes e simplificando a parte de mensalidades e professores.
+
+---
+
+## Implementações Realizadas
+
+- **Nomenclatura Global:** Título do painel atualizado de "Loja Bruna Mandz" para "Painel de Administração".
+- **Nova Aba Loja:** Criada aba principal `Loja` englobando as sub-abas `Pedidos` e `Produtos`.
+- **Nova Aba Alunos:** Removida a sub-aba "Alunos" do Financeiro e elevada a Aba Principal `Alunos`.
+- **Desmembramento Financeiro:** "Custos & Investimentos" separados em duas sub-abas "Custos" e "Investimentos".
+- **Fim das Mensalidades Avulsas:** Remoção da sub-aba "Mensalidades" do Financeiro. O botão de "Nova Cobrança" foi movido para a lista de Alunos, vinculando a cobrança diretamente ao aluno selecionado.
+- **Pagamentos a Professores Simplificado:** Removida sub-aba avulsa "Pagto Professores", passando essa responsabilidade para a gestão de vínculo de Aulas.
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` (reestruturação do HTML para abas principais, movimentação de sub-abas, alteração de botões, listeners JS)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma alteração no banco.**
+
+---
+
+## Testes
+
+✅ Testado parcialmente (Estrutura visual HTML inserida e listeners ajustados)
+
+---
+
+## Pendências
+
+- Finalizar a integração de exibição das mensalidades vinculadas diretamente ao perfil do aluno.
+
+---
+
+## Próxima Etapa
+
+Adaptar visualização das cobranças no modal de dados do Aluno e remover dependências antigas.
