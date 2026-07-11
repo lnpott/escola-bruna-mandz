@@ -68,8 +68,17 @@ async function request<T>(
     });
 
     if (!response.ok) {
+        // Se senha inválida/expirada, invalida a sessão local para evitar “loop” de 401.
+        if (response.status === 401) {
+            sessionStorage.removeItem('admin_password');
+        }
+
         const errorBody = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-        throw new Error(errorBody.error || `HTTP ${response.status}`);
+        const message =
+            errorBody?.error ||
+            (response.status === 401 ? 'Senha admin inválida ou expirada. Faça login novamente.' : `HTTP ${response.status}`);
+
+        throw new Error(message);
     }
 
     return response.json();
