@@ -286,16 +286,18 @@ Cada módulo deverá possuir documentação própria neste arquivo conforme sua 
 
 # Estado Atual do Projeto
 
-| Módulo | Status |
-|---------|--------|
-| Dashboard | ✅ Estável |
-| Loja | ✅ Estável |
-| Financeiro | 🔄 Em desenvolvimento |
-| Alunos | ⏳ Planejado |
-| Turmas | ⏳ Planejado |
-| Agenda | ✅ Estável (calendário mensal) |
-| Relatórios | ⏳ Planejado |
-| Configurações | 🔄 Em evolução |
+| Módulo | Status | Observação |
+|--------|--------|------------|
+| 📊 Dashboard | ✅ Estável | React + Clássico |
+| 🛍️ Loja | ✅ Estável | Clássico apenas |
+| 💰 Financeiro | ✅ Estável | React + Clássico |
+| 🎓 Alunos | ✅ Estável | React com lifecycle (lead→cancelled) |
+| 👨‍🏫 Professores | ✅ Estável | React com dias de atendimento |
+| 📚 Matrículas | ✅ Estável | React com billing_type |
+| 📅 Agenda | ✅ Estável | React calendário mensal |
+| 📊 Relatórios | ⏳ Planejado | — |
+| ⚙️ Configurações | 🔄 Em evolução | — |
+| 👥 Administração | ⏳ Planejado | Usuários, perfis, logs |
 
 ---
 
@@ -2254,3 +2256,283 @@ Nenhuma. Todas as APIs já existiam e foram apenas consumidas pelos novos compon
 
 ---
 
+# ETAPA 52 — AGENDA MENSAL (CALENDÁRIO) REACT
+
+**Data:** 12/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** d98005d
+
+---
+
+## Objetivo
+
+Criar o componente de Agenda Mensal em React com calendário no estilo Google Calendar, permitindo visualizar aulas por dia, criar/editar/cancelar aulas, e navegar entre meses.
+
+---
+
+## Implementações Realizadas
+
+### Calendário (`app/src/pages/Agenda.tsx`)
+- Grade calendário 7 colunas (Dom–Sáb) com dias do mês
+- Navegação: botões ◀ ▶ anterior/próximo mês + "Hoje"
+- Dias de meses adjacentes exibidos com opacidade reduzida
+- Até 3 markers de aula visíveis por dia (horário + nome do aluno)
+- Link "+N mais" quando dia tem mais de 3 aulas
+- Dia atual destacado (borda vermelha)
+- Summary: total, agendadas, realizadas
+
+### Modal de Detalhe do Dia
+- Lista completa de aulas do dia com cards (aluno, professor, instrumento, duração)
+- Ações por aula: ✅ Completar, ❌ Cancelar, ↩️ Reverter, 🗑️ Excluir, ✏️ Editar
+
+### Modal CRUD de Aulas
+- Select de vínculo (enrollment) que auto-preenche aluno/professor/instrumento
+- Formulário: data, horário início, duração, tipo de aula (regular/extra/reposição/experimental)
+- Observações
+- Validação: data e horário início obrigatórios
+
+### Tipos e API
+- Interfaces: Lesson, Enrollment, LessonStatus, LessonType
+- API: fetchLessons (com filtros date_from/date_to), createLesson, updateLesson, deleteLesson, fetchEnrollments
+- Constantes: LESSON_STATUS_LABELS, LESSON_TYPE_LABELS, DAY_NAMES, MONTH_NAMES
+
+### Estilos (`app/src/styles/agenda.css`)
+- ~250 linhas de CSS dark theme
+- Grid de calendário responsivo
+- Modais com animação fadeIn
+- Mobile: células menores, markers compactos
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/src/pages/Agenda.tsx` (novo)
+- `app/src/styles/agenda.css` (novo)
+- `app/src/types.ts` (alterado — +Lesson, Enrollment, enums, constantes)
+- `app/src/services/api.ts` (alterado — +fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments)
+- `app/src/App.tsx` (alterado — +rota /agenda)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. API já existente (resource=lessons) consumida pelos novos componentes.
+
+---
+
+## Testes
+
+✅ Vite build: 3.29s
+✅ Revisão de código: calcEndTime (dead code) removido, fluxo modal simplificado
+✅ Código morto removido: formatCurrency duplicado
+
+---
+
+## Pendências
+
+- Filtro por professor na visualização mensal
+- Gerar aulas em massa a partir de vínculos ativos
+
+---
+
+## Próxima Etapa
+
+Criar componente de Matrículas (Enrollments) em React.
+
+---
+
+# ETAPA 53 — MATRÍCULAS (ENROLLMENTS) REACT
+
+**Data:** 12/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** d98005d
+
+---
+
+## Objetivo
+
+Criar o componente de Matrículas (Enrollments) em React com CRUD completo, substituindo a interface clássica do painel.
+
+---
+
+## Implementações Realizadas
+
+### Componente (`app/src/pages/Enrollments.tsx`)
+- Tabela desktop com colunas: Aluno, Professor, Instrumento, Dia/Horário, Valor, Cobrança, Status, Ações
+- Cards mobile com os mesmos dados
+- Busca por nome do aluno, professor ou instrumento
+- Filtro por status (Ativo/Inativo/Cancelado) — filtra no servidor
+
+### Modal CRUD
+- Select de alunos (apenas ativos)
+- Select de professores (apenas ativos)
+- Select de instrumentos (17 opções: Piano, Violão, Bateria, etc.)
+- Tipo de cobrança: Mensal / Por Semana / Completo
+- Campos condicionais para cobrança "Completo": valor total + parcelas
+- Status editável, observações
+- Validação: aluno obrigatório, cobrança completa exige valor total
+- Exclusão com confirmação
+
+### Estilos (`app/src/styles/enrollments.css`)
+- ~280 linhas de CSS dark theme
+- Responsivo (desktop tabela → mobile cards)
+- Status pills (active/inactive/cancelled)
+
+### API
+- createEnrollment, updateEnrollment, deleteEnrollment adicionados
+- Suporte a billing_type (weekly/monthly/full), total_amount, installments
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/src/pages/Enrollments.tsx` (novo)
+- `app/src/styles/enrollments.css` (novo)
+- `app/src/services/api.ts` (alterado — +CRUD enrollments)
+- `app/src/App.tsx` (alterado — +rota /academico/turmas, sub-nav com active state)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. API já existente (resource=enrollments) consumida pelos novos componentes.
+
+---
+
+## Testes
+
+✅ Vite build: 2.76s
+✅ Revisão de código: CRUD operations, billing_type validation, mobile responsivo
+
+---
+
+## Pendências
+
+- Link para Agenda no modal de matrícula
+- Geração de aulas em massa a partir de matrículas ativas
+
+---
+
+## Próxima Etapa
+
+Criar a página Financeira React completa com KPIs, sub-abas e CRUDs.
+
+---
+
+# ETAPA 54 — FINANCEIRO REACT
+
+**Data:** 12/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** d98005d
+
+---
+
+## Objetivo
+
+Criar a página Financeira em React, substituindo a interface clássica com KPIs, filtro de período e 4 sub-módulos CRUD: Receitas Avulsas, Custos, Investimentos e Pagamentos a Professores.
+
+---
+
+## Implementações Realizadas
+
+### Página Financeira (`app/src/pages/Financial.tsx`)
+
+**Período e KPIs:**
+- Seletor de mês/ano com refresh manual
+- 6 KPIs: Receita (verde), Despesas (amarelo), Saldo (verde/vermelho), Pendentes, Alunos em Atraso, A Pagar Professores
+- Dados carregados via fetchFinancialSummary(month, year)
+
+**Sub-aba: Receitas Avulsas (payments)**
+- Lista com categoria, aluno, valor, forma de pagamento, data
+- Filtro por categoria (Matrícula/Material/Aula Extra/Outro)
+- Modal de criação: descrição, valor, categoria, forma de pagamento, data, aluno (opcional)
+
+**Sub-aba: Custos (expenses)**
+- Lista com descrição, valor, categoria, vencimento, tipo, status
+- Toggle ✅ pago / ↩️ pendente (inline, sem modal)
+- Modal de criação/edição: descrição, valor, categoria, vencimento, tipo fixo/variável, checkbox pago
+- Linhas pagas aparecem riscadas com opacidade reduzida
+
+**Sub-aba: Investimentos (investments)**
+- Lista com descrição, valor, categoria, data, observações
+- Total investido no mês exibido no toolbar
+- Modal de criação: descrição, valor, categoria, data de compra, observações
+
+**Sub-aba: Pagamentos a Professores (teacher_payments)**
+- Lista com professor, mês referência, valor, status
+- Toggle ✅ pago / ↩️ pendente
+- Exclusão 🗑️ com confirmação
+- Modal de criação: professor (select), mês referência, valor, checkbox pago, observações
+
+**UX/UI:**
+- Toast animado com feedback de sucesso/erro
+- Timeout do toast com cleanup via useRef (prevenção de memory leak)
+- Campos de valor como texto com parseCurrencyInput (aceita formato brasileiro: 1.234,56)
+- Modais com animação fadeIn + scale
+- Form rows em grid 2 colunas
+- Botões de ação com hover states e cores específicas (verde=pagar, amarelo=reverter, vermelho=excluir)
+- Responsivo: mobile vira cards empilhados
+
+### Tipos (`app/src/types.ts`)
+- Interfaces: Payment, Expense, Investment, TeacherPayment, FinancialSummary, Order, Product
+- Label records: CATEGORY_LABELS, PAYMENT_METHOD_LABELS, EXPENSE_TYPE_LABELS
+
+### API (`app/src/services/api.ts`)
+- 14 novas funções: fetchFinancialSummary, fetchPayments, createPayment, fetchExpenses, createExpense, updateExpense, fetchInvestments, createInvestment, fetchTeacherPayments, createTeacherPayment, updateTeacherPayment, deleteTeacherPayment
+
+### Estilos (`app/src/styles/financial.css`)
+- ~470 linhas de CSS dark theme
+- Grid de KPIs responsivo
+- Tabela com linhas riscadas para itens pagos
+- Sub-tabs com active state destacado
+- Modais com animação
+- Forms com focus-visible, checkbox estilizado
+- Mobile: breakpoint 720px com cards
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/src/pages/Financial.tsx` (novo)
+- `app/src/styles/financial.css` (novo)
+- `app/src/types.ts` (alterado — +Payment, Expense, Investment, TeacherPayment, etc.)
+- `app/src/services/api.ts` (alterado — +14 funções financeiras)
+- `app/src/App.tsx` (alterado — +rota /financeiro)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Todas as APIs já existiam (resource=summary|payments|expenses|investments|teacher_payments).
+
+---
+
+## Testes
+
+✅ Vite build: 4.92s
+✅ Revisão de código: código morto removido, toast cleanup via useRef, formatação de valor corrigida
+✅ 3 correções aplicadas pós-review: (1) função formatInputCurrency removida, (2) toast com cleanup no unmount, (3) campo de valor na edição de custo usa formato numérico limpo
+
+---
+
+## Pendências
+
+- Exportar CSV dos pagamentos avulsos
+- Edição de pagamentos avulsos (atualmente só create)
+- Edição de investimentos (atualmente só create)
+- Filtro por paid/unpaid em custos e pagamentos a professores
+- Auth/login independente para o React
+
+---
+
+## Próxima Etapa
+
+Criar o módulo de Administração (Admin) com métricas do sistema, logs e configurações, ou iniciar os testes funcionais no navegador com browser-use.
+
+---

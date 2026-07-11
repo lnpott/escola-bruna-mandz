@@ -41,11 +41,33 @@
 - [x] **app/src/pages/Dashboard.tsx** — Dashboard com KPIs, aulas de hoje, alertas, pedidos, estoque baixo, auto-refresh 60s
 - [x] **app/src/pages/Students.tsx** — CRUD completo: listagem, busca, filtro por status, modal com status lifecycle + source
 - [x] **app/src/pages/Teachers.tsx** — CRUD completo: listagem, busca, modal com dias de atendimento (checkboxes), valor/aula
+- [x] **app/src/pages/Agenda.tsx** — Calendário mensal com grid 7 colunas, navegação mês/mês, markers de aula, modais day-detail e CRUD
+- [x] **app/src/pages/Enrollments.tsx** — CRUD de matrículas: tabela + busca + status filter + modal com billing_type, teacher/student selects
+- [x] **app/src/pages/Financial.tsx** — Página financeira completa: KPIs, sub-abas Receitas/Custos/Investimentos/Pag. Professores, CRUD com modais
+
+### Styles created
+- [x] **app/src/styles/dashboard.css** — Dark theme KPIs, cards, responsive
+- [x] **app/src/styles/students.css** — Status pills, modal, mobile
+- [x] **app/src/styles/teachers.css** — Day checkbox grid, dark theme
+- [x] **app/src/styles/agenda.css** — Calendar grid 7 colunas, markers, modais
+- [x] **app/src/styles/enrollments.css** — Table + cards mobile, dark theme
+- [x] **app/src/styles/financial.css** — ~470 linhas: KPIs, sub-tabs, modais, forms, table, responsive
 
 ### Routes
+- [x] **/** — Home (cards dos módulos)
 - [x] **/dashboard** — Dashboard React
 - [x] **/academico** — Alunos
 - [x] **/academico/professores** — Professores (sub-nav dinâmica com active state)
+- [x] **/academico/turmas** — Matrículas (Enrollments)
+- [x] **/agenda** — Agenda Mensal (calendário)
+- [x] **/financeiro** — Página Financeira completa
+
+### API functions added
+- [x] **fetchFinancialSummary** — Resumo financeiro por mês/ano
+- [x] **fetchPayments, createPayment** — Receitas avulsas
+- [x] **fetchExpenses, createExpense, updateExpense** — Custos/Despesas
+- [x] **fetchInvestments, createInvestment** — Investimentos
+- [x] **fetchTeacherPayments, createTeacherPayment, updateTeacherPayment, deleteTeacherPayment** — Pagamentos a professores
 
 ## Etapas
 
@@ -55,7 +77,10 @@
 - [x] Etapa 4: Criar spec com proximas prioridades (docs/proxima-etapa-spec.md)
 - [x] Etapa 5: Alunos Expandido (campos responsavel + CPF) — guardian_name, guardian_phone, guardian_cpf adicionados
 - [x] **Etapa 50: Setup React/TypeScript + ciclo de vida do aluno** — React app, Migration 050, API status/source/enrolled_at, frontend status lifecycle
-- [x] **Etapa 51: Componentes React** — Dashboard + Students (listagem/CRUD) + Teachers (listagem/CRUD) + rotas
+- [x] **Etapa 51: Componentes React (Dashboard + Students + Teachers)** — Dashboard com KPIs, Students CRUD, Teachers CRUD
+- [x] **Etapa 52: Agenda Mensal React** — Calendário grid, modais, CRUD de aulas
+- [x] **Etapa 53: Matrículas (Enrollments) React** — CRUD com billing_type, busca, status filter
+- [x] **Etapa 54: Financeiro React** — Página completa com KPIs, sub-abas, 4 CRUDs
 - [ ] **Etapa 6: Testes funcionais ponta a ponta pos-deploy**
 
 ## Próximas pendências
@@ -63,3 +88,5 @@
 1. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
 2. 🟡 **Migration 050 no Supabase** — Executar no SQL Editor
 3. 🔵 **Auth no React** — Login independente do painel clássico
+4. 🔵 **Módulo Admin** — Página de administração (usuários, perfis, logs)
+5. 🔵 **Testar no navegador** — Executar build de produção e validar com browser-use
