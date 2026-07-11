@@ -1727,3 +1727,69 @@ Aplicar as 6 correções de frontend pendentes da ETAPA 43 no `painel-x9k2f.html
 ## Próxima Etapa
 
 Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
+
+
+---
+
+# ETAPA 45 — CORREÇÃO DE SyntaxError + BOTÃO btn-generate-monthly-billing FALTANTE
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 898a630, ee940a0
+
+---
+
+## Objetivo
+
+Corrigir dois erros críticos de JavaScript que impediam o carregamento do Painel: (1) `SyntaxError: Unexpected end of input` causado por uma chave `}` faltante na função `openEnrollmentModal()`, e (2) `TypeError: Cannot read properties of null (reading 'addEventListener')` no elemento `btn-generate-monthly-billing` que havia sido removido do HTML acidentalmente durante as correções de frontend da ETAPA 44.
+
+---
+
+## Implementações Realizadas
+
+### Correção 1: SyntaxError (missing } em openEnrollmentModal)
+
+- **Problema:** Durante as correções da ETAPA 44, um script Python removeu acidentalmente a chave `}` de fechamento da função `async function openEnrollmentModal()`, fazendo com que o interpretador JS encontrasse o fim do arquivo sem fechar o bloco.
+- **Sintoma:** `Uncaught SyntaxError: Unexpected end of input` na linha 4492 — o script inteiro falhava ao carregar, impedindo inclusive a tela de login de funcionar corretamente.
+- **Correção:** A chave `}` foi reinserida entre `updateEnrollmentBillingTypeFields();` e `function closeEnrollmentModal()`.
+
+### Correção 2: btn-generate-monthly-billing ausente do HTML
+
+- **Problema:** O botão `<button id="btn-generate-monthly-billing">` havia sido perdido da toolbar de Mensalidades durante as correções com scripts Python. O listener JS (`document.getElementById('btn-generate-monthly-billing').addEventListener(...)`) continuava registrado no script, mas como o elemento não existia no DOM, `getElementById` retornava `null` e `addEventListener` disparava `TypeError`.
+- **Sintoma:** `Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')` na linha 4179.
+- **Correção:** O botão foi reinserido na toolbar de Mensalidades, antes do `btn-new-tuition`, com os mesmos atributos e estilos originais (`margin-left:auto`, cor azul `#3b82f6`, título "Gera mensalidades para todas as matrículas ativas").
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` (adição de `}` + reinserção do botão `btn-generate-monthly-billing`)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma.**
+
+---
+
+## Testes
+
+✅ `node --check` validado (sintaxe JS correta — 3.174 brackets balanceados)
+✅ Browser agent confirmou: **zero erros no console** após as correções
+✅ Vercel deploy confirmado (URL retorna 200, botão presente no HTML ao vivo)
+
+---
+
+## Pendências
+
+- Testes funcionais do fluxo billing_type (criar vínculo com cobrança, verificar mensalidades)
+- Forçar hard refresh (Ctrl+F5) nos navegadores dos usuários para limpar cache de versões antigas
+
+---
+
+## Próxima Etapa
+
+Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
