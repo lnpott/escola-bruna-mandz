@@ -76,7 +76,7 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, email, phone, address, active, instruments, guardian_name, guardian_phone } = req.body;
+        const { name, cpf, email, phone, address, active, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
         if (!name) return res.status(400).json({ error: 'Nome é obrigatório.' });
         const instrumentsStr = Array.isArray(instruments) ? instruments.join(', ') : (instruments || '');
         const { data, error } = await supabase
@@ -84,12 +84,14 @@ async function handleStudents(req, res, supabase) {
             .insert([{ 
                 id: genId('ST'), 
                 name, 
+                cpf: cpf || null,
                 email: email || null, 
                 phone: phone || null, 
                 address: address || null, 
                 instruments: instrumentsStr, 
                 active: active !== undefined ? active : true,
                 guardian_name: guardian_name || null,
+                guardian_cpf: guardian_cpf || null,
                 guardian_phone: guardian_phone || null
             }])
             .select().single();
@@ -98,16 +100,18 @@ async function handleStudents(req, res, supabase) {
     }
 
     if (method === 'PATCH') {
-        const { id, name, email, phone, address, active, instruments, guardian_name, guardian_phone } = req.body;
+        const { id, name, cpf, email, phone, address, active, instruments, guardian_name, guardian_cpf, guardian_phone } = req.body;
         if (!id) return res.status(400).json({ error: 'ID do aluno é obrigatório.' });
         const upd = {};
         if (name    !== undefined) upd.name    = name;
+        if (cpf     !== undefined) upd.cpf     = cpf || null;
         if (email   !== undefined) upd.email   = email || null;
         if (phone   !== undefined) upd.phone   = phone || null;
         if (address !== undefined) upd.address = address || null;
         if (active  !== undefined) upd.active  = active;
         if (instruments !== undefined) upd.instruments = Array.isArray(instruments) ? instruments.join(', ') : instruments;
         if (guardian_name !== undefined) upd.guardian_name = guardian_name || null;
+        if (guardian_cpf  !== undefined) upd.guardian_cpf  = guardian_cpf || null;
         if (guardian_phone !== undefined) upd.guardian_phone = guardian_phone || null;
         const { data, error } = await supabase.from('students').update(upd).eq('id', id).select().single();
         if (error) throw error;
@@ -140,7 +144,7 @@ async function handleTeachers(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, phone, specialty, days_of_week, rate_per_class } = req.body;
+        const { name, cpf, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
         const days = Array.isArray(days_of_week)
@@ -152,6 +156,7 @@ async function handleTeachers(req, res, supabase) {
             .insert([{
                 id: genId('TE'),
                 name,
+                cpf: cpf || null,
                 phone: phone || null,
                 specialty: specialty || null,
                 days_of_week: days,
@@ -163,11 +168,12 @@ async function handleTeachers(req, res, supabase) {
     }
 
     if (method === 'PATCH') {
-        const { id, name, phone, specialty, days_of_week, rate_per_class } = req.body;
+        const { id, name, cpf, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!id) return res.status(400).json({ error: 'id do professor é obrigatório.' });
 
         const upd = {};
         if (name !== undefined) upd.name = name;
+        if (cpf !== undefined) upd.cpf = cpf || null;
         if (phone !== undefined) upd.phone = phone || null;
         if (specialty !== undefined) upd.specialty = specialty || null;
         if (rate_per_class !== undefined) upd.rate_per_class = parseFloat(rate_per_class || 0);
@@ -714,6 +720,9 @@ async function handleLessons(req, res, supabase) {
     if (method === 'POST') {
         const {
             enrollment_id,
+            student_id,
+            teacher_id,
+            instrument,
             date,
             start_time,
             duration_minutes,
@@ -722,28 +731,45 @@ async function handleLessons(req, res, supabase) {
             notes,
         } = req.body;
 
-        if (!enrollment_id || !date || !start_time) {
-            return res.status(400).json({ error: 'enrollment_id, date e start_time são obrigatórios.' });
+        if (!date || !start_time) {
+            return res.status(400).json({ error: 'date e start_time são obrigatórios.' });
         }
 
-        // Busca dados do enrollment para copiar student_id, teacher_id, instrument
-        const { data: enrollment, error: enrollmentError } = await supabase
-            .from('enrollments')
-            .select('*, students(name), teachers(name, specialty)')
-            .eq('id', enrollment_id)
-            .single();
-
-        if (enrollmentError || !enrollment) {
-            return res.status(404).json({ error: 'Vínculo (enrollment) não encontrado.' });
-        }
-
-        if (enrollment.status !== 'active') {
-            return res.status(400).json({ error: 'Não é possível criar aula para um vínculo inativo.' });
-        }
-
-        const dur = duration_minutes !== undefined && duration_minutes !== null
+        let lessonStudentId = student_id || null;
+        let lessonTeacherId = teacher_id || null;
+        let lessonInstrument = instrument || null;
+        let lessonEnrollmentId = enrollment_id || null;
+        let lessonDuration = duration_minutes !== undefined && duration_minutes !== null
             ? parseInt(duration_minutes, 10)
-            : (enrollment.duration_minutes || 60);
+            : 60;
+
+        // Se enrollment_id foi fornecido, busca os dados do vínculo
+        if (enrollment_id) {
+            const { data: enrollment, error: enrollmentError } = await supabase
+                .from('enrollments')
+                .select('*, students(name), teachers(name, specialty)')
+                .eq('id', enrollment_id)
+                .single();
+
+            if (enrollmentError || !enrollment) {
+                return res.status(404).json({ error: 'Vínculo (enrollment) não encontrado.' });
+            }
+
+            if (enrollment.status !== 'active') {
+                return res.status(400).json({ error: 'Não é possível criar aula para um vínculo inativo.' });
+            }
+
+            lessonStudentId = enrollment.student_id;
+            lessonTeacherId = enrollment.teacher_id;
+            lessonInstrument = enrollment.instrument;
+            lessonDuration = lessonDuration || (enrollment.duration_minutes || 60);
+        }
+
+        if (!lessonStudentId) {
+            return res.status(400).json({ error: 'student_id é obrigatório (forneça enrollment_id ou student_id).' });
+        }
+
+        const dur = lessonDuration;
 
         // Calcula end_time = start_time + duration_minutes
         const endTime = (() => {
@@ -756,10 +782,10 @@ async function handleLessons(req, res, supabase) {
 
         const payload = {
             id: genId('LS'),
-            enrollment_id,
-            student_id: enrollment.student_id,
-            teacher_id: enrollment.teacher_id,
-            instrument: enrollment.instrument,
+            enrollment_id: lessonEnrollmentId,
+            student_id: lessonStudentId,
+            teacher_id: lessonTeacherId,
+            instrument: lessonInstrument,
             date,
             start_time,
             end_time: endTime,

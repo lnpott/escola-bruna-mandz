@@ -28,6 +28,8 @@
 create table if not exists public.students (
     id text primary key,                    -- ST-XXXXXX
     name text not null,
+    cpf text,                               -- CPF do aluno
+    guardian_cpf text,                      -- CPF do responsável
     email text,
     phone text,
     address text,
@@ -61,12 +63,15 @@ create policy "admin manage students"
 -- ═══════════════════════════════════════════════════════════════════════════
 
 create table if not exists public.teachers (
-    id text primary key,                    -- TE-XXXXXX
+    id text primary key,                    -- PR-XXXXXX
     name text not null,
+    cpf text,                               -- CPF do professor
+    email text,
     phone text,
-    specialty text,
-    days_of_week text[] not null default '{}'::text[],
-    rate_per_class numeric(10,2) not null default 0.00,  -- Etapa 37
+    specialty text,                         -- Ex: "Piano, Teclado"
+    rate_per_class numeric(10,2) not null default 0.00,
+    days_of_week text,                      -- json/string com dias disponíveis
+    active boolean not null default true,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
