@@ -1880,16 +1880,21 @@ function closeLessonModal() {
 
 function switchTab(tab) {
     _activeTab = tab;
-    document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? '' : 'none';
-    document.getElementById('tab-agenda').style.display    = tab === 'agenda'    ? '' : 'none';
-    document.getElementById('tab-orders').style.display    = tab === 'orders'    ? '' : 'none';
-    document.getElementById('tab-products').style.display  = tab === 'products'  ? '' : 'none';
-    document.getElementById('tab-financial').style.display = tab === 'financial' ? '' : 'none';
-    document.getElementById('export-csv-btn').style.display = tab === 'orders' ? '' : 'none';
+    const tabIds = ['tab-dashboard', 'tab-agenda', 'tab-students', 'tab-financial', 'tab-store'];
+    tabIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = id === `tab-${tab}` ? '' : 'none';
+    });
+    
+    const exportBtn = document.getElementById('export-csv-btn');
+    if(exportBtn) exportBtn.style.display = tab === 'store' ? '' : 'none';
+    
     document.querySelectorAll('.nav-tabs > .nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    
     if (tab === 'dashboard') loadDashboard();
     if (tab === 'agenda') loadMonthAgenda();
-    if (tab === 'products' && !_allProducts.length) loadProducts();
+    if (tab === 'students' && !_allStudents.length) loadStudents();
+    if (tab === 'store' && !_allProducts.length) loadProducts();
     if (tab === 'financial') {
         initFinancialPeriodFilter();
         loadFinancialData();
@@ -3892,20 +3897,32 @@ function switchTab(tab) {
              // Sub-tabs
              document.querySelectorAll('.sub-nav-tabs .nav-tab').forEach(btn => {
                  btn.addEventListener('click', () => {
-                     document.querySelectorAll('.sub-nav-tabs .nav-tab').forEach(b => b.classList.remove('active'));
+                     const container = btn.closest('.sub-nav-tabs');
+                     container.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
                      btn.classList.add('active');
                      _activeSubTab = btn.dataset.subtab;
                      
-                     document.getElementById('subtab-students').style.display = _activeSubTab === 'students' ? '' : 'none';
-                     document.getElementById('subtab-teachers').style.display = _activeSubTab === 'teachers' ? '' : 'none';
-                     document.getElementById('subtab-enrollments').style.display = _activeSubTab === 'enrollments' ? '' : 'none';
-                     document.getElementById('subtab-lessons').style.display = _activeSubTab === 'lessons' ? '' : 'none';
-                     document.getElementById('subtab-tuitions').style.display = _activeSubTab === 'tuitions' ? '' : 'none';
-                     document.getElementById('subtab-teacherpayments').style.display = _activeSubTab === 'teacherpayments' ? '' : 'none';
-                     document.getElementById('subtab-payments').style.display = _activeSubTab === 'payments' ? '' : 'none';
-                     document.getElementById('subtab-expenses').style.display = _activeSubTab === 'expenses' ? '' : 'none';
+                     const toggle = (id, subtab) => {
+                         const el = document.getElementById(id);
+                         if (el) el.style.display = _activeSubTab === subtab ? '' : 'none';
+                     };
                      
-                     loadFinancialData();
+                     // Store
+                     toggle('subtab-orders', 'orders');
+                     toggle('subtab-products', 'products');
+                     
+                     // Financial
+                     toggle('subtab-teachers', 'teachers');
+                     toggle('subtab-lessons', 'lessons');
+                     toggle('subtab-payments', 'payments');
+                     toggle('subtab-expenses', 'expenses');
+                     toggle('subtab-investments', 'investments');
+                     
+                     if (container.closest('#tab-financial')) {
+                         loadFinancialData();
+                     } else if (container.closest('#tab-store')) {
+                         if (_activeSubTab === 'products' && !_allProducts.length) loadProducts();
+                     }
                  });
              });
 
