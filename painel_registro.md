@@ -297,7 +297,7 @@ Cada módulo deverá possuir documentação própria neste arquivo conforme sua 
 | 📅 Agenda | ✅ Estável | React calendário mensal |
 | 📊 Relatórios | ⏳ Planejado | — |
 | ⚙️ Configurações | 🔄 Em evolução | — |
-| 👥 Administração | ⏳ Planejado | Usuários, perfis, logs |
+| 👥 Administração | ✅ Estável | React com overview stats, atalhos, info do sistema |
 
 ---
 
@@ -680,6 +680,12 @@ Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha 
 | 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
 | 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
 | 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
+| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
+| 51 | Dashboard + Students + Teachers React | ✅ |
+| 52 | Agenda Mensal React | ✅ |
+| 53 | Matrículas (Enrollments) React | ✅ |
+| 54 | Financeiro React | ✅ |
+| 55 | Admin React | ✅ |
 | — | Testes funcionais ponta a ponta | ⏳ |
 
 ---
@@ -2534,5 +2540,100 @@ Nenhuma. Todas as APIs já existiam (resource=summary|payments|expenses|investme
 ## Próxima Etapa
 
 Criar o módulo de Administração (Admin) com métricas do sistema, logs e configurações, ou iniciar os testes funcionais no navegador com browser-use.
+
+
+---
+
+# ETAPA 55 — ADMIN REACT (PÁGINA DE ADMINISTRAÇÃO)
+
+**Data:** 12/07/2026
+
+**Horário:** 16:00
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** e2c4fa1 (vite.config.js fix), Pendente (Admin component)
+
+---
+
+## Objetivo
+
+Criar a página de Administração em React, oferecendo uma visão geral do sistema com métricas consolidadas (alunos, professores, matrículas, receita, pedidos), atalhos rápidos para os principais módulos, informações técnicas do sistema e uma tabela resumo do banco de dados.
+
+---
+
+## Implementações Realizadas
+
+### Componente Admin (`app/src/pages/Admin.tsx`)
+- 6 Overview Cards com cores de destaque individuais:
+  - 🎓 **Alunos** — ativos/total (verde)
+  - 👨‍🏫 **Professores** — cadastrados (azul)
+  - 📚 **Matrículas Ativas** — vínculos pedagógicos (roxo)
+  - 📊 **Aulas Hoje** — agendadas/realizadas (amarelo)
+  - 💰 **Receita do Mês** — formatada em BRL (verde)
+  - 🛍️ **Pedidos Pendentes** — com cor dinâmica (verde se 0, vermelho se >0)
+- Cada card é um link para o módulo correspondente
+- Hover: translateY(-3px) + box-shadow + borda colorida (CSS custom property `--card-accent`)
+
+### Atalhos Rápidos
+- Painel Clássico (`../painel-x9k2f.html`)
+- Painel Acadêmico (`../academic/index.html`)
+- Dashboard React (`/dashboard`)
+- Financeiro React (`/financeiro`)
+
+### Informações do Sistema
+- Versão do App (1.0.0)
+- Ambiente (Produção Vercel)
+- Banco de Dados (Supabase PostgreSQL)
+- Frontend (React 19 + TypeScript + Vite)
+- Autenticação (x-admin-password)
+- Status da Sessão (✅ Ativa / ❌ Inativa via sessionStorage)
+
+### Tabela Resumo do Banco
+- 5 tabelas: Alunos, Professores, Matrículas, Produtos, Pedidos
+- Indicadores visuais: bolinha verde (ok) / amarela (alerta)
+
+### Estados
+- **Loading:** "Carregando estatísticas..." com spinner textual
+- **Error:** banner vermelho com mensagem de erro
+- **Dados:** cards + links + system info + tabela
+
+### API consumida (sem novas funções)
+- `fetchStudents()`, `fetchTeachers()`, `fetchEnrollments()`, `fetchDashboard()` — 4 chamadas paralelas via `Promise.all`
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/src/pages/Admin.tsx` (novo — ~220 linhas)
+- `app/src/styles/admin.css` (novo — ~260 linhas)
+- `app/src/App.tsx` (alterado — +rota /admin com AuthGuard)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma.** Componente puramente frontend, consome APIs existentes.
+
+---
+
+## Testes
+
+✅ Vite build: 11.62s
+✅ Revisão de código: código morto (pluralize) removido, imports não utilizados limpos
+
+---
+
+## Pendências
+
+- Exportar CSV de tabelas do banco
+- Histórico de ações (audit log)
+- Configurações de sistema (admin_password, etc.)
+
+---
+
+## Próxima Etapa
+
+Testes funcionais no navegador com browser-use, ou iniciar melhorias como exportação CSV, filtro paid/unpaid, edição de investimentos.
 
 ---

@@ -44,6 +44,7 @@
 - [x] **app/src/pages/Agenda.tsx** — Calendário mensal com grid 7 colunas, navegação mês/mês, markers de aula, modais day-detail e CRUD
 - [x] **app/src/pages/Enrollments.tsx** — CRUD de matrículas: tabela + busca + status filter + modal com billing_type, teacher/student selects
 - [x] **app/src/pages/Financial.tsx** — Página financeira completa: KPIs, sub-abas Receitas/Custos/Investimentos/Pag. Professores, CRUD com modais
+- [x] **app/src/pages/Admin.tsx** — Página de Administração com overview stats (6 cards), atalhos rápidos, info do sistema, tabela do banco
 
 ### Styles created
 - [x] **app/src/styles/dashboard.css** — Dark theme KPIs, cards, responsive
@@ -52,6 +53,7 @@
 - [x] **app/src/styles/agenda.css** — Calendar grid 7 colunas, markers, modais
 - [x] **app/src/styles/enrollments.css** — Table + cards mobile, dark theme
 - [x] **app/src/styles/financial.css** — ~470 linhas: KPIs, sub-tabs, modais, forms, table, responsive
+- [x] **app/src/styles/admin.css** — ~260 linhas: overview cards, links grid, info grid, tabela, dark theme, responsivo
 
 ### Routes
 - [x] **/** — Home (cards dos módulos)
@@ -61,6 +63,7 @@
 - [x] **/academico/turmas** — Matrículas (Enrollments)
 - [x] **/agenda** — Agenda Mensal (calendário)
 - [x] **/financeiro** — Página Financeira completa
+- [x] **/admin** — Administração (overview stats, atalhos, sistema)
 
 ### API functions added
 - [x] **fetchFinancialSummary** — Resumo financeiro por mês/ano
@@ -81,12 +84,15 @@
 - [x] **Etapa 52: Agenda Mensal React** — Calendário grid, modais, CRUD de aulas
 - [x] **Etapa 53: Matrículas (Enrollments) React** — CRUD com billing_type, busca, status filter
 - [x] **Etapa 54: Financeiro React** — Página completa com KPIs, sub-abas, 4 CRUDs
+- [x] **Etapa 55: Admin React** — Página de Administração com overview stats, atalhos, info do sistema, tabela resumo do banco
 - [ ] **Etapa 6: Testes funcionais ponta a ponta pos-deploy**
 
 ## Próximas pendências
 
 1. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
 2. 🟡 **Migration 050 no Supabase** — Executar no SQL Editor
-3. 🔵 **Auth no React** — Login independente do painel clássico
-4. 🔵 **Módulo Admin** — Página de administração (usuários, perfis, logs)
-5. 🔵 **Testar no navegador** — Executar build de produção e validar com browser-use
+3. ✅ **Auth no React** — Login independente do painel clássico
+4. ✅ **Módulo Admin** — Página de administração com overview stats, atalhos, sistema (React)
+5. 🔵 **Exportar CSV** — Exportar pagamentos avulsos e custos
+6. 🔵 **Edição de investimentos** — Atualmente só create
+7. 🔵 **Filtro paid/unpaid** — Em custos e pagamentos a professores
