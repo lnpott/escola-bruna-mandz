@@ -12,6 +12,13 @@
 
 - [x] **045-add-cpf.sql** — Agora cobre também: `email` em teachers, `active` em teachers, conversão de `days_of_week` de `text[]` para `text`
 
+## ✅ Correções de bugs (jul/2026)
+
+- [x] **Select de aluno oculto no modal de matrícula** — `openEnrollmentModal` agora restaura a visibilidade do select de `student_id` ao abrir o modal (antes ficava oculto após usar `openEnrollmentModalForStudent`)
+- [x] **Modal de Nova Aula refatorado** — Substituído dropdown único de enrollment_id por selects separados: Aluno, Professor, Instrumento (com filtro por especialidade do professor)
+- [x] **API de aulas flexível** — `handleLessons POST` aceita `student_id` + `teacher_id` + `instrument` diretamente, mantendo compatibilidade com `enrollment_id`
+- [x] **Filtro de instrumentos por especialidade** — Matching exato com fallback para as próprias especialidades do professor
+
 ## Etapas
 
 - [x] Etapa 1: Atualizar Supabase (supabase/financial-schema.sql)

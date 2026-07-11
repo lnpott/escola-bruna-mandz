@@ -50,10 +50,8 @@ Visão geral rápida da operação da escola e da loja.
 Cadastro e gestão dos alunos.
 
 ## Campos reais (tabela `students`)
-- Nome, e-mail, telefone, endereço, instrumento(s), ativo/inativo
-
-## Pendente (não implementado ainda)
-- Dados de responsável (guardian_name, guardian_phone) — priorizado, ver `proxima-etapa-spec.md`
+- Nome, CPF, e-mail, telefone, endereço, instrumento(s), ativo/inativo
+- Responsável: `guardian_name`, `guardian_cpf`, `guardian_phone` (para alunos menores)
 
 ## Integrações reais
 - **Vínculos**: um aluno pode ter um ou mais vínculos (um por instrumento/professor)
@@ -67,7 +65,8 @@ Cadastro e gestão dos alunos.
 Cadastro e gestão dos professores.
 
 ## Campos reais (tabela `teachers`)
-- Nome, telefone, especialidade, dias de atendimento (`days_of_week`), valor por aula (`rate_per_class`) — quanto a escola paga ao professor, não quanto o aluno paga
+- Nome, CPF, e-mail, telefone, especialidade, dias de atendimento (`days_of_week`, texto), valor por aula (`rate_per_class`) — quanto a escola paga ao professor, não quanto o aluno paga
+- Ativo/inativo
 
 ## Integrações reais
 - **Vínculos**: um professor pode ter vários vínculos com alunos diferentes
@@ -81,10 +80,13 @@ Cadastro e gestão dos professores.
 É o módulo central que conecta aluno + professor + instrumento + horário + valor da mensalidade. Existe justamente para não duplicar dado pedagógico em outras tabelas.
 
 ## Campos reais (tabela `enrollments`)
-- `student_id`, `teacher_id`, `instrument`, `day_of_week`, `class_time`, `duration_minutes`, `classes_per_week`, `monthly_fee`, `status` (active/inactive), `notes`
+- `student_id`, `teacher_id`, `instrument`, `day_of_week`, `class_time`, `duration_minutes`, `classes_per_week`, `monthly_fee`, `billing_type` (monthly|weekly|full), `total_amount`, `installments`, `status` (active/inactive), `notes`
 
 ## Regra de negócio real
 Ao criar um vínculo com `status='active'` e `monthly_fee > 0`, o sistema **gera automaticamente** a mensalidade (`tuitions`) do mês corrente, referenciando esse vínculo.
+
+## Criação de aulas
+O modal de Nova Aula (na Agenda ou na aba Aulas) permite selecionar **Aluno**, **Professor** e **Instrumento** separadamente. O instrumento é filtrado conforme a especialidade do professor selecionado. A API aceita tanto `enrollment_id` (vínculo existente) quanto os campos diretos `student_id` + `teacher_id` + `instrument`.
 
 ## Integrações reais
 - **Agenda**: a visão mensal é derivada dos vínculos ativos com dia/horário definidos
@@ -102,7 +104,7 @@ Visualização mensal (estilo calendário) das aulas da escola.
 - Grade mensal com navegação entre meses e botão "Hoje"
 - Cada dia mostra até 3 aulas (horário + nome do aluno), com "+N mais" se houver mais
 - Clique no dia abre modal com a lista completa de aulas e permite marcar presença
-- Botão "Nova Aula" para agendar aula avulsa/reposição
+- Botão "Nova Aula" para agendar aula avulsa/reposição (modal com selects separados de Aluno, Professor e Instrumento)
 
 ## Origem dos dados
 A agenda **não tem tabela própria** — é uma visualização sobre `lessons` (filtrando por intervalo de datas do mês).

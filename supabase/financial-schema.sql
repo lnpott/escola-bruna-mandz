@@ -30,6 +30,8 @@ create table if not exists public.students (
     name text not null,
     cpf text,                               -- CPF do aluno
     guardian_cpf text,                      -- CPF do responsável
+    guardian_name text,                     -- Nome do responsável (se menor)
+    guardian_phone text,                    -- Telefone do responsável
     email text,
     phone text,
     address text,

@@ -86,7 +86,7 @@ Não existem as tabelas `charges`, `financial_transactions`, `stock_movements`, 
 # Tabelas — Módulo Alunos/Vínculos/Aulas
 
 ## `students`
-`id, name, email, phone, address, instruments, active, created_at, updated_at`
+`id, name, cpf, email, phone, address, instruments, active, guardian_name, guardian_cpf, guardian_phone, created_at, updated_at`
 
 ## `enrollments`
 `id, student_id (FK), teacher_id (FK, nullable), instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, status, notes, created_at, updated_at`
@@ -103,7 +103,7 @@ Constraint: único por `(lesson_id, student_id)`.
 # Tabelas — Módulo Professores
 
 ## `teachers`
-`id, name, phone, specialty, days_of_week (text[]), rate_per_class, created_at, updated_at`
+`id, name, cpf, email, phone, specialty, days_of_week (text), rate_per_class, active, created_at, updated_at`
 
 ---
 
@@ -160,6 +160,12 @@ Todas as tabelas financeiras/pedagógicas têm RLS **habilitado**, mas **sem pol
 Não há perfis de acesso (Administrador / Secretaria / Financeiro / Professor) implementados — é um acesso único, tudo ou nada. Se perfis diferenciados forem necessários no futuro, a decisão de arquitetura precisa mudar (provavelmente adotando Supabase Auth de verdade), e este documento deve ser atualizado quando isso acontecer.
 
 ---
+# Migration destacada: 045-add-cpf.sql
+
+Além de adicionar `cpf` e `guardian_cpf` em `students` e `cpf` em `teachers`:
+- Adiciona `email` em `teachers` (coluna que estava no schema consolidado mas faltava na migration)
+- Adiciona `active boolean not null default true` em `teachers`
+- Converte `days_of_week` de `text[]` para `text` usando `array_to_string` (com `DO` block que só executa se a coluna ainda for do tipo array)
 
 # Migrations
 
