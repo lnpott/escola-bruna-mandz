@@ -1643,3 +1643,87 @@ Implementar três mudanças solicitadas pelo usuário: (1) campo de instrumentos
 
 ### Próxima Etapa
 Finalizar as pendências de frontend (updateEnrollmentBillingTypeFields, event listeners, submit handlers) e realizar deploy completo na Vercel.
+
+---
+
+# ETAPA 44 — CORREÇÕES DE FRONTEND (6 PENDÊNCIAS DO billing_type)
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 50e1567
+
+---
+
+## Objetivo
+
+Aplicar as 6 correções de frontend pendentes da ETAPA 43 no `painel-x9k2f.html`: billing_type fields nos modais, instrumento como select, submit handlers atualizados, toolbar removida, event listeners adicionados.
+
+---
+
+## Implementações Realizadas
+
+### 1. billing_type HTML no modal de Matrícula
+- Adicionado `<select name="billing_type">` com opções: Mensal, Por Semana, Completo (À Vista/Parcelado)
+- Adicionada div `#enrollment-full-fields` (inicialmente oculta) com campos `total_amount` e `installments` para cobranças do tipo 'full'
+- Posicionado entre os campos `monthly_fee` e `status`
+
+### 2. Instrumento como `<select>` no modal de Matrícula
+- Substituído `<input type="text">` por `<select>` com 17 opções (mesma lista do cadastro de Aluno)
+
+### 3. Toolbar duplicada de Custos/Investimentos removida
+- A toolbar `<div class="products-toolbar">` com `btn-new-expense` e `btn-new-investment` foi removida (já existiam botões inline nos dash-cards)
+- 🔴 **Bug crítico corrigido:** a remoção quebrou os listeners JS que ainda referenciam esses IDs. Adicionados botões ocultos (`style="display:none"`) com os mesmos IDs para servirem de alvo DOM para os listeners existentes
+
+### 4. billing_type fields no modal de Mensalidade
+- Adicionado `<select name="billing_type">` com opções: Mensalidade avulsa, Mensal, Por Semana, Completo
+- Adicionado campo `installment_number` (número da parcela para cobranças do tipo Completo)
+
+### 5. Funções JS e submit handlers
+- Criada função `updateEnrollmentBillingTypeFields()` — toggle da visibilidade de `#enrollment-full-fields` conforme o valor de `billing_type`
+- `openEnrollmentModal()` atualizada para popular `billing_type`, `total_amount`, `installments` e chamar `updateEnrollmentBillingTypeFields()`
+- Submit handler de `form-new-enrollment` envia: `billing_type`, `total_amount`, `installments` no payload
+- Submit handler de `form-new-tuition` envia: `billing_type`, `installment_number` no payload
+
+### 6. Event listeners
+- **change no billing_type:** listener para disparar `updateEnrollmentBillingTypeFields()` quando o usuário altera o tipo de cobrança no modal de matrícula
+- **btn-new-expense-inline e btn-new-investment-inline:** listeners adicionados que delegam via `.click()` para os botões ocultos originais (que contêm toda a lógica de reset de formulário, data, etc.)
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` (86 inserções, 9 deleções)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+**Nenhuma.** Etapa exclusivamente de frontend. A migration 043 já estava aplicada desde a ETAPA 43.
+
+---
+
+## Testes
+
+⚠ **Não testado em produção.** As alterações foram validadas por revisão de código:
+- ✅ Todos os 6 itens da pendência da ETAPA 43 foram implementados
+- ✅ Inline button listeners delegam corretamente via `?.click()` (com optional chaining)
+- ✅ Hidden buttons mantêm compatibilidade com listeners JS existentes
+- ✅ Submit handlers enviam billing_type para o backend (que já aceita desde a ETAPA 43)
+- ✅ Campos `total_amount` e `installments` são opcionais e default para null/1
+- 🔴 **Pendente:** testar fluxo completo via navegador pós-deploy
+
+---
+
+## Pendências
+
+- Testar fluxo billing_type ponta a ponta no navegador após deploy na Vercel
+- Verificar se o Vercel deploy automático foi acionado pelo push (commit 50e1567)
+
+---
+
+## Próxima Etapa
+
+Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
