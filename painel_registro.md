@@ -2071,3 +2071,186 @@ Corrigir dois bugs no fluxo de criação de aulas: (1) modal de Nova Aula usava 
 ## Próxima Etapa
 
 Testes funcionais completos no ambiente de produção.
+
+
+# ETAPA 50 — SETUP REACT/TYPESCRIPT + CICLO DE VIDA DO ALUNO (MIGRATION 050)
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 2376f75
+
+---
+
+## Objetivo
+
+Iniciar a migração do frontend de Vanilla JS para React/TypeScript, mantendo o HTML antigo funcionando em paralelo. Implementar o ciclo de vida completo do aluno (lead → interessado → matriculado → ativo → trancado → concluído → cancelado) no banco, API e frontend.
+
+---
+
+## Implementações Realizadas
+
+### Setup React/TypeScript
+- Instalação de `react`, `react-dom`, `react-router-dom`, `typescript`, `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`
+- Criação de `tsconfig.json` com path alias `@/*` mapeando para `app/src/`
+- Criação de `app/index.html` + `app/src/main.tsx` (entry point React)
+- Criação de `app/src/App.tsx` com BrowserRouter e rotas iniciais
+- Criação de `app/src/styles/global.css` (dark theme)
+- `vite.config.js` atualizado: adicionado plugin React, resolve.alias, entry point `app/`
+- Painel clássico continua funcionando inalterado
+
+### Migration 050 — Ciclo de Vida do Aluno
+- `students.status` — text (lead, interested, enrolled, active, suspended, completed, cancelled)
+- `students.enrolled_at` — data de matrícula/primeira aula
+- `students.source` — origem do lead (website, indicacao, social, presencial, outro)
+- Backfill: `active=true` → `status='active'`, `active=false` → `status='cancelled'`
+- Mantida coluna `active` para compatibilidade (removida em migration futura)
+
+### API (`admin-financial.js`)
+- `handleStudents POST:` aceita `status`, `source`, `enrolled_at`; deriva `status` de `active` se não fornecido
+- `handleStudents PATCH:` aceita `status`, `source`, `enrolled_at`; sincroniza `active` ↔ `status` bidirecionalmente
+- Backwards compatibility total: frontend legado continua funcionando
+
+### Frontend (`academic/index.html`)
+- Modal de aluno: checkbox `active` substituído por select `status` (7 opções) + select `source` (6 opções)
+- Tabela: status pills coloridas (lead=amarelo, active/active/completed=verde, suspended=amarelo escuro, cancelled=vermelho)
+- Corrigido bug: status `completed` exibia vermelho (agora verde como `active`)
+
+### Schema (`financial-schema.sql`)
+- Adicionados `status`, `enrolled_at`, `source` ao CREATE TABLE de students
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/` (8 arquivos novos: index.html, src/main.tsx, src/App.tsx, src/types.ts, src/styles/global.css)
+- `tsconfig.json` (novo)
+- `supabase/migrations/050-student-lifecycle.sql` (novo)
+- `vite.config.js` (alterado)
+- `package.json` / `package-lock.json` (alterados)
+- `api/admin-financial.js` (alterado)
+- `supabase/financial-schema.sql` (alterado)
+- `academic/index.html` (alterado)
+- `.gitignore` (alterado)
+
+---
+
+## Alterações no Banco
+
+Migration 050 (não aplicada — pendente de execução no SQL Editor).
+
+---
+
+## Testes
+
+✅ Vite build: 2.06s (todos os 5 entry points)
+✅ Review de código: backwards compatibility, path alias, migração idempotente
+
+---
+
+## Pendências
+
+- Executar migration 050 no SQL Editor do Supabase
+- Configurar auth/login para o React (atualmente depende do painel clássico via sessionStorage)
+
+---
+
+## Próxima Etapa
+
+Criar os primeiros componentes React: Dashboard, Students e Teachers.
+
+---
+
+# ETAPA 51 — COMPONENTES REACT: DASHBOARD + STUDENTS + TEACHERS
+
+**Data:** 11/07/2026
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 2376f75
+
+---
+
+## Objetivo
+
+Criar os três primeiros componentes React do ERP Educacional: Dashboard com KPIs e indicadores, Students com CRUD e ciclo de vida, e Teachers com CRUD e dias de atendimento.
+
+---
+
+## Implementações Realizadas
+
+### Dashboard (`app/src/pages/Dashboard.tsx`)
+- 6 KPIs: Receita (verde), Despesas (amarelo), Saldo (verde/vermelho), Pendentes, Atrasados, Alunos Ativos
+- Aulas de Hoje: lista com horário, aluno, professor e status (🟡/✅/❌)
+- Alertas: inadimplência, pedidos pendentes, estoque baixo
+- Pedidos Recentes: últimos 5 pedidos com destaque verde para novos (<5 min)
+- Auto-refresh a cada 60s com contagem regressiva
+- Botão "Atualizar" manual
+- Responsivo (desktop → mobile)
+
+### Students (`app/src/pages/Students.tsx`)
+- Tabela com nome, CPF, e-mail, telefone, instrumento, status
+- Busca por nome/e-mail/telefone
+- Filtro por status (lead, interested, enrolled, active, suspended, completed, cancelled)
+- Status pills com 7 variações de cor
+- Modal CRUD: status select (7 opções), source select (6 opções), guardian fields
+- Exclusão com confirmação
+- Responsivo (mobile → cards)
+
+### Teachers (`app/src/pages/Teachers.tsx`)
+- Tabela com nome, CPF, telefone, especialidade, dias, valor/aula (verde)
+- Busca por nome/especialidade/telefone
+- Modal CRUD: nome, CPF, telefone, especialidade, valor/aula, dias de atendimento (7 checkboxes)
+- Dias de atendimento: grid 4-col com destaque vermelho quando ativo
+- Exclusão com confirmação
+- Responsivo
+
+### Tipos e API (`app/src/types.ts`, `app/src/services/api.ts`)
+- Interfaces TypeScript: Student, Teacher, DashboardData, LessonBrief, OrderBrief, ProductBrief
+- API client: fetchStudents/Teachers/Dashboard, create/update/delete
+- Configurações de status: labels, classes CSS, ícones
+
+### Roteamento (`app/src/App.tsx`)
+- Página inicial com cards dos módulos (Dashboard, Acadêmico, Agenda, Financeiro, Admin)
+- Rotas: /dashboard, /academico (Alunos), /academico/professores (Professores)
+- Sub-nav dinâmica com useLocation() para active state
+
+---
+
+## Arquivos Criados/Alterados
+
+- `app/src/types.ts` (alterado — +Dashboard, Teacher, DAY_LABELS)
+- `app/src/services/api.ts` (alterado — +fetchDashboard, teacher CRUD)
+- `app/src/pages/Dashboard.tsx` (novo)
+- `app/src/pages/Students.tsx` (novo)
+- `app/src/pages/Teachers.tsx` (novo)
+- `app/src/styles/dashboard.css` (novo)
+- `app/src/styles/students.css` (novo)
+- `app/src/styles/teachers.css` (novo)
+- `app/src/App.tsx` (alterado — +rotas, sub-nav dinâmica, layouts)
+- `app/src/styles/global.css` (alterado — +sub-nav styles)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Todas as APIs já existiam e foram apenas consumidas pelos novos componentes.
+
+---
+
+## Testes
+
+✅ Vite build: 4.87s (Dashboard + Students + Teachers)
+✅ Revisão de código: deleteStudent/Teacher corrigido (query params), CSS .row-new corrigido, sub-nav dinâmica verificada
+
+---
+
+## Pendências
+
+- Migration 050 no Supabase (pendente)
+- Auth/login para o React (independente do painel clássico)
+- Componentes futuros: Vínculos, Agenda, Financeiro
+
+---
+

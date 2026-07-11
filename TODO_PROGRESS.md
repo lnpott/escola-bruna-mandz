@@ -27,6 +27,25 @@
 - [x] **045-add-cpf.sql** — CPF em students/teachers; email+active em teachers; days_of_week text
 - [x] **046-add-guardian-fields.sql** — guardian_name, guardian_phone em students
 - [x] **047-make-enrollment-id-nullable.sql** — enrollment_id nullable em lessons (FK on delete set null)
+- [x] **050-student-lifecycle.sql** — status (lead→cancelled), enrolled_at, source em students
+
+## ✅ React Frontend (app/)
+
+### Setup
+- [x] **React + TypeScript + Vite** — Instalado e configurado convivendo com HTML antigo
+- [x] **tsconfig.json** — Configuração TypeScript com path alias @/*
+- [x] **vite.config.js** — Plugin React, resolve.alias, 5 entry points (incluindo app/)
+- [x] **react-router-dom** — Roteamento SPA
+
+### Components created
+- [x] **app/src/pages/Dashboard.tsx** — Dashboard com KPIs, aulas de hoje, alertas, pedidos, estoque baixo, auto-refresh 60s
+- [x] **app/src/pages/Students.tsx** — CRUD completo: listagem, busca, filtro por status, modal com status lifecycle + source
+- [x] **app/src/pages/Teachers.tsx** — CRUD completo: listagem, busca, modal com dias de atendimento (checkboxes), valor/aula
+
+### Routes
+- [x] **/dashboard** — Dashboard React
+- [x] **/academico** — Alunos
+- [x] **/academico/professores** — Professores (sub-nav dinâmica com active state)
 
 ## Etapas
 
@@ -35,8 +54,12 @@
 - [x] Etapa 3: Atualizar painel painel-x9k2f.html (Agenda Mensal + Dashboard aulas + Aulas CRUD cards)
 - [x] Etapa 4: Criar spec com proximas prioridades (docs/proxima-etapa-spec.md)
 - [x] Etapa 5: Alunos Expandido (campos responsavel + CPF) — guardian_name, guardian_phone, guardian_cpf adicionados
+- [x] **Etapa 50: Setup React/TypeScript + ciclo de vida do aluno** — React app, Migration 050, API status/source/enrolled_at, frontend status lifecycle
+- [x] **Etapa 51: Componentes React** — Dashboard + Students (listagem/CRUD) + Teachers (listagem/CRUD) + rotas
 - [ ] **Etapa 6: Testes funcionais ponta a ponta pos-deploy**
 
 ## Próximas pendências
 
 1. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
+2. 🟡 **Migration 050 no Supabase** — Executar no SQL Editor
+3. 🔵 **Auth no React** — Login independente do painel clássico
