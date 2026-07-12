@@ -10,7 +10,21 @@
   - `repo_path`: `c:/Users/lnpot/OneDrive/Documentos/site-escola`
 
 ### Output (preenchido após teste)
-- `git_status output:` **(preencher com o output real do tool)**
+- `git_status output:`
+```
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+**Data da verificação:** 11/07/2026
+
+**Observações:**
+- O working tree está limpo (sem arquivos modificados ou não rastreados)
+- O branch atual é `main`, sincronizado com `origin/main`
+- Último commit: `267e883` — refactor: extract computeFinancialSummary, safeFloat/safeInt helpers, resolvePaidTimestamp; fix: remove err.message leak, add NaN protection, include teacher payments in dashboard outgoings
+- A migration 050 foi aplicada no Supabase com sucesso
 
 ---
 

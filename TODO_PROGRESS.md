@@ -21,6 +21,14 @@
 - [x] **Filtro de instrumentos por especialidade** — Matching exato com fallback para as próprias especialidades do professor
 - [x] **Erro 500 ao criar aula** — `enrollment_id` tornado nullable em `lessons` (migration 047) + LEFT JOIN no GET (em vez de INNER JOIN)
 
+## ✅ Correções de segurança e qualidade (jul/2026)
+
+- [x] **Refatoração handleSummary/handleDashboard** — Extraído helper `computeFinancialSummary()` eliminando ~50 linhas de queries duplicadas; Dashboard agora inclui `paidTeacherPayments` no cálculo de `outgoings` (bug fix)
+- [x] **Remoção de vazamento de err.message** — 10 ocorrências em 7 arquivos API: `details: err.message` removido das respostas 500, erro logado internamente via `console.error()`
+- [x] **Helpers safeFloat/safeInt** — 26 substituições de `parseFloat`/`parseInt` por funções que rejeitam NaN e valores negativos (min=0 para valores financeiros); `installments` corrigido de float para `safeInt()`
+- [x] **Helper resolvePaidTimestamp** — Lógica de `paid_at` extraída de handleExpenses/handleTeacherPayments para função centralizada
+- [x] **Testes validados** — `npm test` (2/2 webhook), `npm run build` (4.30s, zero warnings)
+
 ## ✅ Migrações aplicadas no Supabase
 
 - [x] **043-billing-type.sql** — billing_type, total_amount, installments em enrollments; billing_type, installment_number em tuitions
@@ -90,9 +98,12 @@
 ## Próximas pendências
 
 1. 🟡 **Testes pós-deploy** — Validar fluxo completo em produção (vínculo → aula → presença → agenda mensal)
-2. 🟡 **Migration 050 no Supabase** — Executar no SQL Editor
+2. ✅ **Migration 050 no Supabase** — Executada via Supabase CLI (ciclo de vida do aluno)
 3. ✅ **Auth no React** — Login independente do painel clássico
 4. ✅ **Módulo Admin** — Página de administração com overview stats, atalhos, sistema (React)
-5. 🔵 **Exportar CSV** — Exportar pagamentos avulsos e custos
-6. 🔵 **Edição de investimentos** — Atualmente só create
-7. 🔵 **Filtro paid/unpaid** — Em custos e pagamentos a professores
+5. ✅ **Merge blackboxai/mcp-git-server → main** — Concluído + push para origin/main
+6. ✅ **MCP_GIT_VERIFICATION.md** — Preenchido com output real do git status
+7. ✅ **Commit das correções de segurança** — 7 arquivos API alterados, commit `267e883`
+8. 🔵 **Exportar CSV** — Exportar pagamentos avulsos e custos
+9. 🔵 **Edição de investimentos** — Atualmente só create
+10. 🔵 **Filtro paid/unpaid** — Em custos e pagamentos a professores

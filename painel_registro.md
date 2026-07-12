@@ -2887,3 +2887,150 @@ Nenhuma.
 Preencher evidência do `git_status` (output real) e validar endpoints críticos do painel admin no ambiente alvo (via Blackbox ou chamadas HTTP), então fazer o merge para `main`.
 
 ---
+
+# ETAPA 58 — CORREÇÕES DE SEGURANÇA E QUALIDADE + MERGE + MIGRATION 050
+
+**Data:** 11/07/2026
+
+**Horário:** 18:00
+
+**Agente Responsável:** Buffy (Freebuff)
+
+**Commit Git:** 267e883 (correções), 2d53a0c (merge)
+
+---
+
+## Objetivo
+
+Aplicar 5 correções de segurança e qualidade no backend (`api/admin-financial.js` e mais 6 arquivos de API), refatorar código duplicado, executar a migration 050 no Supabase, preencher evidências do MCP Git, fazer merge do branch `blackboxai/mcp-git-server` para `main` e push para `origin/main`.
+
+---
+
+## Implementações Realizadas
+
+### Correção 1 — Refatoração handleSummary/handleDashboard
+
+- Extraído helper `computeFinancialSummary(supabase, month, year)` que centraliza as 8 queries financeiras que estavam duplicadas nos dois handlers
+- Eliminadas ~50 linhas de código duplicado
+- 🐛 **Bug corrigido:** Dashboard não incluía `paidTeacherPayments` no cálculo de `outgoings` — agora incluso via helper centralizado
+
+### Correção 2 — Remoção de vazamento de `err.message`
+
+- **10 ocorrências removidas** em 7 arquivos: `api/admin-financial.js`, `api/admin-products.js`, `api/admin-orders.js`, `api/create-payment.js`, `api/products.js`, `api/update-order-status.js`, `api/verify-mp-payment.js`
+- `details: err.message` removido de todas as respostas de erro 500
+- `console.error()` adicionado onde não existia
+
+### Correção 3+4 — Helpers `safeFloat`/`safeInt` + Validação de valores positivos
+
+- Criados helpers: `safeFloat(value, fallback, min)` e `safeInt(value, fallback, min)`
+- 26 substituições de `parseFloat`/`parseInt` em todos os handlers
+- Valores financeiros (`amount`, `monthly_fee`, `total_amount`) usam `min=0` para rejeitar negativos
+- 🐛 **Bug corrigido:** `installments` era `parseFloat()` → agora `safeInt()` (número de parcelas deve ser inteiro)
+
+### Correção 5 — Helper `resolvePaidTimestamp`
+
+- Extraída lógica de `paid_at` duplicada em `handleExpenses` e `handleTeacherPayments` para função centralizada
+
+### Merge blackboxai/mcp-git-server → main
+
+- Commit das 7 alterações de API (`267e883`)
+- Merge sem conflitos do branch `blackboxai/mcp-git-server` no `main`
+- Push para `origin/main` (atualizado: `1fcc16d` → `2d53a0c`)
+
+### Migration 050 aplicada no Supabase
+
+- Executada via Supabase CLI (`npx supabase db query --linked -f supabase/migrations/050-student-lifecycle.sql`)
+- Adicionado: `students.status` (lead→cancelled), `students.enrolled_at`, `students.source`
+- Backfill: `active=true` → `status='active'`, `active=false` → `status='cancelled'`
+- NOT NULL + check constraints + índice `students_status_idx`
+
+### MCP_GIT_VERIFICATION.md atualizado
+
+- Preenchido com output real do `git status`
+
+---
+
+## Arquivos Alterados
+
+- `api/admin-financial.js` (refatoração computeFinancialSummary, safeFloat/safeInt, resolvePaidTimestamp, err.message)
+- `api/admin-products.js` (err.message leak)
+- `api/admin-orders.js` (err.message leak)
+- `api/create-payment.js` (err.message leak)
+- `api/products.js` (err.message leak)
+- `api/update-order-status.js` (err.message leak)
+- `api/verify-mp-payment.js` (err.message leak)
+- `MCP_GIT_VERIFICATION.md` (atualizado com output real do git status)
+- `TODO_PROGRESS.md` (atualizado)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+Migration 050-student-lifecycle.sql aplicada via Supabase CLI:
+
+- `students`: +`status` text NOT NULL check (lead, interested, enrolled, active, suspended, completed, cancelled)
+- `students`: +`enrolled_at` timestamptz
+- `students`: +`source` text check (website, indicacao, social, presencial, outro)
+- Backfill: registros existentes com `active=true` → `status='active'`, `active=false` → `status='cancelled'`
+- Índice: `students_status_idx`
+
+---
+
+## Testes
+
+✅ `node --check` validado em todos os 7 arquivos API alterados
+✅ `npm test` — 2/2 testes de webhook passaram
+✅ `npm run build` — 4.30s, zero warnings, todos os 5 entry points compilados
+✅ `npx supabase db query` — migration 050 aplicada sem erros
+✅ Code review aprovado (code-reviewer-deepseek-flash) para cada correção
+
+---
+
+## Pendências
+
+- Testes funcionais ponta a ponta em produção
+- Exportar CSV (pagamentos avulsos e custos)
+- Edição de investimentos (atualmente só create)
+- Filtro paid/unpaid em custos e pagamentos a professores
+
+---
+
+## Próxima Etapa
+
+Testes funcionais ponta a ponta no navegador (fluxo completo: vínculo → aula → presença → financeiro) ou implementar as melhorias pendentes (export CSV, edição de investimentos, filtros).
+
+---
+
+# Roadmap do Painel
+
+| Etapa | Descrição | Status |
+|--------|-----------|--------|
+| 33 | Documentação do Painel | ✅ |
+| 34 | Estrutura do Financeiro | ✅ |
+| 35 | Interface de Professores | ✅ |
+| 36 | Integração Pedagógica nas Mensalidades | ✅ |
+| 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
+| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
+| 39 | teacher_payments no Resumo Financeiro | ✅ |
+| 40 | Agenda Mensal + Spec Prioridades | ✅ |
+| 41 | Botão Nova Aula na Agenda | ✅ |
+| 42 | Correções Pós-Revisão | ✅ |
+| 43 | billing_type + Separação Custos/Investimentos | ✅ |
+| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
+| 45 | Correção SyntaxError + Botão Faltante | ✅ |
+| 46 | Reestruturação de Abas e Menu | ✅ |
+| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
+| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
+| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
+| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
+| 51 | Dashboard + Students + Teachers React | ✅ |
+| 52 | Agenda Mensal React | ✅ |
+| 53 | Matrículas (Enrollments) React | ✅ |
+| 54 | Financeiro React | ✅ |
+| 55 | Admin React | ✅ |
+| 56 | Correção Portal → React | ✅ |
+| 57 | MCP Git + Evidências + Onboarding | ✅ |
+| 58 | Correções Segurança/Qualidade + Merge + Migration 050 | ✅ |
+| — | Testes funcionais ponta a ponta | ⏳ |
+
