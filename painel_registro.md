@@ -1534,3 +1534,86 @@ Sempre que uma nova implementação for concluída:
 O objetivo deste documento é garantir a continuidade do desenvolvimento por qualquer agente (IA ou desenvolvedor), preservando o histórico técnico e as decisões arquiteturais do projeto.
 
 **Se uma implementação não estiver registrada neste documento, ela não deverá ser considerada oficialmente concluída.**
+
+---
+
+# ETAPA 42 — LIMPEZA REFAC: REMOÇÃO DO MP + UNIFICAÇÃO DE MÓDULOS
+
+**Data:** 12/07/2026
+
+**Horário:** 16:59
+
+**Agente Responsável:** Claude (Anthropic)
+
+**Commit Git:** Pendente — aplicar na branch REFAC antes do merge
+
+---
+
+## Objetivo
+
+Resolver os dois problemas que impediam o deploy da branch REFAC na Vercel:
+1. Contagem de Serverless Functions acima do limite seguro do plano Hobby (eram 12, limite é 12 — sem margem de manobra)
+2. Dois conjuntos de módulos internos paralelos (`api/_lib/admin/` e `api/_lib/financial/`) causando duplicação e confusão
+
+---
+
+## Implementações Realizadas
+
+- **Removidos** `api/webhook.js`, `api/verify-mp-payment.js`, `api/config.js` — código morto do Mercado Pago (integração removida na Etapa 40; esses arquivos voltaram por extração de zip por cima do repositório sem apagar os anteriores)
+- **Removida** dependência `mercadopago` do `package.json`
+- **Removida** pasta `api/_lib/admin/` inteira (10 módulos) — substituída por `api/_lib/financial/` que é mais completo e correto
+- **`api/admin-financial.js`** reescrito para importar de `api/_lib/financial/` — cobre 12 resources: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary, dashboard, lessons, attendance
+- **`api/_lib/admin-auth.js`** recriado como arquivo standalone (único sobrevivente da pasta admin/)
+- Contagem de Serverless Functions: **12 → 9**
+
+### Melhorias trazidas pelo _lib/financial/ em relação ao _lib/admin/
+
+- `investments`: CRUD completo — PATCH e DELETE adicionados (antes só GET/POST, pendência registrada em TODO_PROGRESS.md)
+- `students`: usa `status` como única fonte de verdade (sem `students.active` que foi removido do schema na refatoração de jul/2026)
+- `dashboard`: corrige bug onde `active_teachers` contava todos os professores sem filtrar por `active = true`
+- `helpers`: `safeFloat`, `safeInt`, `parsePagination`, `normalizeOptionalFields`, `resolvePaidTimestamp` — não existiam em admin/
+- Cobertura de testes unitários real: `tests/financial-helpers.test.js` e `tests/financial-students.test.js`
+- Recursos novos expostos via roteador: `dashboard`, `lessons`, `attendance` (não existiam em _lib/admin/)
+
+---
+
+## Arquivos Alterados
+
+- `api/webhook.js` — **removido**
+- `api/verify-mp-payment.js` — **removido**
+- `api/config.js` — **removido**
+- `api/_lib/admin/` — **pasta removida inteira**
+- `api/_lib/admin-auth.js` — recriado standalone
+- `api/admin-financial.js` — reescrito (71 linhas, importa de _lib/financial/)
+- `package.json` — dependência `mercadopago` removida
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `node --check` em 15 arquivos JS — todos passaram
+✅ `npm test` — **29/29 testes passando**, zero falhas (financial-helpers: 22, financial-students: 5, webhook-signature: 2)
+✅ Nenhuma referência ao Mercado Pago restante (grep vazio em api/, app/, store/, index.html)
+✅ Contagem de Serverless Functions: **9** (limite do plano Hobby: 12)
+⚠ `npm run build` não executado neste ambiente (npmjs.org bloqueado) — rodar localmente ou deixar a Vercel executar no deploy
+
+---
+
+## Pendências
+
+- Fazer commit e push da branch REFAC com estas alterações
+- Deploy na Vercel a partir da branch REFAC e validação funcional ponta a ponta
+- Merge da REFAC na main após validação em produção
+- Variáveis de ambiente na Vercel: `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_PUBLIC_KEY`, `MP_WEBHOOK_URL` não são mais usadas — remover quando conveniente
+
+---
+
+## Próxima Etapa
+
+Commit + push da REFAC, deploy na Vercel, testes funcionais ponta a ponta (fluxo: vínculo → aula → presença → financeiro), e merge para main.

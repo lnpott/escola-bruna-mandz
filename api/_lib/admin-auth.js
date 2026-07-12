@@ -1,7 +1,6 @@
 /**
  * api/_lib/admin-auth.js
- * Autenticação compartilhada por senha admin (header x-admin-password).
- * Usado por todos os endpoints protegidos do painel.
+ * Verifica o header x-admin-password em todas as rotas do painel admin.
  */
 
 export function checkAdminAuth(req, res) {
@@ -10,7 +9,8 @@ export function checkAdminAuth(req, res) {
         res.status(500).json({ error: 'ADMIN_PASSWORD não configurado.' });
         return false;
     }
-    if (req.headers['x-admin-password'] !== adminPassword) {
+    const provided = req.headers['x-admin-password'];
+    if (provided !== adminPassword) {
         res.status(401).json({ error: 'Senha incorreta.' });
         return false;
     }
