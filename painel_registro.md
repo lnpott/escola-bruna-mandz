@@ -182,4 +182,130 @@ Nenhuma. Correções exclusivamente de código frontend e API.
 
 Deploy da REFAC na Vercel + validação funcional do React SPA.
 
+---
+
+# ETAPA 46 — NAVEGAÇÃO GLOBAL E UX DO REACT SPA (FASE 5)
+
+**Data:** 12/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `(pendente)` — alterações ainda não comitadas
+
+---
+
+## Objetivo
+
+Substituir a navegação descentralizada (cada página com seu próprio "← Voltar" e botão Sair) por um layout global padronizado com TopBar fixa, Breadcrumbs, notificações Toast unificadas e modal de confirmação estilizado.
+
+---
+
+## Implementações Realizadas
+
+### 1. TopBar — Navegação Global Fixa
+
+- **Arquivo:** `app/src/App.tsx`
+- Header fixo de 56px com backdrop-filter blur
+- Abas de navegação: Início (`/`), Dashboard (`/dashboard`), Acadêmico (`/academico`), Agenda (`/agenda`), Financeiro (`/financeiro`), Admin (`/admin`)
+- Aba ativa destacada com indicador vermelho na borda inferior
+- Navegação overflow-x: auto em telas pequenas (scroll horizontal oculto)
+- Botão Sair unificado no canto direito (removeu-se o `LogoutButton` duplicado em cada layout)
+- Estilos em `global.css`: `.topbar`, `.topbar-inner`, `.topbar-brand`, `.topbar-nav`, `.topbar-link`, `.topbar-logout`
+
+### 2. Breadcrumbs — Navegação Hierárquica
+
+- **Arquivo:** `app/src/App.tsx`
+- Componente `Breadcrumbs` que mapeia `location.pathname` para rótulos:
+  - `/` → Início
+  - `/dashboard` → Início › Dashboard
+  - `/academico` → Início › Acadêmico › Alunos
+  - `/academico/professores` → Início › Acadêmico › Professores
+  - `/academico/turmas` → Início › Acadêmico › Matrículas
+  - `/agenda` → Início › Agenda
+  - `/financeiro` → Início › Financeiro
+  - `/admin` → Início › Admin
+- Links clicáveis para níveis anteriores (ex: "Início" e "Acadêmico")
+- Oculta-se quando há apenas 1 item (só Início)
+- Estilos em `global.css`: `.breadcrumbs`, `.breadcrumb-item`, `.breadcrumb-sep`, `.breadcrumb-link`, `.breadcrumb-current`
+
+### 3. Toast Global — Notificações Unificadas
+
+- **Arquivo:** `app/src/App.tsx` (contexto `AppProvider`)
+- Sistema de notificações via React Context (`AppContext`)
+- `useApp().showToast(text, type)` disponível em qualquer página
+- Dois tipos: `'success'` (verde) e `'error'` (vermelho)
+- Auto-dismiss em 3.5s; clicável para fechar manualmente
+- Posicionado no canto inferior direito, empilhamento vertical
+- Substituiu 3 implementações diferentes de toast:
+  - `Enrollments.tsx` — usava `enrollments-toast` local (removido)
+  - Agenda — usava CSS próprio
+  - Financial — usava CSS próprio
+- Estilos em `global.css`: `.toast-container`, `.toast`, `.toast-success`, `.toast-error`, `.toast-icon`, `.toast-text`
+
+### 4. ConfirmModal — Substituição de `window.confirm()`
+
+- **Arquivo:** `app/src/App.tsx` (contexto `AppProvider`)
+- Modal de confirmação via Promise: `await useApp().confirm({ title, message, confirmText, cancelText, danger })`
+- Variante `danger: true` exibe botão "Excluir" vermelho com gradiente
+- `false` retorna se clicar fora do modal (overlay)
+- Animação fadeIn + scaleIn
+
+### 5. AppLayout — Unificação de Wrappers
+
+- **Arquivo:** `app/src/App.tsx`
+- Criado `AppLayout` que aplica TopBar + Breadcrumbs + `.page-content` em todas as páginas autenticadas
+- Layouts removidos por estarem duplicados:
+  - `DashboardLayout` (tinha "← Voltar" e `LogoutButton`) — removido
+  - `TeachersLayout` (mesmo padrão) — removido
+  - `AcademicLayout` — simplificado: mantém apenas `AcademicSubNav`, sem botões
+- `.page-content` com `max-width: 1200px` e padding consistente via design tokens
+
+### 6. Páginas Atualizadas
+
+| Página | Mudança |
+|--------|---------|
+| `Students.tsx` | `window.confirm()` → `useApp().confirm()` com nome do aluno na mensagem e botão "Excluir" vermelho |
+| `Teachers.tsx` | `window.confirm()` → `useApp().confirm()` com nome do professor na mensagem |
+| `Enrollments.tsx` | Toast local removido (usa global), `confirm()` substituído por `useApp().confirm()` com Promise, "← Voltar" removido (TopBar cobre navegação), header inline removido |
+
+---
+
+## Arquivos Alterados
+
+- `app/src/App.tsx` — **reescrito**: AppProvider (context), TopBar, Breadcrumbs, AppLayout, AcademicLayout simplificado
+- `app/src/styles/global.css` — +260 linhas: topbar, breadcrumbs, toast, confirm-modal, btn-danger, app-layout
+- `app/src/pages/Students.tsx` — import `useApp`, confirm via contexto
+- `app/src/pages/Teachers.tsx` — import `useApp`, confirm via contexto
+- `app/src/pages/Enrollments.tsx` — import `useApp`, toast + confirm via contexto, header simplificado
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — build OK com 72 módulos transformados sem erros
+✅ Code Review — sem issues: hooks corretos, imports válidos, CSS consistente com design tokens
+
+---
+
+## Pendências
+
+- Commit + push das alterações da Fase 5
+- Fase 5.2: melhorar feedback visual (loading states, empty states consistentes)
+- Fase 5.3: responsividade (ajustar grids e modais para mobile)
+- Fase 6: limpeza (remover redirect forçado, arquivar painel-x9k2f.html)
+
+---
+
+## Próxima Etapa
+
+Commit + push das alterações da Fase 5 na REFAC, seguido de melhorias de UX (Fase 5.2) se aprovado.
+
 

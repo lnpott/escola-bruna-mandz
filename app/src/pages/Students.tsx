@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useApp } from '@/App';
 import {
     Student,
     StudentStatus,
@@ -65,6 +66,7 @@ const emptyForm: StudentForm = {
 };
 
 export default function Students() {
+    const { confirm } = useApp();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -160,7 +162,14 @@ export default function Students() {
     }
 
     async function handleDelete(id: string) {
-        if (!window.confirm('Tem certeza que deseja excluir este aluno?')) return;
+        const confirmed = await confirm({
+            title: 'Excluir Aluno',
+            message: `Tem certeza que deseja excluir ${students.find(s => s.id === id)?.name || 'este aluno'}? Esta ação não pode ser desfeita.`,
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            danger: true,
+        });
+        if (!confirmed) return;
         try {
             await deleteStudent(id);
             await loadStudents();

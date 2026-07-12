@@ -18,3 +18,6 @@ supabase/.temp/
 *.zip
 *.backup.html
 scripts/
+
+.vercel
+.env*
