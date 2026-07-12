@@ -1,83 +1,219 @@
-/* ═══════════════════════════════════════════════════════════════
-   AGENDA — Calendário Mensal
-   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   AGENDA — Calendário Mensal / Semanal
+   ═══════════════════════════════════════════════════════════════════ */
 
 .agenda-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 32px 20px;
+    padding: var(--space-8) var(--space-5);
 }
 
-/* ── Toolbar ───────────────────────────────────────────────── */
+.agenda-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
 .agenda-toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
     flex-wrap: wrap;
 }
 
 .agenda-nav-btn {
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: 1px solid #3f3f46;
-    background: #18181b;
-    color: #e4e4e7;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.15s;
+    font-family: var(--font-sans);
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
 }
 
 .agenda-nav-btn:hover {
-    background: #27272a;
-    border-color: #dc2626;
+    background: var(--bg-hover);
+    border-color: var(--border-accent);
+    color: var(--text-primary);
 }
 
 .agenda-month-label {
-    color: #e4e4e7;
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 700;
     min-width: 200px;
     text-align: center;
+    flex-shrink: 0;
 }
 
+/* ── View Toggle ──────────────────────────────────────────────── */
+.agenda-view-toggle {
+    display: flex;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.agenda-view-btn {
+    padding: var(--space-1) var(--space-3);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+}
+
+.agenda-view-btn:hover {
+    color: var(--text-secondary);
+    background: var(--bg-hover);
+}
+
+.agenda-view-btn.active {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    box-shadow: inset 0 0 0 1px var(--border-accent);
+}
+
+/* ── Action Buttons ───────────────────────────────────────────── */
 .agenda-btn-new {
     margin-left: auto;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #22c55e;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-success);
     background: none;
-    color: #22c55e;
+    color: var(--color-success);
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.15s;
+    font-family: var(--font-sans);
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+    white-space: nowrap;
 }
 
 .agenda-btn-new:hover {
-    background: #22c55e;
-    color: #09090b;
+    background: var(--color-success);
+    color: #000;
 }
 
-/* ── Summary ───────────────────────────────────────────────── */
+.agenda-btn-export {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.agenda-btn-export:hover {
+    background: var(--bg-hover);
+    border-color: var(--color-info);
+    color: var(--color-info-text);
+}
+
+/* ── Filters Bar ──────────────────────────────────────────────── */
+.agenda-filters {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.agenda-filters select {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: border-color var(--duration-fast) var(--ease-out);
+    max-width: 180px;
+    min-height: 32px;
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 24px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a6a7a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.agenda-filters select:hover {
+    border-color: var(--border-strong);
+}
+
+.agenda-filters select:focus {
+    outline: none;
+    border-color: var(--border-accent);
+}
+
+.agenda-filter-clear {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+    min-height: 32px;
+}
+
+.agenda-filter-clear:hover {
+    color: var(--color-error-text);
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+
+/* ── Summary / Counters ───────────────────────────────────────── */
 .agenda-summary {
     display: flex;
-    gap: 16px;
-    margin-bottom: 12px;
-    color: #a1a1aa;
+    gap: var(--space-4);
+    margin-bottom: var(--space-3);
+    color: var(--text-tertiary);
     font-size: 12px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .agenda-summary strong {
-    color: #e4e4e7;
+    color: var(--text-primary);
     font-weight: 700;
 }
 
-.agenda-summary .scheduled-count strong { color: #fcd34d; }
-.agenda-summary .completed-count strong { color: #86efac; }
+.agenda-summary .scheduled-count strong { color: var(--color-warning-text); }
+.agenda-summary .completed-count strong { color: var(--color-success-text); }
 
-/* ── Calendar Grid ─────────────────────────────────────────── */
+.filtered-hint {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-left: auto;
+}
+
+/* ── Calendar Grid ────────────────────────────────────────────── */
 .agenda-calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -86,36 +222,38 @@
 
 .agenda-cal-header {
     text-align: center;
-    padding: 6px 2px;
+    padding: var(--space-1) 2px;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-weight: 700;
-    border-bottom: 1px solid #27272a;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .agenda-cal-header.weekend {
-    color: #52525b;
+    color: var(--text-muted);
 }
 
 .agenda-day-cell {
     min-height: 85px;
-    background: #18181b;
-    border: 1px solid #27272a;
-    border-radius: 6px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
     padding: 4px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
 }
 
 .agenda-day-cell:hover {
-    border-color: #3f3f46;
-    background: #1e1e21;
+    border-color: var(--border-strong);
+    background: var(--bg-hover);
 }
 
 .agenda-day-cell.today {
-    border-color: #dc2626;
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow-red);
 }
 
 .agenda-day-cell.other-month {
@@ -124,21 +262,21 @@
 }
 
 .agenda-day-cell.has-lessons {
-    border-left: 3px solid #fcd34d;
+    border-left: 3px solid var(--color-warning);
 }
 
 .agenda-day-number {
     font-size: 10px;
     font-weight: 700;
-    color: #a1a1aa;
+    color: var(--text-tertiary);
     margin-bottom: 2px;
 }
 
 .agenda-day-number.today {
-    color: #dc2626;
+    color: var(--border-accent);
 }
 
-/* ── Lesson markers ────────────────────────────────────────── */
+/* ── Lesson markers in calendar ──────────────────────────────── */
 .agenda-lesson-marker {
     font-size: 9px;
     padding: 1px 3px;
@@ -147,23 +285,23 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #e4e4e7;
+    color: var(--text-primary);
     line-height: 1.3;
     cursor: pointer;
     transition: background 0.1s;
 }
 
 .agenda-lesson-marker:hover {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .agenda-lesson-marker .time {
-    color: #fcd34d;
+    color: var(--color-warning-text);
     font-weight: 600;
 }
 
 .agenda-lesson-marker .name {
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .agenda-lesson-marker.completed {
@@ -171,110 +309,119 @@
 }
 
 .agenda-lesson-marker.completed .time {
-    color: #86efac;
+    color: var(--color-success-text);
 }
 
 .agenda-more-link {
     font-size: 9px;
-    color: #52525b;
+    color: var(--text-muted);
     font-weight: 600;
     cursor: pointer;
     padding: 1px;
 }
 
 .agenda-more-link:hover {
-    color: #a1a1aa;
+    color: var(--text-tertiary);
 }
 
-/* ── Day Modal ─────────────────────────────────────────────── */
+/* ── Week View ────────────────────────────────────────────────── */
+.agenda-calendar.agenda-week .agenda-day-cell {
+    min-height: 160px;
+}
+
+.agenda-calendar.agenda-week .agenda-day-cell.other-month {
+    opacity: 1;
+    pointer-events: auto;
+    background: var(--bg-elevated);
+    border-color: var(--border-subtle);
+    border-style: dashed;
+}
+
+/* ── Day Detail Modal ─────────────────────────────────────────── */
 .agenda-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 1000;
     display: flex;
     justify-content: center;
     align-items: center;
+    animation: modalOverlayIn var(--duration-fast) var(--ease-out);
+    padding: var(--space-3);
 }
 
 .agenda-modal {
-    background: #18181b;
-    border: 1px solid #27272a;
-    border-radius: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
     max-height: 85vh;
     overflow-y: auto;
-    animation: agendaModalIn 0.2s ease-out;
+    box-shadow: var(--shadow-lg);
+    animation: modalContentIn var(--duration-normal) var(--ease-out);
 }
 
 .agenda-day-modal {
     max-width: 520px;
-    width: 92%;
-    padding: 0;
+    width: 100%;
 }
 
 .agenda-form-modal {
     max-width: 600px;
-    width: 92%;
-    padding: 0;
-}
-
-@keyframes agendaModalIn {
-    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
+    width: 100%;
 }
 
 .agenda-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #27272a;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-default);
     position: sticky;
     top: 0;
-    background: #18181b;
+    background: var(--bg-surface);
     z-index: 1;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .agenda-modal-header h3 {
     margin: 0;
     font-size: 16px;
-    color: #e4e4e7;
+    color: var(--text-primary);
     text-transform: capitalize;
 }
 
 .agenda-modal-close {
     background: none;
     border: none;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-size: 18px;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.15s;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: all var(--duration-fast) var(--ease-out);
 }
 
 .agenda-modal-close:hover {
-    background: #27272a;
-    color: #e4e4e7;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .agenda-modal-body {
-    padding: 16px 20px;
+    padding: var(--space-4) var(--space-5);
 }
 
-/* ── Lesson cards in day modal ─────────────────────────────── */
+/* ── Lesson cards in day modal ───────────────────────────────── */
 .agenda-lesson-card {
-    background: #1a1a1e;
-    border: 1px solid #27272a;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    padding: 12px;
-    transition: border-color 0.15s;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2);
+    padding: var(--space-3);
+    transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 .agenda-lesson-card:hover {
-    border-color: #3f3f46;
+    border-color: var(--border-strong);
 }
 
 .agenda-lesson-card.cancelled {
@@ -285,104 +432,104 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
 }
 
 .lesson-time-tag {
-    background: #27272a;
-    color: #fcd34d;
+    background: var(--bg-hover);
+    color: var(--color-warning-text);
     font-weight: 700;
     font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
 }
 
 .lesson-status-badge {
     font-size: 11px;
     font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
 }
 
-.lesson-status-badge.scheduled { background: #1a2e1a; color: #fcd34d; }
-.lesson-status-badge.completed { background: #0d2818; color: #86efac; }
-.lesson-status-badge.cancelled { background: #2a0d0d; color: #fca5a5; }
-.lesson-status-badge.make_up  { background: #1a1a0d; color: #fde68a; }
+.lesson-status-badge.scheduled { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.lesson-status-badge.completed { background: var(--color-success-bg); color: var(--color-success-text); }
+.lesson-status-badge.cancelled { background: var(--color-error-bg); color: var(--color-error-text); }
 
 .lesson-card-body {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
 }
 
 .lesson-info-row {
     display: flex;
-    gap: 6px;
+    gap: var(--space-1);
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 3px;
     line-height: 1.4;
 }
 
 .lesson-info-row strong {
-    color: #e4e4e7;
+    color: var(--text-primary);
 }
 
 .lesson-label {
-    color: #71717a;
+    color: var(--text-tertiary);
     min-width: 80px;
     flex-shrink: 0;
 }
 
 .lesson-card-actions {
     display: flex;
-    gap: 6px;
-    padding-top: 8px;
-    border-top: 1px solid #27272a;
+    gap: var(--space-1);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .btn-lesson-action {
     padding: 4px 10px;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #18181b;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.15s;
+    transition: all var(--duration-fast) var(--ease-out);
+    line-height: 1;
 }
 
 .btn-lesson-action:hover {
-    background: #27272a;
-    border-color: #dc2626;
+    background: var(--bg-hover);
+    border-color: var(--border-accent);
 }
 
 .btn-lesson-action.btn-complete:hover {
-    border-color: #22c55e;
+    border-color: var(--color-success);
 }
 
 .btn-lesson-action.btn-cancel:hover {
-    border-color: #ef4444;
+    border-color: var(--color-error);
 }
 
 .btn-lesson-action.btn-delete:hover {
-    border-color: #ef4444;
-    background: #2a0d0d;
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
 }
 
-/* ── Form Modal ────────────────────────────────────────────── */
+/* ── Form Modal ───────────────────────────────────────────────── */
 .agenda-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .form-group label {
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-tertiary);
     font-weight: 500;
 }
 
@@ -390,21 +537,22 @@
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #09090b;
-    color: #e4e4e7;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-primary);
     font-size: 13px;
+    font-family: var(--font-sans);
     box-sizing: border-box;
-    transition: border-color 0.15s;
+    transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #dc2626;
+    border-color: var(--border-accent);
 }
 
 .form-group textarea {
@@ -418,35 +566,38 @@
 
 .agenda-form-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     justify-content: flex-end;
-    margin-top: 16px;
+    margin-top: var(--space-4);
 }
 
 .agenda-form-actions button {
-    padding: 8px 20px;
-    border-radius: 8px;
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-md);
     font-size: 13px;
     font-weight: 600;
+    font-family: var(--font-sans);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+    min-height: 40px;
 }
 
 .btn-cancel {
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--border-strong);
     background: none;
-    color: #a1a1aa;
+    color: var(--text-tertiary);
 }
 
 .btn-cancel:hover {
-    background: #27272a;
-    color: #e4e4e7;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .btn-save {
-    border: 1px solid #22c55e;
-    background: #22c55e;
-    color: #09090b;
+    border: 1px solid var(--color-success);
+    background: var(--color-success);
+    color: #000;
 }
 
 .btn-save:hover {
@@ -454,24 +605,71 @@
     border-color: #16a34a;
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
+/* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .agenda-page {
-        padding: 16px 10px;
+        padding: var(--space-4) var(--space-3);
+    }
+
+    .agenda-title {
+        font-size: 18px;
+        margin-bottom: var(--space-3);
     }
 
     .agenda-toolbar {
-        gap: 6px;
+        gap: var(--space-1);
     }
 
     .agenda-month-label {
         min-width: auto;
         font-size: 14px;
+        flex: 1;
+    }
+
+    .agenda-nav-btn {
+        padding: var(--space-1) var(--space-2);
+        font-size: 12px;
+    }
+
+    .agenda-view-btn {
+        padding: var(--space-1) var(--space-2);
+        font-size: 11px;
     }
 
     .agenda-btn-new {
         margin-left: 0;
         width: 100%;
+        text-align: center;
+        order: 10;
+    }
+
+    .agenda-btn-export {
+        font-size: 11px;
+        padding: var(--space-1) var(--space-2);
+    }
+
+    .agenda-filters {
+        gap: var(--space-1);
+    }
+
+    .agenda-filters select {
+        max-width: none;
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        padding: var(--space-1) var(--space-2);
+        padding-right: 20px;
+        min-height: 30px;
+    }
+
+    .agenda-summary {
+        font-size: 11px;
+        gap: var(--space-2);
+    }
+
+    .filtered-hint {
+        width: 100%;
+        margin-left: 0;
     }
 
     .agenda-calendar {
@@ -483,6 +681,10 @@
         padding: 2px;
     }
 
+    .agenda-day-cell.has-lessons {
+        border-left-width: 2px;
+    }
+
     .agenda-day-number {
         font-size: 9px;
     }
@@ -491,11 +693,118 @@
         font-size: 8px;
     }
 
+    .agenda-lesson-marker .name {
+        display: none;
+    }
+
+    .agenda-lesson-marker .time {
+        display: block;
+    }
+
+    .agenda-more-link {
+        font-size: 8px;
+    }
+
+    /* Week view mobile */
+    .agenda-calendar.agenda-week .agenda-day-cell {
+        min-height: 100px;
+    }
+
     .agenda-form-grid {
         grid-template-columns: 1fr;
     }
 
     .agenda-modal {
-        width: 96%;
+        width: 100%;
+        max-height: 90vh;
+    }
+
+    .agenda-modal-header {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .agenda-modal-header h3 {
+        font-size: 14px;
+    }
+
+    .agenda-modal-body {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .lesson-card-header {
+        flex-wrap: wrap;
+        gap: var(--space-1);
+    }
+
+    .lesson-label {
+        min-width: 70px;
+    }
+
+    .lesson-card-actions {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .agenda-page {
+        padding: var(--space-3) var(--space-2);
+    }
+
+    .agenda-title {
+        font-size: 16px;
+    }
+
+    .agenda-toolbar {
+        gap: 4px;
+    }
+
+    .agenda-nav-btn {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .agenda-month-label {
+        font-size: 12px;
+    }
+
+    .agenda-view-btn {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .agenda-filters select {
+        font-size: 10px;
+        min-height: 28px;
+        padding: 2px 18px 2px 6px;
+    }
+
+    .agenda-filter-clear {
+        font-size: 10px;
+        min-height: 28px;
+        padding: 2px 8px;
+    }
+
+    .agenda-day-cell {
+        min-height: 50px;
+    }
+
+    .agenda-calendar.agenda-week .agenda-day-cell {
+        min-height: 80px;
+    }
+
+    .agenda-lesson-marker .time {
+        font-size: 7px;
+    }
+
+    .lesson-label {
+        min-width: 60px;
+    }
+
+    .agenda-form-actions {
+        flex-direction: column;
+    }
+
+    .agenda-form-actions button {
+        width: 100%;
     }
 }

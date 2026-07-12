@@ -518,7 +518,7 @@ Responsividade mobile (Fase 5.3) ou início da Fase 6 (limpeza do painel clássi
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** *(pendente)*
+**Commit Git:** `d738668` — "Fase 6: arquivamento do painel clássico"
 
 ---
 
@@ -624,7 +624,7 @@ Responsividade mobile (Fase 5.3) ou melhorias na página Admin (Fase 7).
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** *(pendente)*
+**Commit Git:** `d738668` — "Fase 5.3: responsividade mobile"
 
 ---
 
