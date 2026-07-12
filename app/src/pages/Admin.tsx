@@ -34,7 +34,7 @@ export default function Admin() {
 
             setStats({
                 students: students.length,
-                studentsActive: students.filter(s => s.active).length,
+                studentsActive: students.filter(s => s.status === 'active').length,
                 teachers: teachers.length,
                 enrollmentsActive: enrollments.filter(e => e.status === 'active').length,
                 revenue: dash.financial.revenue,
