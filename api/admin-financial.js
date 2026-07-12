@@ -106,6 +106,67 @@ function safeInt(value, fallback = 0, min = -Infinity) {
     return num;
 }
 
+/**
+ * Normaliza uma string de referência mensal para o formato "YYYY-MM-DD" (date).
+ * - "YYYY-MM" → "YYYY-MM-01" (completa com o primeiro dia do mês)
+ * - "YYYY-MM-DD" → mantém como está
+ * - Outro formato → retorna null para forçar erro 400 na validação
+ * @param {string} value - Valor a normalizar
+ * @returns {string|null} Data normalizada ou null se inválido
+ */
+function normalizeMonthDate(value) {
+    if (!value) return null;
+    // Já veio completo (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    // Veio como YYYY-MM (input type="month")
+    if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`;
+    // Formato inválido
+    return null;
+}
+
+/**
+ * Normaliza campos de texto opcionais em um objeto: se o valor for uma string
+ * vazia (""), substitui por null. Isso previne erros de CHECK constraint no
+ * banco quando o frontend envia string vazia em vez de omitir o campo.
+ *
+ * @param {Object} obj - Objeto com os campos a normalizar (modificado in-place)
+ * @param {string[]} fields - Lista de nomes de campo para normalizar
+ * @returns {Object} O mesmo objeto (para encadeamento)
+ *
+ * @example
+ *   normalizeOptionalFields(payload, ['cpf', 'email', 'phone']);
+ *   // Se payload.cpf === '', passa a ser null
+ */
+function normalizeOptionalFields(obj, fields) {
+    for (const field of fields) {
+        if (obj[field] === '' || obj[field] === undefined) {
+            obj[field] = null;
+        }
+    }
+    return obj;
+}
+
+/**
+ * Classifica um erro lançado (normalmente do Supabase/Postgres) em um código
+ * HTTP e um código de erro amigável. O err.message NÃO é incluído na resposta
+ * ao cliente para evitar vazamento de informação — apenas no console.error do
+ * servidor (stack trace completo).
+ *
+ * @param {Error} err - Erro capturado (pode ter .code do Postgres)
+ * @returns {{ statusCode: number, errorCode: string, friendlyMessage: string }}
+ */
+function classifyError(err) {
+    const mapping = {
+        '23505': { statusCode: 409, errorCode: 'ERR_DB_UNIQUE_VIOLATION',     friendlyMessage: 'Conflito: este registro já existe.' },
+        '23503': { statusCode: 409, errorCode: 'ERR_DB_FK_VIOLATION',        friendlyMessage: 'Operação não permitida: existem registros vinculados a este item.' },
+        '23514': { statusCode: 400, errorCode: 'ERR_DB_CHECK_VIOLATION',     friendlyMessage: 'Dados inválidos: um ou mais campos não passaram na validação.' },
+        '23502': { statusCode: 400, errorCode: 'ERR_DB_NOT_NULL_VIOLATION',  friendlyMessage: 'Um campo obrigatório está ausente ou vazio.' },
+    };
+    const mapped = mapping[err.code];
+    if (mapped) return mapped;
+    return { statusCode: 500, errorCode: 'ERR_INTERNAL', friendlyMessage: 'Erro interno do servidor.' };
+}
+
 // ── Helpers financeiros compartilhados ─────────────────────────────────────────
 // Extraído para eliminar duplicação entre handleSummary e handleDashboard.
 
@@ -185,24 +246,28 @@ async function handleStudents(req, res, supabase) {
         const finalStatus = status || (active !== false ? 'active' : 'cancelled');
         const finalActive = active !== undefined ? active : (finalStatus === 'active' || finalStatus === 'enrolled');
 
+        const payload = {
+            id: genId('ST'),
+            name,
+            cpf,
+            email,
+            phone,
+            address,
+            instruments: instrumentsStr,
+            active: finalActive,
+            status: finalStatus,
+            enrolled_at: enrolled_at || null,
+            source,
+            guardian_name,
+            guardian_cpf,
+            guardian_phone,
+        };
+
+        normalizeOptionalFields(payload, ['cpf', 'email', 'phone', 'address', 'source', 'guardian_name', 'guardian_cpf', 'guardian_phone']);
+
         const { data, error } = await supabase
             .from('students')
-            .insert([{ 
-                id: genId('ST'), 
-                name, 
-                cpf: cpf || null,
-                email: email || null, 
-                phone: phone || null, 
-                address: address || null, 
-                instruments: instrumentsStr, 
-                active: finalActive,
-                status: finalStatus,
-                enrolled_at: enrolled_at || null,
-                source: source || null,
-                guardian_name: guardian_name || null,
-                guardian_cpf: guardian_cpf || null,
-                guardian_phone: guardian_phone || null
-            }])
+            .insert([payload])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ student: data });
@@ -232,7 +297,9 @@ async function handleStudents(req, res, supabase) {
         if (guardian_name !== undefined) upd.guardian_name = guardian_name || null;
         if (guardian_cpf  !== undefined) upd.guardian_cpf  = guardian_cpf || null;
         if (guardian_phone !== undefined) upd.guardian_phone = guardian_phone || null;
-        const { data, error } = await supabase.from('students').update(upd).eq('id', id).select().single();
+        const { data, error } = await supabase.from('students').update(
+            normalizeOptionalFields(upd, ['cpf', 'email', 'phone', 'address', 'source', 'guardian_name', 'guardian_cpf', 'guardian_phone'])
+        ).eq('id', id).select().single();
         if (error) throw error;
         return res.status(200).json({ student: data });
     }
@@ -263,7 +330,7 @@ async function handleTeachers(req, res, supabase) {
     }
 
     if (method === 'POST') {
-        const { name, cpf, phone, specialty, days_of_week, rate_per_class } = req.body;
+        const { name, cpf, email, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
         // Schema real (supabase/financial-schema.sql): teachers.days_of_week é TEXT.
@@ -274,27 +341,29 @@ async function handleTeachers(req, res, supabase) {
 
         const { data, error } = await supabase
             .from('teachers')
-            .insert([{
+            .insert([normalizeOptionalFields({
                 id: genId('TE'),
                 name,
                 cpf: cpf || null,
+                email,
                 phone: phone || null,
                 specialty: specialty || null,
                 days_of_week: daysCsv,
                 rate_per_class: safeFloat(rate_per_class, 0),
-            }])
+            }, ['cpf', 'email', 'phone', 'specialty'])])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ teacher: data });
     }
 
     if (method === 'PATCH') {
-        const { id, name, cpf, phone, specialty, days_of_week, rate_per_class } = req.body;
+        const { id, name, cpf, email, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!id) return res.status(400).json({ error: 'id do professor é obrigatório.' });
 
         const upd = {};
         if (name !== undefined) upd.name = name;
         if (cpf !== undefined) upd.cpf = cpf || null;
+        if (email !== undefined) upd.email = email || null;
         if (phone !== undefined) upd.phone = phone || null;
         if (specialty !== undefined) upd.specialty = specialty || null;
         if (rate_per_class !== undefined) upd.rate_per_class = safeFloat(rate_per_class, 0);
@@ -309,7 +378,7 @@ async function handleTeachers(req, res, supabase) {
 
         const { data, error } = await supabase
             .from('teachers')
-            .update(upd)
+            .update(normalizeOptionalFields(upd, ['cpf', 'email', 'phone', 'specialty']))
             .eq('id', id)
             .select().single();
         if (error) throw error;
@@ -378,8 +447,8 @@ async function handleEnrollments(req, res, supabase) {
         const payload = {
             id: genId('EN'),
             student_id,
-            teacher_id: teacher_id || null,
-            instrument: instrument || null,
+            teacher_id,
+            instrument,
             day_of_week: day_of_week || null,
             class_time: class_time || null,
             duration_minutes: safeInt(duration_minutes, 60),
@@ -389,8 +458,10 @@ async function handleEnrollments(req, res, supabase) {
             total_amount: bt === 'full' ? safeFloat(total_amount, 0, 0) : null,
             installments: safeInt(installments, 1),
             status: status || 'active',
-            notes: notes || null,
+            notes,
         };
+
+        normalizeOptionalFields(payload, ['teacher_id', 'instrument', 'notes']);
 
         const { data, error } = await supabase
             .from('enrollments')
@@ -448,6 +519,19 @@ async function handleEnrollments(req, res, supabase) {
     if (method === 'DELETE') {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'ID do vínculo (enrollment) é obrigatório na query string.' });
+
+        const { count, error: countError } = await supabase
+            .from('lessons')
+            .select('id', { count: 'exact', head: true })
+            .eq('enrollment_id', id);
+        if (countError) throw countError;
+
+        if (count && count > 0) {
+            return res.status(409).json({
+                error: `Não é possível excluir esta matrícula: existem ${count} aula(s) vinculada(s). Cancele ou desvincule as aulas primeiro.`
+            });
+        }
+
         const { error } = await supabase.from('enrollments').delete().eq('id', id);
         if (error) throw error;
         return res.status(200).json({ success: true });
@@ -510,11 +594,13 @@ async function handleTuitions(req, res, supabase) {
             billing_type: billing_type || null,
             installment_number: safeInt(installment_number, null),
             discount_amount: safeFloat(discount_amount, 0),
-            discount_reason: discount_reason || null,
+            discount_reason,
             due_date,
             status: status || 'pending',
-            notes: notes || null,
+            notes,
         };
+
+        normalizeOptionalFields(payload, ['notes', 'discount_reason']);
 
         const { data, error } = await supabase
             .from('tuitions')
@@ -712,9 +798,19 @@ async function handleInvestments(req, res, supabase) {
         const { description, amount, category, purchased_at, notes } = req.body;
         if (!description || !amount || !purchased_at)
             return res.status(400).json({ error: 'descrição, valor e data de compra são obrigatórios.' });
+        const investmentPayload = {
+            id: genId('IN'),
+            description,
+            amount: safeFloat(amount, 0, 0),
+            category: category || 'outro',
+            purchased_at,
+            notes,
+        };
+        normalizeOptionalFields(investmentPayload, ['notes']);
+
         const { data, error } = await supabase
             .from('investments')
-            .insert([{ id: genId('IN'), description, amount: safeFloat(amount, 0, 0), category: category || 'outro', purchased_at, notes: notes || null }])
+            .insert([investmentPayload])
             .select().single();
         if (error) throw error;
         return res.status(201).json({ investment: data });
@@ -754,15 +850,22 @@ async function handleTeacherPayments(req, res, supabase) {
         if (!teacher_id || !reference_month || !amount)
             return res.status(400).json({ error: 'teacher_id, reference_month e amount são obrigatórios.' });
 
+        const normalizedRefMonth = normalizeMonthDate(reference_month);
+        if (!normalizedRefMonth) {
+            return res.status(400).json({ error: 'reference_month inválido. Use o formato YYYY-MM ou YYYY-MM-DD.' });
+        }
+
         const payload = {
             id: genId('TP'),
             teacher_id,
-            reference_month,
+            reference_month: normalizedRefMonth,
             amount: safeFloat(amount, 0, 0),
             paid: paid || false,
             paid_at: paid ? (paid_at || new Date().toISOString()) : null,
-            notes: notes || null,
+            notes,
         };
+
+        normalizeOptionalFields(payload, ['notes']);
 
         const { data, error } = await supabase
             .from('teacher_payments')
@@ -910,8 +1013,9 @@ async function handleLessons(req, res, supabase) {
             duration_minutes: dur,
             lesson_type: lesson_type || 'regular',
             status: status || 'scheduled',
-            notes: notes || null,
+            notes,
         };
+        normalizeOptionalFields(payload, ['notes']);
 
         const { data, error } = await supabase
             .from('lessons')
@@ -1038,9 +1142,10 @@ async function handleAttendance(req, res, supabase) {
             student_id,
             status: attStatus || 'present',
             late_minutes: safeInt(late_minutes, 0),
-            notes: notes || null,
+            notes,
             recorded_at: new Date().toISOString(),
         };
+        normalizeOptionalFields(payload, ['notes']);
 
         // Upsert: se já existe registro para esta lesson + student, atualiza
         const { data, error } = await supabase
@@ -1179,7 +1284,11 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
         }
     } catch (err) {
-        console.error('Erro interno:', err.message);
-        return res.status(500).json({ error: 'Erro interno.' });
+        const classified = classifyError(err);
+        console.error(`[${classified.errorCode}] ${err.stack || err.message}`);
+        return res.status(classified.statusCode).json({
+            error: classified.friendlyMessage,
+            code: classified.errorCode,
+        });
     }
 }

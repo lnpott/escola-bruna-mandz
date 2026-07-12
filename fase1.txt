@@ -1,0 +1,30 @@
+Fase 0 — Investigação: identidade de painel-x9k2f.html + reprodução do 500
+Contexto: este projeto tem um histórico de documentação (painel_registro.md, 58 etapas) com três descrições incompatíveis para o mesmo arquivo `painel-x9k2f.html`:
+
+1. Em etapas anteriores do registro, é descrito como o painel administrativo completo (acadêmico/financeiro), com modais de Alunos, Professores, Matrículas, campos de CPF etc.
+2. Em uma etapa posterior, é descrito como um portal de login que apenas exibe cards e redireciona para academic/index.html (painel acadêmico) e commercial/index.html (painel comercial).
+3. Em contexto de e-commerce do projeto, é referenciado como o painel administrativo oculto da loja (gestão de pedidos e produtos).
+
+Tarefa: não presumir nenhuma das três. Investigar o código-fonte real e responder com fatos, não com o que a documentação alega.
+
+1. Abrir o arquivo painel-x9k2f.html na raiz do projeto e reportar:
+   - Número real de linhas
+   - Se contém HTML+JS inline com modais/CRUD funcional, ou se é majoritariamente uma página de cards/links
+   - Se sim (cards/links), listar exatamente para onde cada card aponta (href)
+   - Se contém lógica de autenticação (login), descrever o fluxo
+
+2. Verificar se existem os arquivos academic/index.html e commercial/index.html na raiz do projeto:
+   - Se existirem, abrir cada um e reportar o que cada um implementa (o que é gerenciado: alunos/professores, ou pedidos/produtos, ou outra coisa)
+   - Se NÃO existirem, reportar isso explicitamente — é um dado importante
+
+3. Rodar uma busca (grep/ripgrep) no repositório inteiro por "painel-x9k2f" e listar todos os arquivos que referenciam esse nome (links, redirects, vercel.json, etc.), para mapear quem aponta pra ele e quem ele aponta.
+
+4. Com base apenas no que foi encontrado nos passos 1-3 (não em suposição), responder objetivamente: qual das três descrições é verdadeira hoje, ou se é uma quarta coisa diferente de todas.
+
+5. Reprodução do erro 500 no React SPA (app/):
+   - Rodar o projeto localmente (ou usar o ambiente de dev já configurado)
+   - Testar, uma por uma, as operações de escrita (criar/editar/excluir) em cada página do React SPA: Students, Teachers, Enrollments, Lessons/Agenda, Payments, Expenses, Investments, TeacherPayments
+   - Para cada operação testada, registrar: resource, método HTTP, payload enviado (body da requisição), status code recebido, corpo da resposta
+   - Isolar qual(is) resource(s) efetivamente retornam 500 e em qual ação específica (criar, editar ou excluir)
+
+Não corrigir nada neste momento — apenas investigar e reportar. Entregar o relatório em formato estruturado com as respostas dos 5 itens acima, para que a decisão arquitetural seja tomada com base em fato, não em documentação conflitante.
