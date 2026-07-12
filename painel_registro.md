@@ -8,7 +8,7 @@
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** Pendente — aplicar na branch REFAC
+**Commit Git:** `802224f` (applied fixes) + `5a3664c` (Fase 4 React SPA bugs)
 
 ---
 
@@ -76,8 +76,9 @@ Arquivo criado para aplicar no Supabase SQL Editor. Corrige:
 
 ## Pendências
 
-- Aplicar `fix-auditoria.sql` no Supabase SQL Editor **antes** do deploy
-- Commit + push da REFAC com os 3 arquivos desta etapa
+- ~~Aplicar `fix-auditoria.sql` no Supabase SQL Editor~~ ✅
+- ~~Commit + push dos arquivos desta etapa~~ ✅
+- ~~Fase 4: correções de bugs do React SPA~~ ✅
 - Deploy na Vercel a partir da branch REFAC
 - Validação funcional ponta a ponta (roteiro da Etapa 43 ainda válido)
 - Merge da REFAC na main após validação
@@ -87,4 +88,98 @@ Arquivo criado para aplicar no Supabase SQL Editor. Corrige:
 ## Próxima Etapa
 
 Deploy da REFAC na Vercel + validação funcional ponta a ponta.
+
+---
+
+# ETAPA 45 — CORREÇÕES DE BUGS DO REACT SPA (FASE 4)
+
+**Data:** 12/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `5a3664c` — "Fase 4: corrige bugs do React SPA (students.active, error handling, req.body validation)"
+
+---
+
+## Objetivo
+
+Corrigir bugs identificados no React SPA que causavam erros 500 ao modificar dados e quebras de funcionalidade na interface.
+
+---
+
+## Diagnóstico
+
+Três causas principais foram identificadas:
+
+1. **Causa #3** — `Enrollments.tsx` e `Admin.tsx` referenciavam `students.active` (coluna removida na Etapa 44). `s.active` retornava `undefined` para todos os alunos, fazendo o select de alunos em Matrículas ficar vazio.
+
+2. **Causa #2** — O catch genérico no router `admin-financial.js` transformava QUALQUER erro em 500 "Erro interno.", sem diferenciar erros de validação (400), conflito (409) ou erro interno (500).
+
+3. **Causa #5** — Handlers faziam `const { ... } = req.body` sem validar se `body` existia, causando `TypeError` quando o frontend enviava Content-Type errado.
+
+---
+
+## Implementações Realizadas
+
+### Bug #3 — students.active removida (app/src/pages/Enrollments.tsx + Admin.tsx)
+
+- `s.active` substituído por `s.status === 'active'` em ambos os arquivos
+- A coluna `active` foi dropada do banco na Etapa 44 — `status` é a única fonte de verdade
+- `teachers.active` NÃO foi alterado (coluna ainda existe na tabela teachers)
+
+### Bug #2 — Error handling na API (api/admin-financial.js)
+
+- Importado `classifyError()` de `helpers.js` (já existente)
+- O catch agora mapeia erros do Supabase para HTTP status adequados:
+  - `23505` (unique violation) → **409** "Conflito: este registro já existe."
+  - `23503` (FK violation) → **409** "Operação não permitida: existem registros vinculados..."
+  - `23514` (CHECK violation) → **400** "Dados inválidos: um ou mais campos..."
+  - `23502` (NOT NULL) → **400** "Um campo obrigatório está ausente ou vazio."
+  - Outros → **500** "Erro interno do servidor."
+- Resposta agora inclui `errorCode` para debug no frontend
+
+### Bug #5 — Validação de req.body (api/admin-financial.js)
+
+- Adicionada validação centralizada ANTES do switch de resources:
+  - Se método for POST/PATCH e `req.body` estiver ausente ou não for objeto → retorna **400**
+  - Protege todos os 12 handlers contra TypeError de uma vez
+
+---
+
+## Arquivos Alterados
+
+- `app/src/pages/Enrollments.tsx` — `s.active` → `s.status === 'active'`
+- `app/src/pages/Admin.tsx` — `s.active` → `s.status === 'active'`
+- `api/admin-financial.js` — `classifyError` + validação de `req.body`
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Correções exclusivamente de código frontend e API.
+
+---
+
+## Testes
+
+✅ `node --check` em `admin-financial.js` — sintaxe válida
+✅ `npm test` — 29/29 passando
+✅ `npm run build` (React SPA) — build OK sem erros
+
+---
+
+## Pendências
+
+- Deploy da REFAC na Vercel
+- Validação funcional ponta a ponta do React SPA
+- Merge da REFAC na main após validação
+
+---
+
+## Próxima Etapa
+
+Deploy da REFAC na Vercel + validação funcional do React SPA.
+
 
