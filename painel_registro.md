@@ -334,7 +334,7 @@ Melhorias de UX contínuas (Fase 5.2: loading states consistentes, empty states 
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** *(pendente)*
+**Commit Git:** `5361f53` — "Fase 5.2: loading states e empty states padronizados em todas as paginas"
 
 ---
 
