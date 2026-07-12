@@ -1617,3 +1617,89 @@ Nenhuma.
 ## Próxima Etapa
 
 Commit + push da REFAC, deploy na Vercel, testes funcionais ponta a ponta (fluxo: vínculo → aula → presença → financeiro), e merge para main.
+
+---
+
+# ETAPA 43 — PORTAGEM DAS CORREÇÕES DE FRONT-END DA MAIN PARA A REFAC
+
+**Data:** 12/07/2026
+
+**Horário:** 19:46
+
+**Agente Responsável:** Claude (Anthropic)
+
+**Commit Git:** Pendente — aplicar na branch REFAC
+
+---
+
+## Objetivo
+
+Sincronizar a branch REFAC com as 4 correções de código morto/tangled aplicadas na `main` (Etapa 46 da main), que não estavam presentes na REFAC. A REFAC estava adiantada na camada de API (Etapas 40–42), mas atrasada na camada de front-end (`painel-x9k2f.html`).
+
+---
+
+## Contexto
+
+Ao comparar `painel-x9k2f.html` entre REFAC e main, identificou-se que a REFAC ainda continha os seguintes problemas que já haviam sido corrigidos na main:
+
+1. `_activeSubTab` inicializado com `'students'` (default implícito que forçava a sub-aba Alunos ao navegar para Financeiro mesmo sem o usuário clicar nela)
+2. `switch (_activeSubTab)` em `loadFinancialData()` sem cases para `'lessons'` e `'investments'`, e com case `'agenda'` chamando `loadAgenda()` que apontava para um sistema paralelo legado
+3. Par de funções legadas `loadAgenda()` / `renderAgenda()` — sistema paralelo de agenda que duplicava lógica já presente na sub-aba Vínculos; gerava confusão e chamada redundante à API
+4. Referências ao endpoint de verificação de MP já removido (ausentes na REFAC — este item não existia na REFAC, apenas na main pré-correção)
+
+---
+
+## Implementações Realizadas
+
+### Fix 1 — `_activeSubTab` sem default implícito
+- Alterado de `let _activeSubTab = 'students'` para `let _activeSubTab = ''`
+- A sub-aba ativa é determinada exclusivamente pelo clique do usuário nas sub-tabs, não por um default hardcoded
+
+### Fix 2 — `switch (_activeSubTab)` em `loadFinancialData()`
+- Adicionados cases para `'lessons'` e `'investments'` (chamam `loadLessons(month, year)` e `loadInvestments(month, year)` respectivamente — funções a serem implementadas na próxima etapa)
+- Case `'agenda'` atualizado para chamar `loadEnrollmentsForAgenda()` em vez do sistema legado `loadAgenda()`
+
+### Fix 3 — Remoção do sistema legado de Agenda
+- Removidas funções `async function loadAgenda()` e `function renderAgenda(enrollments)` (52 linhas)
+- Substituídas por função unificada `async function loadEnrollmentsForAgenda()` (38 linhas) que incorpora fetch + render em um único escopo, sem dependência de função auxiliar separada
+- Net: −14 linhas
+
+### Fix 4 — Verificação de referências ao MP
+- Grep confirmou zero referências ao Mercado Pago no HTML da REFAC — este fix não era necessário (a limpeza já havia ocorrido na Etapa 40)
+
+---
+
+## Arquivos Alterados
+
+- `painel-x9k2f.html` — 3 linhas removidas líquidas (3339 → 3336)
+- `painel_registro.md` — esta entrada
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `node --check` no bloco `<script>` principal — sintaxe válida
+✅ Zero referências a `loadAgenda` ou `renderAgenda` remanescentes
+✅ Zero referências ao Mercado Pago no HTML
+
+---
+
+## Pendências
+
+- Fazer commit e push da branch REFAC com estas alterações
+- Deploy na Vercel a partir da branch REFAC + validação funcional ponta a ponta (fluxo: vínculo → agenda → mensalidade → pagamento → professor)
+- Implementar `loadLessons()` e `loadInvestments()` (cases adicionados no switch mas funções ainda não existem)
+- Merge da REFAC na main após validação em produção
+- Variáveis de ambiente na Vercel: `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_PUBLIC_KEY`, `MP_WEBHOOK_URL` não são mais usadas — remover quando conveniente
+
+---
+
+## Próxima Etapa
+
+Commit + push da REFAC, deploy na Vercel, e validação funcional ponta a ponta.

@@ -1668,7 +1668,7 @@
 
             // ── Módulo Financeiro (Etapa 33) ──────────────────────────────────────────
 
-            let _activeSubTab = 'students';
+            let _activeSubTab = '';
             let _allStudents = [];
             let _allTeachers = [];
             let _allTuitions = [];
@@ -1732,7 +1732,7 @@
                         await loadEnrollments();
                         break;
                     case 'agenda':
-                        await loadAgenda();
+                        await loadEnrollmentsForAgenda();
                         break;
                     case 'tuitions':
                         await loadTuitions(month, year);
@@ -1745,6 +1745,12 @@
                         break;
                     case 'expenses':
                         await loadExpensesAndInvestments(month, year);
+                        break;
+                    case 'lessons':
+                        await loadLessons(month, year);
+                        break;
+                    case 'investments':
+                        await loadInvestments(month, year);
                         break;
                 }
             }
@@ -2120,56 +2126,47 @@
             }
 
             // Sub-aba: Agenda (derivada dos vínculos ativos)
-            async function loadAgenda() {
+            async function loadEnrollmentsForAgenda() {
                 const area = document.getElementById('agenda-area');
                 area.innerHTML = '<div class="empty-state">Carregando agenda...</div>';
                 try {
                     const res = await fetch('/api/admin-financial?resource=enrollments&status=active', { headers: { 'x-admin-password': _password } });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
-                    renderAgenda(data.enrollments);
+                    const enrollments = data.enrollments;
+                    if (!enrollments.length) {
+                        area.innerHTML = '<div class="empty-state">Nenhum vínculo ativo para exibir na agenda.</div>';
+                        return;
+                    }
+                    const byDay = {};
+                    DAY_ORDER.forEach(d => byDay[d] = []);
+                    const noDay = [];
+                    enrollments.forEach(en => {
+                        if (en.day_of_week && byDay[en.day_of_week]) byDay[en.day_of_week].push(en);
+                        else noDay.push(en);
+                    });
+                    Object.values(byDay).forEach(list => list.sort((a, b) => (a.class_time || '').localeCompare(b.class_time || '')));
+                    const dayBlock = (label, list) => {
+                        if (!list.length) return '';
+                        const items = list.map(en => `
+                            <li style="padding:8px 0;border-bottom:1px solid #1f1f22;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                                <span><strong>${en.class_time || '—'}</strong> — ${en.students?.name || 'Aluno Excluído'} (${en.instrument || 'sem instrumento'})</span>
+                                <span style="color:#71717a;font-size:12px">👨‍🏫 ${en.teachers?.name || 'sem professor'} · ${en.duration_minutes}min</span>
+                            </li>
+                        `).join('');
+                        return `
+                            <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+                                <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#a1a1aa">${label}</h3>
+                                <ul style="list-style:none;padding:0;margin:0">${items}</ul>
+                            </div>
+                        `;
+                    };
+                    let html = DAY_ORDER.map(d => dayBlock(DAY_MAP[d], byDay[d])).join('');
+                    if (noDay.length) html += dayBlock('Sem dia definido', noDay);
+                    area.innerHTML = html || '<div class="empty-state">Nenhum vínculo ativo com dia definido.</div>';
                 } catch (err) {
                     area.innerHTML = `<div class="empty-state">❌ Erro: ${err.message}</div>`;
                 }
-            }
-
-            function renderAgenda(enrollments) {
-                const area = document.getElementById('agenda-area');
-                if (!enrollments.length) {
-                    area.innerHTML = '<div class="empty-state">Nenhum vínculo ativo para exibir na agenda.</div>';
-                    return;
-                }
-
-                const byDay = {};
-                DAY_ORDER.forEach(d => byDay[d] = []);
-                const noDay = [];
-                enrollments.forEach(en => {
-                    if (en.day_of_week && byDay[en.day_of_week]) byDay[en.day_of_week].push(en);
-                    else noDay.push(en);
-                });
-
-                Object.values(byDay).forEach(list => list.sort((a, b) => (a.class_time || '').localeCompare(b.class_time || '')));
-
-                const dayBlock = (dayKey, label, list) => {
-                    if (!list.length) return '';
-                    const items = list.map(en => `
-                        <li style="padding:8px 0;border-bottom:1px solid #1f1f22;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
-                            <span><strong>${en.class_time || '—'}</strong> — ${en.students?.name || 'Aluno Excluído'} (${en.instrument || 'sem instrumento'})</span>
-                            <span style="color:#71717a;font-size:12px">👨‍🏫 ${en.teachers?.name || 'sem professor'} · ${en.duration_minutes}min</span>
-                        </li>
-                    `).join('');
-                    return `
-                        <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:14px 16px;margin-bottom:12px">
-                            <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#a1a1aa">${label}</h3>
-                            <ul style="list-style:none;padding:0;margin:0">${items}</ul>
-                        </div>
-                    `;
-                };
-
-                let html = DAY_ORDER.map(d => dayBlock(d, DAY_MAP[d], byDay[d])).join('');
-                if (noDay.length) html += dayBlock('none', 'Sem dia definido', noDay);
-
-                area.innerHTML = html || '<div class="empty-state">Nenhum vínculo ativo com dia definido.</div>';
             }
 
             // Sub-aba: Mensalidades
