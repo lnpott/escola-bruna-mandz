@@ -63,25 +63,6 @@
     cursor: not-allowed;
 }
 
-/* ── Loading / Error ────────────────────────────────────────────── */
-.admin-loading {
-    text-align: center;
-    padding: 60px 0;
-    color: var(--text-tertiary);
-    font-size: 14px;
-}
-
-.admin-error {
-    background: var(--color-error-bg);
-    border: 1px solid var(--color-error);
-    color: var(--color-error-text);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-4);
-    font-size: 13px;
-    animation: slideDown var(--duration-normal) var(--ease-out);
-}
-
 /* ── Overview Grid ──────────────────────────────────────────────── */
 .admin-overview-grid {
     display: grid;

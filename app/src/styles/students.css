@@ -69,19 +69,6 @@
     margin-left: auto;
 }
 
-/* ── Error banner ──────────────────────────────────────────── */
-.error-banner {
-    background: var(--color-error-bg);
-    border: 1px solid var(--color-error);
-    color: var(--color-error-text);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    margin-bottom: var(--space-4);
-    cursor: pointer;
-    animation: slideDown var(--duration-normal) var(--ease-out);
-}
-
 /* ── Table ─────────────────────────────────────────────────── */
 .students-table-wrapper {
     overflow-x: auto;
@@ -252,36 +239,6 @@
 
 .btn-secondary:active {
     transform: scale(0.98);
-}
-
-/* ── Loading ───────────────────────────────────────────────── */
-.loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-tertiary);
-    font-size: 14px;
-}
-
-.loading::after {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    margin-left: var(--space-2);
-    border: 2px solid var(--border-strong);
-    border-top-color: var(--border-accent);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    vertical-align: middle;
-}
-
-/* ── Empty state ───────────────────────────────────────────── */
-.empty-state {
-    text-align: center;
-    padding: var(--space-10);
-    color: var(--text-tertiary);
-    font-size: 14px;
-    line-height: 1.6;
 }
 
 /* ── Modal ─────────────────────────────────────────────────── */

@@ -238,13 +238,13 @@ export default function Enrollments() {
             </div>
 
             {/* Error */}
-            {error && <div className="enrollments-error">{error}</div>}
+            {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
 
             {/* Loading */}
             {loading ? (
-                <div className="enrollments-loading">Carregando vínculos...</div>
+                <div className="loading">Carregando vínculos...</div>
             ) : filtered.length === 0 ? (
-                <div className="enrollments-empty">
+                <div className="empty-state">
                     {search || statusFilter
                         ? 'Nenhum vínculo encontrado com esses filtros.'
                         : 'Nenhum vínculo cadastrado. Clique em "Novo Vínculo" para começar.'}

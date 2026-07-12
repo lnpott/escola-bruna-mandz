@@ -387,7 +387,6 @@ export default function Financial() {
             {/* Header */}
             <div className="fin-header">
                 <div className="fin-header-left">
-                    <Link to="/" className="legacy-link">← Voltar</Link>
                     <h1>💰 Financeiro</h1>
                 </div>
                 <div className="fin-period-filter">
@@ -410,10 +409,10 @@ export default function Financial() {
 
             {/* KPIs */}
             {loading && !summary && (
-                <div className="fin-loading">Carregando indicadores...</div>
+                <div className="loading">Carregando indicadores...</div>
             )}
             {error && (
-                <div className="fin-error">{error}</div>
+                <div className="error-banner" onClick={() => setError('')}>{error}</div>
             )}
             {summary && (
                 <div className="fin-kpi-grid">
@@ -482,7 +481,7 @@ export default function Financial() {
                     </div>
 
                     {payments.length === 0 ? (
-                        <div className="fin-empty">Nenhum pagamento avulso registrado neste mês.</div>
+                        <div className="empty-state empty-state-sm">Nenhum pagamento avulso registrado neste mês.</div>
                     ) : (
                         <div className="fin-table-wrap">
                             <table className="fin-table">
@@ -533,7 +532,7 @@ export default function Financial() {
                     </div>
 
                     {expenses.length === 0 ? (
-                        <div className="fin-empty">Nenhum custo registrado neste mês.</div>
+                        <div className="empty-state empty-state-sm">Nenhum custo registrado neste mês.</div>
                     ) : (
                         <div className="fin-table-wrap">
                             <table className="fin-table">
@@ -604,7 +603,7 @@ export default function Financial() {
                     </div>
 
                     {investments.length === 0 ? (
-                        <div className="fin-empty">Nenhum investimento registrado neste mês.</div>
+                        <div className="empty-state empty-state-sm">Nenhum investimento registrado neste mês.</div>
                     ) : (
                         <div className="fin-table-wrap">
                             <table className="fin-table">
@@ -650,7 +649,7 @@ export default function Financial() {
                     </div>
 
                     {teacherPayments.length === 0 ? (
-                        <div className="fin-empty">Nenhum pagamento a professor registrado neste mês.</div>
+                        <div className="empty-state empty-state-sm">Nenhum pagamento a professor registrado neste mês.</div>
                     ) : (
                         <div className="fin-table-wrap">
                             <table className="fin-table">

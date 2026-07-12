@@ -111,7 +111,6 @@ export default function Admin() {
             {/* Header */}
             <div className="admin-header">
                 <div className="admin-header-left">
-                    <Link to="/" className="legacy-link">← Voltar ao início</Link>
                     <h1>👥 Administração</h1>
                 </div>
                 <button
@@ -124,11 +123,11 @@ export default function Admin() {
             </div>
 
             {error && (
-                <div className="admin-error">{error}</div>
+                <div className="error-banner" onClick={() => setError('')}>{error}</div>
             )}
 
             {loading && !stats && (
-                <div className="admin-loading">Carregando estatísticas...</div>
+                <div className="loading">Carregando estatísticas...</div>
             )}
 
             {/* ── Overview Cards ──────────────────────────────────── */}
@@ -151,12 +150,7 @@ export default function Admin() {
                     <div className="admin-section">
                         <h2>Atalhos Rápidos</h2>
                         <div className="admin-links-grid">
-                            <a href="../painel-x9k2f.html" className="admin-link-card">
-                                <span className="admin-link-icon">🖥️</span>
-                                <span className="admin-link-title">Painel Clássico</span>
-                                <span className="admin-link-desc">Gerenciamento completo da loja</span>
-                            </a>
-                            <a href="../academic/index.html" className="admin-link-card">
+<a href="../academic/index.html" className="admin-link-card">
                                 <span className="admin-link-icon">📚</span>
                                 <span className="admin-link-title">Painel Acadêmico</span>
                                 <span className="admin-link-desc">Alunos, professores e agenda</span>

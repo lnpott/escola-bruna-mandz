@@ -184,7 +184,7 @@ Deploy da REFAC na Vercel + validação funcional do React SPA.
 
 ---
 
-# ETAPA 46 — NAVEGAÇÃO GLOBAL E UX DO REACT SPA (FASE 5)
+# ETAPA 46 — NAVEGAÇÃO GLOBAL, UX E LINKS RÁPIDOS DO REACT SPA (FASE 5)
 
 **Data:** 12/07/2026
 
@@ -192,7 +192,7 @@ Deploy da REFAC na Vercel + validação funcional do React SPA.
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** `(pendente)` — alterações ainda não comitadas
+**Commit Git:** `3c6e010` — "Fase 5: navegacao global (TopBar, Breadcrumbs, Toast, ConfirmModal) + links rapidos no Dashboard"
 
 ---
 
@@ -270,12 +270,28 @@ Substituir a navegação descentralizada (cada página com seu próprio "← Vol
 | `Teachers.tsx` | `window.confirm()` → `useApp().confirm()` com nome do professor na mensagem |
 | `Enrollments.tsx` | Toast local removido (usa global), `confirm()` substituído por `useApp().confirm()` com Promise, "← Voltar" removido (TopBar cobre navegação), header inline removido |
 
+### 7. Dashboard com Links Rápidos
+
+- **Arquivo:** `app/src/pages/Dashboard.tsx` + `app/src/styles/dashboard.css`
+- KPIs financeiros (Receita, Despesas, Saldo, Pendentes) agora redirecionam para `/financeiro`
+- "Alunos em Atraso" → `/financeiro`, "Alunos Ativos" → `/academico`
+- KPI recebe prop `to` opcional; se presente, o `KpiCard` inteiro vira um `<Link>` do React Router
+- Alertas de alunos em atraso, pedidos pendentes e estoque baixo agora são links clicáveis com seta indicadora (`→`) que desliza no hover
+- Headers "Aulas de Hoje" e "Produtos com Estoque Baixo" agora são links para `/agenda` e `/admin` respectivamente
+- CSS de interação:
+  - `.dash-kpi-link`: borda vermelha + glow + elevação 4px no hover, ícone destacado
+  - `.dash-card-header-link`: fundo escurece no hover, texto muda para tom de alerta
+  - `.dash-alert-link`: padding-left aumenta no hover, seta `→` desliza 3px para direita
+- `dash-card-header-link` mantém o mesmo layout visual de `.dash-card-header` (flex, padding, border) adicionando comportamento de link
+
 ---
 
 ## Arquivos Alterados
 
 - `app/src/App.tsx` — **reescrito**: AppProvider (context), TopBar, Breadcrumbs, AppLayout, AcademicLayout simplificado
 - `app/src/styles/global.css` — +260 linhas: topbar, breadcrumbs, toast, confirm-modal, btn-danger, app-layout
+- `app/src/styles/dashboard.css` — +100 linhas: dash-kpi-link, dash-card-header-link, dash-alert-link com animações hover
+- `app/src/pages/Dashboard.tsx` — KpiCard com prop `to`, KPIs linkáveis, alertas como links, headers como links
 - `app/src/pages/Students.tsx` — import `useApp`, confirm via contexto
 - `app/src/pages/Teachers.tsx` — import `useApp`, confirm via contexto
 - `app/src/pages/Enrollments.tsx` — import `useApp`, toast + confirm via contexto, header simplificado
@@ -297,7 +313,7 @@ Nenhuma.
 
 ## Pendências
 
-- Commit + push das alterações da Fase 5
+- ~~Commit + push das alterações da Fase 5~~ ✅
 - Fase 5.2: melhorar feedback visual (loading states, empty states consistentes)
 - Fase 5.3: responsividade (ajustar grids e modais para mobile)
 - Fase 6: limpeza (remover redirect forçado, arquivar painel-x9k2f.html)
@@ -306,6 +322,189 @@ Nenhuma.
 
 ## Próxima Etapa
 
-Commit + push das alterações da Fase 5 na REFAC, seguido de melhorias de UX (Fase 5.2) se aprovado.
+Melhorias de UX contínuas (Fase 5.2: loading states consistentes, empty states padronizados) ou início da Fase 6 (limpeza do painel clássico).
 
+---
+
+# ETAPA 47 — LOADING STATES E EMPTY STATES PADRONIZADOS (FASE 5.2)
+
+**Data:** 12/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** *(pendente)*
+
+---
+
+## Objetivo
+
+Padronizar os estados visuais de carregamento (loading), vazio (empty state) e erro (error banner) em todas as páginas do React SPA, substituindo implementações CSS duplicadas e inconsistentes por classes globais centralizadas.
+
+---
+
+## Problema Identificado
+
+Cada página tinha sua própria implementação de loading, empty state e error banner:
+
+| Página | Loading | Empty | Error |
+|--------|---------|-------|-------|
+| Students | `.loading` (local) | `.empty-state` (local) | `.error-banner` (local) |
+| Teachers | `.loading` (herdado de students.css) | — | — |
+| Enrollments | `.enrollments-loading` | `.enrollments-empty` | `.enrollments-error` |
+| Agenda | `.agenda-loading` | `.dash-empty` | `.agenda-error` |
+| Financial | `.fin-loading` | `.fin-empty` | `.fin-error` |
+| Admin | `.admin-loading` | — | `.admin-error` |
+
+Isso resultava em:
+- **Aparência inconsistente** entre páginas (cores, padding, font-size diferentes)
+- **Código CSS duplicado** (~150 linhas) espalhado por 6 arquivos
+- **Sem spinner de carregamento** padronizado
+- **Error banners sem interação de dismiss** (alguns tinham, outros não)
+
+---
+
+## Implementações Realizadas
+
+### 1. Classes Globais Centralizadas (`app/src/styles/global.css`)
+
+#### `.loading` — Loading State com Spinner
+
+```css
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 24px;
+    color: #a1a1aa;
+    font-size: 14px;
+    gap: 12px;
+}
+.loading::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border: 2px solid #3f3f46;
+    border-top-color: #dc2626;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+```
+
+- Variantes: `.loading-sm` (padding 24px, font-size 12px, spinner 14px) e `.loading-lg` (padding 64px, font-size 16px)
+
+#### `.empty-state` — Empty State Padronizado
+
+```css
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: #71717a;
+    font-size: 14px;
+    text-align: center;
+    gap: 8px;
+}
+```
+
+- Variante: `.empty-state-sm` (padding 24px, font-size 13px)
+- Classes auxiliares: `.empty-state-icon` (font-size 2rem), `.empty-state-title` (font-weight 700, color #a1a1aa)
+
+#### `.error-banner` — Error Banner Dismissível
+
+```css
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: #450a0a;
+    border: 1px solid #991b1b;
+    color: #fca5a5;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    animation: fadeIn 0.2s ease;
+}
+```
+
+- Classes auxiliares: `.error-banner-icon`, `.error-banner-dismiss`
+- Todas as páginas agora usam `onClick={() => setError('')}` para dismiss
+
+### 2. Páginas Atualizadas
+
+| Página | Antes (classes locais) | Depois (classes globais) |
+|--------|----------------------|-------------------------|
+| **Students** | `.loading`, `.empty-state`, `.error-banner` (CSS local) | Classes removidas do CSS local → usam as globais |
+| **Teachers** | `.loading` (herdado de students.css) | `.loading` global sem dependência |
+| **Enrollments** | `.enrollments-loading`, `.enrollments-empty`, `.enrollments-error` + `.enrollments-toast` | `.loading`, `.empty-state`, `.error-banner` |
+| **Agenda** | `.agenda-loading`, `.agenda-error`, `.dash-empty` + `.agenda-toast` | `.loading`, `.error-banner`, `.empty-state.empty-state-sm` |
+| **Financial** | `.fin-loading`, `.fin-empty`, `.fin-error` (4 abas) | `.loading`, `.empty-state.empty-state-sm`, `.error-banner` |
+| **Admin** | `.admin-loading`, `.admin-error` | `.loading`, `.error-banner` |
+
+### 3. CSS Duplicado Removido (~150 linhas)
+
+| Arquivo | Classes removidas | Linhas |
+|---------|-------------------|--------|
+| `students.css` | `.loading`, `.empty-state`, `.error-banner` (duplicatas) | ~30 |
+| `enrollments.css` | `.enrollments-loading`, `.enrollments-empty`, `.enrollments-error`, `.enrollments-toast`, `@keyframes enrToastIn` | ~40 |
+| `agenda.css` | `.agenda-loading`, `.agenda-error`, `.agenda-toast`, `.dash-empty`, `@keyframes agendaToastIn` | ~35 |
+| `financial.css` | `.fin-loading`, `.fin-error`, `.fin-empty` | ~20 |
+| `admin.css` | `.admin-loading`, `.admin-error` | ~15 |
+
+### 4. Fixes Adicionais
+
+- **Agenda.tsx**: Import não utilizado (`useApp` de `@/App`) removido; `Link` de `react-router-dom` removido (não era mais usado)
+- **Todos os error banners**: Agora têm `onClick={() => setError('')}` para dismiss + `cursor: pointer` no CSS global
+- **Spinner animado**: Primeira implementação de um spinner visual (borda giratória) no React SPA
+
+---
+
+## Arquivos Alterados
+
+- `app/src/styles/global.css` — +classes centralizadas .loading (com spinner), .empty-state, .error-banner + variantes
+- `app/src/pages/Enrollments.tsx` — classes locais → classes globais
+- `app/src/pages/Agenda.tsx` — classes locais → classes globais; imports não utilizados removidos
+- `app/src/pages/Financial.tsx` — .fin-* classes → classes globais (4 abas)
+- `app/src/pages/Admin.tsx` — .admin-loading/error → .loading/.error-banner
+- `app/src/styles/students.css` — ~30 linhas de CSS duplicado removidas
+- `app/src/styles/enrollments.css` — ~40 linhas de CSS duplicado removidas
+- `app/src/styles/agenda.css` — ~35 linhas de CSS duplicado removidas (incluindo .dash-empty)
+- `app/src/styles/financial.css` — ~20 linhas de CSS duplicado removidas
+- `app/src/styles/admin.css` — ~15 linhas de CSS duplicado removidas
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 72 módulos transformados, sem erros
+✅ Code Review — sem issues críticas; apenas dead CSS menor em agenda.css (.dash-empty removido)
+
+---
+
+## Pendências
+
+- Commit + push dos arquivos desta etapa
+- Fase 5.3: responsividade (ajustar grids e modais para mobile)
+- Fase 6: limpeza (remover redirect forçado, arquivar painel-x9k2f.html)
+
+---
+
+## Próxima Etapa
+
+Responsividade mobile (Fase 5.3) ou início da Fase 6 (limpeza do painel clássico).
 

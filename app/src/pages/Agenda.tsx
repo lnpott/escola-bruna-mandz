@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import type { Lesson, LessonStatus, Enrollment } from '@/types';
 import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS } from '@/types';
 import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments } from '@/services/api';
@@ -281,11 +280,7 @@ export default function Agenda() {
             {/* Toast */}
             {toast && <div className="agenda-toast">{toast}</div>}
 
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>📅 Agenda Mensal</h1>
-                <Link to="/" className="legacy-link">← Voltar</Link>
-            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 20px' }}>📅 Agenda Mensal</h1>
 
             {/* Toolbar */}
             <div className="agenda-toolbar">
@@ -304,11 +299,11 @@ export default function Agenda() {
             </div>
 
             {/* Error */}
-            {error && <div className="agenda-error">{error}</div>}
+            {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
 
             {/* Calendar */}
             {loading ? (
-                <div className="agenda-loading">Carregando agenda...</div>
+                <div className="loading">Carregando agenda...</div>
             ) : (
                 <div className="agenda-calendar">
                     {/* Day name headers */}
@@ -365,9 +360,8 @@ export default function Agenda() {
                             <h3>{formatDayName(selectedDay)}</h3>
                             <button className="agenda-modal-close" onClick={() => setSelectedDay(null)}>✕</button>
                         </div>
-                        <div className="agenda-modal-body">
-                            {selectedDayLessons.length === 0 ? (
-                                <div className="dash-empty">Nenhuma aula neste dia.</div>
+                        <div className="agenda-modal-body">                                {selectedDayLessons.length === 0 ? (
+                                <div className="empty-state empty-state-sm">Nenhuma aula neste dia.</div>
                             ) : (
                                 selectedDayLessons.map(l => (
                                     <div key={l.id} className={`agenda-lesson-card ${l.status}`}>

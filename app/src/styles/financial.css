@@ -131,25 +131,6 @@
     color: var(--text-primary);
 }
 
-/* ── Loading / Error ────────────────────────────────────────────── */
-.fin-loading {
-    text-align: center;
-    padding: var(--space-10);
-    color: var(--text-tertiary);
-    font-size: 14px;
-}
-.fin-error {
-    text-align: center;
-    padding: var(--space-5);
-    color: var(--color-error-text);
-    background: var(--color-error-bg);
-    border: 1px solid var(--color-error);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-4);
-    font-size: 13px;
-    animation: slideDown var(--duration-normal) var(--ease-out);
-}
-
 /* ── KPI Grid ───────────────────────────────────────────────────── */
 .fin-kpi-grid {
     display: grid;
@@ -264,14 +245,6 @@
     font-size: 13px;
     font-family: var(--font-sans);
     min-width: 180px;
-}
-
-.fin-empty {
-    text-align: center;
-    padding: var(--space-10);
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.6;
 }
 
 /* ── Table ──────────────────────────────────────────────────────── */
