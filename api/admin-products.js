@@ -20,24 +20,62 @@
  */
 
 import { getSupabase } from './_lib/supabase.js';
-import { normalizeProductImage, normalizeVariants } from './_lib/normalize-product.js';
+
+function normalizeProductImage(image) {
+    if (!image || typeof image !== 'string') return '/brand/LOGOPRETO.png';
+
+    const value = image.trim();
+    if (!value) return '/brand/LOGOPRETO.png';
+
+    if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
+        return value;
+    }
+
+    if (value.startsWith('/')) {
+        if (value.startsWith('/merch/') || value.startsWith('/brand/') || value.startsWith('/media/') || value.startsWith('/products/')) {
+            return value;
+        }
+        return `/merch/${value.replace(/^\/+/, '')}`;
+    }
+
+    const fileName = value.replace(/^.*[\\/]/, '');
+    const knownMerchImages = [
+        'Pulseira.png',
+        'Paleta.png',
+        'Chaveiro.png',
+        'Copo.png',
+        'TSHIRT_PREMIUN.png',
+        'TSHIRT_PRO.png',
+        'TSHIRT_ROCK.png',
+    ];
+
+    return knownMerchImages.includes(fileName) ? `/merch/${fileName}` : '/brand/LOGOPRETO.png';
+}
 
 function generateProductId() {
+    // Gera ID único no formato BM-XXXXXX
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
     return `BM-${randomPart}`;
 }
 
 function normalizeProduct(product) {
+    let variants = product?.variants || null;
+    if (Array.isArray(variants)) {
+        if (variants.length > 0 && typeof variants[0] === 'object' && variants[0] !== null) {
+            variants = variants[0];
+        } else {
+            variants = { sizes: variants };
+        }
+    }
     return {
         ...product,
         image: normalizeProductImage(product?.image),
-        variants: normalizeVariants(product?.variants),
+        variants: variants,
     };
 }
 
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'description', 'price', 'stock', 'active', 'category',
-    'badge', 'badge_color', 'image', 'variants',
+    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image', 'variants',
 ];
 
 function auth(req, res) {
@@ -54,8 +92,10 @@ export default async function handler(req, res) {
     try {
         supabase = getSupabase();
     } catch (err) {
-        console.error('Supabase não configurado:', err.message);
-        return res.status(500).json({ error: 'Supabase não configurado.' });
+        return res.status(500).json({
+            error: 'Supabase não configurado.',
+            details: err.message,
+        });
     }
 
     // ── GET: listar todos os produtos ─────────────────────────────────────────
@@ -69,8 +109,7 @@ export default async function handler(req, res) {
             if (error) throw new Error(error.message);
             return res.status(200).json({ products: (data || []).map(normalizeProduct) });
         } catch (err) {
-            console.error('Erro ao buscar produtos:', err.message);
-            return res.status(500).json({ error: 'Erro ao buscar produtos.' });
+            return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message });
         }
     }
 
@@ -78,6 +117,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { name, description, price, stock, category, active, badge, badge_color, image } = req.body || {};
 
+        // Validações obrigatórias
         if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
         }
@@ -103,9 +143,7 @@ export default async function handler(req, res) {
                 badge: badge ? String(badge).trim() : null,
                 badge_color: badge_color ? String(badge_color).trim() : null,
                 image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',
-                variants: req.body.variants
-                    ? req.body.variants
-                    : (category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null),
+                variants: req.body.variants ? req.body.variants : (category.trim() === 'roupas' ? { sizes: ['P', 'M', 'G', 'GG'] } : null),
             };
 
             const { data, error } = await supabase
@@ -119,8 +157,7 @@ export default async function handler(req, res) {
 
             return res.status(201).json({ product: normalizeProduct(data) });
         } catch (err) {
-            console.error('Erro ao criar produto:', err.message);
-            return res.status(500).json({ error: 'Erro ao criar produto.' });
+            return res.status(500).json({ error: 'Erro ao criar produto.', details: err.message });
         }
     }
 
@@ -132,6 +169,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'id do produto é obrigatório.' });
         }
 
+        // Filtra só os campos permitidos
         const updates = {};
         for (const key of ALLOWED_UPDATE_FIELDS) {
             if (key in fields) updates[key] = fields[key];
@@ -153,6 +191,7 @@ export default async function handler(req, res) {
             }
         }
 
+        // Validações básicas
         if ('price' in updates && (isNaN(Number(updates.price)) || Number(updates.price) < 0)) {
             return res.status(400).json({ error: 'Preço inválido.' });
         }
@@ -176,8 +215,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ product: normalizeProduct(data) });
         } catch (err) {
-            console.error('Erro ao atualizar produto:', err.message);
-            return res.status(500).json({ error: 'Erro ao atualizar produto.' });
+            return res.status(500).json({ error: 'Erro ao atualizar produto.', details: err.message });
         }
     }
 

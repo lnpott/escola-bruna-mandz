@@ -43,6 +43,6 @@ export default async function handler(req, res) {
         return res.status(200).json({ orders: data });
     } catch (err) {
         console.error('Erro ao buscar pedidos:', err.message);
-        return res.status(500).json({ error: 'Erro ao buscar pedidos.' });
+        return res.status(500).json({ error: 'Erro ao buscar pedidos.', details: err.message });
     }
 }

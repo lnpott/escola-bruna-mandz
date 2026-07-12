@@ -43,14 +43,13 @@ create table if not exists public.students (
     source text                             -- Origem do lead
         constraint students_source_check
         check (source in ('website', 'indicacao', 'social', 'presencial', 'outro')),
-    active boolean not null default true,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
 create index if not exists students_status_idx on public.students (status);
-create index if not exists students_active_idx on public.students (active)
-    where active = true;
+create index if not exists students_status_active_idx on public.students (status)
+    where status = 'active';  -- consulta mais comum: alunos ativos (dashboard)
 
 drop trigger if exists students_set_updated_at on public.students;
 create trigger students_set_updated_at
@@ -62,11 +61,9 @@ alter table public.students enable row level security;
 
 -- RLS policy: admin (authenticated) pode tudo; anon não tem acesso.
 -- Usa TO authenticated em vez do deprecated auth.role().
-create policy "admin manage students"
-    on public.students for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 2. TABELA: teachers (Professores)
@@ -94,11 +91,9 @@ create trigger teachers_set_updated_at
 
 alter table public.teachers enable row level security;
 
-create policy "admin manage teachers"
-    on public.teachers for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 3. TABELA: enrollments (Vínculos Pedagógicos)  — Etapa 37
@@ -145,11 +140,9 @@ create trigger enrollments_set_updated_at
 
 alter table public.enrollments enable row level security;
 
-create policy "admin manage enrollments"
-    on public.enrollments for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 4. TABELA: tuitions (Mensalidades)
@@ -202,11 +195,9 @@ create trigger tuitions_set_updated_at
 
 alter table public.tuitions enable row level security;
 
-create policy "admin manage tuitions"
-    on public.tuitions for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 5. TABELA: payments (Pagamentos Avulsos)
@@ -236,11 +227,9 @@ create index if not exists payments_paid_at_idx on public.payments (paid_at);
 
 alter table public.payments enable row level security;
 
-create policy "admin manage payments"
-    on public.payments for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 6. TABELA: expenses (Custos Fixos e Eventuais)
@@ -279,11 +268,9 @@ create trigger expenses_set_updated_at
 
 alter table public.expenses enable row level security;
 
-create policy "admin manage expenses"
-    on public.expenses for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 7. TABELA: investments (Investimentos)
@@ -305,11 +292,9 @@ create index if not exists investments_purchased_at_idx on public.investments (p
 
 alter table public.investments enable row level security;
 
-create policy "admin manage investments"
-    on public.investments for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 8. TABELA: teacher_payments (Pagamentos a Professores) — Etapa 37
@@ -334,11 +319,9 @@ create index if not exists teacher_payments_paid_at_idx on public.teacher_paymen
 
 alter table public.teacher_payments enable row level security;
 
-create policy "admin manage teacher_payments"
-    on public.teacher_payments for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 9. TABELA: lessons (Aulas)  — 09/07/2026
@@ -394,11 +377,9 @@ create trigger lessons_set_updated_at
 
 alter table public.lessons enable row level security;
 
-create policy "admin manage lessons"
-    on public.lessons for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 10. TABELA: attendance (Frequência)  — 09/07/2026
@@ -426,8 +407,6 @@ create index if not exists attendance_status_idx on public.attendance (status);
 
 alter table public.attendance enable row level security;
 
-create policy "admin manage attendance"
-    on public.attendance for all
-    to authenticated
-    using (true)
-    with check (true);
+-- Sem policies: acesso é 100% via backend com SUPABASE_SERVICE_ROLE_KEY (bypassa RLS).
+-- Não há login via Supabase Auth neste projeto (auth = header x-admin-password),
+-- então uma policy "to authenticated" nunca combina com nenhuma sessão real.

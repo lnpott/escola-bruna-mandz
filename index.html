@@ -1527,51 +1527,6 @@
                     </button>
                 </section>
 
-                <!-- Etapa: Pagamento (PIX + Cartão unificados no Payment Brick) -->
-                <section id="checkout-step-payment" class="checkout-step hidden">
-                    <h2 class="checkout-step-title">
-                        <i class="fas fa-lock text-red-500 mr-2"></i>Pagamento
-                    </h2>
-
-                    <!-- Total do pedido -->
-                    <div class="flex items-center justify-between mb-4 px-1">
-                        <span class="text-zinc-400 text-sm">Total do pedido</span>
-                        <strong class="text-white text-lg" id="payment-order-total">R$ 0,00</strong>
-                    </div>
-
-                    <!-- Container do Payment Brick (Mercado Pago renderiza aqui) -->
-                    <div id="payment-brick-container"></div>
-
-                    <!-- Erro de pagamento -->
-                    <div id="checkout-payment-error" class="checkout-error hidden"></div>
-
-                    <!-- Resultado do PIX (aparece dinamicamente após submit) -->
-                    <div id="payment-pix-result" class="hidden mt-4">
-                        <div class="pix-qr-wrap">
-                            <img id="payment-pix-qr" src="" alt="QR Code PIX" />
-                        </div>
-                        <p class="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center mt-3">
-                            Ou copie o código PIX
-                        </p>
-                        <div class="pix-key-box mt-2">
-                            <span class="pix-key-value" id="payment-pix-key">Gerando…</span>
-                            <button id="payment-pix-copy" class="pix-copy-btn">Copiar código PIX</button>
-                        </div>
-                        <p class="pix-instruction mt-3">
-                            Abra o app do seu banco → PIX → QR Code ou Copia e Cola.<br />
-                            A confirmação é automática.
-                        </p>
-                        <p id="payment-pix-status" class="text-zinc-500 text-[11px] text-center mt-2">
-                            Aguardando confirmação…
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-2 text-[11px] text-zinc-700 mt-4">
-                        <i class="fas fa-shield-alt"></i>
-                        Dados processados com segurança pelo Mercado Pago.
-                    </div>
-                </section>
-
                 <!-- Etapa: Pedido Confirmado -->
                 <section id="checkout-step-success" class="checkout-step hidden">
                     <h2 class="checkout-step-title">Pedido Registrado!</h2>
@@ -1602,20 +1557,6 @@
                     </button>
                 </section>
 
-                <!-- Confirmação de fechamento durante pagamento em andamento -->
-                <div id="checkout-close-confirm" class="checkout-close-confirm hidden">
-                    <div class="checkout-close-confirm-box">
-                        <p>Tem certeza que quer cancelar o pagamento?</p>
-                        <div class="checkout-close-confirm-actions">
-                            <button id="checkout-close-confirm-yes" class="checkout-btn-secondary">
-                                Sim, cancelar
-                            </button>
-                            <button id="checkout-close-confirm-no" class="checkout-btn-primary">
-                                Continuar pagamento
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -2454,7 +2395,6 @@
         <script src="/audio.js" defer></script>
         <script src="/game.js" defer></script>
         <!-- SDK do Mercado Pago — descomentar quando integração MP for ativada -->
-        <!-- <script src="https://sdk.mercadopago.com/js/v2" defer></script> -->
         <script type="module" src="store/checkout-modal.js"></script>
         <script type="module" src="store/store.js"></script>
         <script>

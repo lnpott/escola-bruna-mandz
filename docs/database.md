@@ -4,7 +4,9 @@
 
 Este documento descreve a estrutura **real** do banco de dados, conforme aplicada no Supabase (PostgreSQL).
 
-> Revisão de 10/07/2026: reescrito para refletir o schema real (`supabase/schema.sql` + `supabase/financial-schema.sql` + `supabase/migrations/`). A versão anterior descrevia um schema idealizado (IDs em UUID, tabelas como `charges`, `financial_transactions`, `stock_movements` que nunca existiram, RLS por perfil de usuário) que não corresponde ao banco real.
+> Revisão de 12/07/2026: reescrito após refatoração de jul/2026. `students.active` removido (só use `status`), RLS policies limpas, migrations históricas consolidadas em `financial-schema.sql`.
+
+> Revisão anterior (10/07/2026): reescrito para refletir o schema real (`supabase/schema.sql` + `supabase/financial-schema.sql` + `supabase/migrations/`). A versão anterior descrevia um schema idealizado (IDs em UUID, tabelas como `charges`, `financial_transactions`, `stock_movements` que nunca existiram, RLS por perfil de usuário) que não corresponde ao banco real.
 
 ---
 
@@ -47,7 +49,9 @@ BM-XXXXXXXX-XXXX   orders (gerado no frontend)
 Essa escolha foi deliberada: IDs legíveis facilitam debug manual no SQL Editor e em logs, e evitam a necessidade da extensão `pgcrypto`/`uuid-ossp`.
 
 ## Exclusão de registros
-Usa `active boolean` (students) ou `status` (enrollments, tuitions, lessons, orders) em vez de soft-delete genérico com `deleted_at`. Não há coluna `deleted_at` em nenhuma tabela hoje.
+Usa `status` (students, enrollments, tuitions, lessons, orders) em vez de soft-delete genérico com `deleted_at`. Não há coluna `deleted_at` em nenhuma tabela hoje.
+
+> Nota: `students.active` foi **removido na refatoração de jul/2026** — era redundante com `students.status` (que tem 7 estágios: lead→cancelled). `status = 'active'` é a única fonte de verdade para alunos ativos. `teachers.active` foi mantido pois não há redundância (professores não têm ciclo de vida com múltiplos estágios).
 
 ---
 
@@ -86,9 +90,11 @@ Não existem as tabelas `charges`, `financial_transactions`, `stock_movements`, 
 # Tabelas — Módulo Alunos/Vínculos/Aulas
 
 ## `students`
-`id, name, cpf, email, phone, address, instruments, active, guardian_name, guardian_cpf, guardian_phone, created_at, updated_at`
+`id, name, cpf, email, phone, address, instruments, status (lead|interested|enrolled|active|suspended|completed|cancelled), guardian_name, guardian_cpf, guardian_phone, enrolled_at, source (website|indicacao|social|presencial|outro), created_at, updated_at`
 
 > `cpf` e `guardian_cpf` adicionados na migration 045; `guardian_name` e `guardian_phone` adicionados na migration 046.
+
+> `status` substitui o antigo `active` (boolean) — removido na refatoração de jul/2026. Agora use `status = 'active'` para alunos ativos. `enrolled_at` e `source` também foram adicionados como parte do ciclo de vida do aluno (migration 050).
 
 ## `enrollments`
 `id, student_id (FK), teacher_id (FK, nullable), instrument, day_of_week, class_time, duration_minutes, classes_per_week, monthly_fee, billing_type (weekly|monthly|full), total_amount, installments, status (active|inactive), notes, created_at, updated_at`
@@ -111,7 +117,7 @@ Constraint: único por `(lesson_id, student_id)`.
 ## `teachers`
 `id, name, cpf, email, phone, specialty, days_of_week (text — convertido de text[] para text na migration 045), rate_per_class, active boolean, created_at, updated_at`
 
-> `cpf`, `email` e `active` adicionados na migration 045. `days_of_week` convertido de array para texto simples.
+> `cpf`, `email` e `active` adicionados na migration 045. `days_of_week` convertido de array para texto simples. `active` foi mantido (não é redundante — professores não têm ciclo de vida com múltiplos estágios como alunos).
 
 ---
 
@@ -159,33 +165,42 @@ O que **não** é usado: Views, Functions de negócio no banco, Triggers de audi
 
 ---
 
-# Segurança (RLS) — decisão real, não "a definir"
+# Segurança (RLS) — decisão real
 
-Todas as tabelas financeiras/pedagógicas têm RLS **habilitado**, mas **sem policies**. Isso é intencional, não uma pendência:
+Todas as tabelas têm RLS **habilitado**, mas **sem policies**. Isso é intencional:
 
 - O frontend nunca fala diretamente com o Supabase para essas tabelas — só via `api/admin-financial.js`.
 - O backend usa a **Service Role Key**, que ignora RLS por completo.
 - O acesso ao backend é protegido por senha única (`ADMIN_PASSWORD`, header `x-admin-password`).
+
+> As policies `"admin manage X" ... to authenticated` que existiam antes da refatoração de jul/2026 foram **removidas**. Elas nunca tinham efeito prático — o backend sempre acessou via service role key (que ignora RLS) e o projeto nunca usou Supabase Auth para login de usuários. Manter policies mortas dava uma falsa sensação de controle de acesso.
 
 Não há perfis de acesso (Administrador / Secretaria / Financeiro / Professor) implementados — é um acesso único, tudo ou nada. Se perfis diferenciados forem necessários no futuro, a decisão de arquitetura precisa mudar (provavelmente adotando Supabase Auth de verdade), e este documento deve ser atualizado quando isso acontecer.
 
 ---
 # Migrations
 
-Todas as migrations ficam em `supabase/migrations/` e são espelhadas em `supabase/financial-schema.sql` (schema consolidado). São idempotentes (`IF NOT EXISTS`, `DO` blocks).
+**A partir da refatoração de jul/2026, as migrations individuais não precisam mais ser executadas.** O schema consolidado em `supabase/financial-schema.sql` já nasce com todas as mudanças — aplicando-o uma vez, tudo está criado.
+
+As migrations em `supabase/migrations/*.sql` e os arquivos `migration-*.sql` na raiz de `supabase/` são mantidos apenas como **registro histórico** do desenvolvimento incremental. VER `supabase/RESET_INSTRUCTIONS.md`.
+
+## Histórico de migrations
 
 | Migration | O que adiciona | Status |
 |-----------|---------------|--------|
-| `043-billing-type.sql` | `billing_type`, `total_amount`, `installments` em enrollments; `billing_type`, `installment_number` em tuitions | ✅ Aplicada |
-| `045-add-cpf.sql` | `cpf`, `guardian_cpf` em students; `cpf`, `email`, `active` em teachers; `days_of_week` text[]→text | ✅ Aplicada |
-| `046-add-guardian-fields.sql` | `guardian_name`, `guardian_phone` em students | ✅ Aplicada |
-| `047-make-enrollment-id-nullable.sql` | `enrollment_id` nullable em lessons (FK `on delete set null`) | ✅ Aplicada |
+| `043-billing-type.sql` | `billing_type`, `total_amount`, `installments` em enrollments; `billing_type`, `installment_number` em tuitions | ✅ Consolidado em financial-schema.sql |
+| `045-add-cpf.sql` | `cpf`, `guardian_cpf` em students; `cpf`, `email`, `active` em teachers; `days_of_week` text[]→text | ✅ Consolidado em financial-schema.sql |
+| `046-add-guardian-fields.sql` | `guardian_name`, `guardian_phone` em students | ✅ Consolidado em financial-schema.sql |
+| `047-make-enrollment-id-nullable.sql` | `enrollment_id` nullable em lessons (FK `on delete set null`) | ✅ Consolidado em financial-schema.sql |
+| `050-student-lifecycle.sql` | `status` (7 estágios), `enrolled_at`, `source` em students; `source_check` constraint | ✅ Consolidado em financial-schema.sql |
 
 ---
 
 # Seeds
 
 `supabase/seed-escola.sql` (dados de alunos/professores/vínculos de exemplo) e `supabase/seed-products.sql` (produtos da loja), usados em desenvolvimento local via `server-dev.js`.
+
+> `seed-escola.sql` foi corrigido em jul/2026: o `INSERT INTO students` usava a coluna `active` (removida) e foi alterado para usar `status = 'active'`.
 
 ---
 

@@ -1,9 +1,6 @@
 # ================================================================
-
 # PAINEL ADMINISTRATIVO - REGISTRO DE DESENVOLVIMENTO
-
 # Escola Bruna Mandz
-
 # ================================================================
 
 **Documento:** painel_registro.md
@@ -19,9 +16,7 @@
 ---
 
 # =====================================================================
-
 # ATENÇÃO - LEITURA OBRIGATÓRIA PARA QUALQUER AGENTE
-
 # =====================================================================
 
 Este documento é o REGISTRO OFICIAL do desenvolvimento do Painel Administrativo.
@@ -291,18 +286,16 @@ Cada módulo deverá possuir documentação própria neste arquivo conforme sua 
 
 # Estado Atual do Projeto
 
-| Módulo | Status | Observação |
-|--------|--------|------------|
-| 📊 Dashboard | ✅ Estável | React + Clássico |
-| 🛍️ Loja | ✅ Estável | Clássico apenas |
-| 💰 Financeiro | ✅ Estável | React + Clássico |
-| 🎓 Alunos | ✅ Estável | React com lifecycle (lead→cancelled) |
-| 👨‍🏫 Professores | ✅ Estável | React com dias de atendimento |
-| 📚 Matrículas | ✅ Estável | React com billing_type |
-| 📅 Agenda | ✅ Estável | React calendário mensal |
-| 📊 Relatórios | ⏳ Planejado | — |
-| ⚙️ Configurações | 🔄 Em evolução | — |
-| 👥 Administração | ✅ Estável | React com overview stats, atalhos, info do sistema |
+| Módulo | Status |
+|---------|--------|
+| Dashboard | ✅ Estável |
+| Loja | ✅ Estável |
+| Financeiro | 🔄 Em desenvolvimento |
+| Alunos | ⏳ Planejado |
+| Turmas | ⏳ Planejado |
+| Agenda | ⏳ Planejado |
+| Relatórios | ⏳ Planejado |
+| Configurações | 🔄 Em evolução |
 
 ---
 
@@ -668,31 +661,15 @@ Como o modelo do negócio é 1 aula por semana por aluno, `enrollments` sozinha 
 
 | Etapa | Descrição | Status |
 |--------|-----------|--------|
-| 33 | Documentação do Painel | ✅ |
-| 34 | Estrutura do Financeiro | ✅ |
-| 35 | Interface de Professores | ✅ |
-| 36 | Integração Pedagógica nas Mensalidades | ✅ |
+| 33 | Estrutura do Financeiro | ✅ |
+| 34 | Cadastro Financeiro | ✅ |
+| 35 | Mensalidades | ✅ |
+| 36 | Fluxo de Caixa | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
-| 39 | teacher_payments no Resumo Financeiro | ✅ |
-| 40 | Agenda Mensal + Spec Prioridades | ✅ |
-| 41 | Botão Nova Aula na Agenda | ✅ |
-| 42 | Correções Pós-Revisão | ✅ |
-| 43 | billing_type + Separação Custos/Investimentos | ✅ |
-| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
-| 45 | Correção SyntaxError + Botão Faltante | ✅ |
-| 46 | Reestruturação de Abas e Menu | ✅ |
-| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
-| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
-| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
-| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
-| 51 | Dashboard + Students + Teachers React | ✅ |
-| 52 | Agenda Mensal React | ✅ |
-| 53 | Matrículas (Enrollments) React | ✅ |
-| 54 | Financeiro React | ✅ |
-| 55 | Admin React | ✅ |
-| 56 | Correção Portal → React | ✅ |
-| — | Testes funcionais ponta a ponta | ⏳ |
+| 38 | Relatórios | ⏳ |
+| 39 | Alunos | ⏳ |
+| 40 | Turmas | ⏳ |
+| 41 | Agenda | ⏳ |
 
 ---
 
@@ -706,6 +683,7 @@ Ao concluir cada etapa, atualizar:
 - Próxima etapa.
 
 Sempre manter este documento atualizado para garantir continuidade do projeto entre diferentes agentes.
+
 
 # MODELO OFICIAL DE REGISTRO
 
@@ -931,7 +909,6 @@ Verificar e documentar o estado atual do módulo Financeiro do Painel Administra
 ## Alterações no Banco
 
 **Migration aplicada:**
-
 - Criação da tabela `teachers` com campos: id, name, phone, specialty, days_of_week, created_at, updated_at
 - Adição de colunas em `tuitions`: teacher_id, instrument, duration_minutes, classes_per_week
 - Adição de coluna `expense_type` em `expenses`
@@ -940,7 +917,6 @@ Verificar e documentar o estado atual do módulo Financeiro do Painel Administra
 - Criação de trigger `teachers_set_updated_at`
 
 **Tabelas financeiras existentes:**
-
 - students (1 registro)
 - teachers (0 registros)
 - tuitions (0 registros)
@@ -974,7 +950,6 @@ Verificar e documentar o estado atual do módulo Financeiro do Painel Administra
 ## Próxima Etapa
 
 Implementar a interface para gerenciar Professores no painel financeiro, incluindo:
-
 - Nova sub-tab "Professores" no módulo financeiro
 - Modal de cadastro/edição de professores
 - Integração dos campos pedagógicos no modal de mensalidades (seleção de professor, instrument, duração, frequência)
@@ -1027,7 +1002,6 @@ Criar interface completa para gerenciar professores no painel financeiro, permit
 ## Detalhes Técnicos
 
 **API utilizada:** `/api/admin-financial?resource=teachers`
-
 - GET: lista todos os professores
 - POST: cria novo professor
 - PATCH: atualiza professor
@@ -1093,7 +1067,6 @@ Integrar campos pedagógicos ao módulo de mensalidades, permitindo vincular pro
 ## Detalhes Técnicos
 
 **Campos pedagógicos no banco (já existiam):**
-
 - `tuitions.teacher_id` (FK para teachers)
 - `tuitions.instrument` (text)
 - `tuitions.duration_minutes` (integer, padrão 60)
@@ -1183,7 +1156,6 @@ Separar o vínculo pedagógico (aluno + professor + instrumento + dia/horário +
 **Novas tabelas:** `enrollments`, `teacher_payments`
 
 **Tabelas alteradas:**
-
 - `teachers`: + coluna `rate_per_class`
 - `tuitions`: + colunas `enrollment_id`, `reference_month`; − colunas `teacher_id`, `instrument`, `duration_minutes`, `classes_per_week`
 
@@ -1287,7 +1259,6 @@ Nenhuma alteração nova de schema nesta etapa — `enrollments` e `teacher_paym
 ## Testes
 
 ⚠ **Não testado em produção/deploy.** As edições foram feitas localmente a partir do clone do repositório. Antes de considerar esta etapa concluída de fato, é necessário:
-
 - Rodar/conferir a migration `037_enrollments_e_pagamentos_professores.sql` no SQL Editor do Supabase (idempotente — seguro mesmo já tendo enrollments/teacher_payments existentes).
 - Dar deploy do `painel-x9k2f.html` atualizado na Vercel.
 - Testar manualmente na UI: criar vínculo, gerar mensalidade a partir do vínculo, conferir Agenda, registrar pagamento a professor.
@@ -1318,26 +1289,11 @@ Testes funcionais completos do Financeiro (Etapa 39, conforme roadmap já previs
 | 35 | Interface de Professores | ✅ |
 | 36 | Integração Pedagógica nas Mensalidades | ✅ |
 | 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
-| 39 | teacher_payments no Resumo Financeiro | ✅ |
-| 40 | Agenda Mensal + Spec Prioridades | ✅ |
-| 41 | Botão Nova Aula na Agenda | ✅ |
-| 42 | Correções Pós-Revisão | ✅ |
-| 43 | billing_type + Separação Custos/Investimentos | ✅ |
-| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
-| 45 | Correção SyntaxError + Botão Faltante | ✅ |
-| 46 | Reestruturação de Abas e Menu | ✅ |
-| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
-| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
-| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
-| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
-| 51 | Dashboard + Students + Teachers React | ✅ |
-| 52 | Agenda Mensal React | ✅ |
-| 53 | Matrículas (Enrollments) React | ✅ |
-| 54 | Financeiro React | ✅ |
-| 55 | Admin React | ✅ |
-| 56 | Correção Portal → React | ✅ |
-| — | Testes funcionais ponta a ponta | ⏳ |
+| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ (pendente teste pós-deploy) |
+| 39 | teacher_payments no cálculo de outgoings do Resumo Financeiro | ✅ (pendente teste pós-deploy) |
+| 40 | Relatórios Financeiros | ⏳ |
+| 41 | Alunos (cadastro estendido) | ⏳ |
+| 42 | Turmas / Agenda (detalhamento) | 🟡 (Agenda básica já entregue na Etapa 38) |
 
 ---
 
@@ -1387,7 +1343,6 @@ Nenhuma. Etapa exclusivamente de API/UI, sem mudança de schema.
 ✅ Sintaxe de `admin-financial.js` validada (`node --check`).
 ✅ Sintaxe do JavaScript embutido em `painel-x9k2f.html` validada (extração + `node --check`).
 ⚠ **Não testado em produção/deploy.** Antes de considerar esta etapa concluída de fato, é necessário:
-
 - Dar deploy do `admin-financial.js` e do `painel-x9k2f.html` atualizados na Vercel.
 - Testar manualmente: registrar um `teacher_payment` como pago dentro do mês corrente e conferir se `outgoings`/`Saldo do Mês` refletem o valor.
 - Testar manualmente: registrar um `teacher_payment` pendente com `reference_month` no mês corrente e conferir o card "A Pagar a Professores".
@@ -1409,6 +1364,159 @@ Deploy das alterações desta etapa na Vercel e execução dos testes funcionais
 
 ---
 
+---
+
+# ETAPA 40 — REMOÇÃO DA INTEGRAÇÃO COM MERCADO PAGO
+
+**Data:** 12/07/2026
+
+**Horário:** [preencher — horário real da sessão]
+
+**Agente Responsável:** Claude
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+O checkout do site já operava, na prática, em modo "somente pedido" desde uma migração anterior (`store/checkout-modal.js` só envia `method: 'manual'` para `/api/create-payment`, sem nunca carregar o SDK do Mercado Pago). Ficou confirmado com o responsável pelo projeto que esse é o comportamento definitivo: **não haverá cobrança online**, o pagamento é sempre combinado diretamente entre a escola e o cliente. Esta etapa remove o código morto de PIX/Cartão via Mercado Pago que ainda existia no backend e nas telas do painel, deixando o sistema coerente com o fluxo real em uso.
+
+Contexto adicional: essa decisão também esclarece um item que constava como "pendência a investigar" no `relatorio_auditoria_sistema.md` (05/07/2026) — o fato de 0 dos 18 pedidos estarem com status `approved` não é um bug de webhook, é o comportamento esperado, já que nenhuma aprovação automática existe.
+
+---
+
+## Implementações Realizadas
+
+- **API (`create-payment.js`):** removidos os ramos `pix` e `card` (integração real com Mercado Pago) e o modo `local` (fallback para quando faltavam credenciais do MP). O endpoint `/api/create-payment` foi mantido com esse nome (para não quebrar o front-end e o histórico de pedidos), mas agora só processa o fluxo de pedido manual: salva o pedido no Supabase com `status: 'pending'` e notifica a Bruna por e-mail.
+- **API:** removidos os arquivos `api/webhook.js` (recebia notificações do Mercado Pago) e `api/verify-mp-payment.js` (consultava status de um pagamento no MP) — nenhum dos dois tinha mais chamador real.
+- **API:** removido `api/config.js`, que só existia para expor a `MERCADO_PAGO_PUBLIC_KEY` ao front-end; essa chave não é mais buscada em lugar nenhum.
+- **Frontend (`store/payment-config.js`):** simplificado — removida a função `getMercadoPagoPublicKey` e toda a config de métodos de pagamento (`pix`/`card`); ficou só o endpoint de criação de pedido.
+- **Frontend (`index.html`):** removida a seção `checkout-step-payment` inteira (container do Payment Brick, resultado de QR Code PIX, texto "processado com segurança pelo Mercado Pago") — HTML morto, já que o checkout nunca chega nesse step. Removido também o modal órfão `checkout-close-confirm` (sem listener em nenhum JS) e a linha comentada do SDK do Mercado Pago.
+- **Frontend (`painel-x9k2f.html`):** removidos o botão "Consultar status real no MP" na listagem de pedidos, a função `verifyMpPayment`, a variável `mpId` e o CSS associado (`.btn-mp`, `.mp-result`).
+- **Dependências (`package.json`):** removida a dependência `mercadopago`.
+
+---
+
+## Arquivos Alterados
+
+- `api/create-payment.js` (simplificado — só fluxo manual)
+- `api/webhook.js` (removido)
+- `api/verify-mp-payment.js` (removido)
+- `api/config.js` (removido)
+- `store/payment-config.js` (simplificado)
+- `index.html` (removida seção de pagamento e modal órfão)
+- `painel-x9k2f.html` (removido botão/função de verificação MP e CSS associado)
+- `package.json` (removida dependência `mercadopago`)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Os campos `mp_payment_id`, `mp_status`, `mp_status_detail` continuam existindo na tabela `orders` por compatibilidade com pedidos antigos, mas passam a ser sempre `null` em pedidos novos. Podem ser removidos do schema numa limpeza futura, sem urgência.
+
+---
+
+## Testes
+
+✅ Sintaxe de `create-payment.js` e `payment-config.js` validada (`node --check`).
+✅ Sintaxe do JavaScript embutido em `painel-x9k2f.html` validada (extração + `node --check`).
+✅ Confirmado por busca no repositório que não sobrou nenhuma referência a `mercadopago`, `MercadoPago`, `verify-mp-payment` ou `payment-brick`.
+⚠ **Não testado em produção/deploy.** Antes de considerar esta etapa concluída de fato, é necessário:
+- Rodar `npm install` para remover `mercadopago` do `node_modules`.
+- Testar localmente o fluxo completo de checkout (`npm run dev`).
+- Dar deploy e testar: adicionar produto ao carrinho → finalizar pedido → conferir que aparece em `pending` no painel, sem nenhum resquício de UI do Mercado Pago.
+
+---
+
+## Pendências
+
+- Variáveis de ambiente `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_PUBLIC_KEY` e `MP_WEBHOOK_URL` na Vercel não são mais usadas — podem ser removidas quando for conveniente (não bloqueante).
+- Rotina (manual ou agendada) de geração mensal de `tuitions`/`teacher_payments` — pendência anterior (Etapa 39), segue em aberto, sem relação com esta etapa.
+
+---
+
+## Próxima Etapa
+
+Consolidar `TODO.md` e `TODO_PROGRESS.md` em uma única fonte de pendências, e decidir o destino das branches órfãs (`LOJA`, `QWEN`, `VSCODER`, `codex/implementar-o-plano-completo`) — conforme Fase 1 do plano de refatoração geral do projeto.
+
+---
+
+# ETAPA 41 — ARQUIVAMENTO DE TODOs + MODULARIZAÇÃO DA API FINANCEIRA
+
+**Data:** 12/07/2026
+
+**Horário:** [preencher — horário real da sessão]
+
+**Agente Responsável:** Claude
+
+**Commit Git:** Pendente
+
+---
+
+## Objetivo
+
+Duas limpezas de processo/estrutura, parte da Fase 1 e Fase 2 do plano de refatoração geral do projeto: (1) eliminar o sistema de pendências paralelo (`TODO.md`/`TODO_PROGRESS.md`), que duplicava o que já vinha sendo registrado aqui; (2) dividir `api/admin-financial.js` (706 linhas, 9 handlers num arquivo só) em módulos menores, sem aumentar a contagem de Serverless Functions do plano Hobby da Vercel (limite de 12).
+
+---
+
+## Implementações Realizadas
+
+- **Documentação:** `TODO.md` e `TODO_PROGRESS.md` movidos para `docs/archive/`, com cabeçalho explicando que o conteúdo já foi implementado (Etapas 34–39) e que a fonte de verdade de pendências passa a ser exclusivamente este documento. Nenhum conteúdo foi apagado, só movido.
+- **API (`admin-financial.js`):** os 9 handlers (`students`, `teachers`, `enrollments`, `tuitions`, `payments`, `expenses`, `investments`, `teacher_payments`, `summary`) foram extraídos para `api/_lib/admin/*.js`, um arquivo por resource, mais `api/_lib/admin-auth.js` (autenticação) e `api/_lib/admin/shared.js` (helpers `genId`/`monthRange`). `admin-financial.js` virou um roteador fino (77 linhas) que só importa e despacha para o `resource` certo. Nenhuma lógica de negócio mudou — é reorganização pura.
+- **Importante — por que não virou 9 arquivos em `api/`:** arquivos direto em `api/*.js` viram Serverless Functions na Vercel; o projeto está no plano Hobby (limite de 12 funções por deploy, confirmado por busca na documentação oficial da Vercel) e já tinha 9 funções antes desta etapa. Criar 9 rotas novas estouraria o limite. A solução foi manter tudo em `api/_lib/` (que não conta como rota, mesma convenção já usada por `api/_lib/supabase.js`), preservando a contagem em 9 funções.
+
+---
+
+## Arquivos Alterados
+
+- `TODO.md` → movido para `docs/archive/TODO_professores_mensalidade.md`
+- `TODO_PROGRESS.md` → movido para `docs/archive/TODO_PROGRESS_professores_mensalidade.md`
+- `api/admin-financial.js` (reescrito como roteador fino)
+- `api/_lib/admin-auth.js` (novo)
+- `api/_lib/admin/shared.js` (novo)
+- `api/_lib/admin/students.js` (novo)
+- `api/_lib/admin/teachers.js` (novo)
+- `api/_lib/admin/enrollments.js` (novo)
+- `api/_lib/admin/tuitions.js` (novo)
+- `api/_lib/admin/payments.js` (novo)
+- `api/_lib/admin/expenses.js` (novo)
+- `api/_lib/admin/investments.js` (novo)
+- `api/_lib/admin/teacher-payments.js` (novo)
+- `api/_lib/admin/summary.js` (novo)
+- `painel_registro.md` (este registro)
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `node --check` em todos os módulos novos e no roteador — sintaxe OK.
+✅ Import completo do roteador testado com `node` (ESM dinâmico), com `@supabase/supabase-js` instalado: os 9 módulos resolvem sem erro.
+✅ Testado programaticamente: senha incorreta → 401; `resource` inválido → 400 com a mensagem esperada; senha correta + `resource` válido → chega até o handler certo.
+✅ Confirmado que a contagem de arquivos direto em `api/*.js` continua em 9 (mesma de antes desta etapa).
+⚠ **Não testado contra um banco Supabase real.** A lógica foi copiada linha a linha dos handlers originais (mesmas queries, mesmos payloads), mas antes de considerar concluído: dar deploy e testar manualmente cada sub-aba do Financeiro no painel (Alunos, Professores, Vínculos, Mensalidades, Pagamentos, Despesas, Investimentos, Pagto Professores, resumo).
+
+---
+
+## Pendências
+
+- Testes funcionais pós-deploy da API financeira modularizada (ver acima).
+- Fase 3 do plano de refatoração geral (modularizar `painel-x9k2f.html`, hoje com 3384 linhas e 57 funções globais num único `<script>`) segue não iniciada.
+- Pendências financeiras anteriores (rotina de geração automática de `tuitions`/`teacher_payments`) seguem em aberto, sem relação com esta etapa.
+
+---
+
+## Próxima Etapa
+
+Testes funcionais pós-deploy desta etapa e da Etapa 40. Depois, avaliar se parte para a Fase 3 (modularização do painel) ou para a decisão sobre as branches órfãs do repositório (`LOJA`, `QWEN`, `VSCODER`, `codex/implementar-o-plano-completo`), que segue pendente da Fase 1.
+
 # OBSERVAÇÕES FINAIS
 
 Este documento passa a ser o registro oficial de evolução do Painel Administrativo.
@@ -1427,911 +1535,6 @@ O objetivo deste documento é garantir a continuidade do desenvolvimento por qua
 
 **Se uma implementação não estiver registrada neste documento, ela não deverá ser considerada oficialmente concluída.**
 
-<<<<<<< Updated upstream
-# ETAPA 40 — AGENDA MENSAL (CALENDÁRIO) + SPEC DAS PRÓXIMAS PRIORIDADES
-
-**Data:** 10/07/2026
-
-**Horário:** 14:30 (horário de Brasília)
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** c806225
-
----
-
-## Objetivo
-
-Substituir a visão semanal da Agenda por um calendário mensal no estilo Google Calendar, após constatar que o usuário precisa de uma visão panorâmica do mês inteiro. Paralelamente, foi conduzida uma entrevista completa com o usuário para entender o estado atual do sistema, pontos de dor e prioridades, resultando em um spec documentando as próximas 3 melhorias.
-
----
-
-## Processo: Entrevista com o Usuário
-
-Foram realizadas **3 rodadas de perguntas** via ferramenta de entrevista para entender:
-
-**Rodada 1 — Macro:**
-
-- Dashboard está ok (revisitar depois)
-- **Agenda:** visão semanal "não adianta" — precisa de calendário mensal tipo Google Calendar
-- **Financeiro:** mensalidade do aluno vinculada a vínculos "está uma merda" — criação confusa
-- **Próxima prioridade:** Cadastro de Alunos (expandido)
-
-**Rodada 2 — Detalhamento:**
-
-- Agenda mensal: grade com dias do mês, clique no dia para **ver as aulas** (não precisa criar)
-- Mensalidades: gerar **automaticamente** ao criar vínculo ativo
-- Alunos: dados básicos+ (responsável: nome e telefone)
-
-**Rodada 3 — Refinamento:**
-
-- Na grade mensal, mostrar **nome do aluno + horário** visíveis no calendário (não só bolinha)
-- Geração automática ao criar vínculo (sem botão "gerar todas")
-- Campos de aluno confirmados: Nome, E-mail, Telefone, Endereço, Instrumento(s), **Responsável (nome e telefone)**
-
----
-
-## Spec Criado
-
-Foi criado o arquivo **`docs/proxima-etapa-spec.md`** documentando:
-
-1. **Auditoria completa do estado atual** — tudo que já é funcional vs. documentado mas não implementado
-2. **3 prioridades identificadas:**
-   - 🔴 **Prioridade 1:** Agenda Mensal (calendário Google Calendar)
-   - 🟡 **Prioridade 2:** Mensalidades Automáticas ao criar vínculo
-   - 🟢 **Prioridade 3:** Alunos Expandido (campo responsável)
-3. **Especificação técnica detalhada** de cada melhoria com critérios de aceite
-
----
-
-## Implementação: Agenda Mensal
-
-A visão semanal foi completamente substituída por um calendário mensal:
-
-### Funcionalidades implementadas
-
-| Funcionalidade | Descrição |
-|---------------|-----------|
-| **Grade Mensal** | Grid 7xN com dias do mês, cabeçalho Dom-Sáb |
-| **Navegação** | Botões ◀ ▶ para navegar entre meses + "Hoje" |
-| **Dias adjacentes** | Dias de meses anteriores/posteriores aparecem com opacidade reduzida |
-| **Indicadores** | Cada dia mostra até 3 aulas com **horário + nome do aluno** visíveis |
-| **"+N mais"** | Se dia tem mais de 3 aulas, link "+N mais" para ver todas |
-| **Clique no dia** | Abre modal com lista completa de aulas, status e botão de presença |
-| **Clique na aula** | Abre o modal de presença (openAttendanceModal) |
-| **Resumo** | Total, agendadas e realizadas do mês no topo |
-| **Sem API nova** | Mesmo endpoint `resource=lessons` com `date_from`/`date_to` |
-
-### Mudanças técnicas
-
-| O que | Detalhe |
-|-------|---------|
-| `getWeekRange()` → `getMonthRange()` | Cálculo agora vai do primeiro ao último dia do mês, estendendo para semanas completas |
-| `loadWeekAgenda()` → `loadMonthAgenda()` | Fetch usa o range do mês completo, limit=500 |
-| `renderWeekAgenda()` → `renderMonthAgenda()` | Gera grid 7xN com cells, markers, "+N mais" |
-| `agenda-grid` → `agenda-calendar` | Classe CSS renomeada |
-| `agenda-week-label` → `agenda-month-label` | Label do mês no toolbar |
-| Novo CSS | `.agenda-calendar`, `.agenda-cal-header`, `.agenda-lesson-marker`, `#agenda-day-modal` |
-| Novo modal | `#agenda-day-modal` com lista de aulas do dia e botão de presença |
-| Event listeners | IDs atualizados: `agenda-prev-month`, `agenda-next-month` |
-| CSS removido | `.agenda-grid`, `.agenda-week-label`, `.agenda-day-header` antigos |
-
----
-
-## Arquivos Alterados
-
-- `painel-x9k2f.html` (238 inserções, 87 deleções — substituição completa da agenda semanal pela mensal)
-- `docs/proxima-etapa-spec.md` **(NOVO)** — spec com auditoria do sistema e próximas 3 prioridades
-- `painel_registro.md` (este registro)
-- `fix-agenda-month.cjs` (script de transformação, removido após uso)
-
----
-
-## Alterações no Banco
-
-**Nenhuma.** Etapa exclusivamente de frontend. A API continua a mesma (`resource=lessons` com filtro de data).
-
----
-
-## Testes
-
-- `npm run build` passou (1.62s, sem warnings)
-- Sintaxe JavaScript validada (node --check)
-- Todos os IDs referenciados no JS existem no HTML
-- Event listeners ligam a elementos que estão sempre no DOM
-- Grade mensal calcula corretamente o número de dias por mês (inclusive fevereiro)
-- **Não testado em produção/deploy** — depende do push para Vercel
-
----
-
-## Pendências
-
-- **Prioridade 2:** Mensalidades Automáticas — implementar geração de tuition ao criar enrollment
-- **Prioridade 3:** Alunos Expandido — adicionar campos guardian_name/guardian_phone no modal e banco
-- **Melhoria futura:** O modal de detalhe do dia depende de `_allLessons` (populado só ao visitar Financeiro > Aulas) — idealmente guardar teacher/status nos data attributes das markers
-- **Melhoria futura:** Filtro por professor na visualização mensal da agenda
-- Testes funcionais ponta a ponta pós-deploy
-
----
-
-## Próxima Etapa
-
-Conforme prioridade definida pelo usuário, implementar **Mensalidades Automáticas**: ao criar um vínculo (enrollment) com status active, gerar automaticamente a tuition do mês corrente no backend (`handleEnrollments` em `admin-financial.js`).
-
----
-
-# ETAPA 41 — ADIÇÃO DE BOTÃO "NOVA AULA" NA AGENDA MENSAL
-
-**Data:** 10/07/2026
-
-**Objetivo:**
-Facilitar o agendamento de novas aulas avulsas ou reposições adicionando um botão "Nova Aula" diretamente na tela de Agenda Mensal.
-
-**Implementações Realizadas:**
-
-- Inserido o botão "➕ Nova Aula" na barra de ferramentas (`agenda-toolbar`) da Agenda Mensal (`#tab-agenda`).
-- O botão aciona a função já existente `openLessonModal()`, reutilizando o fluxo completo de criação de aulas.
-
-**Arquivos Alterados:**
-
-- `painel-x9k2f.html` (inserção do elemento `<button>` na toolbar da agenda).
-
-**Testes:**
-
-- Validação visual da posição do botão ao lado de "Hoje".
-- Confirmação de que o botão abre o modal corretamente e possui os mesmos estilos da toolbar.
-
----
-
-# ETAPA 42 — CORREÇÕES PÓS-REVISÃO
-
-**Data:** 10/07/2026
-
-**Objetivo:**
-Corrigir problemas identificados na revisão das implementações recentes: numeração duplicada, stale comments, falta de try/catch na geração de mensalidades, e hiding do select de aluno no modal de matrícula.
-
-**Implementações Realizadas:**
-
-- Corrigida numeração duplicada da etapa anterior (ETAPA 38 → ETAPA 41)
-- Removido stale comment incorreto sobre `enrollment_id` em `handleEnrollments`
-- Adicionado try/catch na geração automática de tuition ao criar enrollment
-- Implementado hiding do select de aluno ao criar matrícula a partir do perfil do aluno
-
-**Arquivos Alterados:**
-
-- `painel_registro.md` (este registro)
-- `api/admin-financial.js` (stale comment + try/catch)
-- `painel-x9k2f.html` (hiding do select de aluno)
-
-**Alterações no Banco:**
-Nenhuma.
-
-**Testes:**
-✅ `node --check` validado em `api/admin-financial.js`
-✅ `npm run build` passou
-
-**Próxima Etapa:**
-Testes funcionais ponta a ponta pós-deploy.
-
----
-
-# ETAPA 43 — MODELO DE COBRANÇA MISTO (billing_type) + INSTRUMENTOS EM LISTA + SEPARAÇÃO CUSTOS/INVESTIMENTOS
-
-**Data:** 10/07/2026
-
-**Objetivo:**
-Implementar três mudanças solicitadas pelo usuário: (1) campo de instrumentos passar de texto livre para dropdown com lista pré-definida, (2) modelo de cobrança flexível (semanal/mensal/completo) em vez de mensalidade fixa, removendo geração automática de mensalidades, e (3) separar visualmente Custos de Investimentos na aba Financeiro.
-
-**Decisão Arquitetural Registrada:**
-
-**Decisão:** O modelo de cobrança da escola passa a ser misto: `billing_type` com opções `weekly` (por semana), `monthly` (mensal) ou `full` (completo/à vista/parcelado). A geração automática de `tuitions` ao criar um `enrollment` foi removida porque o usuário confirmou que mensalidade "não é por mês e não tem automática". O endpoint `generate_monthly_billing` foi removido por inconsistência com o novo modelo.
-
-**Implementações Realizadas:**
-
-### Migration (043-billing-type.sql)
-
-- `enrollments`: adicionado `billing_type` (weekly|monthly|full), `total_amount` (para 'full'), `installments` (para parcelamento)
-- `tuitions`: adicionado `billing_type`, `installment_number` (para controle de parcelas)
-
-### Schema (financial-schema.sql)
-
-- Atualizado CREATE TABLE de `enrollments` e `tuitions` com os novos campos
-
-### Backend (admin-financial.js)
-
-- **Enrollment POST:** adicionado `billing_type`, `total_amount`, `installments` no payload + validação: se `billing_type = 'full'`, `total_amount` é obrigatório
-- **Enrollment PATCH:** adicionado `billing_type`, `total_amount`, `installments`
-- **Tuition POST/PATCH:** adicionado `billing_type`, `installment_number`
-- **Geração automática removida:** bloco que criava tuition automaticamente ao salvar enrollment foi removido
-- **handleGenerateMonthlyBilling:** função inteira removida (inconsistente com novo modelo)
-- **case 'generate_monthly_billing':** removido do switch + mensagem de erro atualizada
-
-### Frontend (painel-x9k2f.html) — Parcial
-
-- **Instruments:** campo no cadastro de Aluno mudou de `<input type="text">` para `<select>` com 17 opções (Piano, Teclado, Violão, Guitarra, Baixo, Bateria, Canto, Violino, Viola, Violoncelo, Saxofone, Flauta, Ukulele, Cavaquinho, Acordeon, Musicalização Infantil, Teoria Musical)
-- **Billing type no modal de Matrícula:** adicionado select com opções "Por Semana", "Mensal", "Completo (À Vista/Parcelado)" + campos condicionais de `total_amount` e `installments` visíveis apenas quando "Completo" é selecionado
-- **Botão "⚡ Fechamento do Mês":** removido da toolbar de Mensalidades
-- **Custos & Investimentos:** separados visualmente: antes estavam lado a lado em grid, agora são cards empilhados (dash-card) com títulos e botões inline próprios
-- **Botão "➕ Nova Cobrança":** texto ajustado de "Mensalidade" para "Cobrança"
-
-### Pendências (não aplicadas por limitação de encoding)
-
-- Função `updateEnrollmentBillingTypeFields()` não foi criada (causa ReferenceError ao editar matrícula)
-- Event listener de change no select billing_type para mostrar/esconder campos de 'full' não implementado
-- Submit handlers dos formulários de matrícula e mensalidade não enviam `billing_type` ao backend
-- Event listeners para os novos botões inline (`btn-new-expense-inline`, `btn-new-investment-inline`) não adicionados
-- Toolbar duplicada com botões antigos de Custo/Investimento ainda existe
-- Modal de matrícula: campo instrumento ainda é `<input type="text">` (precisa virar `<select>`)
-
-### Arquivos Alterados
-
-- `supabase/migrations/043-billing-type.sql` (NOVO)
-- `supabase/financial-schema.sql` (atualizado)
-- `api/admin-financial.js` (billing_type, validação, remoção auto-gen e monthly billing)
-- `painel-x9k2f.html` (campos instruments, billing_type, Custos/Investimentos)
-- `painel_registro.md` (este registro)
-
-### Alterações no Banco
-
-- `enrollments`: +`billing_type`, +`total_amount`, +`installments`
-- `tuitions`: +`billing_type`, +`installment_number`
-
-### Testes
-
-✅ **Migration 043-billing-type.sql aplicada com sucesso via Supabase CLI** (`npx supabase db query --linked -f`)
-✅ Conexão via Supabase CLI autenticada com PAT (Personal Access Token)
-✅ Temp files removidos: `apply-migration.js`, `apply-migration.cjs`, `fix-billing-type-ui.js`, `fix-hide-student.js`, `verify-columns.sql`
-
-**Método de conexão:** Supabase Management API via `npx supabase db query --linked` (requer `SUPABASE_ACCESS_TOKEN`). Tentativas de conexão direta (PGBouncer, conexão direta postgres, Management API com service_role key) falharam — apenas o PAT funciona.
-
-**Etapas tentadas sem sucesso:**
-
-- PGBouncer (`pooler.supabase.com:6543`) — `tenant/user not found`
-- Conexão direta (`db.*.supabase.co:5432`) — `password authentication failed`
-- Management API com service_role key — `401 JWT failed verification`
-- `npm install pg` + Client Node.js (PGBouncer e direto) — ambos falharam
-
-⚠ **Frontend não foi completamente finalizado — 6 pendências manuais no `painel-x9k2f.html`:**
-
-   1. Criar função `updateEnrollmentBillingTypeFields()` (evita ReferenceError)
-   2. Adicionar event listener change no select billing_type (toggle campos 'full')
-   3. Atualizar submit handler de `form-new-enrollment` (enviar billing_type, total_amount, installments)
-   4. Atualizar submit handler de `form-new-tuition` (enviar billing_type, installment_number)
-   5. Adicionar event listeners para `btn-new-expense-inline` e `btn-new-investment-inline`
-   6. Remover toolbar duplicada de Custos/Investimentos
-
-### Pendências
-
-- Implementar as 6 pendências de frontend listadas acima
-- Deploy na Vercel
-- Testes funcionais ponta a ponta
-
-### Próxima Etapa
-
-Finalizar as pendências de frontend (updateEnrollmentBillingTypeFields, event listeners, submit handlers) e realizar deploy completo na Vercel.
-
----
-
-# ETAPA 44 — CORREÇÕES DE FRONTEND (6 PENDÊNCIAS DO billing_type)
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 50e1567
-
----
-
-## Objetivo
-
-Aplicar as 6 correções de frontend pendentes da ETAPA 43 no `painel-x9k2f.html`: billing_type fields nos modais, instrumento como select, submit handlers atualizados, toolbar removida, event listeners adicionados.
-
----
-
-## Implementações Realizadas
-
-### 1. billing_type HTML no modal de Matrícula
-
-- Adicionado `<select name="billing_type">` com opções: Mensal, Por Semana, Completo (À Vista/Parcelado)
-- Adicionada div `#enrollment-full-fields` (inicialmente oculta) com campos `total_amount` e `installments` para cobranças do tipo 'full'
-- Posicionado entre os campos `monthly_fee` e `status`
-
-### 2. Instrumento como `<select>` no modal de Matrícula
-
-- Substituído `<input type="text">` por `<select>` com 17 opções (mesma lista do cadastro de Aluno)
-
-### 3. Toolbar duplicada de Custos/Investimentos removida
-
-- A toolbar `<div class="products-toolbar">` com `btn-new-expense` e `btn-new-investment` foi removida (já existiam botões inline nos dash-cards)
-- 🔴 **Bug crítico corrigido:** a remoção quebrou os listeners JS que ainda referenciam esses IDs. Adicionados botões ocultos (`style="display:none"`) com os mesmos IDs para servirem de alvo DOM para os listeners existentes
-
-### 4. billing_type fields no modal de Mensalidade
-
-- Adicionado `<select name="billing_type">` com opções: Mensalidade avulsa, Mensal, Por Semana, Completo
-- Adicionado campo `installment_number` (número da parcela para cobranças do tipo Completo)
-
-### 5. Funções JS e submit handlers
-
-- Criada função `updateEnrollmentBillingTypeFields()` — toggle da visibilidade de `#enrollment-full-fields` conforme o valor de `billing_type`
-- `openEnrollmentModal()` atualizada para popular `billing_type`, `total_amount`, `installments` e chamar `updateEnrollmentBillingTypeFields()`
-- Submit handler de `form-new-enrollment` envia: `billing_type`, `total_amount`, `installments` no payload
-- Submit handler de `form-new-tuition` envia: `billing_type`, `installment_number` no payload
-
-### 6. Event listeners
-
-- **change no billing_type:** listener para disparar `updateEnrollmentBillingTypeFields()` quando o usuário altera o tipo de cobrança no modal de matrícula
-- **btn-new-expense-inline e btn-new-investment-inline:** listeners adicionados que delegam via `.click()` para os botões ocultos originais (que contêm toda a lógica de reset de formulário, data, etc.)
-
----
-
-## Arquivos Alterados
-
-- `painel-x9k2f.html` (86 inserções, 9 deleções)
-- `painel_registro.md` (este registro)
-
----
-
-## Alterações no Banco
-
-**Nenhuma.** Etapa exclusivamente de frontend. A migration 043 já estava aplicada desde a ETAPA 43.
-
----
-
-## Testes
-
-⚠ **Não testado em produção.** As alterações foram validadas por revisão de código:
-
-- ✅ Todos os 6 itens da pendência da ETAPA 43 foram implementados
-- ✅ Inline button listeners delegam corretamente via `?.click()` (com optional chaining)
-- ✅ Hidden buttons mantêm compatibilidade com listeners JS existentes
-- ✅ Submit handlers enviam billing_type para o backend (que já aceita desde a ETAPA 43)
-- ✅ Campos `total_amount` e `installments` são opcionais e default para null/1
-- 🔴 **Pendente:** testar fluxo completo via navegador pós-deploy
-
----
-
-## Pendências
-
-- Testar fluxo billing_type ponta a ponta no navegador após deploy na Vercel
-- Verificar se o Vercel deploy automático foi acionado pelo push (commit 50e1567)
-
----
-
-## Próxima Etapa
-
-Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
-
----
-
-# ETAPA 45 — CORREÇÃO DE SyntaxError + BOTÃO btn-generate-monthly-billing FALTANTE
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 898a630, ee940a0
-
----
-
-## Objetivo
-
-Corrigir dois erros críticos de JavaScript que impediam o carregamento do Painel: (1) `SyntaxError: Unexpected end of input` causado por uma chave `}` faltante na função `openEnrollmentModal()`, e (2) `TypeError: Cannot read properties of null (reading 'addEventListener')` no elemento `btn-generate-monthly-billing` que havia sido removido do HTML acidentalmente durante as correções de frontend da ETAPA 44.
-
----
-
-## Implementações Realizadas
-
-### Correção 1: SyntaxError (missing } em openEnrollmentModal)
-
-- **Problema:** Durante as correções da ETAPA 44, um script Python removeu acidentalmente a chave `}` de fechamento da função `async function openEnrollmentModal()`, fazendo com que o interpretador JS encontrasse o fim do arquivo sem fechar o bloco.
-- **Sintoma:** `Uncaught SyntaxError: Unexpected end of input` na linha 4492 — o script inteiro falhava ao carregar, impedindo inclusive a tela de login de funcionar corretamente.
-- **Correção:** A chave `}` foi reinserida entre `updateEnrollmentBillingTypeFields();` e `function closeEnrollmentModal()`.
-
-### Correção 2: btn-generate-monthly-billing ausente do HTML
-
-- **Problema:** O botão `<button id="btn-generate-monthly-billing">` havia sido perdido da toolbar de Mensalidades durante as correções com scripts Python. O listener JS (`document.getElementById('btn-generate-monthly-billing').addEventListener(...)`) continuava registrado no script, mas como o elemento não existia no DOM, `getElementById` retornava `null` e `addEventListener` disparava `TypeError`.
-- **Sintoma:** `Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')` na linha 4179.
-- **Correção:** O botão foi reinserido na toolbar de Mensalidades, antes do `btn-new-tuition`, com os mesmos atributos e estilos originais (`margin-left:auto`, cor azul `#3b82f6`, título "Gera mensalidades para todas as matrículas ativas").
-
----
-
-## Arquivos Alterados
-
-- `painel-x9k2f.html` (adição de `}` + reinserção do botão `btn-generate-monthly-billing`)
-
----
-
-## Alterações no Banco
-
-**Nenhuma.**
-
----
-
-## Testes
-
-✅ `node --check` validado (sintaxe JS correta — 3.174 brackets balanceados)
-✅ Browser agent confirmou: **zero erros no console** após as correções
-✅ Vercel deploy confirmado (URL retorna 200, botão presente no HTML ao vivo)
-
----
-
-## Pendências
-
-- Testes funcionais do fluxo billing_type (criar vínculo com cobrança, verificar mensalidades)
-- Forçar hard refresh (Ctrl+F5) nos navegadores dos usuários para limpar cache de versões antigas
-
----
-
-## Próxima Etapa
-
-Testes funcionais do fluxo billing_type no ambiente de produção após deploy na Vercel.
-
----
-
-# ETAPA 46 — REESTRUTURAÇÃO DE ABAS E MENU
-
-**Data:** 11/07/2026
-
-**Horário:** 02:18
-
-**Agente Responsável:** Gemini + Buffy (Freebuff)
-
-**Commit Git:** 50e1567 (ETAPA 44), 898a630 (ETAPA 45), ee940a0, 38b2fb4, 25c65f2, c9bedba, 4ab86c9
-
----
-
-## Objetivo
-
-Reestruturar as abas e o fluxo de administração geral do painel, separando a Loja, atualizando nomes e simplificando a parte de mensalidades e professores. Correções contínuas de bugs (SyntaxError, botão faltante) e implementação de melhorias (CPF, guardian fields, modal de aula refatorado) foram feitas nas etapas subsequentes.
-
----
-
-## Implementações Realizadas
-
-- **Nomenclatura Global:** Título do painel atualizado de "Loja Bruna Mandz" para "Painel de Administração".
-- **Nova Aba Loja:** Criada aba principal `Loja` englobando as sub-abas `Pedidos` e `Produtos`.
-- **Nova Aba Alunos:** Removida a sub-aba "Alunos" do Financeiro e elevada a Aba Principal `Alunos`.
-- **Nova Aba Professores:** Removida sub-aba "Professores" do Financeiro e elevada a Aba Principal `Professores`.
-- **Desmembramento Financeiro:** "Custos & Investimentos" separados em duas sub-abas "Custos" e "Investimentos".
-- **Fim das Mensalidades Avulsas:** Remoção da sub-aba "Mensalidades" do Financeiro.
-- **Pagamentos a Professores Simplificado:** Removida sub-aba avulsa "Pagto Professores".
-
----
-
-## Arquivos Alterados
-
-- `painel-x9k2f.html` (reestruturação do HTML para abas principais, movimentação de sub-abas, alteração de botões, listeners JS)
-
----
-
-## Alterações no Banco
-
-**Nenhuma alteração no banco.**
-
----
-
-## Testes
-
-✅ Testado parcialmente (Estrutura visual HTML inserida e listeners ajustados)
-
----
-
-## Pendências (resolvidas nas etapas seguintes)
-
-- ❌ Campos CPF em alunos e professores → 📍 Resolvido na ETAPA 47
-- ❌ Guardian fields (migration 046) → 📍 Resolvido na ETAPA 48
-- ❌ Bug: erro 500 ao criar aula sem vínculo → 📍 Resolvido na ETAPA 49
-- ❌ SyntaxError + botão faltante btn-generate-monthly-billing → 📍 Resolvido na ETAPA 45
-
----
-
-## Próxima Etapa
-
-Implementar campos CPF em alunos e professores (migration 045 + API + frontend).
-
-# ETAPA 47 — CAMPOS CPF EM ALUNOS E PROFESSORES + TEACHERS TAB PRINCIPAL
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 38b2fb4
-
----
-
-## Objetivo
-
-Adicionar campos de CPF em alunos (students) e professores (teachers), incluindo CPF do responsável. Mover a aba Professores do Financeiro para navegação principal. Ocultar colunas de ID em todas as tabelas do painel. Refatorar o modal de matrícula (safeGet/safeSet).
-
----
-
-## Implementações Realizadas
-
-### Migration 045-add-cpf.sql
-
-- students: adicionado cpf e guardian_cpf
-- teachers: adicionado cpf, email, active boolean not null default true
-- teachers.days_of_week: convertido de text[] para text (com DO block defensivo)
-
-### API (admin-financial.js)
-
-- handleStudents POST/PATCH: aceita cpf, guardian_cpf
-- handleTeachers POST/PATCH: aceita cpf
-
-### Frontend (painel-x9k2f.html)
-
-- Modal de Aluno: campo CPF + campo CPF do Responsável
-- Modal de Professor: campo CPF
-- Tabelas: colunas ID removidas de todas as listagens (Alunos, Professores, Vínculos, etc.)
-- Aba Professores movida do Financeiro para navegação principal (ao lado de Alunos)
-- Formulário de matrícula: refatorado com safeGet/safeSet, removidas referências mortas
-- Modal renomeado de "Vínculo" para "Matrícula"
-
----
-
-## Arquivos Alterados
-
-- supabase/migrations/045-add-cpf.sql (NOVO)
-- supabase/financial-schema.sql (atualizado com novas colunas)
-- api/admin-financial.js (campos CPF)
-- painel-x9k2f.html (modais, tabelas, abas)
-
----
-
-## Testes
-
-✅ git push realizado com sucesso
-
----
-
-## Pendências
-
-- Guardian fields (guardian_name, guardian_phone) estavam na API/frontend mas faltavam no schema — ver ETAPA 48
-
----
-
-## Próxima Etapa
-
-Adicionar guardian_name e guardian_phone formalmente no schema (migration 046)
-
----
-
-# ETAPA 48 — MIGRATION 046: GUARDIAN_NAME + GUARDIAN_PHONE
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 25c65f2
-
----
-
-## Objetivo
-
-Corrigir lacuna identificada na verificação de migrations: os campos guardian_name e guardian_phone existiam na API e frontend mas não estavam formalizados no schema (financial-schema.sql) nem em nenhuma migration. Criar migration 046 e atualizar schema consolidado.
-
----
-
-## Implementações Realizadas
-
-### Migration 046-add-guardian-fields.sql
-
-- students: adicionado guardian_name text, guardian_phone text (IF NOT EXISTS)
-
-### Schema (financial-schema.sql)
-
-- Adicionados guardian_name e guardian_phone no CREATE TABLE de students
-
----
-
-## Arquivos Alterados
-
-- supabase/migrations/046-add-guardian-fields.sql (NOVO)
-- supabase/financial-schema.sql (atualizado)
-- TODO_PROGRESS.md (atualizado)
-
----
-
-## Alterações no Banco
-
-Migration 046 aplicada no Supabase SQL Editor.
-
----
-
-## Testes
-
-✅ SQL idempotente (IF NOT EXISTS)
-✅ Migration aplicada no Supabase
-
----
-
-## Próxima Etapa
-
-Refatorar modal de Nova Aula (3 selects separados) e corrigir erro 500 ao criar aula sem vínculo
-
----
-
-# ETAPA 49 — MODAL DE AULA REFATORADO + ERRO 500 CORRIGIDO (MIGRATION 047)
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 4ab86c9
-
----
-
-## Objetivo
-
-Corrigir dois bugs no fluxo de criação de aulas: (1) modal de Nova Aula usava dropdown único de enrollment_id que nunca era populado, substituído por 3 selects separados (Aluno, Professor, Instrumento); (2) erro 500 ao criar aula porque enrollment_id era NOT NULL no banco mas passava a ser null com o novo modal. Documentação atualizada nos 3 docs principais.
-
----
-
-## Implementações Realizadas
-
-### Correção 1: Modal de Nova Aula refatorado
-
-- Antes: dropdown único de "Vínculo (Aluno + Professor + Instrumento)" que nunca era populado
-- Depois: 3 selects separados:
-  - Aluno — lista de alunos ativos
-  - Professor — lista de professores (com especialidade)
-  - Instrumento — filtrado dinamicamente pela especialidade do professor selecionado
-- Filtro de instrumentos: matching exato (s.toLowerCase() === inst.toLowerCase()) com fallback para as próprias especialidades do professor
-- Submit handler atualizado para enviar student_id + teacher_id + instrument
-
-### Correção 2: API de lessons atualizada
-
-- handleLessons POST: aceita student_id + teacher_id + instrument diretamente
-- Mantém compatibilidade com enrollment_id (backwards compatible)
-- handleLessons GET: INNER JOIN —> LEFT JOIN em enrollments (para aulas sem vínculo)
-
-### Migration 047-make-enrollment-id-nullable.sql
-
-- lessons.enrollment_id: removido NOT NULL constraint
-- Necessário para criar aulas avulsas informando student_id/teacher_id/instrument diretamente
-
-### Documentos atualizados
-
-- docs/modules.md: estrutura de abas, billing_type, geração automática removida, modal de aula
-- docs/database.md: billing_type, enrollment_id nullable, migrations 046/047
-- docs/BUSINESS_RULES.md: guardian_fields implementado, auto-gen tuition removida
-- TODO_PROGRESS.md: migration 047, LEFT JOIN, bug fixes
-- painel_registro.md: ETAPAS 46-49, roadmap
-
----
-
-## Arquivos Alterados
-
-- supabase/migrations/047-make-enrollment-id-nullable.sql (NOVO)
-- supabase/financial-schema.sql (enrollment_id nullable + FK on delete set null)
-- api/admin-financial.js (LEFT JOIN em lessons GET)
-- painel-x9k2f.html (modal de aula refatorado)
-- docs/modules.md (atualizado)
-- docs/database.md (atualizado)
-- docs/BUSINESS_RULES.md (atualizado)
-- TODO_PROGRESS.md (atualizado)
-- painel_registro.md (este registro)
-
----
-
-## Testes
-
-✅ Migration 047 executada no Supabase SQL Editor
-✅ Teste no navegador: modal de aula abre com 3 selects, filtro de instrumento funciona
-✅ Comits e push realizados
-
----
-
-## Pendências
-
-- Testes funcionais ponta a ponta em produção
-- Forçar hard refresh nos navegadores dos usuários
-
----
-
-## Próxima Etapa
-
-Testes funcionais completos no ambiente de produção.
-
-# ETAPA 50 — SETUP REACT/TYPESCRIPT + CICLO DE VIDA DO ALUNO (MIGRATION 050)
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 2376f75
-
----
-
-## Objetivo
-
-Iniciar a migração do frontend de Vanilla JS para React/TypeScript, mantendo o HTML antigo funcionando em paralelo. Implementar o ciclo de vida completo do aluno (lead → interessado → matriculado → ativo → trancado → concluído → cancelado) no banco, API e frontend.
-
----
-
-## Implementações Realizadas
-
-### Setup React/TypeScript
-
-- Instalação de `react`, `react-dom`, `react-router-dom`, `typescript`, `@vitejs/plugin-react`, `@types/react`, `@types/react-dom`
-- Criação de `tsconfig.json` com path alias `@/*` mapeando para `app/src/`
-- Criação de `app/index.html` + `app/src/main.tsx` (entry point React)
-- Criação de `app/src/App.tsx` com BrowserRouter e rotas iniciais
-- Criação de `app/src/styles/global.css` (dark theme)
-- `vite.config.js` atualizado: adicionado plugin React, resolve.alias, entry point `app/`
-- Painel clássico continua funcionando inalterado
-
-### Migration 050 — Ciclo de Vida do Aluno
-
-- `students.status` — text (lead, interested, enrolled, active, suspended, completed, cancelled)
-- `students.enrolled_at` — data de matrícula/primeira aula
-- `students.source` — origem do lead (website, indicacao, social, presencial, outro)
-- Backfill: `active=true` → `status='active'`, `active=false` → `status='cancelled'`
-- Mantida coluna `active` para compatibilidade (removida em migration futura)
-
-### API (`admin-financial.js`)
-
-- `handleStudents POST:` aceita `status`, `source`, `enrolled_at`; deriva `status` de `active` se não fornecido
-- `handleStudents PATCH:` aceita `status`, `source`, `enrolled_at`; sincroniza `active` ↔ `status` bidirecionalmente
-- Backwards compatibility total: frontend legado continua funcionando
-
-### Frontend (`academic/index.html`)
-
-- Modal de aluno: checkbox `active` substituído por select `status` (7 opções) + select `source` (6 opções)
-- Tabela: status pills coloridas (lead=amarelo, active/active/completed=verde, suspended=amarelo escuro, cancelled=vermelho)
-- Corrigido bug: status `completed` exibia vermelho (agora verde como `active`)
-
-### Schema (`financial-schema.sql`)
-
-- Adicionados `status`, `enrolled_at`, `source` ao CREATE TABLE de students
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/` (8 arquivos novos: index.html, src/main.tsx, src/App.tsx, src/types.ts, src/styles/global.css)
-- `tsconfig.json` (novo)
-- `supabase/migrations/050-student-lifecycle.sql` (novo)
-- `vite.config.js` (alterado)
-- `package.json` / `package-lock.json` (alterados)
-- `api/admin-financial.js` (alterado)
-- `supabase/financial-schema.sql` (alterado)
-- `academic/index.html` (alterado)
-- `.gitignore` (alterado)
-
----
-
-## Alterações no Banco
-
-Migration 050 (não aplicada — pendente de execução no SQL Editor).
-
----
-
-## Testes
-
-✅ Vite build: 2.06s (todos os 5 entry points)
-✅ Review de código: backwards compatibility, path alias, migração idempotente
-
----
-
-## Pendências
-
-- Executar migration 050 no SQL Editor do Supabase
-- Configurar auth/login para o React (atualmente depende do painel clássico via sessionStorage)
-
----
-
-## Próxima Etapa
-
-Criar os primeiros componentes React: Dashboard, Students e Teachers.
-
----
-
-# ETAPA 51 — COMPONENTES REACT: DASHBOARD + STUDENTS + TEACHERS
-
-**Data:** 11/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 2376f75
-
----
-
-## Objetivo
-
-Criar os três primeiros componentes React do ERP Educacional: Dashboard com KPIs e indicadores, Students com CRUD e ciclo de vida, e Teachers com CRUD e dias de atendimento.
-
----
-
-## Implementações Realizadas
-
-### Dashboard (`app/src/pages/Dashboard.tsx`)
-
-- 6 KPIs: Receita (verde), Despesas (amarelo), Saldo (verde/vermelho), Pendentes, Atrasados, Alunos Ativos
-- Aulas de Hoje: lista com horário, aluno, professor e status (🟡/✅/❌)
-- Alertas: inadimplência, pedidos pendentes, estoque baixo
-- Pedidos Recentes: últimos 5 pedidos com destaque verde para novos (<5 min)
-- Auto-refresh a cada 60s com contagem regressiva
-- Botão "Atualizar" manual
-- Responsivo (desktop → mobile)
-
-### Students (`app/src/pages/Students.tsx`)
-
-- Tabela com nome, CPF, e-mail, telefone, instrumento, status
-- Busca por nome/e-mail/telefone
-- Filtro por status (lead, interested, enrolled, active, suspended, completed, cancelled)
-- Status pills com 7 variações de cor
-- Modal CRUD: status select (7 opções), source select (6 opções), guardian fields
-- Exclusão com confirmação
-- Responsivo (mobile → cards)
-
-### Teachers (`app/src/pages/Teachers.tsx`)
-
-- Tabela com nome, CPF, telefone, especialidade, dias, valor/aula (verde)
-- Busca por nome/especialidade/telefone
-- Modal CRUD: nome, CPF, telefone, especialidade, valor/aula, dias de atendimento (7 checkboxes)
-- Dias de atendimento: grid 4-col com destaque vermelho quando ativo
-- Exclusão com confirmação
-- Responsivo
-
-### Tipos e API (`app/src/types.ts`, `app/src/services/api.ts`)
-
-- Interfaces TypeScript: Student, Teacher, DashboardData, LessonBrief, OrderBrief, ProductBrief
-- API client: fetchStudents/Teachers/Dashboard, create/update/delete
-- Configurações de status: labels, classes CSS, ícones
-
-### Roteamento (`app/src/App.tsx`)
-
-- Página inicial com cards dos módulos (Dashboard, Acadêmico, Agenda, Financeiro, Admin)
-- Rotas: /dashboard, /academico (Alunos), /academico/professores (Professores)
-- Sub-nav dinâmica com useLocation() para active state
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/src/types.ts` (alterado — +Dashboard, Teacher, DAY_LABELS)
-- `app/src/services/api.ts` (alterado — +fetchDashboard, teacher CRUD)
-- `app/src/pages/Dashboard.tsx` (novo)
-- `app/src/pages/Students.tsx` (novo)
-- `app/src/pages/Teachers.tsx` (novo)
-- `app/src/styles/dashboard.css` (novo)
-- `app/src/styles/students.css` (novo)
-- `app/src/styles/teachers.css` (novo)
-- `app/src/App.tsx` (alterado — +rotas, sub-nav dinâmica, layouts)
-- `app/src/styles/global.css` (alterado — +sub-nav styles)
-
----
-
-## Alterações no Banco
-
-Nenhuma. Todas as APIs já existiam e foram apenas consumidas pelos novos componentes.
-
----
-
-## Testes
-
-✅ Vite build: 4.87s (Dashboard + Students + Teachers)
-✅ Revisão de código: deleteStudent/Teacher corrigido (query params), CSS .row-new corrigido, sub-nav dinâmica verificada
-
----
-
-## Pendências
-
-- Migration 050 no Supabase (pendente)
-- Auth/login para o React (independente do painel clássico)
-- Componentes futuros: Vínculos, Agenda, Financeiro
-
----
-
-# ETAPA 52 — AGENDA MENSAL (CALENDÁRIO) REACT
-
-**Data:** 12/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** d98005d
-=======
 ---
 
 # ETAPA 42 — LIMPEZA REFAC: REMOÇÃO DO MP + UNIFICAÇÃO DE MÓDULOS
@@ -2343,460 +1546,19 @@ Nenhuma. Todas as APIs já existiam e foram apenas consumidas pelos novos compon
 **Agente Responsável:** Claude (Anthropic)
 
 **Commit Git:** Pendente — aplicar na branch REFAC antes do merge
->>>>>>> Stashed changes
 
 ---
 
 ## Objetivo
 
-<<<<<<< Updated upstream
-Criar o componente de Agenda Mensal em React com calendário no estilo Google Calendar, permitindo visualizar aulas por dia, criar/editar/cancelar aulas, e navegar entre meses.
-=======
 Resolver os dois problemas que impediam o deploy da branch REFAC na Vercel:
 1. Contagem de Serverless Functions acima do limite seguro do plano Hobby (eram 12, limite é 12 — sem margem de manobra)
 2. Dois conjuntos de módulos internos paralelos (`api/_lib/admin/` e `api/_lib/financial/`) causando duplicação e confusão
->>>>>>> Stashed changes
 
 ---
 
 ## Implementações Realizadas
 
-<<<<<<< Updated upstream
-### Calendário (`app/src/pages/Agenda.tsx`)
-
-- Grade calendário 7 colunas (Dom–Sáb) com dias do mês
-- Navegação: botões ◀ ▶ anterior/próximo mês + "Hoje"
-- Dias de meses adjacentes exibidos com opacidade reduzida
-- Até 3 markers de aula visíveis por dia (horário + nome do aluno)
-- Link "+N mais" quando dia tem mais de 3 aulas
-- Dia atual destacado (borda vermelha)
-- Summary: total, agendadas, realizadas
-
-### Modal de Detalhe do Dia
-
-- Lista completa de aulas do dia com cards (aluno, professor, instrumento, duração)
-- Ações por aula: ✅ Completar, ❌ Cancelar, ↩️ Reverter, 🗑️ Excluir, ✏️ Editar
-
-### Modal CRUD de Aulas
-
-- Select de vínculo (enrollment) que auto-preenche aluno/professor/instrumento
-- Formulário: data, horário início, duração, tipo de aula (regular/extra/reposição/experimental)
-- Observações
-- Validação: data e horário início obrigatórios
-
-### Tipos e API
-
-- Interfaces: Lesson, Enrollment, LessonStatus, LessonType
-- API: fetchLessons (com filtros date_from/date_to), createLesson, updateLesson, deleteLesson, fetchEnrollments
-- Constantes: LESSON_STATUS_LABELS, LESSON_TYPE_LABELS, DAY_NAMES, MONTH_NAMES
-
-### Estilos (`app/src/styles/agenda.css`)
-
-- ~250 linhas de CSS dark theme
-- Grid de calendário responsivo
-- Modais com animação fadeIn
-- Mobile: células menores, markers compactos
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/src/pages/Agenda.tsx` (novo)
-- `app/src/styles/agenda.css` (novo)
-- `app/src/types.ts` (alterado — +Lesson, Enrollment, enums, constantes)
-- `app/src/services/api.ts` (alterado — +fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments)
-- `app/src/App.tsx` (alterado — +rota /agenda)
-
----
-
-## Alterações no Banco
-
-Nenhuma. API já existente (resource=lessons) consumida pelos novos componentes.
-
----
-
-## Testes
-
-✅ Vite build: 3.29s
-✅ Revisão de código: calcEndTime (dead code) removido, fluxo modal simplificado
-✅ Código morto removido: formatCurrency duplicado
-
----
-
-## Pendências
-
-- Filtro por professor na visualização mensal
-- Gerar aulas em massa a partir de vínculos ativos
-
----
-
-## Próxima Etapa
-
-Criar componente de Matrículas (Enrollments) em React.
-
----
-
-# ETAPA 53 — MATRÍCULAS (ENROLLMENTS) REACT
-
-**Data:** 12/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** d98005d
-
----
-
-## Objetivo
-
-Criar o componente de Matrículas (Enrollments) em React com CRUD completo, substituindo a interface clássica do painel.
-
----
-
-## Implementações Realizadas
-
-### Componente (`app/src/pages/Enrollments.tsx`)
-
-- Tabela desktop com colunas: Aluno, Professor, Instrumento, Dia/Horário, Valor, Cobrança, Status, Ações
-- Cards mobile com os mesmos dados
-- Busca por nome do aluno, professor ou instrumento
-- Filtro por status (Ativo/Inativo/Cancelado) — filtra no servidor
-
-### Modal CRUD
-
-- Select de alunos (apenas ativos)
-- Select de professores (apenas ativos)
-- Select de instrumentos (17 opções: Piano, Violão, Bateria, etc.)
-- Tipo de cobrança: Mensal / Por Semana / Completo
-- Campos condicionais para cobrança "Completo": valor total + parcelas
-- Status editável, observações
-- Validação: aluno obrigatório, cobrança completa exige valor total
-- Exclusão com confirmação
-
-### Estilos (`app/src/styles/enrollments.css`)
-
-- ~280 linhas de CSS dark theme
-- Responsivo (desktop tabela → mobile cards)
-- Status pills (active/inactive/cancelled)
-
-### API
-
-- createEnrollment, updateEnrollment, deleteEnrollment adicionados
-- Suporte a billing_type (weekly/monthly/full), total_amount, installments
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/src/pages/Enrollments.tsx` (novo)
-- `app/src/styles/enrollments.css` (novo)
-- `app/src/services/api.ts` (alterado — +CRUD enrollments)
-- `app/src/App.tsx` (alterado — +rota /academico/turmas, sub-nav com active state)
-
----
-
-## Alterações no Banco
-
-Nenhuma. API já existente (resource=enrollments) consumida pelos novos componentes.
-
----
-
-## Testes
-
-✅ Vite build: 2.76s
-✅ Revisão de código: CRUD operations, billing_type validation, mobile responsivo
-
----
-
-## Pendências
-
-- Link para Agenda no modal de matrícula
-- Geração de aulas em massa a partir de matrículas ativas
-
----
-
-## Próxima Etapa
-
-Criar a página Financeira React completa com KPIs, sub-abas e CRUDs.
-
----
-
-# ETAPA 54 — FINANCEIRO REACT
-
-**Data:** 12/07/2026
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** d98005d
-
----
-
-## Objetivo
-
-Criar a página Financeira em React, substituindo a interface clássica com KPIs, filtro de período e 4 sub-módulos CRUD: Receitas Avulsas, Custos, Investimentos e Pagamentos a Professores.
-
----
-
-## Implementações Realizadas
-
-### Página Financeira (`app/src/pages/Financial.tsx`)
-
-**Período e KPIs:**
-
-- Seletor de mês/ano com refresh manual
-- 6 KPIs: Receita (verde), Despesas (amarelo), Saldo (verde/vermelho), Pendentes, Alunos em Atraso, A Pagar Professores
-- Dados carregados via fetchFinancialSummary(month, year)
-
-**Sub-aba: Receitas Avulsas (payments)**
-
-- Lista com categoria, aluno, valor, forma de pagamento, data
-- Filtro por categoria (Matrícula/Material/Aula Extra/Outro)
-- Modal de criação: descrição, valor, categoria, forma de pagamento, data, aluno (opcional)
-
-**Sub-aba: Custos (expenses)**
-
-- Lista com descrição, valor, categoria, vencimento, tipo, status
-- Toggle ✅ pago / ↩️ pendente (inline, sem modal)
-- Modal de criação/edição: descrição, valor, categoria, vencimento, tipo fixo/variável, checkbox pago
-- Linhas pagas aparecem riscadas com opacidade reduzida
-
-**Sub-aba: Investimentos (investments)**
-
-- Lista com descrição, valor, categoria, data, observações
-- Total investido no mês exibido no toolbar
-- Modal de criação: descrição, valor, categoria, data de compra, observações
-
-**Sub-aba: Pagamentos a Professores (teacher_payments)**
-
-- Lista com professor, mês referência, valor, status
-- Toggle ✅ pago / ↩️ pendente
-- Exclusão 🗑️ com confirmação
-- Modal de criação: professor (select), mês referência, valor, checkbox pago, observações
-
-**UX/UI:**
-
-- Toast animado com feedback de sucesso/erro
-- Timeout do toast com cleanup via useRef (prevenção de memory leak)
-- Campos de valor como texto com parseCurrencyInput (aceita formato brasileiro: 1.234,56)
-- Modais com animação fadeIn + scale
-- Form rows em grid 2 colunas
-- Botões de ação com hover states e cores específicas (verde=pagar, amarelo=reverter, vermelho=excluir)
-- Responsivo: mobile vira cards empilhados
-
-### Tipos (`app/src/types.ts`)
-
-- Interfaces: Payment, Expense, Investment, TeacherPayment, FinancialSummary, Order, Product
-- Label records: CATEGORY_LABELS, PAYMENT_METHOD_LABELS, EXPENSE_TYPE_LABELS
-
-### API (`app/src/services/api.ts`)
-
-- 14 novas funções: fetchFinancialSummary, fetchPayments, createPayment, fetchExpenses, createExpense, updateExpense, fetchInvestments, createInvestment, fetchTeacherPayments, createTeacherPayment, updateTeacherPayment, deleteTeacherPayment
-
-### Estilos (`app/src/styles/financial.css`)
-
-- ~470 linhas de CSS dark theme
-- Grid de KPIs responsivo
-- Tabela com linhas riscadas para itens pagos
-- Sub-tabs com active state destacado
-- Modais com animação
-- Forms com focus-visible, checkbox estilizado
-- Mobile: breakpoint 720px com cards
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/src/pages/Financial.tsx` (novo)
-- `app/src/styles/financial.css` (novo)
-- `app/src/types.ts` (alterado — +Payment, Expense, Investment, TeacherPayment, etc.)
-- `app/src/services/api.ts` (alterado — +14 funções financeiras)
-- `app/src/App.tsx` (alterado — +rota /financeiro)
-
----
-
-## Alterações no Banco
-
-Nenhuma. Todas as APIs já existiam (resource=summary|payments|expenses|investments|teacher_payments).
-
----
-
-## Testes
-
-✅ Vite build: 4.92s
-✅ Revisão de código: código morto removido, toast cleanup via useRef, formatação de valor corrigida
-✅ 3 correções aplicadas pós-review: (1) função formatInputCurrency removida, (2) toast com cleanup no unmount, (3) campo de valor na edição de custo usa formato numérico limpo
-
----
-
-## Pendências
-
-- Exportar CSV dos pagamentos avulsos
-- Edição de pagamentos avulsos (atualmente só create)
-- Edição de investimentos (atualmente só create)
-- Filtro por paid/unpaid em custos e pagamentos a professores
-- Auth/login independente para o React
-
----
-
-## Próxima Etapa
-
-Criar o módulo de Administração (Admin) com métricas do sistema, logs e configurações, ou iniciar os testes funcionais no navegador com browser-use.
-
----
-
-# ETAPA 55 — ADMIN REACT (PÁGINA DE ADMINISTRAÇÃO)
-
-**Data:** 12/07/2026
-
-**Horário:** 16:00
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** e2c4fa1 (vite.config.js fix), Pendente (Admin component)
-
----
-
-## Objetivo
-
-Criar a página de Administração em React, oferecendo uma visão geral do sistema com métricas consolidadas (alunos, professores, matrículas, receita, pedidos), atalhos rápidos para os principais módulos, informações técnicas do sistema e uma tabela resumo do banco de dados.
-
----
-
-## Implementações Realizadas
-
-### Componente Admin (`app/src/pages/Admin.tsx`)
-
-- 6 Overview Cards com cores de destaque individuais:
-  - 🎓 **Alunos** — ativos/total (verde)
-  - 👨‍🏫 **Professores** — cadastrados (azul)
-  - 📚 **Matrículas Ativas** — vínculos pedagógicos (roxo)
-  - 📊 **Aulas Hoje** — agendadas/realizadas (amarelo)
-  - 💰 **Receita do Mês** — formatada em BRL (verde)
-  - 🛍️ **Pedidos Pendentes** — com cor dinâmica (verde se 0, vermelho se >0)
-- Cada card é um link para o módulo correspondente
-- Hover: translateY(-3px) + box-shadow + borda colorida (CSS custom property `--card-accent`)
-
-### Atalhos Rápidos
-
-- Painel Clássico (`../painel-x9k2f.html`)
-- Painel Acadêmico (`../academic/index.html`)
-- Dashboard React (`/dashboard`)
-- Financeiro React (`/financeiro`)
-
-### Informações do Sistema
-
-- Versão do App (1.0.0)
-- Ambiente (Produção Vercel)
-- Banco de Dados (Supabase PostgreSQL)
-- Frontend (React 19 + TypeScript + Vite)
-- Autenticação (x-admin-password)
-- Status da Sessão (✅ Ativa / ❌ Inativa via sessionStorage)
-
-### Tabela Resumo do Banco
-
-- 5 tabelas: Alunos, Professores, Matrículas, Produtos, Pedidos
-- Indicadores visuais: bolinha verde (ok) / amarela (alerta)
-
-### Estados
-
-- **Loading:** "Carregando estatísticas..." com spinner textual
-- **Error:** banner vermelho com mensagem de erro
-- **Dados:** cards + links + system info + tabela
-
-### API consumida (sem novas funções)
-
-- `fetchStudents()`, `fetchTeachers()`, `fetchEnrollments()`, `fetchDashboard()` — 4 chamadas paralelas via `Promise.all`
-
----
-
-## Arquivos Criados/Alterados
-
-- `app/src/pages/Admin.tsx` (novo — ~220 linhas)
-- `app/src/styles/admin.css` (novo — ~260 linhas)
-- `app/src/App.tsx` (alterado — +rota /admin com AuthGuard)
-
----
-
-## Alterações no Banco
-
-**Nenhuma.** Componente puramente frontend, consome APIs existentes.
-
----
-
-## Testes
-
-✅ Vite build: 11.62s
-✅ Revisão de código: código morto (pluralize) removido, imports não utilizados limpos
-
----
-
-## Pendências
-
-- Exportar CSV de tabelas do banco
-- Histórico de ações (audit log)
-- Configurações de sistema (admin_password, etc.)
-
----
-
-## Próxima Etapa
-
-Testes funcionais no navegador com browser-use, ou iniciar melhorias como exportação CSV, filtro paid/unpaid, edição de investimentos.
-
-# ETAPA 56 — CORREÇÃO PORTAL → REACT (painel-x9k2f.html)
-
-**Data:** 11/07/2026
-
-**Horário:** 11:39
-
-**Agente Responsável:** Antigravity (Claude Opus 4.6)
-
-**Commit Git:** Pendente
-
----
-
-## Objetivo
-
-Corrigir o portal de login (`painel-x9k2f.html`) que ainda apontava o card "Módulo Acadêmico" para o painel HTML clássico (`academic/index.html`), mesmo após toda a funcionalidade acadêmica ter sido migrada para React nas Etapas 50–55. Alinhar o portal com a arquitetura atual documentada no `painel_registro.md`.
-
----
-
-## Análise Realizada
-
-Antes da implementação, foi realizada uma leitura completa de:
-
-- `painel_registro.md` (2639 linhas, Etapas 33–55)
-- `TODO_PROGRESS.md` (99 linhas)
-- `painel-x9k2f.html` (271 linhas — portal de login)
-- `app/src/App.tsx` — rotas React com AuthGuard
-- `app/src/services/api.ts` — autenticação via sessionStorage
-- `vite.config.js` — entry points e base path
-- `vercel.json` — rewrites de produção
-
-### Problemas Identificados
-
-| # | Problema | Severidade | Ação |
-|---|----------|------------|------|
-| 1 | Card "Módulo Acadêmico" apontava para `academic/index.html` (Vanilla JS ~295KB) em vez de `/app/` (React) | 🔴 Crítico | Corrigido |
-| 2 | Propagação de senha via `sessionStorage('admin_password')` | 🟢 OK | Verificado — mesma chave usada pelo portal e pelo React |
-| 3 | `vite.config.js` com `base: './'` | 🟡 Monitor | Mantido (conservador) — não há evidência de 404 em produção |
-| 4 | `vercel.json` sem rewrite para portal | 🔵 Baixo | Funciona via arquivo estático |
-
----
-
-## Implementações Realizadas
-
-### Portal (`painel-x9k2f.html`)
-
-- Card "Módulo Acadêmico": `href` alterado de `academic/index.html` para `/app/`
-- Descrição atualizada: "Dashboard, Alunos, Professores, Matrículas, Agenda, Financeiro e Administração."
-- Card "Módulo Comercial" mantido apontando para `commercial/index.html` (não migrado para React)
-
-### Fluxo de autenticação verificado
-
-- Portal salva `sessionStorage.setItem('admin_password', pass)` ao fazer login
-- React lê `sessionStorage.getItem('admin_password')` no `AuthGuard`
-- Como ambos compartilham o mesmo origin, o `sessionStorage` é compartilhado na mesma aba
-- Resultado: usuário faz login no portal → clica em "Módulo Acadêmico" → React detecta autenticação válida → vai direto para Home (sem pedir senha novamente)
-=======
 - **Removidos** `api/webhook.js`, `api/verify-mp-payment.js`, `api/config.js` — código morto do Mercado Pago (integração removida na Etapa 40; esses arquivos voltaram por extração de zip por cima do repositório sem apagar os anteriores)
 - **Removida** dependência `mercadopago` do `package.json`
 - **Removida** pasta `api/_lib/admin/` inteira (10 módulos) — substituída por `api/_lib/financial/` que é mais completo e correto
@@ -2812,92 +1574,11 @@ Antes da implementação, foi realizada uma leitura completa de:
 - `helpers`: `safeFloat`, `safeInt`, `parsePagination`, `normalizeOptionalFields`, `resolvePaidTimestamp` — não existiam em admin/
 - Cobertura de testes unitários real: `tests/financial-helpers.test.js` e `tests/financial-students.test.js`
 - Recursos novos expostos via roteador: `dashboard`, `lessons`, `attendance` (não existiam em _lib/admin/)
->>>>>>> Stashed changes
 
 ---
 
 ## Arquivos Alterados
 
-<<<<<<< Updated upstream
-- `painel-x9k2f.html` (href do card acadêmico + descrição)
-- `painel_registro.md` (este registro + Roadmap atualizado)
-
----
-
-## Alterações no Banco
-
-**Nenhuma.** Etapa exclusivamente de frontend.
-
----
-
-## Testes
-
-✅ `npm run build` — 3.16s, 0 warnings, todos os 5 entry points compilados
-✅ Verificação de sessionStorage: mesma chave `admin_password` no portal e no React
-✅ Verificação de fluxo: portal → login → sessionStorage → `/app/` → AuthGuard detecta sessão → Home
-⚠ Não testado em produção — depende do push para Vercel
-
----
-
-## Pendências
-
-- Deploy na Vercel (git push)
-- Teste manual: login no portal → clicar "Módulo Acadêmico" → verificar que React abre autenticado
-- Monitorar `base: './'` no `vite.config.js` — se aparecerem 404 de assets, mudar para `base: '/'`
-- Testes funcionais ponta a ponta (pendência carregada desde Etapa 38)
-
----
-
-## Próxima Etapa
-
-Testes funcionais ponta a ponta no navegador, ou implementar melhorias pendentes: exportação CSV, filtro paid/unpaid, edição de investimentos.
-
-# ETAPA 57 — MCP GIT NO BLACKBOX + EVIDÊNCIAS + ONBOARDING
-
-**Data:** 11/07/2026
-
-**Horário:** 00:00 (preencher)
-
-**Agente Responsável:** BLACKBOXAI
-
-**Commit Git:** 44e54c2
-
----
-
-## Objetivo
-
-Aplicar o Implementation Plan para garantir que o MCP server de Git está configurado no Blackbox (server name exigido) e registrar evidências do diagnóstico do backend/Supabase no repositório, incluindo materiais de onboarding para continuidade do trabalho.
-
----
-
-## Implementações Realizadas
-
-- **Evidências (novo arquivo):**
-  - Criado `MCP_GIT_VERIFICATION.md` com:
-    - instruções da chamada do tool `git_status`
-    - seção de diagnóstico de consistência dos endpoints admin com os schemas do Supabase
-
-- **Plano (documentação):**
-  - Atualizado `implementation_plan.md` para refletir o estado real (MCP Git já configurado no `blackbox_mcp_settings.json`) e reforçar o registro da evidência do tool `git_status`.
-
-- **Commit/push:**
-  - Alterações commitadas e publicadas no branch `blackboxai/mcp-git-server` (commit `44e54c2`).
-
-- **Testes:**
-  - Executado `npm test`.
-  - Resultado: **2 testes aprovados, 0 falhas** (webhook assinatura válida e inválida).
-
-- **Onboarding (materiais):**
-  - Criado `README_ONBOARDING.md` com guia de setup/testes e instruções de como preencher a evidência do `git_status`.
-
----
-
-## Arquivos Alterados
-
-- `implementation_plan.md`
-- `MCP_GIT_VERIFICATION.md` (novo)
-- `README_ONBOARDING.md` (novo)
-=======
 - `api/webhook.js` — **removido**
 - `api/verify-mp-payment.js` — **removido**
 - `api/config.js` — **removido**
@@ -2905,7 +1586,6 @@ Aplicar o Implementation Plan para garantir que o MCP server de Git está config
 - `api/_lib/admin-auth.js` — recriado standalone
 - `api/admin-financial.js` — reescrito (71 linhas, importa de _lib/financial/)
 - `package.json` — dependência `mercadopago` removida
->>>>>>> Stashed changes
 
 ---
 
@@ -2917,187 +1597,23 @@ Nenhuma.
 
 ## Testes
 
-<<<<<<< Updated upstream
-✅ `npm test`: pass (2/2)
-⚠ Não executado tool `git_status` via Blackbox neste momento; evidencia do comando fica documentada em `MCP_GIT_VERIFICATION.md` para preenchimento com output real após execução pelo agente.
-=======
 ✅ `node --check` em 15 arquivos JS — todos passaram
 ✅ `npm test` — **29/29 testes passando**, zero falhas (financial-helpers: 22, financial-students: 5, webhook-signature: 2)
 ✅ Nenhuma referência ao Mercado Pago restante (grep vazio em api/, app/, store/, index.html)
 ✅ Contagem de Serverless Functions: **9** (limite do plano Hobby: 12)
 ⚠ `npm run build` não executado neste ambiente (npmjs.org bloqueado) — rodar localmente ou deixar a Vercel executar no deploy
->>>>>>> Stashed changes
 
 ---
 
 ## Pendências
 
-<<<<<<< Updated upstream
-- Executar a demonstração real do tool MCP Git `git_status` no Blackbox e preencher `MCP_GIT_VERIFICATION.md` com o output.
-- Testar endpoints admin principais via Blackbox/HTTP (ideal: dashboard, summary, products, orders) e preencher evidências finais no mesmo arquivo.
-- Após validação, seguir com merge no main conforme fluxo do projeto.
-=======
 - Fazer commit e push da branch REFAC com estas alterações
 - Deploy na Vercel a partir da branch REFAC e validação funcional ponta a ponta
 - Merge da REFAC na main após validação em produção
 - Variáveis de ambiente na Vercel: `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_PUBLIC_KEY`, `MP_WEBHOOK_URL` não são mais usadas — remover quando conveniente
->>>>>>> Stashed changes
 
 ---
 
 ## Próxima Etapa
 
-<<<<<<< Updated upstream
-Preencher evidência do `git_status` (output real) e validar endpoints críticos do painel admin no ambiente alvo (via Blackbox ou chamadas HTTP), então fazer o merge para `main`.
-
----
-
-# ETAPA 58 — CORREÇÕES DE SEGURANÇA E QUALIDADE + MERGE + MIGRATION 050
-
-**Data:** 11/07/2026
-
-**Horário:** 18:00
-
-**Agente Responsável:** Buffy (Freebuff)
-
-**Commit Git:** 267e883 (correções), 2d53a0c (merge)
-
----
-
-## Objetivo
-
-Aplicar 5 correções de segurança e qualidade no backend (`api/admin-financial.js` e mais 6 arquivos de API), refatorar código duplicado, executar a migration 050 no Supabase, preencher evidências do MCP Git, fazer merge do branch `blackboxai/mcp-git-server` para `main` e push para `origin/main`.
-
----
-
-## Implementações Realizadas
-
-### Correção 1 — Refatoração handleSummary/handleDashboard
-
-- Extraído helper `computeFinancialSummary(supabase, month, year)` que centraliza as 8 queries financeiras que estavam duplicadas nos dois handlers
-- Eliminadas ~50 linhas de código duplicado
-- 🐛 **Bug corrigido:** Dashboard não incluía `paidTeacherPayments` no cálculo de `outgoings` — agora incluso via helper centralizado
-
-### Correção 2 — Remoção de vazamento de `err.message`
-
-- **10 ocorrências removidas** em 7 arquivos: `api/admin-financial.js`, `api/admin-products.js`, `api/admin-orders.js`, `api/create-payment.js`, `api/products.js`, `api/update-order-status.js`, `api/verify-mp-payment.js`
-- `details: err.message` removido de todas as respostas de erro 500
-- `console.error()` adicionado onde não existia
-
-### Correção 3+4 — Helpers `safeFloat`/`safeInt` + Validação de valores positivos
-
-- Criados helpers: `safeFloat(value, fallback, min)` e `safeInt(value, fallback, min)`
-- 26 substituições de `parseFloat`/`parseInt` em todos os handlers
-- Valores financeiros (`amount`, `monthly_fee`, `total_amount`) usam `min=0` para rejeitar negativos
-- 🐛 **Bug corrigido:** `installments` era `parseFloat()` → agora `safeInt()` (número de parcelas deve ser inteiro)
-
-### Correção 5 — Helper `resolvePaidTimestamp`
-
-- Extraída lógica de `paid_at` duplicada em `handleExpenses` e `handleTeacherPayments` para função centralizada
-
-### Merge blackboxai/mcp-git-server → main
-
-- Commit das 7 alterações de API (`267e883`)
-- Merge sem conflitos do branch `blackboxai/mcp-git-server` no `main`
-- Push para `origin/main` (atualizado: `1fcc16d` → `2d53a0c`)
-
-### Migration 050 aplicada no Supabase
-
-- Executada via Supabase CLI (`npx supabase db query --linked -f supabase/migrations/050-student-lifecycle.sql`)
-- Adicionado: `students.status` (lead→cancelled), `students.enrolled_at`, `students.source`
-- Backfill: `active=true` → `status='active'`, `active=false` → `status='cancelled'`
-- NOT NULL + check constraints + índice `students_status_idx`
-
-### MCP_GIT_VERIFICATION.md atualizado
-
-- Preenchido com output real do `git status`
-
----
-
-## Arquivos Alterados
-
-- `api/admin-financial.js` (refatoração computeFinancialSummary, safeFloat/safeInt, resolvePaidTimestamp, err.message)
-- `api/admin-products.js` (err.message leak)
-- `api/admin-orders.js` (err.message leak)
-- `api/create-payment.js` (err.message leak)
-- `api/products.js` (err.message leak)
-- `api/update-order-status.js` (err.message leak)
-- `api/verify-mp-payment.js` (err.message leak)
-- `MCP_GIT_VERIFICATION.md` (atualizado com output real do git status)
-- `TODO_PROGRESS.md` (atualizado)
-- `painel_registro.md` (este registro)
-
----
-
-## Alterações no Banco
-
-Migration 050-student-lifecycle.sql aplicada via Supabase CLI:
-
-- `students`: +`status` text NOT NULL check (lead, interested, enrolled, active, suspended, completed, cancelled)
-- `students`: +`enrolled_at` timestamptz
-- `students`: +`source` text check (website, indicacao, social, presencial, outro)
-- Backfill: registros existentes com `active=true` → `status='active'`, `active=false` → `status='cancelled'`
-- Índice: `students_status_idx`
-
----
-
-## Testes
-
-✅ `node --check` validado em todos os 7 arquivos API alterados
-✅ `npm test` — 2/2 testes de webhook passaram
-✅ `npm run build` — 4.30s, zero warnings, todos os 5 entry points compilados
-✅ `npx supabase db query` — migration 050 aplicada sem erros
-✅ Code review aprovado (code-reviewer-deepseek-flash) para cada correção
-
----
-
-## Pendências
-
-- Testes funcionais ponta a ponta em produção
-- Exportar CSV (pagamentos avulsos e custos)
-- Edição de investimentos (atualmente só create)
-- Filtro paid/unpaid em custos e pagamentos a professores
-
----
-
-## Próxima Etapa
-
-Testes funcionais ponta a ponta no navegador (fluxo completo: vínculo → aula → presença → financeiro) ou implementar as melhorias pendentes (export CSV, edição de investimentos, filtros).
-
----
-
-# Roadmap do Painel
-
-| Etapa | Descrição | Status |
-|--------|-----------|--------|
-| 33 | Documentação do Painel | ✅ |
-| 34 | Estrutura do Financeiro | ✅ |
-| 35 | Interface de Professores | ✅ |
-| 36 | Integração Pedagógica nas Mensalidades | ✅ |
-| 37 | Separação Pedagógico x Financeiro (enrollments) | ✅ |
-| 38 | Policies de RLS + API + UI (Vínculos/Agenda/Pagto Professores) | ✅ |
-| 39 | teacher_payments no Resumo Financeiro | ✅ |
-| 40 | Agenda Mensal + Spec Prioridades | ✅ |
-| 41 | Botão Nova Aula na Agenda | ✅ |
-| 42 | Correções Pós-Revisão | ✅ |
-| 43 | billing_type + Separação Custos/Investimentos | ✅ |
-| 44 | Correções Frontend billing_type (6 pendências) | ✅ |
-| 45 | Correção SyntaxError + Botão Faltante | ✅ |
-| 46 | Reestruturação de Abas e Menu | ✅ |
-| 47 | CPF em Alunos/Professores + Teachers Tab | ✅ |
-| 48 | Migration 046 — guardian_name + guardian_phone | ✅ |
-| 49 | Modal Aula Refatorado + Erro 500 (Migration 047) | ✅ |
-| 50 | Setup React/TypeScript + Student Lifecycle | ✅ |
-| 51 | Dashboard + Students + Teachers React | ✅ |
-| 52 | Agenda Mensal React | ✅ |
-| 53 | Matrículas (Enrollments) React | ✅ |
-| 54 | Financeiro React | ✅ |
-| 55 | Admin React | ✅ |
-| 56 | Correção Portal → React | ✅ |
-| 57 | MCP Git + Evidências + Onboarding | ✅ |
-| 58 | Correções Segurança/Qualidade + Merge + Migration 050 | ✅ |
-| — | Testes funcionais ponta a ponta | ⏳ |
-
-=======
 Commit + push da REFAC, deploy na Vercel, testes funcionais ponta a ponta (fluxo: vínculo → aula → presença → financeiro), e merge para main.
->>>>>>> Stashed changes

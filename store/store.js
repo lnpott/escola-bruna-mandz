@@ -146,9 +146,8 @@ export function renderProducts() {
     });
 }
 
-const CATEGORY_LABELS = { roupas: 'Roupas', acessorios: 'Acessórios', kits: 'Kits & Combos' };
 function categoryLabel(cat) {
-    return CATEGORY_LABELS[cat] || cat;
+    return { roupas: 'Roupas', acessorios: 'Acessórios', kits: 'Kits & Combos' }[cat] || cat;
 }
 
 // ─── Filtro por categoria ─────────────────────────────────────────────────────
@@ -314,12 +313,6 @@ document.addEventListener('click', (event) => {
         return;
     }
 
-    // Checkout
-    if (event.target.closest('#checkout-start-btn')) {
-        openCheckoutFlow();
-        return;
-    }
-
     // Remover do carrinho
     const removeBtn = event.target.closest('[data-remove-product]');
     if (removeBtn) {
@@ -329,6 +322,11 @@ document.addEventListener('click', (event) => {
         renderCart();
         window.showToast?.('Item removido do carrinho.');
         return;
+    }
+
+    // Checkout
+    if (event.target.closest('#checkout-start-btn')) {
+        openCheckoutFlow();
     }
 });
 

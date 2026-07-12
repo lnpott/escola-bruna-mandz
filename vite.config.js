@@ -29,7 +29,6 @@ export default defineConfig({
                 main: resolve(__dirname, 'index.html'),
                 app: resolve(__dirname, 'app/index.html'),
                 painel: resolve(__dirname, 'painel-x9k2f.html'),
-                academic: resolve(__dirname, 'academic/index.html'),
                 commercial: resolve(__dirname, 'commercial/index.html'),
             },
         },

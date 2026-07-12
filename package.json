@@ -13,15 +13,10 @@
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.108.0",
-        "formidable": "^3.5.4",
-        "mercadopago": "^2.0.0",
-        "react": "^19.2.7",
-        "react-dom": "^19.2.7",
-        "react-router-dom": "^7.18.1"
+        "formidable": "^3.5.4"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
-        "@vitejs/plugin-react": "^4.7.0",
         "eslint": "^10.6.0",
         "eslint-config-prettier": "^10.1.8",
         "prettier": "^3.8.5",
