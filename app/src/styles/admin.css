@@ -290,7 +290,7 @@
     border-bottom: none;
 }
 
-/* ── Status Dot ───────────────────────────────────────────────── */
+
 .admin-status-dot {
     display: inline-block;
     width: 8px;
@@ -306,6 +306,200 @@
 .admin-status-dot.warn {
     background: var(--color-warning);
     box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+
+/* ── Charts ──────────────────────────────────────────────────────── */
+
+.admin-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+    animation: fadeInUp 0.5s var(--ease-out);
+}
+
+.admin-chart-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.admin-chart-card:hover {
+    border-color: var(--border-strong);
+}
+
+.admin-chart-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.chart-bars {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.chart-bar-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 12px;
+}
+
+.chart-bar-label {
+    min-width: 100px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chart-bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.chart-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-sm);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 4px;
+}
+
+.chart-bar-value {
+    min-width: 28px;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.chart-empty {
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: var(--space-3) 0;
+    text-align: center;
+}
+
+/* ── Trend Chart (Vertical Bars) ───────────────────────────────── */
+
+.admin-trend-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+}
+
+.trend-chart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-2);
+    padding-bottom: var(--space-2);
+    min-height: 200px;
+}
+
+.trend-month {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.trend-bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 160px;
+    width: 100%;
+    justify-content: center;
+}
+
+.trend-bar-wrapper {
+    width: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 100%;
+}
+
+.trend-bar {
+    width: 100%;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 4px;
+    cursor: help;
+}
+
+.trend-bar.revenue {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.trend-bar.outgoings {
+    background: linear-gradient(180deg, #f87171, #dc2626);
+}
+
+.trend-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.trend-balance {
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-legend {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    padding-top: var(--space-3);
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    flex-wrap: wrap;
+}
+
+.trend-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.trend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.trend-dot.revenue {
+    background: #22c55e;
+}
+
+.trend-dot.outgoings {
+    background: #ef4444;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
@@ -339,5 +533,60 @@
     }
     .admin-info-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* ── Charts mobile ─────────────────────────────────────── */
+    .admin-charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-chart-card {
+        padding: var(--space-4);
+    }
+
+    .chart-bar-label {
+        min-width: 70px;
+        font-size: 11px;
+    }
+
+    .chart-bar-track {
+        height: 16px;
+    }
+
+    .chart-bar-value {
+        min-width: 24px;
+        font-size: 11px;
+    }
+
+    /* ── Trend chart mobile ────────────────────────────────── */
+    .trend-chart {
+        min-height: 160px;
+        gap: var(--space-1);
+        padding-bottom: 0;
+    }
+
+    .trend-bars {
+        height: 120px;
+    }
+
+    .trend-bar-wrapper {
+        width: 18px;
+    }
+
+    .trend-label {
+        font-size: 8px;
+    }
+
+    .trend-balance {
+        font-size: 8px;
+    }
+
+    .trend-legend {
+        font-size: 10px;
+        gap: var(--space-2);
+    }
+
+    .admin-trend-card {
+        padding: var(--space-4);
     }
 }

@@ -265,16 +265,10 @@ function ModuleCard({ icon, title, description, to }: { icon: string; title: str
 }
 
 function Home() {
-    return (
-        <div className="app-container">
+    return (            <div className="app-container">
             <div className="app-header">
                 <h1>ERP Educacional</h1>
                 <p className="app-subtitle">Escola Bruna Mandz</p>
-                <div className="header-links">
-                    <a href="../painel-x9k2f.html" className="legacy-link">
-                        ← Painel Clássico
-                    </a>
-                </div>
             </div>
             <div className="module-grid">
                 <ModuleCard icon="📊" title="Dashboard" description="Indicadores em tempo real da escola" to="/dashboard" />
