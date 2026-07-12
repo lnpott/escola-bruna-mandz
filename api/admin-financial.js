@@ -1,5 +1,6 @@
 /**
  * api/admin-financial.js
+<<<<<<< Updated upstream
  * API financeira consolidada para o painel admin.
  * Roteamento interno por query string: ?resource=students|teachers|enrollments|tuitions|payments|expenses|investments|teacher_payments|lessons|attendance|summary
 
@@ -7,11 +8,20 @@
  *
  * Consolida os endpoints em 1 único arquivo para respeitar o
  * limite de 12 Serverless Functions do Vercel Hobby plan.
+=======
+ * Roteador fino da API financeira do painel admin.
+ * Lógica de cada resource em api/_lib/financial/*.js
+ *
+ * Continua sendo UMA única Serverless Function de propósito:
+ * plano Hobby da Vercel tem limite de 12 funções por deploy.
+ * Arquivos em api/_lib/ não contam como funções.
+>>>>>>> Stashed changes
  *
  * ── Etapa 37 ──────────────────────────────────────────────────────────────
  * `tuitions` deixou de carregar dado pedagógico (teacher_id, instrument,
  * duration_minutes, classes_per_week). Esses campos agora vivem em
  * `enrollments`, referenciada por `tuitions.enrollment_id`.
+<<<<<<< Updated upstream
  * Ver painel_registro.md — Etapa 37 para o histórico completo da decisão.
  */
 
@@ -1251,6 +1261,28 @@ async function handleDashboard(req, res, supabase) {
 }
 
 // ── Handler principal ─────────────────────────────────────────────────────────
+=======
+ *
+ * ── Etapa 42 ──────────────────────────────────────────────────────────────
+ * Módulos internos migrados de api/_lib/admin/ para api/_lib/financial/,
+ * que é mais completo (CRUD de investments, safeFloat/safeInt, testes).
+ */
+
+import { getSupabase }           from './_lib/supabase.js';
+import { checkAdminAuth }        from './_lib/admin-auth.js';
+import { handleStudents }        from './_lib/financial/students.js';
+import { handleTeachers }        from './_lib/financial/teachers.js';
+import { handleEnrollments }     from './_lib/financial/enrollments.js';
+import { handleTuitions }        from './_lib/financial/tuitions.js';
+import { handlePayments }        from './_lib/financial/payments.js';
+import { handleExpenses }        from './_lib/financial/expenses.js';
+import { handleInvestments }     from './_lib/financial/investments.js';
+import { handleTeacherPayments } from './_lib/financial/teacherPayments.js';
+import { handleSummary }         from './_lib/financial/summary.js';
+import { handleDashboard }       from './_lib/financial/dashboard.js';
+import { handleLessons }         from './_lib/financial/lessons.js';
+import { handleAttendance }      from './_lib/financial/attendance.js';
+>>>>>>> Stashed changes
 
 export default async function handler(req, res) {
     if (!auth(req, res)) return;
@@ -1259,7 +1291,11 @@ export default async function handler(req, res) {
     try {
         supabase = getSupabase();
     } catch (err) {
+<<<<<<< Updated upstream
         console.error('Supabase não configurado:', err.message);
+=======
+        console.error('Supabase init error:', err);
+>>>>>>> Stashed changes
         return res.status(500).json({ error: 'Supabase não configurado.' });
     }
 
@@ -1279,8 +1315,11 @@ export default async function handler(req, res) {
             case 'lessons':          return await handleLessons(req, res, supabase);
             case 'attendance':       return await handleAttendance(req, res, supabase);
             case 'summary':          return await handleSummary(req, res, supabase);
-
+            case 'dashboard':        return await handleDashboard(req, res, supabase);
+            case 'lessons':          return await handleLessons(req, res, supabase);
+            case 'attendance':       return await handleAttendance(req, res, supabase);
             default:
+<<<<<<< Updated upstream
                 return res.status(400).json({ error: 'Parâmetro ?resource= inválido ou ausente. Use: dashboard, students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, lessons, attendance, summary.' });
         }
     } catch (err) {
@@ -1290,5 +1329,14 @@ export default async function handler(req, res) {
             error: classified.friendlyMessage,
             code: classified.errorCode,
         });
+=======
+                return res.status(400).json({
+                    error: 'Parâmetro ?resource= inválido ou ausente. Use: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary, dashboard, lessons, attendance.'
+                });
+        }
+    } catch (err) {
+        console.error(`[admin-financial] resource=${resource}`, err);
+        return res.status(500).json({ error: 'Erro interno.' });
+>>>>>>> Stashed changes
     }
 }
