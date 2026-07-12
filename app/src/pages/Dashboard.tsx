@@ -19,19 +19,34 @@ function isNewOrder(createdAt: string): boolean {
 
 type KpiColor = 'good' | 'warn' | 'bad' | 'neutral';
 
-function KpiCard({ icon, label, value, color = 'neutral', subtitle }: {
+function KpiCard({ icon, label, value, color = 'neutral', subtitle, to }: {
     icon: string;
     label: string;
     value: string;
     color?: KpiColor;
     subtitle?: string;
+    to?: string;
 }) {
-    return (
-        <div className="dash-kpi-card">
+    const card = (
+        <>
             <div className="dash-kpi-icon">{icon}</div>
             <div className="dash-kpi-label">{label}</div>
             <div className={`dash-kpi-value ${color}`}>{value}</div>
             {subtitle && <div className="dash-kpi-subtitle">{subtitle}</div>}
+        </>
+    );
+
+    if (to) {
+        return (
+            <Link to={to} className="dash-kpi-card dash-kpi-link">
+                {card}
+            </Link>
+        );
+    }
+
+    return (
+        <div className="dash-kpi-card">
+            {card}
         </div>
     );
 }
@@ -174,36 +189,42 @@ export default function Dashboard() {
                     label="Receita do Mês"
                     value={formatCurrency(financial.revenue)}
                     color="good"
+                    to="/financeiro"
                 />
                 <KpiCard
                     icon="💸"
                     label="Despesas do Mês"
                     value={formatCurrency(financial.outgoings)}
                     color="warn"
+                    to="/financeiro"
                 />
                 <KpiCard
                     icon="📊"
                     label="Saldo do Mês"
                     value={formatCurrency(financial.balance)}
                     color={getBalanceColor(financial.balance)}
+                    to="/financeiro"
                 />
                 <KpiCard
                     icon="⏳"
                     label="Pendentes"
                     value={formatCurrency(financial.pending_tuitions)}
                     color="warn"
+                    to="/financeiro"
                 />
                 <KpiCard
                     icon="🔴"
                     label="Alunos em Atraso"
                     value={String(financial.overdue_students)}
                     color={financial.overdue_students > 0 ? 'bad' : 'good'}
+                    to="/financeiro"
                 />
                 <KpiCard
                     icon="🎓"
                     label="Alunos Ativos"
                     value={String(school.active_students)}
                     color="good"
+                    to="/academico"
                 />
             </div>
 
@@ -211,10 +232,10 @@ export default function Dashboard() {
             <div className="dash-split">
                 {/* Today's Classes */}
                 <div className="dash-card">
-                    <div className="dash-card-header">
+                    <Link to="/agenda" className="dash-card-header dash-card-header-link">
                         <h3>📅 Aulas de Hoje</h3>
                         <span className="dash-badge">{school.today_classes_count}</span>
-                    </div>
+                    </Link>
                     <div className="dash-card-body">
                         {school.today_classes.length === 0 ? (
                             <div className="dash-empty">Nenhuma aula hoje.</div>
@@ -237,28 +258,31 @@ export default function Dashboard() {
                         ) : (
                             <>
                                 {financial.overdue_students > 0 && (
-                                    <div className="dash-alert-row">
+                                    <Link to="/financeiro" className="dash-alert-row dash-alert-link">
                                         <span className="dash-alert-icon">🔴</span>
                                         <span className="dash-alert-text">
                                             <strong>{financial.overdue_students} aluno(s)</strong> em atraso
                                         </span>
-                                    </div>
+                                        <span className="dash-alert-arrow">→</span>
+                                    </Link>
                                 )}
                                 {store.pending_orders > 0 && (
-                                    <div className="dash-alert-row">
+                                    <Link to="/admin" className="dash-alert-row dash-alert-link">
                                         <span className="dash-alert-icon">📦</span>
                                         <span className="dash-alert-text">
                                             <strong>{store.pending_orders} pedido(s)</strong> pendente(s)
                                         </span>
-                                    </div>
+                                        <span className="dash-alert-arrow">→</span>
+                                    </Link>
                                 )}
                                 {store.low_stock_products.length > 0 && (
-                                    <div className="dash-alert-row">
+                                    <Link to="/admin" className="dash-alert-row dash-alert-link">
                                         <span className="dash-alert-icon">⚠️</span>
                                         <span className="dash-alert-text">
                                             <strong>{store.low_stock_products.length} produto(s)</strong> com estoque baixo
                                         </span>
-                                    </div>
+                                        <span className="dash-alert-arrow">→</span>
+                                    </Link>
                                 )}
                             </>
                         )}
@@ -288,9 +312,10 @@ export default function Dashboard() {
             {/* ── Low Stock ──────────────────────────── */}
             {store.low_stock_products.length > 0 && (
                 <div className="dash-card">
-                    <div className="dash-card-header">
+                    <Link to="/admin" className="dash-card-header dash-card-header-link">
                         <h3>📦 Produtos com Estoque Baixo</h3>
-                    </div>
+                        <span className="dash-view-link">Gerenciar →</span>
+                    </Link>
                     <div className="dash-card-body">
                         {store.low_stock_products.map((product) => (
                             <StockRow key={product.id} product={product} />

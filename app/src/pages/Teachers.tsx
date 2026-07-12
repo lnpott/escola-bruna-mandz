@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useApp } from '@/App';
 import type { Teacher } from '@/types';
 import { DAY_LABELS } from '@/types';
 import { fetchTeachers, createTeacher, updateTeacher, deleteTeacher } from '@/services/api';
@@ -25,6 +26,7 @@ const emptyForm: TeacherForm = {
 };
 
 export default function Teachers() {
+    const { confirm } = useApp();
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -128,7 +130,14 @@ export default function Teachers() {
     }
 
     async function handleDelete(id: string) {
-        if (!window.confirm('Tem certeza que deseja excluir este professor?')) return;
+        const confirmed = await confirm({
+            title: 'Excluir Professor',
+            message: `Tem certeza que deseja excluir ${teachers.find(t => t.id === id)?.name || 'este professor'}? Esta ação não pode ser desfeita.`,
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            danger: true,
+        });
+        if (!confirmed) return;
         try {
             await deleteTeacher(id);
             await load();

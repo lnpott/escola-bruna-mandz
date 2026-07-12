@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useApp } from '@/App';
 import type { Enrollment } from '@/types';
 import { DAY_LABELS } from '@/types';
 import { fetchEnrollments, createEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchTeachers } from '@/services/api';
@@ -13,6 +14,7 @@ const BILLING_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function Enrollments() {
+    const { showToast, confirm } = useApp();
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -21,7 +23,6 @@ export default function Enrollments() {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [toast, setToast] = useState('');
     const [saving, setSaving] = useState(false);
 
     const [form, setForm] = useState({
@@ -41,10 +42,6 @@ export default function Enrollments() {
         notes: '',
     });
 
-    const showToast = useCallback((msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(''), 3000);
-    }, []);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -164,7 +161,14 @@ export default function Enrollments() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir este vínculo?')) return;
+        const confirmed = await confirm({
+            title: 'Excluir Vínculo',
+            message: 'Tem certeza que deseja excluir este vínculo? Esta ação não pode ser desfeita.',
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            danger: true,
+        });
+        if (!confirmed) return;
         try {
             await deleteEnrollment(id);
             showToast('Vínculo excluído.');
@@ -207,12 +211,7 @@ export default function Enrollments() {
 
     return (
         <div className="enrollments-page">
-            {toast && <div className="enrollments-toast">{toast}</div>}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>📚 Matrículas / Vínculos</h1>
-                <Link to="/" className="legacy-link">← Voltar</Link>
-            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 20px' }}>📚 Matrículas / Vínculos</h1>
 
             {/* Toolbar */}
             <div className="enrollments-toolbar">
