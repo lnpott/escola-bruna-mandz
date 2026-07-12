@@ -141,7 +141,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('Upload error:', err);
         return res.status(500).json({
-            error: 'Erro ao fazer upload da imagem.',
+            error: err.message || 'Erro ao fazer upload da imagem.',
         });
     }
 }

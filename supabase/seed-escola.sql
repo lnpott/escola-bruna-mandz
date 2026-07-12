@@ -13,13 +13,13 @@ INSERT INTO teachers (id, name, phone, specialty, days_of_week, rate_per_class) 
 
 -- ── ALUNOS ───────────────────────────────────────────────────
 
-INSERT INTO students (id, name, email, phone, address, instruments, active) VALUES
-    ('ST-ABCDEF', 'Sofia Almeida',     'sofia.almeida@email.com',     '(21) 97001-0001', 'Rua das Flores, 123', 'Piano, Bateria',     true),
-    ('ST-GHIJKL', 'Lucas Mendes',      'lucas.mendes@email.com',      '(21) 97001-0002', 'Av. Atlântica, 456',  'Violão',            true),
-    ('ST-MNOPQR', 'Isabella Costa',    'isabella.costa@email.com',    '(21) 97001-0003', 'Rua do Sol, 789',     'Canto',             true),
-    ('ST-STUVWX', 'Gabriel Ferreira',  'gabriel.ferreira@email.com',  '(21) 97001-0004', 'Rua Aurora, 321',     'Bateria',           true),
-    ('ST-YZ1234', 'Valentina Oliveira','valentina.oliveira@email.com','(21) 97001-0005', 'Travessa Azul, 654',  'Canto, Violão',     true),
-    ('ST-567890', 'Enzo Pereira',      'enzo.pereira@email.com',      '(21) 97001-0006', 'Rua Nova, 987',      'Piano',             true);
+INSERT INTO students (id, name, email, phone, address, instruments, status) VALUES
+    ('ST-ABCDEF', 'Sofia Almeida',     'sofia.almeida@email.com',     '(21) 97001-0001', 'Rua das Flores, 123', 'Piano, Bateria',     'active'),
+    ('ST-GHIJKL', 'Lucas Mendes',      'lucas.mendes@email.com',      '(21) 97001-0002', 'Av. Atlântica, 456',  'Violão',            'active'),
+    ('ST-MNOPQR', 'Isabella Costa',    'isabella.costa@email.com',    '(21) 97001-0003', 'Rua do Sol, 789',     'Canto',             'active'),
+    ('ST-STUVWX', 'Gabriel Ferreira',  'gabriel.ferreira@email.com',  '(21) 97001-0004', 'Rua Aurora, 321',     'Bateria',           'active'),
+    ('ST-YZ1234', 'Valentina Oliveira','valentina.oliveira@email.com','(21) 97001-0005', 'Travessa Azul, 654',  'Canto, Violão',     'active'),
+    ('ST-567890', 'Enzo Pereira',      'enzo.pereira@email.com',      '(21) 97001-0006', 'Rua Nova, 987',      'Piano',             'active');
 
 -- ── VÍNCULOS (ENROLLMENTS) — AGENDA ─────────────────────────
 

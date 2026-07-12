@@ -1,23 +1,13 @@
 const CART_KEY = 'bruna_cart';
 const PROGRESS_KEY = 'bruna_student_progress';
 
-// Cache em memória do carrinho — evita parsear JSON do localStorage a cada leitura.
-let _cartCache = null;
-
 export function getCart() {
-    if (_cartCache !== null) return _cartCache;
-    _cartCache = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-    return _cartCache;
+    return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
 }
 
 export function saveCart(cart) {
-    _cartCache = cart;
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     window.dispatchEvent(new CustomEvent('bruna:cart-updated', { detail: cart }));
-}
-
-function invalidateCartCache() {
-    _cartCache = null;
 }
 
 export function addToCart(product, variant = null) {

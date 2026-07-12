@@ -17,9 +17,6 @@ import { buildOrder, clearCart, applyStudentXp, getCart } from './cart.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-// Regex de e-mail hoistado — criado uma vez, reusado em todas as chamadas
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 // ─── Estado interno ────────────────────────────────────────────────────────────
 
 let _currentOrder = null;
@@ -86,7 +83,7 @@ export async function submitCustomerForm() {
         showError('customer', 'Por favor, preencha todos os campos.');
         return;
     }
-    if (!EMAIL_REGEX.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showError('customer', 'E-mail inválido.');
         return;
     }
