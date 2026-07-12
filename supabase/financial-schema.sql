@@ -19,6 +19,9 @@
 --   - lessons: aula real em data específica (referencia enrollment)
 --   - attendance: presença do aluno na aula
 --   - 8 lessons geradas automaticamente dos enrollments ativos
+-- Etapa 44 (12/07/2026): Correções pós-auditoria.
+--   - tuitions.reference_month: text → date (primeiro dia do mês, igual teacher_payments)
+--   - expenses.expense_type CHECK: adicionado 'variable'
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -148,12 +151,13 @@ alter table public.enrollments enable row level security;
 -- 4. TABELA: tuitions (Mensalidades)
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Etapa 37: agora é SÓ a cobrança mensal. Dado pedagógico migrou para enrollments.
+-- Etapa 44: reference_month migrado de text 'YYYY-MM' para date (primeiro dia do mês).
 
 create table if not exists public.tuitions (
     id text primary key,                    -- TU-XXXXXX
     student_id text not null references public.students(id) on delete cascade,
     enrollment_id text references public.enrollments(id) on delete set null,  -- Etapa 37
-    reference_month text,                   -- Etapa 37: formato 'YYYY-MM'
+    reference_month date,                   -- primeiro dia do mês (ex: 2026-07-01) — igual a teacher_payments
 
     amount numeric(10,2) not null default 0.00,
     billing_type text
@@ -244,7 +248,7 @@ create table if not exists public.expenses (
         check (category in ('aluguel', 'agua', 'luz', 'material', 'outro')),
     expense_type text not null default 'fixed'
         constraint expenses_type_check
-        check (expense_type in ('fixed', 'eventual')),
+        check (expense_type in ('fixed', 'eventual', 'variable')),
     due_date date not null,
     paid boolean not null default false,
     paid_at timestamptz,

@@ -18,6 +18,7 @@
  */
 
 import { getSupabase }           from './_lib/supabase.js';
+import { classifyError }          from './_lib/financial/helpers.js';
 import { checkAdminAuth }        from './_lib/admin-auth.js';
 import { handleStudents }        from './_lib/financial/students.js';
 import { handleTeachers }        from './_lib/financial/teachers.js';
@@ -45,6 +46,12 @@ export default async function handler(req, res) {
 
     const { resource } = req.query;
 
+    // Proteção contra req.body undefined em POST/PATCH (evita TypeError
+    // se o frontend enviar Content-Type errado ou corpo vazio).
+    if ((req.method === 'POST' || req.method === 'PATCH') && (!req.body || typeof req.body !== 'object')) {
+        return res.status(400).json({ error: 'Corpo da requisição ausente ou inválido. Envie um JSON válido.' });
+    }
+
     try {
         switch (resource) {
             case 'students':         return await handleStudents(req, res, supabase);
@@ -66,6 +73,10 @@ export default async function handler(req, res) {
         }
     } catch (err) {
         console.error(`[admin-financial] resource=${resource}`, err);
-        return res.status(500).json({ error: 'Erro interno.' });
+        const classified = classifyError(err);
+        return res.status(classified.statusCode).json({
+            error: classified.friendlyMessage,
+            errorCode: classified.errorCode,
+        });
     }
 }

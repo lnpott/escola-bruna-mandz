@@ -4,7 +4,7 @@
  * cobrança — o dado pedagógico (professor, instrumento, horário) vive em
  * enrollments, referenciada por tuitions.enrollment_id.
  */
-import { genId, normalizeOptionalFields, safeFloat, safeInt, parsePagination, monthRange } from './helpers.js';
+import { genId, normalizeMonthDate, normalizeOptionalFields, safeFloat, safeInt, parsePagination, monthRange } from './helpers.js';
 
 export async function handleTuitions(req, res, supabase) {
     const { method } = req;
@@ -44,7 +44,7 @@ export async function handleTuitions(req, res, supabase) {
             id: genId('TU'),
             student_id,
             enrollment_id: enrollment_id || null,
-            reference_month: reference_month || null,
+            reference_month: normalizeMonthDate(reference_month),
             amount: safeFloat(amount, 0, 0),
             billing_type: billing_type || null,
             installment_number: safeInt(installment_number, null),
@@ -78,7 +78,7 @@ export async function handleTuitions(req, res, supabase) {
 
         const upd = {};
         if (enrollment_id       !== undefined) upd.enrollment_id       = enrollment_id || null;
-        if (reference_month     !== undefined) upd.reference_month     = reference_month || null;
+        if (reference_month     !== undefined) upd.reference_month     = normalizeMonthDate(reference_month);
         if (status              !== undefined) upd.status              = status;
         if (payment_method      !== undefined) upd.payment_method      = payment_method;
         if (paid_at             !== undefined) upd.paid_at             = paid_at;

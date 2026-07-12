@@ -193,7 +193,7 @@ export default function Enrollments() {
     };
 
     const studentOptions = useMemo(() => {
-        return students.filter(s => s.active);
+        return students.filter(s => s.status === 'active');
     }, [students]);
 
     const teacherOptions = useMemo(() => {
