@@ -92,7 +92,7 @@ export async function fetchStudents(): Promise<Student[]> {
 }
 
 export async function createStudent(
-    student: Omit<Student, 'id' | 'active' | 'created_at' | 'updated_at'>
+    student: Omit<Student, 'id' | 'created_at' | 'updated_at'>
 ): Promise<Student> {
     const data = await request<{ student: Student }>('students', {
         method: 'POST',

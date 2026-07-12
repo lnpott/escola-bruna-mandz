@@ -31,7 +31,6 @@ export interface Student {
     guardian_name?: string;
     guardian_cpf?: string;
     guardian_phone?: string;
-    active: boolean;
     created_at: string;
     updated_at: string;
 }

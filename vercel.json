@@ -6,7 +6,7 @@
         { "source": "/comercial/:path(.*)", "destination": "/commercial/index.html" },
         { "source": "/commercial", "destination": "/commercial/index.html" },
         { "source": "/commercial/:path(.*)", "destination": "/commercial/index.html" },
-        { "source": "/academico", "destination": "/academic/index.html" },
-        { "source": "/academico/:path(.*)", "destination": "/academic/index.html" }
+        { "source": "/academico", "destination": "/app/index.html" },
+        { "source": "/academico/:path(.*)", "destination": "/app/index.html" }
     ]
 }
