@@ -8,28 +8,6 @@
     padding: 32px 20px;
 }
 
-/* ── Toast ─────────────────────────────────────────────────── */
-.agenda-toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #22c55e;
-    color: #09090b;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 13px;
-    z-index: 9999;
-    animation: agendaToastIn 0.25s ease-out;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-@keyframes agendaToastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
 /* ── Toolbar ───────────────────────────────────────────────── */
 .agenda-toolbar {
     display: flex;
@@ -98,23 +76,6 @@
 
 .agenda-summary .scheduled-count strong { color: #fcd34d; }
 .agenda-summary .completed-count strong { color: #86efac; }
-
-/* ── Loading / Error ───────────────────────────────────────── */
-.agenda-loading,
-.agenda-error {
-    text-align: center;
-    padding: 40px;
-    color: #a1a1aa;
-    font-size: 14px;
-}
-
-.agenda-error {
-    color: #fca5a5;
-    background: #1a0e0e;
-    border: 1px solid #3f1a1a;
-    border-radius: 8px;
-    margin-bottom: 12px;
-}
 
 /* ── Calendar Grid ─────────────────────────────────────────── */
 .agenda-calendar {
@@ -491,13 +452,6 @@
 .btn-save:hover {
     background: #16a34a;
     border-color: #16a34a;
-}
-
-.dash-empty {
-    text-align: center;
-    padding: 24px;
-    color: #52525b;
-    font-size: 13px;
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
