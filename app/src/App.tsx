@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useState, createContext, useContext, useCallback, useRef } from 'react';
 import Students from '@/pages/Students';
+import StudentDetail from '@/pages/StudentDetail';
 import Teachers from '@/pages/Teachers';
 import Dashboard from '@/pages/Dashboard';
 import Agenda from '@/pages/Agenda';
@@ -203,6 +204,9 @@ function Breadcrumbs() {
             crumbs.push({ label: 'Professores' });
         } else if (location.pathname === '/academico/turmas') {
             crumbs.push({ label: 'Matrículas' });
+        } else if (location.pathname.startsWith('/academico/aluno/')) {
+            crumbs.push({ label: 'Alunos', path: '/academico' });
+            crumbs.push({ label: 'Detalhes do Aluno' });
         } else {
             crumbs.push({ label: 'Alunos' });
         }
@@ -322,6 +326,7 @@ export default function App() {
                     <Route path="/" element={<AuthGuard><AppLayout><Home /></AppLayout></AuthGuard>} />
                     <Route path="/dashboard" element={<AuthGuard><AppLayout><Dashboard /></AppLayout></AuthGuard>} />
                     <Route path="/academico" element={<AuthGuard><AppLayout><AcademicLayout><Students /></AcademicLayout></AppLayout></AuthGuard>} />
+                    <Route path="/academico/aluno/:id" element={<AuthGuard><AppLayout><AcademicLayout><StudentDetail /></AcademicLayout></AppLayout></AuthGuard>} />
                     <Route path="/academico/professores" element={<AuthGuard><AppLayout><AcademicLayout><Teachers /></AcademicLayout></AppLayout></AuthGuard>} />
                     <Route path="/academico/turmas" element={<AuthGuard><AppLayout><AcademicLayout><Enrollments /></AcademicLayout></AppLayout></AuthGuard>} />
                     <Route path="/agenda" element={<AuthGuard><AppLayout><Agenda /></AppLayout></AuthGuard>} />

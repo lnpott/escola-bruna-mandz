@@ -119,6 +119,24 @@ export async function fetchDashboard(): Promise<DashboardData['dashboard']> {
     return data.dashboard;
 }
 
+// ── Student by ID ──────────────────────────────────────────────
+
+export async function fetchStudentById(id: string): Promise<Student | null> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=students&id=${encodeURIComponent(id)}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        if (response.status === 404) return null;
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: StudentsResponse = await response.json();
+    return data.students?.[0] || null;
+}
+
 // ── Teachers ───────────────────────────────────────────────────
 
 export async function fetchTeachers(): Promise<Teacher[]> {
@@ -443,6 +461,68 @@ export async function fetchMonthlyTrend(monthsBack: number = 6): Promise<{
 }
 
 
+
+// ── Student Detail helpers ────────────────────────────────────────
+
+export async function fetchLessonsByStudent(studentId: string): Promise<Lesson[]> {
+    return fetchLessons({ student_id: studentId, limit: 200 });
+}
+
+export async function fetchEnrollmentsByStudent(studentId: string): Promise<Enrollment[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=enrollments&student_id=${encodeURIComponent(studentId)}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: EnrollmentsResponse = await response.json();
+    return data.enrollments;
+}
+
+export async function fetchTuitionsByStudent(studentId: string): Promise<{
+    id: string;
+    student_id: string;
+    enrollment_id?: string;
+    reference_month: string;
+    amount: number;
+    due_date: string;
+    status: string;
+    paid_at?: string;
+    students?: { name: string } | null;
+    enrollments?: { instrument?: string } | null;
+}[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=tuitions&student_id=${encodeURIComponent(studentId)}&limit=100`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    return data.tuitions || [];
+}
+
+export async function fetchPaymentsByStudent(studentId: string): Promise<Payment[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=payments&student_id=${encodeURIComponent(studentId)}&limit=100`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data: PaymentsResponse = await response.json();
+    return data.payments;
+}
 
 // ── Teacher Payments (Pagamentos a Professores) ─────────────────────
 

@@ -860,3 +860,135 @@ Início da Fase 9 — Alunos Expandido.
 
 ---
 
+
+# ETAPA 53 — FASE 9: ALUNOS EXPANDIDO
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** (pendente)
+
+---
+
+## Objetivo
+
+Expandir a página de Alunos com histórico completo, exportação CSV, multi-instrumentos, estatísticas por aluno e link para página de detalhes.
+
+---
+
+## Problema Identificado
+
+A página de Alunos tinha apenas CRUD básico com formulário simples. Faltavam:
+- Visão consolidada do histórico do aluno (aulas, mensalidades, pagamentos)
+- Exportação da lista de alunos
+- Seleção de múltiplos instrumentos
+- Indicadores rápidos (total pago, pendente, presença)
+- Link para detalhes do aluno na tabela
+
+---
+
+## Implementações Realizadas
+
+### 1. Histórico do Aluno — Página `/academico/aluno/:id`
+
+**Arquivo:** `app/src/pages/StudentDetail.tsx` (novo)
+
+- Card com informações completas do aluno (nome, status, e-mail, telefone, CPF, instrumentos, origem, matrícula, responsável)
+- Cards de estatísticas: matrículas ativas, total de aulas, taxa de presença, total pago, total pendente
+- Lista de matrículas ativas com cards compactos
+- Abas com tabelas:
+  - 📅 **Aulas**: data, horário, professor, instrumento, status
+  - 💰 **Mensalidades**: referência, valor, vencimento, status, data de pagamento
+  - 💳 **Pagamentos**: descrição, valor, data, categoria
+
+### 2. API — Novas Funções
+
+| Função | Descrição |
+|--------|-----------|
+| `fetchStudentById(id)` | Busca aluno específico por ID no backend |
+| `fetchLessonsByStudent(id)` | Aulas filtradas por student_id |
+| `fetchEnrollmentsByStudent(id)` | Matrículas filtradas por student_id |
+| `fetchTuitionsByStudent(id)` | Mensalidades filtradas por student_id |
+| `fetchPaymentsByStudent(id)` | Pagamentos filtrados por student_id |
+
+### 3. Backend — Filtro por ID
+
+**Arquivo:** `api/_lib/financial/students.js`
+
+- Adicionado suporte a `?resource=students&id=ST-XXXX` no método GET
+- Permite que `fetchStudentById` retorne apenas o aluno solicitado
+
+### 4. Students.tsx — Melhorias
+
+| Funcionalidade | Detalhe |
+|----------------|---------|
+| **⬇ CSV Export** | Exporta lista filtrada com BOM UTF-8 para Excel (8 colunas: Nome, CPF, E-mail, Telefone, Instrumento, Status, Origem, Responsável) |
+| **🎵 Multi-instrumentos** | Checkboxes estilo chips no formulário (seleção múltipla, join por vírgula) |
+| **🏷️ Coluna Origem** | Badge com a origem do lead na tabela |
+| **👤 Hint Responsável** | Nome do responsável exibido abaixo do nome do aluno |
+| **📋 Botão Detalhes** | Botão na coluna Ações que abre o histórico completo |
+| **🔗 Linha clicável** | Clique na linha do aluno navega para o histórico |
+
+### 5. CSS — Novos Estilos
+
+**Arquivo:** `app/src/styles/students.css` (~100 linhas novas)
+
+- `.instrument-chip` com estado `.selected` (checkboxes estilo chip)
+- `.student-detail-info`, `.student-info-grid`, `.info-item`
+- `.student-stats-row`, `.student-stat-card` (com variantes `.highlight-green`, `.highlight-red`)
+- `.student-section`, `.student-table-scroll`
+- `.enrollment-mini-card`, `.enr-mini-top`, `.enr-mini-details`
+- `.student-row-clickable`, `.student-name-link`, `.student-guardian-hint`
+- `.source-badge`
+
+### 6. Roteamento
+
+**Arquivo:** `app/src/App.tsx`
+
+- Nova rota: `/academico/aluno/:id` → StudentDetail
+- Breadcrumbs atualizados para exibir "Início › Acadêmico › Alunos › Detalhes do Aluno"
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---------|------|
+| `app/src/pages/StudentDetail.tsx` | **Novo** — Página de histórico do aluno |
+| `app/src/pages/Students.tsx` | Modificado — CSV export, multi-instrumento, coluna Origem, link detalhes |
+| `app/src/services/api.ts` | Modificado — fetchStudentById + helpers de filtro |
+| `app/src/styles/students.css` | Modificado — ~100 linhas de novos estilos |
+| `app/src/App.tsx` | Modificado — rota + breadcrumb |
+| `api/_lib/financial/students.js` | Modificado — suporte a filtro id no GET |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 71 módulos transformados, 4.42s, sem erros
+✅ Code Review — 6 issues corrigidos (double navigation, types any[], fetchStudentById, multi-instrument, backend filter)
+
+---
+
+## Pendências
+
+- ~~Commit + push dos arquivos desta etapa~~ ✅
+- Relatórios Financeiros (fechamento mensal, exportação)
+- Pagamento automático a professor (rate_per_class × aulas do mês)
+
+---
+
+## Próxima Etapa
+
+Relatórios Financeiros ou Pagamento Automático a Professor.
+
+---

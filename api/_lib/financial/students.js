@@ -19,12 +19,13 @@ export async function handleStudents(req, res, supabase) {
 
     if (method === 'GET') {
         const { limit, offset } = parsePagination(req);
-        const { status } = req.query;
+        const { status, id } = req.query;
         let q = supabase
             .from('students')
             .select('*')
             .order('name', { ascending: true })
             .range(offset, offset + limit - 1);
+        if (id) q = q.eq('id', id);
         if (status) q = q.eq('status', status);
         const { data, error } = await q;
         if (error) throw error;

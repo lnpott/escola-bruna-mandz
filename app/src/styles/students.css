@@ -356,6 +356,212 @@
     flex: 1;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Student Detail Page
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Source badge in table ─────────────────────────── */
+.source-badge {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+/* ── Instruments multi-checkbox ────────────────── */
+.instruments-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    padding: var(--space-1) 0;
+}
+
+.instrument-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    user-select: none;
+}
+
+.instrument-chip:hover {
+    border-color: var(--text-tertiary);
+    color: var(--text-primary);
+}
+
+.instrument-chip.selected {
+    background: var(--border-accent);
+    border-color: var(--border-accent);
+    color: #fff;
+}
+
+.instrument-chip input {
+    display: none;
+}
+
+.student-row-clickable {
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-out);
+}
+
+.student-name-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+}
+
+.student-name-link:hover {
+    color: var(--color-error);
+    text-decoration: underline;
+}
+
+.student-guardian-hint {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+/* ── Info Card ───────────────────────────────────────── */
+.student-detail-info {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+}
+
+.student-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.info-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ── Stats Row ──────────────────────────────────────── */
+.student-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.student-stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.student-stat-card.highlight-green {
+    border-color: var(--color-success);
+    background: var(--color-success-bg);
+}
+
+.student-stat-card.highlight-red {
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+
+.stat-number {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.student-stat-card.highlight-green .stat-number {
+    color: var(--color-success-text);
+}
+
+.student-stat-card.highlight-red .stat-number {
+    color: var(--color-error-text);
+}
+
+.stat-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+/* ── Section ───────────────────────────────────────── */
+.student-section {
+    margin-bottom: var(--space-4);
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3);
+}
+
+.student-table-scroll {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+}
+
+/* ── Enrollments mini cards ────────────────────────── */
+.enrollments-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.enrollment-mini-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.enr-mini-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.enr-mini-details {
+    display: flex;
+    gap: var(--space-4);
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 720px) {
     .students-page {

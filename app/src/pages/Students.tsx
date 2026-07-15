@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/App';
 import {
     Student,
@@ -178,6 +179,32 @@ export default function Students() {
         }
     }
 
+    // ── CSV Export ─────────────────────────────────────────
+    function exportCSV() {
+        const header = 'Nome,CPF,E-mail,Telefone,Instrumento,Status,Origem,Responsável';
+        const rows = filtered.map(s => [
+            s.name,
+            s.cpf || '',
+            s.email || '',
+            s.phone || '',
+            (s.instruments || '').replace(/,/g, ';'),
+            STATUS_LABELS[s.status] || s.status,
+            s.source ? SOURCE_LABELS[s.source] || s.source : '',
+            s.guardian_name || '',
+        ].join(',')).join('\n');
+
+        const bom = '\uFEFF';
+        const blob = new Blob([bom + header + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `alunos-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     // ── Render ───────────────────────────────────────────────
     if (loading && !students.length) {
         return <div className="students-page"><div className="loading">Carregando alunos...</div></div>;
@@ -187,9 +214,16 @@ export default function Students() {
         <div className="students-page">
             <div className="students-header">
                 <h1>🎓 Alunos</h1>
-                <button className="btn-primary" onClick={openNew}>
-                    ➕ Novo Aluno
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    {filtered.length > 0 && (
+                        <button className="btn-secondary" onClick={exportCSV} title="Exportar CSV">
+                            ⬇ CSV
+                        </button>
+                    )}
+                    <button className="btn-primary" onClick={openNew}>
+                        ➕ Novo Aluno
+                    </button>
+                </div>
             </div>
 
             {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
@@ -232,13 +266,17 @@ export default function Students() {
                                 <th>Telefone</th>
                                 <th>Instrumento</th>
                                 <th>Status</th>
+                                <th>Origem</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.map((s) => (
-                                <tr key={s.id}>
-                                    <td data-label="Nome"><strong>{s.name}</strong></td>
+                                <tr key={s.id} className="student-row-clickable" onClick={() => navigate(`/academico/aluno/${s.id}`)}>
+                                    <td data-label="Nome">
+                                        <strong>{s.name}</strong>
+                                        {s.guardian_name && <div className="student-guardian-hint">Resp: {s.guardian_name}</div>}
+                                    </td>
                                     <td data-label="CPF">{s.cpf || '—'}</td>
                                     <td data-label="E-mail">{s.email || '—'}</td>
                                     <td data-label="Telefone">{s.phone || '—'}</td>
@@ -251,7 +289,12 @@ export default function Students() {
                                             {STATUS_ICONS[s.status]} {STATUS_LABELS[s.status]}
                                         </span>
                                     </td>
-                                    <td data-label="Ações">
+                                    <td data-label="Origem">
+                                        <span className="source-badge">
+                                            {s.source ? SOURCE_LABELS[s.source] || s.source : '—'}
+                                        </span>
+                                    </td>
+                                    <td data-label="Ações" onClick={e => e.stopPropagation()}>
                                         <button
                                             className="btn-action"
                                             onClick={() => openEdit(s)}
@@ -265,6 +308,13 @@ export default function Students() {
                                             title="Excluir"
                                         >
                                             🗑️
+                                        </button>
+                                        <button
+                                            className="btn-action"
+                                            onClick={() => navigate(`/academico/aluno/${s.id}`)}
+                                            title="Detalhes"
+                                        >
+                                            📋
                                         </button>
                                     </td>
                                 </tr>
@@ -329,17 +379,29 @@ export default function Students() {
                                     />
                                 </div>
 
-                                <div className="form-field">
-                                    <label>Instrumento</label>
-                                    <select
-                                        value={form.instruments}
-                                        onChange={(e) => updateField('instruments', e.target.value)}
-                                    >
-                                        <option value="">Selecione...</option>
-                                        {INSTRUMENTS.map((inst) => (
-                                            <option key={inst} value={inst}>{inst}</option>
-                                        ))}
-                                    </select>
+                                <div className="form-field full-width">
+                                    <label>Instrumento(s)</label>
+                                    <div className="instruments-checkbox-group">
+                                        {INSTRUMENTS.map((inst) => {
+                                            const selected = form.instruments.split(',').map(s => s.trim()).includes(inst);
+                                            return (
+                                                <label key={inst} className={`instrument-chip ${selected ? 'selected' : ''}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selected}
+                                                        onChange={() => {
+                                                            const current = form.instruments.split(',').map(s => s.trim()).filter(Boolean);
+                                                            const updated = selected
+                                                                ? current.filter(i => i !== inst)
+                                                                : [...current, inst];
+                                                            updateField('instruments', updated.join(', '));
+                                                        }}
+                                                    />
+                                                    {inst}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
 
                                 <div className="form-field">
