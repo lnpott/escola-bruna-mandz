@@ -9,10 +9,11 @@ export async function handlePayments(req, res, supabase) {
     const { method } = req;
 
     if (method === 'GET') {
-        const { category, month, year } = req.query;
+        const { category, month, year, student_id } = req.query;
         const { limit, offset } = parsePagination(req);
         let q = supabase.from('payments').select('*, students(name)', { count: 'exact' }).order('paid_at', { ascending: false }).range(offset, offset + limit - 1);
         if (category) q = q.eq('category', category);
+        if (student_id) q = q.eq('student_id', student_id);
         if (month && year) {
             const { tzStart, tzEnd } = monthRange(month, year);
             q = q.gte('paid_at', tzStart).lte('paid_at', tzEnd);

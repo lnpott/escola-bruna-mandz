@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useApp } from '@/App';
 import {
     fetchFinancialSummary,
     fetchPayments, createPayment,
@@ -128,18 +129,10 @@ export default function Financial() {
     const [students, setStudents] = useState<Student[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
 
+    const { showToast, confirm } = useApp();
+
     // ── Submitting guard ──────────────────────────────────────────
     const [submitting, setSubmitting] = useState(false);
-    const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
-    const toastTimer = useRef<ReturnType<typeof setTimeout>>();
-
-    useEffect(() => () => clearTimeout(toastTimer.current), []);
-
-    const showToast = (msg: string, type: 'ok' | 'err' = 'ok') => {
-        setToast({ msg, type });
-        clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToast(null), 3000);
-    };
 
     // ── Load summary and students/teachers ──────────────────────────
     const loadSummary = useCallback(async () => {
@@ -189,7 +182,7 @@ export default function Financial() {
                 }
             }
         } catch (err: any) {
-            showToast(err.message || 'Erro ao carregar dados.', 'err');
+            showToast(err.message || 'Erro ao carregar dados.', 'error');
         }
     }, [month, year, activeTab, paymentCategory]);
 
@@ -223,7 +216,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar receita.', 'err');
+            showToast(err.message || 'Erro ao registrar receita.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -279,7 +272,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao salvar despesa.', 'err');
+            showToast(err.message || 'Erro ao salvar despesa.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -291,7 +284,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar despesa.', 'err');
+            showToast(err.message || 'Erro ao atualizar despesa.', 'error');
         }
     };
 
@@ -316,7 +309,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar investimento.', 'err');
+            showToast(err.message || 'Erro ao registrar investimento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -343,7 +336,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar pagamento.', 'err');
+            showToast(err.message || 'Erro ao registrar pagamento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -355,19 +348,26 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar pagamento.', 'err');
+            showToast(err.message || 'Erro ao atualizar pagamento.', 'error');
         }
     };
 
     const handleDeleteTP = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir este pagamento?')) return;
+        const confirmed = await confirm({
+            title: 'Excluir Pagamento',
+            message: 'Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.',
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            danger: true,
+        });
+        if (!confirmed) return;
         try {
             await deleteTeacherPayment(id);
             showToast('Pagamento excluído!');
             loadSubList();
             loadSummary();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao excluir.', 'err');
+            showToast(err.message || 'Erro ao excluir.', 'error');
         }
     };
 
@@ -377,12 +377,6 @@ export default function Financial() {
 
     return (
         <div className="fin-container">
-            {/* Toast */}
-            {toast && (
-                <div className={`fin-toast ${toast.type === 'err' ? 'fin-toast-err' : ''}`}>
-                    {toast.msg}
-                </div>
-            )}
 
             {/* Header */}
             <div className="fin-header">
