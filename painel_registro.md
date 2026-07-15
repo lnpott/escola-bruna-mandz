@@ -983,13 +983,13 @@ Nenhuma.
 
 - ~~Commit + push dos arquivos desta etapa~~ ✅
 - Relatórios Financeiros (fechamento mensal, exportação)
-- Pagamento automático a professor (rate_per_class × aulas do mês)
+- ~~Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).~ (não será implementado)
 
 ---
 
 ## Próxima Etapa
 
-Relatórios Financeiros ou Pagamento Automático a Professor.
+Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).
 
 ---
 
@@ -1236,13 +1236,13 @@ Nenhuma.
 
 - ~~Remover 30+ as any e catch(err: any)~~ ✅
 - Relatórios Financeiros (fechamento mensal, exportação)
-- Pagamento automático a professor (rate_per_class × aulas do mês)
+- ~~Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).~ (não será implementado)
 
 ---
 
 ## Próxima Etapa
 
-Relatórios Financeiros ou Pagamento Automático a Professor.
+Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).
 
 ---
 
@@ -1381,13 +1381,13 @@ Nenhuma.
 - ~~Sanitizar innerHTML na store com esc()~~ ✅
 - ~~Substituir console.error por console.warn~~ ✅
 - Relatórios Financeiros (fechamento mensal, exportação)
-- Pagamento automático a professor (rate_per_class × aulas do mês)
+- ~~Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).~ (não será implementado)
 
 ---
 
 ## Próxima Etapa
 
-Relatórios Financeiros ou Pagamento Automático a Professor.
+Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).
 
 ---
 
@@ -1508,12 +1508,12 @@ Nenhuma.
 ## Pendências
 
 - ~~Relatórios Financeiros (fechamento mensal, exportação)~~ ✅
-- Pagamento automático a professor (rate_per_class × aulas do mês)
+- ~~Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).~ (não será implementado)
 
 ---
 
 ## Próxima Etapa
 
-Pagamento automático a professor (rate_per_class × aulas do mês).
+Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).
 
 ---
