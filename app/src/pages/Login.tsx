@@ -69,12 +69,7 @@ export default function Login() {
                     </button>
                 </form>
 
-                <a
-                    href="../painel-x9k2f.html"
-                    className="login-legacy-link"
-                >
-                    ← Ir para o Painel Clássico
-                </a>
+
             </div>
         </div>
     );

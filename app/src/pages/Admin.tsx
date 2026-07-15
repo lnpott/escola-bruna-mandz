@@ -1,7 +1,52 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchStudents, fetchTeachers, fetchEnrollments, fetchDashboard } from '@/services/api';
+import { fetchStudents, fetchTeachers, fetchEnrollments, fetchDashboard, fetchMonthlyTrend } from '@/services/api';
+import type { Student, Teacher, Enrollment } from '@/types';
 import '@/styles/admin.css';
+
+// ══════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════════
+
+const STATUS_LABELS: Record<string, string> = {
+    lead: 'Lead',
+    interested: 'Interessado',
+    enrolled: 'Matriculado',
+    active: 'Ativo',
+    suspended: 'Trancado',
+    completed: 'Concluído',
+    cancelled: 'Cancelado',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+    lead: '#52525b',
+    interested: '#f59e0b',
+    enrolled: '#3b82f6',
+    active: '#22c55e',
+    suspended: '#f97316',
+    completed: '#a855f7',
+    cancelled: '#ef4444',
+};
+
+function Bar({ value, max, color, label }: { value: number; max: number; color: string; label?: string }) {
+    const pct = max > 0 ? (value / max) * 100 : 0;
+    return (
+        <div className="chart-bar-row">
+            {label && <span className="chart-bar-label">{label}</span>}
+            <div className="chart-bar-track">
+                <div
+                    className="chart-bar-fill"
+                    style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: color, '--bar-color': color } as React.CSSProperties}
+                />
+            </div>
+            <span className="chart-bar-value">{value}</span>
+        </div>
+    );
+}
+
+function formatBRL(v: number) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+}
 
 // ══════════════════════════════════════════════════════════════════════
 //  ADMIN PAGE
@@ -10,38 +55,31 @@ import '@/styles/admin.css';
 export default function Admin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [stats, setStats] = useState<{
-        students: number;
-        studentsActive: number;
-        teachers: number;
-        enrollmentsActive: number;
-        revenue: number;
-        pendingOrders: number;
-        lowStock: number;
-        todayClasses: number;
+    const [data, setData] = useState<{
+        students: Student[];
+        teachers: Teacher[];
+        enrollments: Enrollment[];
+        dash: {
+            financial: { revenue: number; outgoings: number; balance: number; pending_tuitions: number; overdue_students: number };
+            school: { active_students: number; active_teachers: number; today_classes_count: number };
+            store: { pending_orders: number; low_stock_products: { id: string; name: string; stock: number }[] };
+        };
+        trend: { month: number; year: number; label: string; revenue: number; outgoings: number; balance: number }[];
     } | null>(null);
 
     const loadStats = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const [students, teachers, enrollments, dash] = await Promise.all([
+            const [students, teachers, enrollments, dash, trend] = await Promise.all([
                 fetchStudents(),
                 fetchTeachers(),
                 fetchEnrollments(),
                 fetchDashboard(),
+                fetchMonthlyTrend(6),
             ]);
 
-            setStats({
-                students: students.length,
-                studentsActive: students.filter(s => s.status === 'active').length,
-                teachers: teachers.length,
-                enrollmentsActive: enrollments.filter(e => e.status === 'active').length,
-                revenue: dash.financial.revenue,
-                pendingOrders: dash.store.pending_orders,
-                lowStock: dash.store.low_stock_products.length,
-                todayClasses: dash.school.today_classes_count,
-            });
+            setData({ students, teachers, enrollments, dash, trend });
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar estatísticas.');
         } finally {
@@ -51,60 +89,106 @@ export default function Admin() {
 
     useEffect(() => { loadStats(); }, [loadStats]);
 
-    // ── Cards de resumo rápido ─────────────────────────────────────
+    // ── Derived statistics ──────────────────────────────────────────
 
-    const quickCards = [
-        {
-            icon: '🎓',
-            title: 'Alunos',
-            value: stats ? `${stats.studentsActive}/${stats.students}` : '—',
-            subtitle: 'Ativos / Total',
-            color: '#22c55e',
-            to: '/academico',
-        },
-        {
-            icon: '👨‍🏫',
-            title: 'Professores',
-            value: stats ? String(stats.teachers) : '—',
-            subtitle: 'Cadastrados',
+    const statusDist = (() => {
+        if (!data) return [];
+        const counts: Record<string, number> = {};
+        for (const s of data.students) {
+            counts[s.status] = (counts[s.status] || 0) + 1;
+        }
+        const order = ['lead', 'interested', 'enrolled', 'active', 'suspended', 'completed', 'cancelled'];
+        const maxVal = Math.max(...Object.values(counts), 1);
+        return order.filter(k => counts[k]).map(k => ({
+            status: k,
+            label: STATUS_LABELS[k] || k,
+            count: counts[k],
+            color: STATUS_COLORS[k] || '#71717a',
+            max: maxVal,
+        }));
+    })();
+
+    const sourceDist = (() => {
+        if (!data) return [];
+        const counts: Record<string, number> = {};
+        for (const s of data.students) {
+            const src = s.source || '';
+            counts[src] = (counts[src] || 0) + 1;
+        }
+        const labels: Record<string, string> = {
+            '': 'Não informado',
+            website: 'Site/Google',
+            indicacao: 'Indicação',
+            social: 'Redes Sociais',
+            presencial: 'Presencial',
+            outro: 'Outro',
+        };
+        const colors = ['#71717a', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ef4444'];
+        const maxVal = Math.max(...Object.values(counts), 1);
+        return Object.entries(counts).map(([key, count], i) => ({
+            key,
+            label: labels[key] || key,
+            count,
+            color: colors[i % colors.length],
+            max: maxVal,
+        }));
+    })();
+
+    const teacherLoad = (() => {
+        if (!data) return [];
+        const counts: Record<string, { name: string; count: number }> = {};
+        for (const e of data.enrollments) {
+            if (e.teacher_id && e.teachers?.name) {
+                if (!counts[e.teacher_id]) {
+                    counts[e.teacher_id] = { name: e.teachers.name, count: 0 };
+                }
+                counts[e.teacher_id].count++;
+            }
+        }
+        const arr = Object.values(counts).sort((a, b) => b.count - a.count);
+        const maxVal = Math.max(...arr.map(a => a.count), 1);
+        return arr.slice(0, 8).map(item => ({
+            ...item,
+            max: maxVal,
             color: '#3b82f6',
-            to: '/academico/professores',
-        },
-        {
-            icon: '📚',
-            title: 'Matrículas Ativas',
-            value: stats ? String(stats.enrollmentsActive) : '—',
-            subtitle: 'Vínculos pedagógicos',
-            color: '#a855f7',
-            to: '/academico/turmas',
-        },
-        {
-            icon: '📊',
-            title: 'Aulas Hoje',
-            value: stats ? String(stats.todayClasses) : '—',
-            subtitle: 'Agendadas / Realizadas',
-            color: '#f59e0b',
-            to: '/agenda',
-        },
-        {
-            icon: '💰',
-            title: 'Receita do Mês',
-            value: stats
-                ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)
-                : '—',
-            subtitle: 'Mensalidades + Avulsos',
-            color: '#22c55e',
-            to: '/financeiro',
-        },
-        {
-            icon: '🛍️',
-            title: 'Pedidos Pendentes',
-            value: stats ? String(stats.pendingOrders) : '—',
-            subtitle: stats?.pendingOrders ? 'Aguardando aprovação' : 'Nenhum pendente',
-            color: stats?.pendingOrders ? '#f87171' : '#22c55e',
-            to: '/',
-        },
-    ];
+        }));
+    })();
+
+    const instrumentDist = (() => {
+        if (!data) return [];
+        const counts: Record<string, number> = {};
+        for (const s of data.students) {
+            const inst = s.instruments;
+            if (inst) {
+                const list = inst.split(',').map(i => i.trim()).filter(Boolean);
+                for (const i of list) {
+                    counts[i] = (counts[i] || 0) + 1;
+                }
+            }
+        }
+        const arr = Object.entries(counts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 8);
+        const maxVal = Math.max(...arr.map(a => a.count), 1);
+        const colors = ['#dc2626', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#14b8a6', '#f97316'];
+        return arr.map((item, i) => ({
+            ...item,
+            max: maxVal,
+            color: colors[i % colors.length],
+        }));
+    })();
+
+    // ── Quick cards ────────────────────────────────────────────────
+
+    const quickCards = data ? [
+        { icon: '🎓', title: 'Alunos', value: `${data.dash.school.active_students}/${data.students.length}`, subtitle: 'Ativos / Total', color: '#22c55e', to: '/academico' },
+        { icon: '👨‍🏫', title: 'Professores', value: String(data.dash.school.active_teachers), subtitle: 'Ativos', color: '#3b82f6', to: '/academico/professores' },
+        { icon: '📚', title: 'Matrículas', value: String(data.enrollments.filter(e => e.status === 'active').length), subtitle: 'Vínculos ativos', color: '#a855f7', to: '/academico/turmas' },
+        { icon: '📅', title: 'Aulas Hoje', value: String(data.dash.school.today_classes_count), subtitle: 'Agendadas / Realizadas', color: '#f59e0b', to: '/agenda' },
+        { icon: '💰', title: 'Receita do Mês', value: formatBRL(data.dash.financial.revenue), subtitle: 'Mensalidades + Avulsos', color: '#22c55e', to: '/financeiro' },
+        { icon: '⚠️', title: 'Pendentes', value: formatBRL(data.dash.financial.pending_tuitions), subtitle: 'Valor em aberto', color: '#f87171', to: '/financeiro' },
+    ] : [];
 
     return (
         <div className="admin-container">
@@ -113,26 +197,17 @@ export default function Admin() {
                 <div className="admin-header-left">
                     <h1>👥 Administração</h1>
                 </div>
-                <button
-                    className="admin-refresh-btn"
-                    onClick={loadStats}
-                    disabled={loading}
-                >
+                <button className="admin-refresh-btn" onClick={loadStats} disabled={loading}>
                     ↻ Atualizar
                 </button>
             </div>
 
-            {error && (
-                <div className="error-banner" onClick={() => setError('')}>{error}</div>
-            )}
+            {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
+            {loading && !data && <div className="loading">Carregando estatísticas...</div>}
 
-            {loading && !stats && (
-                <div className="loading">Carregando estatísticas...</div>
-            )}
-
-            {/* ── Overview Cards ──────────────────────────────────── */}
-            {stats && (
+            {data && (
                 <>
+                    {/* ── Overview Cards ────────────────────────────── */}
                     <div className="admin-overview-grid">
                         {quickCards.map(card => (
                             <Link to={card.to} key={card.title} className="admin-card" style={{ '--card-accent': card.color } as React.CSSProperties}>
@@ -146,64 +221,107 @@ export default function Admin() {
                         ))}
                     </div>
 
-                    {/* ── Quick Links ──────────────────────────────── */}
-                    <div className="admin-section">
-                        <h2>Atalhos Rápidos</h2>
-                        <div className="admin-links-grid">
-<a href="../academic/index.html" className="admin-link-card">
-                                <span className="admin-link-icon">📚</span>
-                                <span className="admin-link-title">Painel Acadêmico</span>
-                                <span className="admin-link-desc">Alunos, professores e agenda</span>
-                            </a>
-                            <Link to="/dashboard" className="admin-link-card">
-                                <span className="admin-link-icon">📊</span>
-                                <span className="admin-link-title">Dashboard React</span>
-                                <span className="admin-link-desc">Indicadores em tempo real</span>
-                            </Link>
-                            <Link to="/financeiro" className="admin-link-card">
-                                <span className="admin-link-icon">💰</span>
-                                <span className="admin-link-title">Financeiro React</span>
-                                <span className="admin-link-desc">Fluxo de caixa e relatórios</span>
-                            </Link>
+                    {/* ── Charts Grid ───────────────────────────────── */}
+                    <div className="admin-charts-grid">
+                        {/* Student Status Distribution */}
+                        <div className="admin-chart-card">
+                            <h3 className="admin-chart-title">📊 Distribuição por Status</h3>
+                            <div className="chart-bars">
+                                {statusDist.map(s => (
+                                    <Bar key={s.status} value={s.count} max={s.max} color={s.color} label={s.label} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Student Source Distribution */}
+                        <div className="admin-chart-card">
+                            <h3 className="admin-chart-title">📋 Origem dos Alunos</h3>
+                            {sourceDist.length > 0 ? (
+                                <div className="chart-bars">
+                                    {sourceDist.map(s => (
+                                        <Bar key={s.key} value={s.count} max={s.max} color={s.color} label={s.label} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="chart-empty">Dados de origem não preenchidos.</div>
+                            )}
+                        </div>
+
+                        {/* Most Popular Instruments */}
+                        <div className="admin-chart-card">
+                            <h3 className="admin-chart-title">🎵 Instrumentos Mais Populares</h3>
+                            {instrumentDist.length > 0 ? (
+                                <div className="chart-bars">
+                                    {instrumentDist.map((inst, i) => (
+                                        <Bar key={inst.name} value={inst.count} max={inst.max} color={inst.color} label={inst.name} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="chart-empty">Nenhum instrumento registrado.</div>
+                            )}
+                        </div>
+
+                        {/* Teacher Class Load */}
+                        <div className="admin-chart-card">
+                            <h3 className="admin-chart-title">👨‍🏫 Carga de Aulas por Professor</h3>
+                            {teacherLoad.length > 0 ? (
+                                <div className="chart-bars">
+                                    {teacherLoad.map(t => (
+                                        <Bar key={t.name} value={t.count} max={t.max} color={t.color} label={t.name} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="chart-empty">Nenhum professor com vínculos.</div>
+                            )}
                         </div>
                     </div>
 
-                    {/* ── System Info ──────────────────────────────── */}
+                    {/* ── Monthly Financial Trend ───────────────────── */}
                     <div className="admin-section">
-                        <h2>Informações do Sistema</h2>
-                        <div className="admin-info-grid">
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Versão do App</span>
-                                <span className="admin-info-value">1.0.0</span>
+                        <h2>📈 Tendência Financeira (6 meses)</h2>
+                        <div className="admin-trend-card">
+                            <div className="trend-chart">
+                                {data.trend.map(m => {
+                                    const maxVal = Math.max(...data.trend.map(x => Math.max(x.revenue, x.outgoings)), 1);
+                                    const revPct = (m.revenue / maxVal) * 100;
+                                    const outPct = (m.outgoings / maxVal) * 100;
+                                    return (
+                                        <div key={m.label} className="trend-month">
+                                            <div className="trend-bars">
+                                                <div className="trend-bar-wrapper">
+                                                    <div
+                                                        className="trend-bar revenue"
+                                                        style={{ height: `${Math.max(revPct, 3)}%` }}
+                                                        title={`Receita: ${formatBRL(m.revenue)}`}
+                                                    />
+                                                </div>
+                                                <div className="trend-bar-wrapper">
+                                                    <div
+                                                        className="trend-bar outgoings"
+                                                        style={{ height: `${Math.max(outPct, 3)}%` }}
+                                                        title={`Despesas: ${formatBRL(m.outgoings)}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <span className="trend-label">{m.label}</span>
+                                            <span className="trend-balance" style={{ color: m.balance >= 0 ? '#22c55e' : '#ef4444' }}>
+                                                {formatBRL(m.balance)}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Ambiente</span>
-                                <span className="admin-info-value">Produção (Vercel)</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Banco de Dados</span>
-                                <span className="admin-info-value">Supabase (PostgreSQL)</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Frontend</span>
-                                <span className="admin-info-value">React 19 + TypeScript + Vite</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Autenticação</span>
-                                <span className="admin-info-value">Senha Admin (x-admin-password)</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <span className="admin-info-label">Sessão</span>
-                                <span className="admin-info-value">
-                                    {sessionStorage.getItem('admin_password') ? '✅ Ativa' : '❌ Inativa'}
-                                </span>
+                            <div className="trend-legend">
+                                <span className="trend-legend-item"><span className="trend-dot revenue" /> Receita</span>
+                                <span className="trend-legend-item"><span className="trend-dot outgoings" /> Despesas</span>
+                                <span className="trend-legend-item">Valor abaixo = Saldo do mês</span>
                             </div>
                         </div>
                     </div>
 
                     {/* ── Database Tables Overview ──────────────────── */}
                     <div className="admin-section">
-                        <h2>Resumo do Banco de Dados</h2>
+                        <h2>🏛️ Resumo do Banco de Dados</h2>
                         <div className="admin-table-wrap">
                             <table className="admin-table">
                                 <thead>
@@ -216,35 +334,62 @@ export default function Admin() {
                                 <tbody>
                                     <tr>
                                         <td>🎓 Alunos (students)</td>
-                                        <td>{stats.students}</td>
-                                        <td><span className="admin-status-dot active" /> {stats.studentsActive} ativos</td>
+                                        <td>{data.students.length}</td>
+                                        <td><span className="admin-status-dot active" /> {data.dash.school.active_students} ativos</td>
                                     </tr>
                                     <tr>
                                         <td>👨‍🏫 Professores (teachers)</td>
-                                        <td>{stats.teachers}</td>
-                                        <td><span className="admin-status-dot active" /> {stats.teachers} cadastrados</td>
+                                        <td>{data.teachers.length}</td>
+                                        <td><span className="admin-status-dot active" /> {data.dash.school.active_teachers} ativos</td>
                                     </tr>
                                     <tr>
                                         <td>📚 Matrículas (enrollments)</td>
-                                        <td>{stats.enrollmentsActive}</td>
-                                        <td><span className="admin-status-dot active" /> {stats.enrollmentsActive} ativas</td>
+                                        <td>{data.enrollments.length}</td>
+                                        <td><span className="admin-status-dot active" /> {data.enrollments.filter(e => e.status === 'active').length} ativas</td>
                                     </tr>
                                     <tr>
                                         <td>📦 Produtos (products)</td>
-                                        <td>{stats.lowStock > 0 ? `${stats.lowStock} com estoque baixo` : '—'}</td>
-                                        <td><span className={`admin-status-dot ${stats.lowStock > 0 ? 'warn' : 'active'}`} />
-                                            {stats.lowStock > 0 ? `${stats.lowStock} abaixo do mínimo` : 'OK'}
+                                        <td>{data.dash.store.low_stock_products.length > 0 ? `${data.dash.store.low_stock_products.length} com estoque baixo` : '—'}</td>
+                                        <td>
+                                            <span className={`admin-status-dot ${data.dash.store.low_stock_products.length > 0 ? 'warn' : 'active'}`} />
+                                            {data.dash.store.low_stock_products.length > 0 ? `${data.dash.store.low_stock_products.length} abaixo do mínimo` : 'OK'}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>🛍️ Pedidos (orders)</td>
-                                        <td>{stats.pendingOrders} pendentes</td>
-                                        <td><span className={`admin-status-dot ${stats.pendingOrders > 0 ? 'warn' : 'active'}`} />
-                                            {stats.pendingOrders > 0 ? 'Aguardando ação' : 'Nenhum pendente'}
+                                        <td>{data.dash.store.pending_orders} pendentes</td>
+                                        <td>
+                                            <span className={`admin-status-dot ${data.dash.store.pending_orders > 0 ? 'warn' : 'active'}`} />
+                                            {data.dash.store.pending_orders > 0 ? 'Aguardando ação' : 'Nenhum pendente'}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    {/* ── System Info (compacta) ────────────────────── */}
+                    <div className="admin-section">
+                        <h2>⚙️ Sistema</h2>
+                        <div className="admin-info-grid">
+                            <div className="admin-info-item">
+                                <span className="admin-info-label">Versão</span>
+                                <span className="admin-info-value">1.0.0</span>
+                            </div>
+                            <div className="admin-info-item">
+                                <span className="admin-info-label">Frontend</span>
+                                <span className="admin-info-value">React 19 + Vite</span>
+                            </div>
+                            <div className="admin-info-item">
+                                <span className="admin-info-label">Banco</span>
+                                <span className="admin-info-value">Supabase (PostgreSQL)</span>
+                            </div>
+                            <div className="admin-info-item">
+                                <span className="admin-info-label">Sessão</span>
+                                <span className="admin-info-value">
+                                    {sessionStorage.getItem('admin_password') ? '✅ Ativa' : '❌ Inativa'}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </>

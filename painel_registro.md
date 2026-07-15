@@ -334,7 +334,7 @@ Melhorias de UX contínuas (Fase 5.2: loading states consistentes, empty states 
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** *(pendente)*
+**Commit Git:** `5361f53` — "Fase 5.2: loading states e empty states padronizados em todas as paginas"
 
 ---
 
@@ -507,4 +507,356 @@ Nenhuma.
 ## Próxima Etapa
 
 Responsividade mobile (Fase 5.3) ou início da Fase 6 (limpeza do painel clássico).
+
+---
+
+# ETAPA 48 — ARQUIVAMENTO DO PAINEL CLÁSSICO (FASE 6)
+
+**Data:** 12/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `d738668` — "Fase 6: arquivamento do painel clássico"
+
+---
+
+## Objetivo
+
+Arquivar o painel clássico (`painel-x9k2f.html`) — sistema legado de gerenciamento em HTML/JS puro — removendo todos os links de navegação que apontavam para ele no React SPA e no portal comercial, e desabilitando sua compilação como entry point do Vite. O arquivo original permanece no repositório como fallback de emergência e referência histórica.
+
+---
+
+## Contexto
+
+O painel clássico (`painel-x9k2f.html`) foi o primeiro sistema administrativo do projeto — um HTML único de ~4400 linhas com JS puro, criado nas primeiras etapas de desenvolvimento. Com a maturação do React SPA, ele se tornou redundante. Todas as funcionalidades CRUD agora são cobertas pelo React SPA (Alunos, Professores, Matrículas, Agenda, Financeiro, Admin).
+
+---
+
+## Implementações Realizadas
+
+### 1. Backup do Arquivo Original
+
+- **Arquivo:** `backup/painel-x9k2f.backup.html`
+- Cópia integral do `painel-x9k2f.html` preservada no diretório `backup/`
+- O arquivo original permanece na raiz do projeto (ainda acessível diretamente pela URL `/painel-x9k2f.html` para fallback de emergência)
+
+### 2. Remoção de Links no React SPA
+
+| Arquivo | Link removido |
+|---------|---------------|
+| `app/src/pages/Login.tsx` | `← Ir para o Painel Clássico` — link âncora com classe `login-legacy-link` |
+| `app/src/pages/Admin.tsx` | Card "Painel Clássico" na seção "Atalhos Rápidos" com ícone 🖥️ |
+| `app/src/App.tsx` | Link `← Painel Clássico` na Home (grade de módulos) |
+
+### 3. Remoção de Link no Portal Comercial
+
+| Arquivo | Link removido |
+|---------|---------------|
+| `commercial/index.html` | Botão `⬅ Voltar ao Início` na toolbar, com `onclick="window.location.href='../painel-x9k2f.html'"` |
+
+### 4. Atualização da Configuração de Build
+
+| Arquivo | Mudança |
+|---------|---------|
+| `vite.config.js` | Removida entrada `painel: resolve(__dirname, 'painel-x9k2f.html')` do `rollupOptions.input` |
+
+### 5. CSS Morto Limpo
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/styles/login.css` | Removida classe `.login-legacy-link` e `.login-legacy-link:hover` (~20 linhas) |
+
+### 6. Fase 6.2 — Verificação de Referências no Backend
+
+- Varredura completa em `api/`, `store/`, `supabase/`, `src/`, `tests/`, `server-dev.js`, `backup-api.js`
+- **Resultado: 0 referências ao `painel-x9k2f.html`** no backend
+- O painel clássico sempre foi um HTML standalone que consumia os mesmos endpoints da API (`/api/admin-financial`) que o React SPA — não havia código backend específico vinculado a ele
+
+---
+
+## Arquivos Alterados
+
+- `backup/painel-x9k2f.backup.html` — **novo** (backup do painel clássico)
+- `app/src/pages/Login.tsx` — link para painel clássico removido
+- `app/src/pages/Admin.tsx` — card "Painel Clássico" removido dos Atalhos Rápidos
+- `app/src/App.tsx` — link `← Painel Clássico` removido da Home
+- `commercial/index.html` — botão "⬅ Voltar ao Início" da toolbar removido
+- `vite.config.js` — entrada `painel` removida do `rollupOptions.input`
+- `app/src/styles/login.css` — CSS morto `.login-legacy-link` removido
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — build OK sem erros (70 módulos transformados)
+✅ Varredura de código — 0 referências residuais ao `painel-x9k2f.html` nos diretórios operacionais
+✅ Code Review — sem issues: remoções limpas sem quebra de layout
+
+---
+
+## Pendências
+
+- Commit + push dos arquivos desta etapa na REFAC
+- Fase 5.3: responsividade mobile (TopBar colapsável, grids adaptáveis, modais responsivos)
+- Fase 7: melhorias na página Admin (gráficos, métricas detalhadas)
+
+---
+
+## Próxima Etapa
+
+Responsividade mobile (Fase 5.3) ou melhorias na página Admin (Fase 7).
+
+---
+
+# ETAPA 50 — RESPONSIVIDADE MOBILE (FASE 5.3)
+
+**Data:** 12/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `d738668` — "Fase 5.3: responsividade mobile"
+
+---
+
+## Objetivo
+
+Ajustar o layout do React SPA para telas pequenas (≤640px e ≤480px), garantindo que a navegação, os gráficos, os cards e os modais sejam utilizáveis em dispositivos móveis sem quebra de layout ou perda de funcionalidade.
+
+---
+
+## Problema Identificado
+
+Embora a TopBar já tivesse `overflow-x: auto` para rolagem horizontal, vários componentes não tinham regras responsivas adequadas:
+
+- **TopBar**: Labels das abas ocupavam espaço valioso em telas pequenas; brand "Escola Bruna Mandz" consumia largura sem necessidade
+- **Toast**: Largura fixa de 380px em qualquer tela — em mobile, ficava cortado
+- **ConfirmModal**: Botões lado a lado em tela estreita — difícil de tocar
+- **Breadcrumbs**: Sem scroll horizontal — quebravam linha em telas pequenas
+- **Gráficos Admin**: Trend chart vertical com 6 meses e barras de 24px — impossível de ler em mobile
+- **Dashboard**: Nome do professor nas aulas ocupava espaço desnecessário
+- **Home**: Cards grandes demais para telas estreitas
+
+---
+
+## Implementações Realizadas
+
+### 1. TopBar — Colapso Mobile (≤640px)
+
+| Elemento | Desktop | Mobile |
+|----------|---------|--------|
+| Brand | 🎵 **Escola Bruna Mandz** | 🎵 (apenas ícone) |
+| Nav tabs | Ícone + Label (ex: 📊 Dashboard) | Apenas ícone (ex: 📊) |
+| Sair botão | 🚪 **Sair** | 🚪 (apenas ícone) |
+| Ícones | 15px | 16px (mais tocáveis) |
+
+- Padding das abas reduzido de `var(--space-2) var(--space-3)` para `var(--space-2)`
+- Indicador ativo (`active::after`) com margens reduzidas
+- Breakpoint adicional de 480px com espaçamento ainda mais compacto
+
+### 2. Breadcrumbs — Scroll Horizontal (≤640px)
+
+- `overflow-x: auto` com `white-space: nowrap`
+- `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`
+- Padding reduzido de `var(--space-3) var(--space-6)` para `var(--space-2) var(--space-3)`
+- Font-size reduzido para 11px
+
+### 3. Toast — Full Width (≤640px)
+
+- `left` e `right`: `var(--space-3)` (antes apenas `right: var(--space-6)`)
+- `max-width`: `100%` (antes 380px)
+- `min-width`: `0` (antes 240px)
+- `width`: `100%`
+
+### 4. ConfirmModal — Botões Empilhados (≤640px)
+
+- `flex-direction: column` nos botões de ação
+- Botões com `width: 100%` e `min-width: 0`
+- Modal com `max-width: calc(100vw - var(--space-6))`
+
+### 5. Page Content — Padding Reduzido (≤640px)
+
+- Padding reduzido de `var(--space-5) var(--space-6)` para `var(--space-3) var(--space-4)`
+
+### 6. Gráficos Admin — Compactados (≤720px)
+
+- Grid de charts: `grid-template-columns: 1fr` (empilhamento vertical)
+- Labels dos gráficos de barra: `min-width: 70px` (antes 100px)
+- Track das barras: `height: 16px` (antes 20px)
+- Trend chart:
+  - Altura reduzida para 120px (antes 160px)
+  - Barras com 18px de largura (antes 24px)
+  - Labels e saldos com font-size 8px
+
+### 7. Dashboard — Otimizações (≤720px)
+
+- Nome do professor (`dash-class-teacher`) oculto nas aulas de hoje
+- ID do pedido (`dash-order-id`) com `min-width: 60px` (antes 90px)
+- Header actions com `width: 100%`
+- Padding dos card headers reduzido
+
+### 8. Breakpoint Muito Pequeno (≤480px)
+
+- **Dashboard**: KPIs mais compactos (ícones 28px, valores 16px, h1 17px)
+- **Home**: Módulos com ícones 32px (antes 40px), padding reduzido, h2 15px
+- **TopBar**: Espaçamento entre abas zerado (`gap: 0`), padding mínimo
+
+---
+
+## Arquivos Alterados
+
+- `app/src/styles/global.css` — breakpoints 640px e 480px: TopBar colapsada, Breadcrumbs scroll, Toast full-width, ConfirmModal empilhado, spacing ajustado
+- `app/src/styles/admin.css` — breakpoint 720px: charts grid 1 coluna, barras compactas, trend chart reduzido
+- `app/src/styles/dashboard.css` — breakpoints 720px e 480px: teacher oculto, cards compactos
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 71 módulos transformados, sem erros
+✅ Code Review — sem issues: ícones consistentes em 16px, sem reflow entre breakpoints
+
+---
+
+## Pendências
+
+- Commit + push de todas as alterações pendentes (Fase 5.2, Fase 6, Fase 7, Fase 5.3) na REFAC
+- Fase 8: melhorias na página Agenda (filtros avançados, exportação)
+
+---
+
+## Próxima Etapa
+
+Commit final de todas as fases na REFAC, ou início da Fase 8 (Agenda).
+
+---
+
+# ETAPA 51 — CORREÇÕES DE CODE REVIEW (FASE 8 PÓS-FIXES)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `b7d8b8e` — "Etapa 51: corrige 3 pontos do code review da Fase 8 (Agenda)"
+
+---
+
+## Objetivo
+
+Corrigir 3 pontos identificados no code review da Fase 8 (Agenda): double-fetch no toggle de viewMode, mapeamento frágil de day_of_week no select de vínculos, e adicionar animação de saída no error banner.
+
+---
+
+## Problemas Identificados
+
+| # | Severidade | Descrição | Localização |
+|:-:|:----------:|-----------|-------------|
+| 1 | 🟡 Média | **Double-fetch ao trocar viewMode**: os handlers de toggle chamavam `loadLessons()` explicitamente, mas `loadLessons` depende de `activeRange` que é derivado de `viewMode` — como `setViewMode` é assíncrono, a chamada explícita usava o range antigo, e o `useEffect([loadLessons])` fazia uma segunda chamada com o range correto | `Agenda.tsx` — handlers onClick dos botões Mês/Semana |
+| 2 | 🟢 Leve | **Mapeamento frágil de `day_of_week`**: `DAY_NAMES[['dom','seg','ter','qua','qui','sex','sab'].indexOf(e.day_of_week)]` — dependia da ordenação exata do array DAY_NAMES; qualquer reordenação no futuro quebraria silenciosamente | `Agenda.tsx` — option no select de vínculos |
+| 3 | 🟢 Leve | **Error banner sem fadeOut**: o `.error-banner` tinha animação de entrada (`slideDown`) mas desaparecia instantaneamente ao ser dismissado, sem transição de saída | `global.css` + `Agenda.tsx` |
+
+---
+
+## Implementações Realizadas
+
+### Fix #1 — Double-fetch no Toggle de ViewMode
+
+- **Problema:** `onClick={() => { setViewMode('month'); loadLessons(); }}` causava 2 chamadas de API a cada toggle
+- **Solução:** removida a chamada explícita de `loadLessons()` dos handlers
+- O `useEffect([loadLessons])` já monitora `activeRange` e faz o fetch automaticamente quando `viewMode` muda
+- Resultado: 1 chamada de API por toggle, não 2
+
+**Antes:**
+```tsx
+onClick={() => { setViewMode('month'); loadLessons(); }}
+```
+
+**Depois:**
+```tsx
+onClick={() => setViewMode('month')}
+```
+
+### Fix #2 — Mapeamento de day_of_week
+
+- **Problema:** `DAY_NAMES[['dom','seg','ter','qua','qui','sex','sab'].indexOf(e.day_of_week)]` — frágil e dependente de ordenação
+- **Solução:** criada constante `DAY_SHORT_TO_LABEL: Record<string, string>` com mapeamento explícito de código curto para label
+
+```tsx
+const DAY_SHORT_TO_LABEL: Record<string, string> = {
+    'dom': 'Domingo',
+    'seg': 'Segunda',
+    'ter': 'Terça',
+    'qua': 'Quarta',
+    'qui': 'Quinta',
+    'sex': 'Sexta',
+    'sab': 'Sábado',
+};
+```
+
+Uso: `DAY_SHORT_TO_LABEL[e.day_of_week] || '?'`
+
+### Fix #3 — Error Banner com FadeOut
+
+- **Problema:** error-banner desaparecia instantaneamente ao ser clicado
+- **Solução:**
+  - `transition: opacity var(--duration-fast) var(--ease-out)` adicionada ao `.error-banner` no CSS global
+  - Classe `.error-banner-hiding { opacity: 0; }` adicionada
+  - Estado `errorLeaving` gerenciado via `useState(false)`
+  - Ao clicar no banner: `setErrorLeaving(true)` → aplica classe `error-banner-hiding` → `setTimeout(150ms)` → remove o estado de erro
+  - Animação suave de 150ms (correspondente a `var(--duration-fast)`)
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Agenda.tsx` | Fix #1 (loadLessons removido dos toggles), Fix #2 (DAY_SHORT_TO_LABEL adicionado), Fix #3 (errorLeaving state + dismiss com fadeOut) |
+| `app/src/styles/global.css` | Fix #3: `transition: opacity` no `.error-banner` + classe `.error-banner-hiding` |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 70 módulos transformados, 4.77s, sem erros
+✅ `npm test` — 29/29 testes passando
+✅ Code Review — sem issues: transition mais adequada que keyframes, `setTimeout` sem stale closure
+
+---
+
+## Pendências
+
+- ~~Commit + push dos arquivos desta etapa~~ ✅
+- Fase 9: Alunos Expandido (guardian fields, source, status lifecycle)
+
+---
+
+## Próxima Etapa
+
+Início da Fase 9 — Alunos Expandido.
+
+---
 

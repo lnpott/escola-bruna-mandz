@@ -132,25 +132,6 @@
     cursor: not-allowed;
 }
 
-/* ── Legacy Link ───────────────────────────────────────────────── */
-
-.login-legacy-link {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1px solid #3f3f46;
-    background: none;
-    color: #71717a;
-    font-size: 12px;
-    text-decoration: none;
-    transition: border-color 0.2s, color 0.2s;
-}
-
-.login-legacy-link:hover {
-    border-color: #52525b;
-    color: #a1a1aa;
-}
 
 /* ── Responsive ───────────────────────────────────────────────── */
 

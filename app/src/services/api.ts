@@ -398,6 +398,54 @@ export async function fetchTeacherPayments(month: number, year: number, paid?: b
     return data.teacher_payments;
 }
 
+// ── Monthly Trend (last N months) ────────────────────────────────
+
+export async function fetchMonthlyTrend(monthsBack: number = 6): Promise<{
+    month: number;
+    year: number;
+    label: string;
+    revenue: number;
+    outgoings: number;
+    balance: number;
+    pending_tuitions: number;
+}[]> {
+    const now = new Date();
+    const months = [];
+    for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+    }
+    const results = await Promise.all(months.map(async ({ month, year }) => {
+        try {
+            const summary = await fetchFinancialSummary(month, year);
+            return {
+                month,
+                year,
+                label: `${String(month).padStart(2, '0')}/${year}`,
+                revenue: summary.revenue,
+                outgoings: summary.outgoings,
+                balance: summary.balance,
+                pending_tuitions: summary.pending_tuitions,
+            };
+        } catch {
+            return {
+                month,
+                year,
+                label: `${String(month).padStart(2, '0')}/${year}`,
+                revenue: 0,
+                outgoings: 0,
+                balance: 0,
+                pending_tuitions: 0,
+            };
+        }
+    }));
+    return results;
+}
+
+
+
+// ── Teacher Payments (Pagamentos a Professores) ─────────────────────
+
 export async function createTeacherPayment(
     tp: { teacher_id: string; reference_month: string; amount: number; paid?: boolean; paid_at?: string; notes?: string }
 ): Promise<TeacherPayment> {

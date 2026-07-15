@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Lesson, LessonStatus, Enrollment } from '@/types';
-import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS } from '@/types';
-import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments } from '@/services/api';
+import type { Lesson, LessonStatus, LessonType, Enrollment, Student, Teacher } from '@/types';
+import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS, LESSON_TYPE_LABELS } from '@/types';
+import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments, fetchStudents, fetchTeachers } from '@/services/api';
+import { useApp } from '@/App';
 import '@/styles/agenda.css';
 
-/* ── helpers ─────────────────────────────────────────────────── */
+// ═══════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════
+
 function formatDate(d: Date): string {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -20,29 +24,109 @@ function getMonthRange(offset: number) {
     const y = year + Math.floor(month / 12);
     const start = new Date(y, m, 1);
     const end = new Date(y, m + 1, 0);
-    // Adjust to start from Sunday before or on the 1st
     const calStart = new Date(start);
     calStart.setDate(calStart.getDate() - calStart.getDay());
-    // Adjust to end on Saturday after or on the last day
     const calEnd = new Date(end);
     calEnd.setDate(calEnd.getDate() + (6 - calEnd.getDay()));
     return { start: calStart, end: calEnd, month: m, year: y };
 }
 
+function getWeekRange(date: Date) {
+    const start = new Date(date);
+    start.setDate(start.getDate() - start.getDay());
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    return { start, end };
+}
 
+function formatDuration(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `${m}min`;
+    if (m === 0) return `${h}h`;
+    return `${h}h${m}`;
+}
 
-/* ── Agenda component ─────────────────────────────────────────── */
+/** Maps short day codes (dom, seg, ...) to display names */
+const DAY_SHORT_TO_LABEL: Record<string, string> = {
+    'dom': 'Domingo',
+    'seg': 'Segunda',
+    'ter': 'Terça',
+    'qua': 'Quarta',
+    'qui': 'Quinta',
+    'sex': 'Sexta',
+    'sab': 'Sábado',
+};
+
+/** Export lessons as CSV download */
+function exportCSV(lessons: Lesson[], filename: string) {
+    const header = 'Data,Dia Semana,Horário,Aluno,Professor,Instrumento,Tipo,Status,Duração,Obs';
+    const rows = lessons.map(l => {
+        const d = new Date(l.date + 'T12:00:00');
+        const dayName = DAY_NAMES[d.getDay()];
+        return [
+            l.date,
+            dayName,
+            l.start_time,
+            l.students?.name || '—',
+            l.teachers?.name || '—',
+            l.instrument || '—',
+            LESSON_TYPE_LABELS[l.lesson_type as LessonType] || l.lesson_type,
+            LESSON_STATUS_LABELS[l.status as LessonStatus] || l.status,
+            formatDuration(l.duration_minutes),
+            (l.notes || '').replace(/,/g, ';'),
+        ].join(',');
+    }).join('\n');
+
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + header + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  AGENDA COMPONENT
+// ═══════════════════════════════════════════════════════════════════
+
 export default function Agenda() {
+    const { showToast, confirm } = useApp();
+
+    // ── View state ─────────────────────────────────────────────
+    const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
     const [monthOffset, setMonthOffset] = useState(0);
+    const [weekStart, setWeekStart] = useState<Date>(() => {
+        const now = new Date();
+        const s = new Date(now);
+        s.setDate(s.getDate() - s.getDay());
+        return s;
+    });
+
+    // ── Data ───────────────────────────────────────────────────
     const [allLessons, setAllLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [errorLeaving, setErrorLeaving] = useState(false);
+    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+    // ── Filters ────────────────────────────────────────────────
+    const [filterStudent, setFilterStudent] = useState('');
+    const [filterTeacher, setFilterTeacher] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [filterType, setFilterType] = useState('');
+
+    // ── Modals ─────────────────────────────────────────────────
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-    const [toast, setToast] = useState('');
 
-    // Form state for create/edit
+    // ── Form ───────────────────────────────────────────────────
     const [form, setForm] = useState({
         id: '',
         enrollment_id: '',
@@ -57,19 +141,26 @@ export default function Agenda() {
         notes: '',
     });
 
-    const range = useMemo(() => getMonthRange(monthOffset), [monthOffset]);
+    // ── Date ranges ────────────────────────────────────────────
+    const monthRange = useMemo(() => getMonthRange(monthOffset), [monthOffset]);
+    const weekRange = useMemo(() => getWeekRange(weekStart), [weekStart]);
 
-    const showToast = useCallback((msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(''), 3000);
+    const activeRange = viewMode === 'month' ? monthRange : { start: weekRange.start, end: weekRange.end, month: weekRange.start.getMonth(), year: weekRange.start.getFullYear() };
+
+    // ── Load data ──────────────────────────────────────────────
+    const loadStudents = useCallback(async () => {
+        try { setStudents(await fetchStudents()); } catch { /* ignore */ }
+    }, []);
+    const loadTeachers = useCallback(async () => {
+        try { setTeachers(await fetchTeachers()); } catch { /* ignore */ }
     }, []);
 
     const loadLessons = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const dateFrom = formatDate(range.start);
-            const dateTo = formatDate(range.end);
+            const dateFrom = formatDate(activeRange.start);
+            const dateTo = formatDate(activeRange.end);
             const lessons = await fetchLessons({ date_from: dateFrom, date_to: dateTo, limit: 500 });
             setAllLessons(lessons);
         } catch (err: any) {
@@ -77,35 +168,37 @@ export default function Agenda() {
         } finally {
             setLoading(false);
         }
-    }, [range]);
+    }, [activeRange]);
 
     const loadEnrollments = useCallback(async () => {
-        try {
-            const enrs = await fetchEnrollments({ status: 'active' });
-            setEnrollments(enrs);
-        } catch { /* ignore */ }
+        try { setEnrollments(await fetchEnrollments({ status: 'active' })); } catch { /* ignore */ }
     }, []);
 
-    useEffect(() => {
-        loadLessons();
-    }, [loadLessons]);
+    useEffect(() => { loadLessons(); }, [loadLessons]);
+    useEffect(() => { loadStudents(); loadTeachers(); }, [loadStudents, loadTeachers]);
+    useEffect(() => { if (showCreateModal) loadEnrollments(); }, [showCreateModal, loadEnrollments]);
 
-    useEffect(() => {
-        if (showCreateModal) loadEnrollments();
-    }, [showCreateModal, loadEnrollments]);
+    // ── Filtered lessons ───────────────────────────────────────
+    const filteredLessons = useMemo(() => {
+        let list = allLessons;
+        if (filterStudent) list = list.filter(l => l.student_id === filterStudent);
+        if (filterTeacher) list = list.filter(l => l.teacher_id === filterTeacher);
+        if (filterStatus) list = list.filter(l => l.status === filterStatus);
+        if (filterType) list = list.filter(l => l.lesson_type === filterType);
+        return list;
+    }, [allLessons, filterStudent, filterTeacher, filterStatus, filterType]);
 
-    // Group lessons by date
     const byDate = useMemo(() => {
         const map: Record<string, Lesson[]> = {};
-        allLessons.forEach(l => {
+        filteredLessons.forEach(l => {
             const d = l.date;
             if (!map[d]) map[d] = [];
             map[d].push(l);
         });
         return map;
-    }, [allLessons]);
+    }, [filteredLessons]);
 
-    // Build calendar days
+    // ── Calendar days ──────────────────────────────────────────
     const days = useMemo(() => {
         const result: {
             date: Date;
@@ -117,36 +210,36 @@ export default function Agenda() {
         }[] = [];
         const today = new Date();
         const todayStr = formatDate(today);
-        const d = new Date(range.start);
-        while (d <= range.end) {
+        const d = new Date(activeRange.start);
+        while (d <= activeRange.end) {
             const dateStr = formatDate(d);
             result.push({
                 date: new Date(d),
                 dateStr,
                 isToday: dateStr === todayStr,
-                isCurrentMonth: d.getMonth() === range.month,
+                isCurrentMonth: d.getMonth() === activeRange.month,
                 dayOfWeek: d.getDay(),
                 lessons: (byDate[dateStr] || []).sort((a, b) => a.start_time.localeCompare(b.start_time)),
             });
             d.setDate(d.getDate() + 1);
         }
         return result;
-    }, [range, byDate]);
+    }, [activeRange, byDate]);
 
-    // Summary counts
+    // ── Summary ────────────────────────────────────────────────
     const summary = useMemo(() => {
         let total = 0, scheduled = 0, completed = 0;
         days.forEach(day => {
-            if (day.isCurrentMonth) {
+            if (day.isCurrentMonth || viewMode === 'week') {
                 total += day.lessons.length;
                 day.lessons.forEach(l => {
                     if (l.status === 'completed') completed++;
-                    else scheduled++;
+                    else if (l.status === 'scheduled') scheduled++;
                 });
             }
         });
         return { total, scheduled, completed };
-    }, [days]);
+    }, [days, viewMode]);
 
     // ── Day modal ──────────────────────────────────────────────
     const selectedDayLessons = useMemo(() => {
@@ -159,6 +252,39 @@ export default function Agenda() {
         const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
         return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
     };
+
+    // ── Navigation ─────────────────────────────────────────────
+    const navigatePrev = () => {
+        if (viewMode === 'month') setMonthOffset(mo => mo - 1);
+        else {
+            const prev = new Date(weekStart);
+            prev.setDate(prev.getDate() - 7);
+            setWeekStart(prev);
+        }
+    };
+
+    const navigateNext = () => {
+        if (viewMode === 'month') setMonthOffset(mo => mo + 1);
+        else {
+            const next = new Date(weekStart);
+            next.setDate(next.getDate() + 7);
+            setWeekStart(next);
+        }
+    };
+
+    const navigateToday = () => {
+        if (viewMode === 'month') setMonthOffset(0);
+        else {
+            const now = new Date();
+            const s = new Date(now);
+            s.setDate(s.getDate() - s.getDay());
+            setWeekStart(s);
+        }
+    };
+
+    const viewLabel = viewMode === 'month'
+        ? `${MONTH_NAMES[monthRange.month]} ${monthRange.year}`
+        : `Semana de ${formatDate(weekRange.start)} a ${formatDate(weekRange.end)}`;
 
     // ── Create / Edit lesson ───────────────────────────────────
     const openCreateModal = (date?: string) => {
@@ -198,12 +324,11 @@ export default function Agenda() {
 
     const handleSaveLesson = async () => {
         if (!form.date || !form.start_time) {
-            showToast('Data e horário são obrigatórios.');
+            showToast('Data e horário são obrigatórios.', 'error');
             return;
         }
         try {
             if (form.id) {
-                // Update existing
                 await updateLesson(form.id, {
                     date: form.date,
                     start_time: form.start_time,
@@ -214,7 +339,6 @@ export default function Agenda() {
                 });
                 showToast('Aula atualizada!');
             } else {
-                // Create new
                 await createLesson({
                     enrollment_id: form.enrollment_id || undefined,
                     student_id: form.student_id || undefined,
@@ -232,7 +356,7 @@ export default function Agenda() {
             setShowCreateModal(false);
             loadLessons();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao salvar aula.');
+            showToast(err.message || 'Erro ao salvar aula.', 'error');
         }
     };
 
@@ -242,18 +366,24 @@ export default function Agenda() {
             showToast(`Aula ${LESSON_STATUS_LABELS[newStatus].toLowerCase()}`);
             loadLessons();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar status.');
+            showToast(err.message || 'Erro ao atualizar status.', 'error');
         }
     };
 
     const handleDeleteLesson = async (lessonId: string) => {
-        if (!confirm('Tem certeza que deseja excluir esta aula?')) return;
+        const confirmed = await confirm({
+            title: 'Excluir aula',
+            message: 'Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita.',
+            confirmText: 'Excluir',
+            danger: true,
+        });
+        if (!confirmed) return;
         try {
             await deleteLesson(lessonId);
             showToast('Aula excluída.');
             loadLessons();
         } catch (err: any) {
-            showToast(err.message || 'Erro ao excluir aula.');
+            showToast(err.message || 'Erro ao excluir aula.', 'error');
         }
     };
 
@@ -277,35 +407,100 @@ export default function Agenda() {
     // ── Render ─────────────────────────────────────────────────
     return (
         <div className="agenda-page">
-            {/* Toast */}
-            {toast && <div className="agenda-toast">{toast}</div>}
+            <h1 className="agenda-title">📅 Agenda</h1>
 
-            <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 20px' }}>📅 Agenda Mensal</h1>
-
-            {/* Toolbar */}
+            {/* ── Toolbar ──────────────────────────────────────── */}
             <div className="agenda-toolbar">
-                <button className="agenda-nav-btn" onClick={() => setMonthOffset(mo => mo - 1)}>‹ Mês Anterior</button>
-                <span className="agenda-month-label">{MONTH_NAMES[range.month]} {range.year}</span>
-                <button className="agenda-nav-btn" onClick={() => setMonthOffset(mo => mo + 1)}>Próximo Mês ›</button>
-                <button className="agenda-nav-btn" onClick={() => setMonthOffset(0)}>📅 Hoje</button>
+                <button className="agenda-nav-btn" onClick={navigatePrev}>‹</button>
+                <span className="agenda-month-label">{viewLabel}</span>
+                <button className="agenda-nav-btn" onClick={navigateNext}>›</button>
+                <button className="agenda-nav-btn" onClick={navigateToday}>📅 Hoje</button>
+
+                <div className="agenda-view-toggle">
+                    <button
+                        className={`agenda-view-btn ${viewMode === 'month' ? 'active' : ''}`}
+                        onClick={() => setViewMode('month')}
+                    >Mês</button>
+                    <button
+                        className={`agenda-view-btn ${viewMode === 'week' ? 'active' : ''}`}
+                        onClick={() => setViewMode('week')}
+                    >Semana</button>
+                </div>
+
                 <button className="agenda-btn-new" onClick={() => openCreateModal()}>➕ Nova Aula</button>
+                {allLessons.length > 0 && (
+                    <button
+                        className="agenda-btn-export"
+                        onClick={() => exportCSV(allLessons, `aulas-${formatDate(new Date())}.csv`)}
+                        title="Exportar CSV"
+                    >⬇ CSV</button>
+                )}
             </div>
 
-            {/* Summary */}
+            {/* ── Filters ──────────────────────────────────────── */}
+            <div className="agenda-filters">
+                <select value={filterStudent} onChange={e => setFilterStudent(e.target.value)}>
+                    <option value="">Todos os alunos</option>
+                    {students.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                </select>
+                <select value={filterTeacher} onChange={e => setFilterTeacher(e.target.value)}>
+                    <option value="">Todos os professores</option>
+                    {teachers.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                </select>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                    <option value="">Todos os status</option>
+                    <option value="scheduled">📅 Agendada</option>
+                    <option value="completed">✅ Realizada</option>
+                    <option value="cancelled">❌ Cancelada</option>
+                </select>
+                <select value={filterType} onChange={e => setFilterType(e.target.value)}>
+                    <option value="">Todos os tipos</option>
+                    <option value="regular">Regular</option>
+                    <option value="make_up">Reposição</option>
+                    <option value="extra">Extra</option>
+                    <option value="trial">Experimental</option>
+                </select>
+                {filterStudent || filterTeacher || filterStatus || filterType ? (
+                    <button className="agenda-filter-clear" onClick={() => {
+                        setFilterStudent('');
+                        setFilterTeacher('');
+                        setFilterStatus('');
+                        setFilterType('');
+                    }}>✕ Limpar filtros</button>
+                ) : null}
+            </div>
+
+            {/* ── Summary ──────────────────────────────────────── */}
             <div className="agenda-summary">
                 <span>Total: <strong>{summary.total}</strong></span>
-                <span className="scheduled-count">Agendadas: <strong>{summary.scheduled}</strong></span>
-                <span className="completed-count">Realizadas: <strong>{summary.completed}</strong></span>
+                <span className="scheduled-count">📌 Agendadas: <strong>{summary.scheduled}</strong></span>
+                <span className="completed-count">✅ Realizadas: <strong>{summary.completed}</strong></span>
+                {allLessons.length > 0 && (
+                    <span className="filtered-hint">
+                        {filteredLessons.length < allLessons.length
+                            ? `Mostrando ${filteredLessons.length} de ${allLessons.length}`
+                            : `${allLessons.length} aulas no período`}
+                    </span>
+                )}
             </div>
 
-            {/* Error */}
-            {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
+            {/* ── Error ────────────────────────────────────────── */}
+            {error && (
+                <div
+                    className={`error-banner${errorLeaving ? ' error-banner-hiding' : ''}`}
+                    onClick={() => { setErrorLeaving(true); setTimeout(() => { setError(''); setErrorLeaving(false); }, 150); }}
+                >{error}</div>
+            )}
 
-            {/* Calendar */}
+            {/* ── Calendar ─────────────────────────────────────── */}
             {loading ? (
                 <div className="loading">Carregando agenda...</div>
             ) : (
-                <div className="agenda-calendar">
+                <div className={`agenda-calendar ${viewMode === 'week' ? 'agenda-week' : ''}`}>
                     {/* Day name headers */}
                     {DAY_NAMES.map((name, i) => (
                         <div key={i} className={`agenda-cal-header ${i === 0 || i === 6 ? 'weekend' : ''}`}>
@@ -352,7 +547,7 @@ export default function Agenda() {
                 </div>
             )}
 
-            {/* ── Day Detail Modal ────────────────────────────── */}
+            {/* ── Day Detail Modal ─────────────────────────────── */}
             {selectedDay && (
                 <div className="agenda-modal-overlay" onClick={() => setSelectedDay(null)}>
                     <div className="agenda-modal agenda-day-modal" onClick={e => e.stopPropagation()}>
@@ -360,7 +555,8 @@ export default function Agenda() {
                             <h3>{formatDayName(selectedDay)}</h3>
                             <button className="agenda-modal-close" onClick={() => setSelectedDay(null)}>✕</button>
                         </div>
-                        <div className="agenda-modal-body">                                {selectedDayLessons.length === 0 ? (
+                        <div className="agenda-modal-body">
+                            {selectedDayLessons.length === 0 ? (
                                 <div className="empty-state empty-state-sm">Nenhuma aula neste dia.</div>
                             ) : (
                                 selectedDayLessons.map(l => (
@@ -386,7 +582,11 @@ export default function Agenda() {
                                             </div>
                                             <div className="lesson-info-row">
                                                 <span className="lesson-label">Duração:</span>
-                                                <span>{l.duration_minutes} min</span>
+                                                <span>{formatDuration(l.duration_minutes)}</span>
+                                            </div>
+                                            <div className="lesson-info-row">
+                                                <span className="lesson-label">Tipo:</span>
+                                                <span>{LESSON_TYPE_LABELS[l.lesson_type as LessonType] || l.lesson_type}</span>
                                             </div>
                                             {l.notes && (
                                                 <div className="lesson-info-row">
@@ -396,37 +596,17 @@ export default function Agenda() {
                                             )}
                                         </div>
                                         <div className="lesson-card-actions">
-                                            <button
-                                                className="btn-lesson-action btn-edit"
-                                                onClick={() => { setSelectedDay(null); handleEditLesson(l); }}
-                                                title="Editar"
-                                            >✏️</button>
+                                            <button className="btn-lesson-action btn-edit" onClick={() => { setSelectedDay(null); handleEditLesson(l); }} title="Editar">✏️</button>
                                             {l.status === 'scheduled' && (
-                                                <button
-                                                    className="btn-lesson-action btn-complete"
-                                                    onClick={() => handleStatusChange(l.id, 'completed')}
-                                                    title="Marcar como realizada"
-                                                >✅</button>
+                                                <button className="btn-lesson-action btn-complete" onClick={() => handleStatusChange(l.id, 'completed')} title="Marcar como realizada">✅</button>
                                             )}
                                             {l.status === 'scheduled' && (
-                                                <button
-                                                    className="btn-lesson-action btn-cancel"
-                                                    onClick={() => handleStatusChange(l.id, 'cancelled')}
-                                                    title="Cancelar aula"
-                                                >❌</button>
+                                                <button className="btn-lesson-action btn-cancel" onClick={() => handleStatusChange(l.id, 'cancelled')} title="Cancelar aula">❌</button>
                                             )}
                                             {l.status === 'completed' && (
-                                                <button
-                                                    className="btn-lesson-action btn-revert"
-                                                    onClick={() => handleStatusChange(l.id, 'scheduled')}
-                                                    title="Reverter para agendada"
-                                                >↩️</button>
+                                                <button className="btn-lesson-action btn-revert" onClick={() => handleStatusChange(l.id, 'scheduled')} title="Reverter para agendada">↩️</button>
                                             )}
-                                            <button
-                                                className="btn-lesson-action btn-delete"
-                                                onClick={() => handleDeleteLesson(l.id)}
-                                                title="Excluir"
-                                            >🗑️</button>
+                                            <button className="btn-lesson-action btn-delete" onClick={() => handleDeleteLesson(l.id)} title="Excluir">🗑️</button>
                                         </div>
                                     </div>
                                 ))
@@ -440,7 +620,7 @@ export default function Agenda() {
                 </div>
             )}
 
-            {/* ── Create / Edit Lesson Modal ──────────────────── */}
+            {/* ── Create / Edit Lesson Modal ───────────────────── */}
             {showCreateModal && (
                 <div className="agenda-modal-overlay" onClick={() => setShowCreateModal(false)}>
                     <div className="agenda-modal agenda-form-modal" onClick={e => e.stopPropagation()}>
@@ -452,58 +632,56 @@ export default function Agenda() {
                             <div className="agenda-form-grid">
                                 <div className="form-group">
                                     <label>Vínculo (opcional)</label>
-                                    <select
-                                        value={form.enrollment_id}
-                                        onChange={e => handleEnrollmentChange(e.target.value)}
-                                    >
+                                    <select value={form.enrollment_id} onChange={e => handleEnrollmentChange(e.target.value)}>
                                         <option value="">— Sem vínculo —</option>
                                         {enrollments.map(e => (
                                             <option key={e.id} value={e.id}>
-                                                {e.students?.name || '?'} — {e.day_of_week ? DAY_NAMES[['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'].indexOf(e.day_of_week)] : '?'} {e.class_time || ''}
+                                                {e.students?.name || '?'} — {e.day_of_week ? (DAY_SHORT_TO_LABEL[e.day_of_week] || '?') : '?'} {e.class_time || ''}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>Data *</label>
-                                    <input type="date" value={form.date}
-                                        onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                                    <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
                                 </div>
                                 <div className="form-group">
                                     <label>Horário *</label>
-                                    <input type="time" value={form.start_time}
-                                        onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
+                                    <input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Duração (min)</label>
-                                    <input type="number" min={15} max={240} step={5} value={form.duration_minutes}
-                                        onChange={e => setForm(f => ({ ...f, duration_minutes: Number(e.target.value) }))} />
+                                    <label>Duração</label>
+                                    <input type="number" min={15} max={240} step={5} value={form.duration_minutes} onChange={e => setForm(f => ({ ...f, duration_minutes: Number(e.target.value) }))} />
                                 </div>
                                 {!form.enrollment_id && (
                                     <>
                                         <div className="form-group">
-                                            <label>Aluno ID</label>
-                                            <input type="text" value={form.student_id}
-                                                onChange={e => setForm(f => ({ ...f, student_id: e.target.value }))}
-                                                placeholder="ST-XXXXXX" />
+                                            <label>Aluno</label>
+                                            <select value={form.student_id} onChange={e => setForm(f => ({ ...f, student_id: e.target.value }))}>
+                                                <option value="">Selecione...</option>
+                                                {students.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="form-group">
-                                            <label>Professor ID</label>
-                                            <input type="text" value={form.teacher_id}
-                                                onChange={e => setForm(f => ({ ...f, teacher_id: e.target.value }))}
-                                                placeholder="TE-XXXXXX" />
+                                            <label>Professor</label>
+                                            <select value={form.teacher_id} onChange={e => setForm(f => ({ ...f, teacher_id: e.target.value }))}>
+                                                <option value="">Selecione...</option>
+                                                {teachers.map(t => (
+                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="form-group">
                                             <label>Instrumento</label>
-                                            <input type="text" value={form.instrument}
-                                                onChange={e => setForm(f => ({ ...f, instrument: e.target.value }))} />
+                                            <input type="text" value={form.instrument} onChange={e => setForm(f => ({ ...f, instrument: e.target.value }))} />
                                         </div>
                                     </>
                                 )}
                                 <div className="form-group">
                                     <label>Tipo de Aula</label>
-                                    <select value={form.lesson_type}
-                                        onChange={e => setForm(f => ({ ...f, lesson_type: e.target.value }))}>
+                                    <select value={form.lesson_type} onChange={e => setForm(f => ({ ...f, lesson_type: e.target.value }))}>
                                         <option value="regular">Regular</option>
                                         <option value="make_up">Reposição</option>
                                         <option value="extra">Extra</option>
@@ -513,20 +691,16 @@ export default function Agenda() {
                                 {form.id && (
                                     <div className="form-group">
                                         <label>Status</label>
-                                        <select value={form.status}
-                                            onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                                        <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
                                             <option value="scheduled">📅 Agendada</option>
                                             <option value="completed">✅ Realizada</option>
                                             <option value="cancelled">❌ Cancelada</option>
-                                            <option value="make_up">🔄 Reposição</option>
                                         </select>
                                     </div>
                                 )}
                                 <div className="form-group form-group-full">
                                     <label>Observações</label>
-                                    <textarea value={form.notes}
-                                        onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                        rows={3} />
+                                    <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} />
                                 </div>
                             </div>
                             <div className="agenda-form-actions">
