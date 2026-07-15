@@ -869,7 +869,7 @@ Início da Fase 9 — Alunos Expandido.
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** (pendente)
+**Commit Git:** a428b14
 
 ---
 
