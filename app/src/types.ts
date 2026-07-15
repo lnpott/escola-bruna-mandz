@@ -355,12 +355,18 @@ export interface Order {
     id: string;
     customer_name: string;
     customer_email: string;
+    customer_phone?: string;
     total: number;
     status: string;
+    method: string;
+    items: any;
+    mp_payment_id?: string;
+    mp_status?: string;
+    mp_status_detail?: string;
+    earned_xp: number;
+    customer_is_student: boolean;
     created_at: string;
-    items?: string;
-    shipping_address?: string;
-    payment_method?: string;
+    updated_at: string;
 }
 
 export interface Product {
@@ -372,7 +378,10 @@ export interface Product {
     category: string;
     image?: string;
     active: boolean;
-    sizes?: string;
     badge?: string;
+    badge_color?: string;
+    reward_xp: number;
+    variants: any;
     created_at: string;
+    updated_at: string;
 }

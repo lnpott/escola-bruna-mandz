@@ -206,15 +206,18 @@ export default function Store() {
     };
 
     // ── Parse order items ──────────────────────────────────────
-    const parseItems = (itemsStr?: string): { name: string; quantity: number; price: number }[] => {
-        if (!itemsStr) return [];
-        try {
-            const parsed = JSON.parse(itemsStr);
-            if (Array.isArray(parsed)) return parsed;
-            return [];
-        } catch {
-            return [];
+    const parseItems = (items: any): { name: string; quantity: number; price: number }[] => {
+        if (!items) return [];
+        // Supabase retorna jsonb já parseado como objeto JS
+        if (Array.isArray(items)) return items;
+        // Fallback para string JSON (legado)
+        if (typeof items === 'string') {
+            try {
+                const parsed = JSON.parse(items);
+                if (Array.isArray(parsed)) return parsed;
+            } catch { /* ignore */ }
         }
+        return [];
     };
 
     // ══════════════════════════════════════════════════════════════
@@ -429,14 +432,9 @@ export default function Store() {
                                         ) : (
                                             <p className="store-sub-text">Itens não disponíveis.</p>
                                         )}
-                                        {order.shipping_address && (
+                                        {order.method && (
                                             <div className="store-order-info">
-                                                <strong>Endereço:</strong> {order.shipping_address}
-                                            </div>
-                                        )}
-                                        {order.payment_method && (
-                                            <div className="store-order-info">
-                                                <strong>Pagamento:</strong> {order.payment_method}
+                                                <strong>Pagamento:</strong> {order.method.toUpperCase()}
                                             </div>
                                         )}
                                     </div>
