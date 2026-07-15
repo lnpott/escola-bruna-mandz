@@ -1245,3 +1245,148 @@ Nenhuma.
 Relatórios Financeiros ou Pagamento Automático a Professor.
 
 ---
+
+# ETAPA 56 — CORREÇÃO DE ISSUES MENORES (CSS, XSS, LOG)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `089df38` — "fix: issues menores - CSS btn-primary global, escapeHtml na store, console.warn"
+
+---
+
+## Objetivo
+
+Corrigir 3 issues menores identificados no code review completo: CSS `.btn-primary`/`.btn-secondary` duplicados entre arquivos, `innerHTML` sem sanitização na loja vanilla JS (risco XSS), e `console.error` em produção.
+
+---
+
+## Problemas Identificados
+
+| # | Severidade | Descrição | Localização |
+|:-:|:----------:|-----------|-------------|
+| 1 | 🟢 Leve | **CSS `.btn-primary`/`.btn-secondary` definidos em `students.css`** mas usados por várias páginas (Students, Teachers, Enrollments, Agenda, Dashboard). Deveriam estar em `global.css`, não em um CSS de página específica. | `app/src/styles/students.css` (linhas 182-240) |
+| 2 | 🟢 Leve | **`innerHTML` sem sanitização na loja** — dados dinâmicos do banco (nome do produto, descrição, imagem, badge, variantes) eram interpolados diretamente em template literals, sem escapar caracteres HTML. | `store/store.js` (8+ interpolações) |
+| 3 | 🟢 Leve | **`console.error` em produção** — a loja vanilla JS usava `console.error` para logar erros de carregamento de produtos. | `store/store.js` linha 32 |
+
+---
+
+## Implementações Realizadas
+
+### Fix #1 — Botões Globais Consolidados em `global.css`
+
+**Antes:** As classes `.btn-primary`, `.btn-secondary` (com estados hover, active, disabled) estavam definidas em `app/src/styles/students.css` — disponíveis apenas quando a página Students carregava. Outras páginas que usam esses botões dependiam de ordem de carregamento CSS.
+
+**Depois:**
+
+1. **Adicionado** bloco `/* ── Global Buttons ── */` em `global.css` com:
+   - `.btn-primary` (gradiente verde, hover com glow, disabled opaco)
+   - `.btn-secondary` (borda, hover com destaque vermelho)
+   - `.btn-danger` (já existia, movido junto para organização)
+2. **Substituído** o bloco duplicado em `students.css` por um comentário: `/* ── Buttons (defined in global.css) ── */`
+
+`global.css` agora é a única fonte de verdade para botões, importado por `App.tsx` e disponível em todas as páginas. As definições são idênticas às que estavam em `students.css` — sem mudança visual.
+
+### Fix #2 — Sanitização de `innerHTML` na Loja
+
+**Problema:** A loja vanilla JS (`store/store.js`) usava `innerHTML` com template literals contendo dados do banco:
+
+```javascript
+area.innerHTML = filtered.map((product) => `
+    <img src="${product.image}" alt="${product.name}" />
+    <h3>${product.name}</h3>
+    <p>${product.description}</p>
+    ...`
+```
+
+Se um nome de produto contivesse `<script>alert('xss')</script>`, o script seria executado.
+
+**Solução:**
+
+1. **Função `esc()`** adicionada:
+```javascript
+function esc(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+```
+
+Essa função usa a abordagem DOM-based padrão: cria um `TextNode` (que escapa automaticamente `<`, `>`, `&`, `'`, `"`) e lê de volta o HTML escapado via `innerHTML`.
+
+2. **Interpolações sanitizadas**:
+
+| Local | Dado | Antes | Depois |
+|-------|------|-------|--------|
+| Badge | `product.badge` | `${product.badge}` | `${esc(product.badge)}` |
+| Imagem | `product.image` | `${product.image}` | `${esc(product.image)}` |
+| Nome (produto) | `product.name` | `${product.name}` | `${esc(product.name)}` |
+| Descrição | `product.description` | `${product.description}` | `${esc(product.description || '')}` |
+| Categoria | `product.category` | `${categoryLabel(...)}` | `${esc(categoryLabel(...))}` |
+| Tamanhos | `s` (size variant) | `${s}` | `${esc(s)}` |
+| Nome (carrinho) | `item.name` | `${item.name}` | `${esc(item.name)}` |
+| Variante | `item.variant` | `${item.variant}` | `${esc(item.variant)}` |
+
+3. **Data attributes** também sanitizados para prevenir quebra de HTML:
+   - `data-variant="${esc(item.variant ?? '')}"`
+   - `data-size="${esc(s)}"`
+
+### Fix #3 — `console.error` → `console.warn`
+
+**Antes:**
+```javascript
+console.error('store.js: erro ao carregar produtos:', err.message);
+```
+
+**Depois:**
+```javascript
+console.warn('store.js: erro ao carregar produtos:', err.message);
+```
+
+`console.error` deve ser reservado para erros que afetam o usuário final. Um erro de carregamento de produtos com fallback visual (mensagem amigável) é um aviso, não um erro crítico. A store já trata esse erro exibindo uma mensagem "Erro ao carregar os produtos. Por favor, recarregue a página."
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/styles/global.css` | Adicionado bloco "Global Buttons" com `.btn-primary`, `.btn-secondary`, `.btn-danger` |
+| `app/src/styles/students.css` | Bloco `.btn-primary`/`.btn-secondary` removido (~60 linhas), substituído por comentário |
+| `store/store.js` | Adicionada função `esc()`, sanitizadas 8+ interpolações, `console.error` → `console.warn` |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 71 módulos, 2.58s, sem erros
+✅ Code Review — 1 issue corrigido (variantLabel faltando esc() na renderização do carrinho)
+✅ Build final — 3.08s, sem erros
+
+---
+
+## Pendências
+
+- ~~Mover .btn-primary/.btn-secondary para global.css~~ ✅
+- ~~Sanitizar innerHTML na store com esc()~~ ✅
+- ~~Substituir console.error por console.warn~~ ✅
+- Relatórios Financeiros (fechamento mensal, exportação)
+- Pagamento automático a professor (rate_per_class × aulas do mês)
+
+---
+
+## Próxima Etapa
+
+Relatórios Financeiros ou Pagamento Automático a Professor.
+
+---
