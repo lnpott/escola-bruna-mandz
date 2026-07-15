@@ -1787,3 +1787,167 @@ Nenhuma. Apenas alinhamento de tipos TypeScript com o schema já existente.
 Deploy na Vercel + validação da página Loja em produção.
 
 ---
+
+# ETAPA 61 — WIZARD DE CADASTRO DE ALUNO (MATRÍCULA INTEGRADA)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `e8da3b7` — "feat: wizard de cadastro de aluno passo-a-passo com matricula integrada"
+
+---
+
+## Objetivo
+
+Substituir o formulário plano de criação de aluno por um wizard passo-a-passo que guia o usuário por todas as etapas de cadastro, incluindo matrícula integrada com escolha de instrumento, professor, horário, valor e opção de agendar a primeira aula.
+
+---
+
+## Problema Original
+
+O formulário de criação de aluno era um formulário plano único, onde:
+- Campos de matrícula eram uma seção opcional escondida no meio do formulário
+- Usuário precisava criar o aluno, depois ir em Matrículas para criar o vínculo manualmente
+- Não havia fluxo guiado — decisões como instrumento, professor e horário ficavam todas misturadas
+
+---
+
+## Fluxo do Wizard (8 etapas)
+
+```
+[Step 1: Dados do Aluno]
+    ↓
+[Step 2: Já Matriculado?]
+    ├── (Não) → Pula para Confirmação
+    └── (Sim) → Continua
+              ↓
+         [Step 3: Instrumento]
+              ↓
+         [Step 4: Professor]
+              ├── (Não) → "Definir depois"
+              └── (Sim) → Selecionar da lista
+                          ↓
+                    [Step 5: Dia e Horário]
+                          ↓
+                    [Step 6: Valor]
+                          ↓
+                    [Step 7: Agendar 1ª Aula?]
+                          ├── (Não) → Status: enrolled
+                          └── (Sim) → Date/Time picker
+                                      ↓
+                              [Step 8: Confirmação] → Salvar
+```
+
+---
+
+## Implementações Realizadas
+
+### 1. StepIndicator — Stepper Visual
+
+- Círculos numerados no topo do modal, dentro da overlay
+- Passo atual destacado em vermelho (`--color-accent`)
+- Passos concluídos em verde (`--color-success`) com ✓
+- Passos futuros em cinza
+- Quando `wizard_already_enrolled === false`, etapas 3-8 são ocultadas do indicador
+- Scroll horizontal em telas muito pequenas
+
+### 2. Etapa 1 — Dados do Aluno
+
+- Nome completo (obrigatório), CPF, e-mail, telefone, endereço, origem do lead
+- Seção "Responsável (se menor)" com nome, CPF e telefone do responsável
+
+### 3. Etapa 2 — Já Matriculado?
+
+- Dois botões grandes de escolha estilo card:
+  - ✅ "Sim, já vai se matricular" — continua para etapas 3-8
+  - 📋 "Ainda não" — pula direto para Confirmação (salva apenas o aluno como lead/interesse)
+- Efeito visual de seleção com borda vermelha e fundo highlight
+
+### 4. Etapa 3 — Instrumento
+
+- Grid de chips com seleção única (radio-style)
+- 17 instrumentos disponíveis: Piano, Teclado, Violão, Guitarra, Baixo, Bateria, Canto, Violino, Viola, Violoncelo, Saxofone, Flauta, Ukulele, Cavaquinho, Acordeon, Musicalização Infantil, Teoria Musical
+
+### 5. Etapa 4 — Professor
+
+- Dois botões: "✅ Sim, escolher agora" ou "⏸️ Definir depois"
+- Se escolher agora: dropdown com todos os professores cadastrados
+- Se definir depois: mensagem informativa que pode ser feito na página de Matrículas
+
+### 6. Etapa 5 — Dia e Horário
+
+- Dia da semana (Segunda a Sábado)
+- Horário da aula (input type="time")
+- Duração: 30, 45, 60 ou 90 minutos
+- Frequência: 1x ou 2x por semana
+
+### 7. Etapa 6 — Valor
+
+- Valor mensal (input com filtro BRL: `parseBRL()` trata `"1.500,00" → 1500.00`)
+- Tipo de cobrança: Mensal, Semanal ou Semestral/Anual
+
+### 8. Etapa 7 — Agendar 1ª Aula?
+
+- Dois botões grandes:
+  - 📅 "Sim, agendar agora" — exibe campos de data + horário
+  - ⏳ "Depois" — status do vínculo fica como "enrolled"
+
+### 9. Etapa 8 — Confirmação
+
+- Resumo visual em cards:
+  - 📋 Dados do Aluno: nome, CPF, e-mail, telefone, responsável
+  - 📚 Matrícula (se aplicável): instrumento, professor, dia/horário, duração, valor, cobrança, 1ª aula
+
+### 10. Lógica de Salvamento
+
+- `handleWizardSave()`:
+  - Filtra campos do wizard do payload do aluno
+  - Cria o aluno
+  - Se `wizard_already_enrolled === true` e instrumento definido: cria matrícula via `createEnrollment`
+  - Toast de sucesso
+
+### 11. Edição de Aluno (inalterada)
+
+- O modal de **edição** continua sendo formulário plano (sem wizard)
+- A edição não permite criar nova matrícula — apenas manipular dados do aluno
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Students.tsx` | **Reescrita do modal**: wizard de 8 etapas, StepIndicator, `parseBRL` module-level, `handleWizardSave`, edição continua plano |
+| `app/src/styles/students.css` | **+250 linhas**: wizard-steps, wizard-step-circle, wizard-yesno, wizard-btn-choice, wizard-instrument-grid, wizard-nav, wizard-summary |
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Tudo é frontend consumindo APIs existentes (`createStudent`, `createEnrollment`).
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 73 módulos transformados, 4.61s, sem erros
+✅ Code Review — 3 issues corrigidos (layout wizard-steps fora da overlay, parseBRL não compartilhado, delete redundante)
+
+---
+
+## Pendências
+
+- ~~Implementar wizard de cadastro de aluno~~ ✅
+- ~~parseBRL extraído para nível de módulo~~ ✅
+- Deploy na Vercel + validação do wizard em produção
+
+---
+
+## Próxima Etapa
+
+Deploy na Vercel + validação do wizard de cadastro de aluno em produção.
+
+---
