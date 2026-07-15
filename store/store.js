@@ -10,6 +10,14 @@ import { openCheckoutFlow } from './checkout-modal.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+/** Escapa caracteres HTML para prevenir XSS em dados dinâmicos */
+function esc(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
 // ─── Cache de produtos (carregados via /api/products) ─────────────────────────
 
 let PRODUCTS = [];
@@ -29,7 +37,7 @@ async function loadProducts() {
         const { products } = await res.json();
         PRODUCTS = Array.isArray(products) ? products : [];
     } catch (err) {
-        console.error('store.js: erro ao carregar produtos:', err.message);
+        console.warn('store.js: erro ao carregar produtos:', err.message);
         PRODUCTS = [];
         productLoadError = true;
     }
@@ -58,7 +66,7 @@ function badgeHtml(product) {
     } else {
         cls = BADGE_COLORS[product.badgeColor] || 'bg-red-600 text-white';
     }
-    return `<span class="store-badge ${cls}">${product.badge}</span>`;
+    return `<span class="store-badge ${cls}">${esc(product.badge)}</span>`;
 }
 
 // ─── Seletor de variante ──────────────────────────────────────────────────────
@@ -66,7 +74,7 @@ function badgeHtml(product) {
 function variantHtml(product) {
     if (!product.variants?.sizes?.length) return '';
     const options = product.variants.sizes
-        .map((s) => `<button type="button" class="size-btn" data-size="${s}" data-product-id="${product.id}">${s}</button>`)
+        .map((s) => `<button type="button" class="size-btn" data-size="${esc(s)}" data-product-id="${product.id}">${esc(s)}</button>`)
         .join('');
     return `
         <div class="size-selector" data-product-id="${product.id}">
@@ -117,13 +125,13 @@ export function renderProducts() {
     area.innerHTML = filtered.map((product) => `
         <article class="product-card" data-product-id="${product.id}">
             <div class="product-img-wrap">
-                <img src="${product.image}" alt="${product.name}" loading="lazy" />
+                <img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" />
                 ${badgeHtml(product)}
             </div>
             <div class="product-info">
-                <span class="product-category">${categoryLabel(product.category)}</span>
-                <h3 class="product-name">${product.name}</h3>
-                <p class="product-desc">${product.description}</p>
+                <span class="product-category">${esc(categoryLabel(product.category))}</span>
+                <h3 class="product-name">${esc(product.name)}</h3>
+                <p class="product-desc">${esc(product.description || '')}</p>
                 ${variantHtml(product)}
                 <div class="product-footer">
                     <span class="product-price">${money.format(product.price)}</span>
@@ -171,11 +179,10 @@ export function renderCart() {
     if (area) {
         area.innerHTML = cart.length
             ? cart.map((item) => {
-                const variantLabel = item.variant ? `<span class="cart-variant">${item.variant}</span>` : '';
+                const variantLabel = item.variant ? `<span class="cart-variant">${esc(item.variant)}</span>` : '';
                 return `
                     <div class="cart-line">
-                        <div class="cart-line-info">
-                            <span class="cart-line-name">${item.name}${variantLabel}</span>
+                        <div class="cart-line-info">                                <span class="cart-line-name">${esc(item.name)}${variantLabel}</span>
                             <span class="cart-line-unit">${money.format(item.price)} × ${item.quantity}</span>
                         </div>
                         <div class="cart-line-actions">
@@ -188,7 +195,7 @@ export function renderCart() {
                             </div>
                             <strong class="cart-line-total">${money.format(item.price * item.quantity)}</strong>
                             <button type="button" class="cart-remove-btn"
-                                data-remove-product="${item.id}" data-variant="${item.variant ?? ''}"
+                                data-remove-product="${item.id}" data-variant="${esc(item.variant ?? '')}"
                                 title="Remover item">×</button>
                         </div>
                     </div>`;
