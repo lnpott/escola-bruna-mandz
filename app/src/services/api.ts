@@ -400,6 +400,32 @@ export async function createInvestment(
 
 // ── Teacher Payments (Pagamentos a Professores) ─────────────────────
 
+// ── Financial Report (detailed) ─────────────────────────────────────
+
+export async function fetchFinancialReport(params: {
+    month?: number;
+    year?: number;
+    date_from?: string;
+    date_to?: string;
+}): Promise<import('@/types').FinancialReport> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const searchParams = new URLSearchParams({ resource: 'financial_report' });
+    if (params.month) searchParams.set('month', String(params.month));
+    if (params.year) searchParams.set('year', String(params.year));
+    if (params.date_from) searchParams.set('date_from', params.date_from);
+    if (params.date_to) searchParams.set('date_to', params.date_to);
+
+    const response = await fetch(`${API_BASE}?${searchParams.toString()}`, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+}
+
 export async function fetchTeacherPayments(month: number, year: number, paid?: boolean): Promise<TeacherPayment[]> {
     const password = sessionStorage.getItem('admin_password');
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };

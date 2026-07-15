@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '@/App';
 import {
     fetchFinancialSummary,
+    fetchFinancialReport,
     fetchPayments, createPayment,
     fetchExpenses, createExpense, updateExpense,
     fetchInvestments, createInvestment,
@@ -15,6 +16,7 @@ import type {
     Payment, Expense, Investment, TeacherPayment,
     Student, Teacher,
 } from '@/types';
+import { MONTH_NAMES } from '@/types';
 import '@/styles/financial.css';
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -42,13 +44,14 @@ function formatDateTime(iso: string): string {
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const YEARS = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 2 + i);
 
-type FinTab = 'payments' | 'expenses' | 'investments' | 'teacher_payments';
+type FinTab = 'payments' | 'expenses' | 'investments' | 'teacher_payments' | 'report';
 
 const TAB_LABELS: Record<FinTab, string> = {
     payments: '🧾 Receitas Avulsas',
     expenses: '📉 Custos',
     investments: '📈 Investimentos',
     teacher_payments: '👨‍🏫 Pag. Professores',
+    report: '📊 Relatório',
 };
 
 function parseCurrencyInput(value: string): number {
@@ -131,6 +134,16 @@ export default function Financial() {
 
     const { showToast, confirm } = useApp();
 
+    // ── Report state ─────────────────────────────────────────────
+    const [dateRangeMode, setDateRangeMode] = useState<'month' | 'custom'>('month');
+    const [customDateFrom, setCustomDateFrom] = useState(() => {
+        const d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+    });
+    const [customDateTo, setCustomDateTo] = useState(() => new Date().toISOString().slice(0, 10));
+    const [report, setReport] = useState<import('@/types').FinancialReport | null>(null);
+    const [reportLoading, setReportLoading] = useState(false);
+
     // ── Submitting guard ──────────────────────────────────────────
     const [submitting, setSubmitting] = useState(false);
 
@@ -188,10 +201,31 @@ export default function Financial() {
 
     useEffect(() => { loadSubList(); }, [loadSubList]);
 
+    // ── Load report data ─────────────────────────────────────────
+    const loadReport = useCallback(async () => {
+        setReportLoading(true);
+        try {
+            const params = dateRangeMode === 'month'
+                ? { month, year }
+                : { date_from: customDateFrom, date_to: customDateTo };
+            const data = await fetchFinancialReport(params);
+            setReport(data);
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao carregar relatório.', 'error');
+        } finally {
+            setReportLoading(false);
+        }
+    }, [month, year, dateRangeMode, customDateFrom, customDateTo]);
+
+    useEffect(() => {
+        if (activeTab === 'report') loadReport();
+    }, [activeTab, loadReport]);
+
     // ── Refresh all ──────────────────────────────────────────────
     const handleRefresh = () => {
         loadSummary();
         loadSubList();
+        if (activeTab === 'report') loadReport();
     };
 
     // ══════════════════════════════════════════════════════════════════
@@ -694,6 +728,256 @@ export default function Financial() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── Tab: Report ──────────────────────────────────── */}
+            {activeTab === 'report' && (
+                <div className="fin-tab-content">
+                    {/* Report period selector */}
+                    <div className="fin-report-header">
+                        <div className="fin-report-mode-toggle">
+                            <button
+                                className={`fin-report-mode-btn ${dateRangeMode === 'month' ? 'active' : ''}`}
+                                onClick={() => setDateRangeMode('month')}
+                            >
+                                📅 Mês
+                            </button>
+                            <button
+                                className={`fin-report-mode-btn ${dateRangeMode === 'custom' ? 'active' : ''}`}
+                                onClick={() => setDateRangeMode('custom')}
+                            >
+                                📆 Período Personalizado
+                            </button>
+                        </div>
+                        <div className="fin-report-controls">
+                            {dateRangeMode === 'month' ? (
+                                <>
+                                    <select value={month} onChange={e => setMonth(Number(e.target.value))}>
+                                        {MONTHS.map(m => (
+                                            <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+                                        ))}
+                                    </select>
+                                    <select value={year} onChange={e => setYear(Number(e.target.value))}>
+                                        {YEARS.map(y => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </>
+                            ) : (
+                                <>
+                                    <label>De:</label>
+                                    <input type="date" value={customDateFrom}
+                                        onChange={e => setCustomDateFrom(e.target.value)} />
+                                    <label>Até:</label>
+                                    <input type="date" value={customDateTo}
+                                        onChange={e => setCustomDateTo(e.target.value)} />
+                                </>
+                            )}
+                            <button className="fin-btn fin-btn-secondary" onClick={loadReport}>
+                                🔍 Gerar Relatório
+                            </button>
+                            {report && (
+                                <button className="fin-btn fin-btn-primary" onClick={() => window.print()}>
+                                    🖨️ Exportar PDF
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {reportLoading && <div className="loading">Gerando relatório...</div>}
+
+                    {report && (
+                        <div className="fin-report-content">
+                            {/* Report Title */}
+                            <div className="fin-report-title">
+                                <h2>📊 Relatório Financeiro</h2>
+                                <p className="fin-report-period">
+                                    {report.period.month
+                                        ? `${MONTH_NAMES[report.period.month - 1]} de ${report.period.year}`
+                                        : `${formatDate(report.period.dateFrom || '')} — ${formatDate(report.period.dateTo || '')}`}
+                                </p>
+                                <p className="fin-report-date">Gerado em: {formatDateTime(new Date().toISOString())}</p>
+                            </div>
+
+                            {/* KPI Summary */}
+                            <div className="fin-report-section">
+                                <h3>📈 Resumo do Período</h3>
+                                <div className="fin-report-kpis">
+                                    <div className="fin-report-kpi good">
+                                        <span className="fin-report-kpi-label">Receita Total</span>
+                                        <span className="fin-report-kpi-value">{formatCurrency(report.summary.revenue)}</span>
+                                    </div>
+                                    <div className="fin-report-kpi warn">
+                                        <span className="fin-report-kpi-label">Despesas Pagas</span>
+                                        <span className="fin-report-kpi-value">{formatCurrency(report.summary.outgoings)}</span>
+                                    </div>
+                                    <div className={`fin-report-kpi ${report.summary.balance >= 0 ? 'good' : 'bad'}`}>
+                                        <span className="fin-report-kpi-label">Saldo Líquido</span>
+                                        <span className="fin-report-kpi-value">{formatCurrency(report.summary.balance)}</span>
+                                    </div>
+                                    <div className="fin-report-kpi warn">
+                                        <span className="fin-report-kpi-label">Mensalidades Pendentes</span>
+                                        <span className="fin-report-kpi-value">{formatCurrency(report.summary.pending_tuitions)}</span>
+                                    </div>
+                                    <div className={`fin-report-kpi ${report.summary.overdue_students > 0 ? 'bad' : 'good'}`}>
+                                        <span className="fin-report-kpi-label">Alunos em Atraso</span>
+                                        <span className="fin-report-kpi-value">{report.summary.overdue_students}</span>
+                                    </div>
+                                    <div className="fin-report-kpi warn">
+                                        <span className="fin-report-kpi-label">A Pagar Professores</span>
+                                        <span className="fin-report-kpi-value">{formatCurrency(report.summary.pending_teacher_payments)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Revenue Breakdown */}
+                            <div className="fin-report-section">
+                                <h3>💰 Receitas</h3>
+                                <div className="fin-report-grid">
+                                    <div className="fin-report-card">
+                                        <div className="fin-report-card-header">
+                                            <span>📋 Mensalidades Recebidas</span>
+                                            <span className="fin-report-card-value good">{formatCurrency(report.breakdown.tuitions_collected)}</span>
+                                        </div>
+                                        <div className="fin-report-card-sub">{report.breakdown.tuitions_count} mensalidades pagas</div>
+                                    </div>
+                                    {report.breakdown.avulso_payments.length > 0 && (
+                                        <div className="fin-report-card">
+                                            <div className="fin-report-card-header">
+                                                <span>🧾 Receitas Avulsas</span>
+                                                <span className="fin-report-card-value good">{formatCurrency(
+                                                    report.breakdown.avulso_payments.reduce((s, p) => s + p.total, 0)
+                                                )}</span>
+                                            </div>
+                                            <div className="fin-report-breakdown">
+                                                {report.breakdown.avulso_payments.map(p => (
+                                                    <div key={p.category} className="fin-report-breakdown-row">
+                                                        <span className="fin-pill">{p.category}</span>
+                                                        <span>{p.count}x</span>
+                                                        <span>{formatCurrency(p.total)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Expenses Breakdown */}
+                            <div className="fin-report-section">
+                                <h3>📉 Despesas</h3>
+                                <div className="fin-report-grid">
+                                    <div className="fin-report-card">
+                                        <div className="fin-report-card-header">
+                                            <span>📊 Por Categoria</span>
+                                            <span className="fin-report-card-value warn">{formatCurrency(
+                                                report.breakdown.expenses.reduce((s, e) => s + e.total, 0)
+                                            )}</span>
+                                        </div>
+                                        <div className="fin-report-breakdown">
+                                            {report.breakdown.expenses.map(e => (
+                                                <div key={e.category} className="fin-report-breakdown-row">
+                                                    <span className="fin-pill">{e.category}</span>
+                                                    <span>{e.count}x</span>
+                                                    <span className="fin-report-badge-paid">{formatCurrency(e.paid)} pago</span>
+                                                    <span>{formatCurrency(e.total)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {report.breakdown.expenses_by_type.length > 0 && (
+                                        <div className="fin-report-card">
+                                            <div className="fin-report-card-header">
+                                                <span>🏷️ Por Tipo</span>
+                                                <span className="fin-report-card-value warn">{formatCurrency(
+                                                    report.breakdown.expenses_by_type.reduce((s, t) => s + t.total, 0)
+                                                )}</span>
+                                            </div>
+                                            <div className="fin-report-breakdown">
+                                                {report.breakdown.expenses_by_type.map(t => (
+                                                    <div key={t.type} className="fin-report-breakdown-row">
+                                                        <span className="fin-pill">{t.type === 'fixed' ? 'Fixo' : 'Variável'}</span>
+                                                        <span>{t.count}x</span>
+                                                        <span>{formatCurrency(t.total)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Teacher Payments */}
+                            {report.breakdown.teacher_payments.length > 0 && (
+                                <div className="fin-report-section">
+                                    <h3>👨‍🏫 Pagamentos a Professores</h3>
+                                    <div className="fin-report-card">
+                                        <div className="fin-report-breakdown">
+                                            {report.breakdown.teacher_payments.map(tp => (
+                                                <div key={tp.teacher_id} className="fin-report-breakdown-row">
+                                                    <strong>{tp.teacher_name}</strong>
+                                                    <span className="fin-report-badge-paid">{formatCurrency(tp.paid)} pago</span>
+                                                    <span>{formatCurrency(tp.total)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Monthly Trend Bar Chart */}
+                            <div className="fin-report-section">
+                                <h3>📈 Tendência Mensal</h3>
+                                <div className="fin-report-trend">
+                                    {report.monthly_trend.map(m => {
+                                        const maxVal = Math.max(
+                                            ...report.monthly_trend.map(x => Math.max(x.revenue, x.outgoings, Math.abs(x.balance))),
+                                            1
+                                        );
+                                        return (
+                                            <div key={m.label} className="fin-report-trend-col">
+                                                <div className="fin-report-trend-bars">
+                                                    <div className="fin-report-trend-bar-wrapper">
+                                                        <div
+                                                            className="fin-report-trend-bar revenue"
+                                                            style={{ height: `${(m.revenue / maxVal) * 100}%` }}
+                                                            title={`Receita: ${formatCurrency(m.revenue)}`}
+                                                        />
+                                                    </div>
+                                                    <div className="fin-report-trend-bar-wrapper">
+                                                        <div
+                                                            className="fin-report-trend-bar outgoings"
+                                                            style={{ height: `${(m.outgoings / maxVal) * 100}%` }}
+                                                            title={`Despesas: ${formatCurrency(m.outgoings)}`}
+                                                        />
+                                                    </div>
+                                                    <div className="fin-report-trend-bar-wrapper">
+                                                        <div
+                                                            className={`fin-report-trend-bar balance ${m.balance >= 0 ? 'positive' : 'negative'}`}
+                                                            style={{ height: `${(Math.abs(m.balance) / maxVal) * 100}%` }}
+                                                            title={`Saldo: ${formatCurrency(m.balance)}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="fin-report-trend-label">{m.label}</div>
+                                                <div className="fin-report-trend-values">
+                                                    <span className="trend-revenue">{formatCurrency(m.revenue)}</span>
+                                                    <span className="trend-balance">{formatCurrency(m.balance)}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="fin-report-trend-legend">
+                                    <span><span className="legend-dot revenue"></span> Receita</span>
+                                    <span><span className="legend-dot outgoings"></span> Despesas</span>
+                                    <span><span className="legend-dot balance positive"></span> Saldo (+) </span>
+                                    <span><span className="legend-dot balance negative"></span> Saldo (−) </span>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

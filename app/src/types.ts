@@ -301,6 +301,33 @@ export interface TeacherPaymentsResponse {
     teacher_payments: TeacherPayment[];
 }
 
+// ── Financial Report ────────────────────────────────────────────
+export interface FinancialReport {
+    period: { month?: number; year?: number; dateFrom?: string; dateTo?: string };
+    summary: {
+        revenue: number;
+        outgoings: number;
+        balance: number;
+        pending_tuitions: number;
+        overdue_students: number;
+        pending_teacher_payments: number;
+    };
+    breakdown: {
+        tuitions_collected: number;
+        tuitions_count: number;
+        avulso_payments: { category: string; total: number; count: number }[];
+        expenses: { category: string; total: number; count: number; paid: number }[];
+        expenses_by_type: { type: string; total: number; count: number }[];
+        teacher_payments: { teacher_id: string; teacher_name: string; total: number; paid: number }[];
+    };
+    monthly_trend: {
+        label: string;
+        revenue: number;
+        outgoings: number;
+        balance: number;
+    }[];
+}
+
 export const CATEGORY_LABELS: Record<string, string> = {
     material: 'Material',
     matricula: 'Matrícula',

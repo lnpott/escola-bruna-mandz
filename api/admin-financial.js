@@ -32,6 +32,7 @@ import { handleSummary }         from './_lib/financial/summary.js';
 import { handleDashboard }       from './_lib/financial/dashboard.js';
 import { handleLessons }         from './_lib/financial/lessons.js';
 import { handleAttendance }      from './_lib/financial/attendance.js';
+import { handleFinancialReport } from './_lib/financial/report.js';
 
 export default async function handler(req, res) {
     if (!checkAdminAuth(req, res)) return;
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
             case 'dashboard':        return await handleDashboard(req, res, supabase);
             case 'lessons':          return await handleLessons(req, res, supabase);
             case 'attendance':       return await handleAttendance(req, res, supabase);
+            case 'financial_report': return await handleFinancialReport(req, res, supabase);
             default:
                 return res.status(400).json({
                     error: 'Parâmetro ?resource= inválido ou ausente. Use: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary, dashboard, lessons, attendance.'
