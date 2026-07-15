@@ -754,7 +754,7 @@ Commit final de todas as fases na REFAC, ou início da Fase 8 (Agenda).
 
 **Agente Responsável:** Buffy (DeepSeek)
 
-**Commit Git:** `(pendente)`
+**Commit Git:** `b7d8b8e` — "Etapa 51: corrige 3 pontos do code review da Fase 8 (Agenda)"
 
 ---
 
