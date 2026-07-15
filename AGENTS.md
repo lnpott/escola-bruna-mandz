@@ -35,6 +35,7 @@ Financial API resources: `students`, `teachers`, `enrollments`, `tuitions`, `pay
 - **Store checkout**: Mercado Pago PIX + Card Payment Brick. Public key from `/api/config`. Backend creates payment via `/api/create-payment`, webhook at `/api/webhook`.
 - **Style**: Tailwind via CDN (no npm package). Brand colors: red-600/red-500 primary, zinc-950 background.
 - **Security API helpers** (`api/admin-financial.js`): `safeFloat(val, fallback, min)` and `safeInt(val, fallback, min)` replace `parseFloat`/`parseInt` (reject NaN, enforce min). Never leak `err.message` in 500 responses.
+- **Branch**: All development now happens directly on `main`. No more feature branches — deploy to Vercel production is automatic on every `git push origin main`. Keep commits small and working.
 - **Painel_registro.md** is the official dev diary — every implementation must be logged as a new numbered stage at its end.
 
 ## Projects not tracked by tsc
