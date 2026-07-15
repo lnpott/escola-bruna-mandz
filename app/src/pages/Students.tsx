@@ -265,7 +265,10 @@ export default function Students() {
                     billing_type: form.enroll_billing_type,
                     classes_per_week: 1,
                     installments: 1,
-                    status: form.wizard_schedule_first ? 'active' : 'enrolled',
+                    status: 'active',
+                    notes: form.wizard_schedule_first
+                        ? `1ª aula agendada para ${form.wizard_first_lesson_date} às ${form.wizard_first_lesson_time}`
+                        : undefined,
                 });
             }
 
@@ -799,16 +802,25 @@ export default function Students() {
                                                 </button>
                                             </div>
                                             {form.wizard_schedule_first && (
-                                                <div className="form-grid" style={{ marginTop: 16 }}>
-                                                    <div className="form-field">
-                                                        <label>Data da 1ª Aula *</label>
-                                                        <input type="date" value={form.wizard_first_lesson_date}
-                                                            onChange={e => updateField('wizard_first_lesson_date', e.target.value)} />
+                                                <div className="wizard-date-group">
+                                                    <div className="wizard-date-field">
+                                                        <label>📅 Data da 1ª Aula *</label>
+                                                        <div className="wizard-date-input-wrap">
+                                                            <input type="date" value={form.wizard_first_lesson_date}
+                                                                onChange={e => updateField('wizard_first_lesson_date', e.target.value)}
+                                                                title="Clique para abrir o calendário" />
+                                                            <span className="wizard-date-icon">📅</span>
+                                                        </div>
+                                                        <span className="wizard-date-hint">Clique no campo ou no ícone para abrir o calendário</span>
                                                     </div>
-                                                    <div className="form-field">
-                                                        <label>Horário *</label>
-                                                        <input type="time" value={form.wizard_first_lesson_time}
-                                                            onChange={e => updateField('wizard_first_lesson_time', e.target.value)} />
+                                                    <div className="wizard-date-field">
+                                                        <label>🕐 Horário *</label>
+                                                        <div className="wizard-date-input-wrap">
+                                                            <input type="time" value={form.wizard_first_lesson_time}
+                                                                onChange={e => updateField('wizard_first_lesson_time', e.target.value)}
+                                                                title="Selecione o horário" />
+                                                            <span className="wizard-date-icon">🕐</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
