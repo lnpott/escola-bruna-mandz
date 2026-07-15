@@ -1633,13 +1633,13 @@ Nenhuma. Os tipos `Product` e `Order` já existiam em `types.ts` desde implement
 ## Pendências
 
 - ~~Criar página Loja no React SPA~~ ✅
-- Exportar CSV nos demais módulos financeiros
+- ~~Relatórios de vendas da loja (faturamento, produtos mais vendidos, ticket médio).~ (não será implementado)
 
 ---
 
 ## Próxima Etapa
 
-Exportar CSV nos demais módulos financeiros.
+Relatórios de vendas da loja (faturamento, produtos mais vendidos, ticket médio).
 
 ---
 
