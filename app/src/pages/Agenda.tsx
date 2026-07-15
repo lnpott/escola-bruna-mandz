@@ -47,6 +47,17 @@ function formatDuration(minutes: number): string {
     return `${h}h${m}`;
 }
 
+/** Maps short day codes (dom, seg, ...) to display names */
+const DAY_SHORT_TO_LABEL: Record<string, string> = {
+    'dom': 'Domingo',
+    'seg': 'Segunda',
+    'ter': 'Terça',
+    'qua': 'Quarta',
+    'qui': 'Quinta',
+    'sex': 'Sexta',
+    'sab': 'Sábado',
+};
+
 /** Export lessons as CSV download */
 function exportCSV(lessons: Lesson[], filename: string) {
     const header = 'Data,Dia Semana,Horário,Aluno,Professor,Instrumento,Tipo,Status,Duração,Obs';
@@ -100,6 +111,7 @@ export default function Agenda() {
     const [allLessons, setAllLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [errorLeaving, setErrorLeaving] = useState(false);
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -407,11 +419,11 @@ export default function Agenda() {
                 <div className="agenda-view-toggle">
                     <button
                         className={`agenda-view-btn ${viewMode === 'month' ? 'active' : ''}`}
-                        onClick={() => { setViewMode('month'); loadLessons(); }}
+                        onClick={() => setViewMode('month')}
                     >Mês</button>
                     <button
                         className={`agenda-view-btn ${viewMode === 'week' ? 'active' : ''}`}
-                        onClick={() => { setViewMode('week'); loadLessons(); }}
+                        onClick={() => setViewMode('week')}
                     >Semana</button>
                 </div>
 
@@ -477,7 +489,12 @@ export default function Agenda() {
             </div>
 
             {/* ── Error ────────────────────────────────────────── */}
-            {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
+            {error && (
+                <div
+                    className={`error-banner${errorLeaving ? ' error-banner-hiding' : ''}`}
+                    onClick={() => { setErrorLeaving(true); setTimeout(() => { setError(''); setErrorLeaving(false); }, 150); }}
+                >{error}</div>
+            )}
 
             {/* ── Calendar ─────────────────────────────────────── */}
             {loading ? (
@@ -619,7 +636,7 @@ export default function Agenda() {
                                         <option value="">— Sem vínculo —</option>
                                         {enrollments.map(e => (
                                             <option key={e.id} value={e.id}>
-                                                {e.students?.name || '?'} — {e.day_of_week ? DAY_NAMES[['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'].indexOf(e.day_of_week)] : '?'} {e.class_time || ''}
+                                                {e.students?.name || '?'} — {e.day_of_week ? (DAY_SHORT_TO_LABEL[e.day_of_week] || '?') : '?'} {e.class_time || ''}
                                             </option>
                                         ))}
                                     </select>

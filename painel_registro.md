@@ -744,3 +744,119 @@ Nenhuma.
 
 Commit final de todas as fases na REFAC, ou início da Fase 8 (Agenda).
 
+---
+
+# ETAPA 51 — CORREÇÕES DE CODE REVIEW (FASE 8 PÓS-FIXES)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `(pendente)`
+
+---
+
+## Objetivo
+
+Corrigir 3 pontos identificados no code review da Fase 8 (Agenda): double-fetch no toggle de viewMode, mapeamento frágil de day_of_week no select de vínculos, e adicionar animação de saída no error banner.
+
+---
+
+## Problemas Identificados
+
+| # | Severidade | Descrição | Localização |
+|:-:|:----------:|-----------|-------------|
+| 1 | 🟡 Média | **Double-fetch ao trocar viewMode**: os handlers de toggle chamavam `loadLessons()` explicitamente, mas `loadLessons` depende de `activeRange` que é derivado de `viewMode` — como `setViewMode` é assíncrono, a chamada explícita usava o range antigo, e o `useEffect([loadLessons])` fazia uma segunda chamada com o range correto | `Agenda.tsx` — handlers onClick dos botões Mês/Semana |
+| 2 | 🟢 Leve | **Mapeamento frágil de `day_of_week`**: `DAY_NAMES[['dom','seg','ter','qua','qui','sex','sab'].indexOf(e.day_of_week)]` — dependia da ordenação exata do array DAY_NAMES; qualquer reordenação no futuro quebraria silenciosamente | `Agenda.tsx` — option no select de vínculos |
+| 3 | 🟢 Leve | **Error banner sem fadeOut**: o `.error-banner` tinha animação de entrada (`slideDown`) mas desaparecia instantaneamente ao ser dismissado, sem transição de saída | `global.css` + `Agenda.tsx` |
+
+---
+
+## Implementações Realizadas
+
+### Fix #1 — Double-fetch no Toggle de ViewMode
+
+- **Problema:** `onClick={() => { setViewMode('month'); loadLessons(); }}` causava 2 chamadas de API a cada toggle
+- **Solução:** removida a chamada explícita de `loadLessons()` dos handlers
+- O `useEffect([loadLessons])` já monitora `activeRange` e faz o fetch automaticamente quando `viewMode` muda
+- Resultado: 1 chamada de API por toggle, não 2
+
+**Antes:**
+```tsx
+onClick={() => { setViewMode('month'); loadLessons(); }}
+```
+
+**Depois:**
+```tsx
+onClick={() => setViewMode('month')}
+```
+
+### Fix #2 — Mapeamento de day_of_week
+
+- **Problema:** `DAY_NAMES[['dom','seg','ter','qua','qui','sex','sab'].indexOf(e.day_of_week)]` — frágil e dependente de ordenação
+- **Solução:** criada constante `DAY_SHORT_TO_LABEL: Record<string, string>` com mapeamento explícito de código curto para label
+
+```tsx
+const DAY_SHORT_TO_LABEL: Record<string, string> = {
+    'dom': 'Domingo',
+    'seg': 'Segunda',
+    'ter': 'Terça',
+    'qua': 'Quarta',
+    'qui': 'Quinta',
+    'sex': 'Sexta',
+    'sab': 'Sábado',
+};
+```
+
+Uso: `DAY_SHORT_TO_LABEL[e.day_of_week] || '?'`
+
+### Fix #3 — Error Banner com FadeOut
+
+- **Problema:** error-banner desaparecia instantaneamente ao ser clicado
+- **Solução:**
+  - `transition: opacity var(--duration-fast) var(--ease-out)` adicionada ao `.error-banner` no CSS global
+  - Classe `.error-banner-hiding { opacity: 0; }` adicionada
+  - Estado `errorLeaving` gerenciado via `useState(false)`
+  - Ao clicar no banner: `setErrorLeaving(true)` → aplica classe `error-banner-hiding` → `setTimeout(150ms)` → remove o estado de erro
+  - Animação suave de 150ms (correspondente a `var(--duration-fast)`)
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Agenda.tsx` | Fix #1 (loadLessons removido dos toggles), Fix #2 (DAY_SHORT_TO_LABEL adicionado), Fix #3 (errorLeaving state + dismiss com fadeOut) |
+| `app/src/styles/global.css` | Fix #3: `transition: opacity` no `.error-banner` + classe `.error-banner-hiding` |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 70 módulos transformados, 4.77s, sem erros
+✅ `npm test` — 29/29 testes passando
+✅ Code Review — sem issues: transition mais adequada que keyframes, `setTimeout` sem stale closure
+
+---
+
+## Pendências
+
+- ~~Commit + push dos arquivos desta etapa~~ ✅
+- Fase 9: Alunos Expandido (guardian fields, source, status lifecycle)
+
+---
+
+## Próxima Etapa
+
+Início da Fase 9 — Alunos Expandido.
+
+---
+

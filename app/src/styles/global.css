@@ -413,6 +413,11 @@ a {
     cursor: pointer;
     user-select: none;
     animation: slideDown var(--duration-normal) var(--ease-out);
+    transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.error-banner-hiding {
+    opacity: 0;
 }
 
 .error-banner-icon {
