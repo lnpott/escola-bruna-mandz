@@ -992,3 +992,256 @@ Nenhuma.
 Relatórios Financeiros ou Pagamento Automático a Professor.
 
 ---
+
+# ETAPA 54 — CORREÇÃO DOS 3 CRÍTICOS (CODE REVIEW)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `7f947ae` — "fix: corrige 3 criticos - remove api/_lib/admin/ morto, adiciona student_id filter em payments, unifica Financial.tsx com useApp()"
+
+---
+
+## Objetivo
+
+Corrigir 3 problemas críticos identificados no code review completo do código: remoção de código morto, correção de bug silencioso no backend, e unificação de UX inconsistente no frontend.
+
+---
+
+## Problemas Identificados
+
+| # | Severidade | Descrição | Localização |
+|:-:|:----------:|-----------|-------------|
+| 1 | 🔴 Crítico | **`api/_lib/admin/` — 9 arquivos mortos** (~800 linhas). Após a Etapa 42, `admin-financial.js` importa exclusivamente de `_lib/financial/`. Nenhum arquivo no projeto referencia `_lib/admin/`. | `api/_lib/admin/*.js` |
+| 2 | 🔴 Crítico | **`fetchPaymentsByStudent` retorna TODOS os pagamentos** — a API de payments ignora `student_id`. O frontend enviava o filtro, mas o handler GET do `payments.js` não o lia. A aba de Pagamentos no StudentDetail exibia todos os registros. | `api/_lib/financial/payments.js` |
+| 3 | 🔴 Crítico | **Financial.tsx usa toast e confirm próprios** — a página Financeiro tinha sua própria implementação de toast (estado local + timer + JSX) e usava `confirm()` nativo do navegador, enquanto todas as outras páginas usam o sistema global via `useApp()`. | `app/src/pages/Financial.tsx` |
+
+---
+
+## Implementações Realizadas
+
+### Fix #1 — Removido `api/_lib/admin/` (9 arquivos, ~800 linhas)
+
+| Arquivo removido | Conteúdo |
+|------------------|----------|
+| `api/_lib/admin/shared.js` | Helpers `genId()` e `monthRange()` (duplicados em `_lib/financial/helpers.js`) |
+| `api/_lib/admin/students.js` | CRUD de alunos (sem safeFloat, sem normalizeOptionalFields, sem status lifecycle) |
+| `api/_lib/admin/teachers.js` | CRUD de professores (sem safeFloat, sem normalização) |
+| `api/_lib/admin/enrollments.js` | CRUD de vínculos (sem validação de conflito, sem billing_type) |
+| `api/_lib/admin/tuitions.js` | CRUD de mensalidades (sem normalizeMonthDate, sem enrollment_id) |
+| `api/_lib/admin/payments.js` | CRUD de pagamentos (sem safeFloat, sem student_id filter, sem DELETE) |
+| `api/_lib/admin/expenses.js` | CRUD de custos (sem safeFloat, sem resolvePaidTimestamp) |
+| `api/_lib/admin/investments.js` | CRUD de investimentos (sem safeFloat, sem PATCH/DELETE) |
+| `api/_lib/admin/teacher-payments.js` | CRUD de pagamentos a professores (sem normalizeMonthDate) |
+| `api/_lib/admin/summary.js` | Resumo financeiro (sem teacher_payments no cálculo) |
+
+- Verificado com ripgrep: zero imports remanescentes para `_lib/admin/` em todo o projeto.
+- Os módulos em `_lib/financial/` são estritamente superiores (safeFloat, safeInt, normalizeOptionalFields, paginação, DELETE em todos os recursos, etc.).
+
+### Fix #2 — Filtro `student_id` adicionado ao `handlePayments` GET
+
+**Antes:**
+```javascript
+const { category, month, year } = req.query;
+// student_id era ignorado!
+```
+
+**Depois:**
+```javascript
+const { category, month, year, student_id } = req.query;
+// ...
+if (student_id) q = q.eq('student_id', student_id);
+```
+
+- Agora `fetchPaymentsByStudent('ST-XXXX')` retorna apenas os pagamentos daquele aluno.
+- Padrão idêntico ao usado em `tuitions.js`, `teacherPayments.js`, `lessons.js`, `enrollments.js`.
+
+### Fix #3 — Financial.tsx unificado com `useApp()`
+
+| Antes (local) | Depois (global via useApp()) |
+|---------------|------------------------------|
+| `import { useRef } from 'react'` | `useRef` removido (não usado para mais nada) |
+| `const [toast, setToast] = useState(...)` | Removido |
+| `const toastTimer = useRef(...)` | Removido |
+| `useEffect(() => () => clearTimeout(...))` | Removido |
+| `const showToast = (msg, type) => ...` | `const { showToast, confirm } = useApp()` |
+| `if (!confirm('...')) return;` | `const confirmed = await confirm({ title, message, danger, ... })` |
+| `<div className="fin-toast">...` (JSX) | Removido |
+| 9x `'err'` no tipo do toast | Alterado para `'error'` (assinatura do AppContext) |
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `api/_lib/admin/` (9 arquivos + shared.js) | **Removidos** — código morto |
+| `api/_lib/financial/payments.js` | Adicionado `student_id` ao destructuring + `.eq('student_id', student_id)` |
+| `app/src/pages/Financial.tsx` | Toast local removido, `useRef` removido, import `useApp` adicionado, `confirm()` nativo substituído por `useApp().confirm`, tipos `'err'` → `'error'`, JSX de toast removido |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 71 módulos, 4.78s, sem erros
+✅ `npm test` — 29/29 testes passando
+✅ Code Review — sem issues
+
+---
+
+## Pendências
+
+- ~~Remover api/_lib/admin/ morto~~ ✅
+- ~~Adicionar student_id filter em payments~~ ✅
+- ~~Unificar Financial.tsx com useApp()~~ ✅
+- Remover 30+ `as any` em todo o código
+
+---
+
+## Próxima Etapa
+
+Corrigir 30+ `as any` assertions e `catch (err: any)` em todos os .tsx — type safety.
+
+---
+
+# ETAPA 55 — TYPE SAFETY: REMOÇÃO DE 30+ `as any` E `catch (err: any)`
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `032680b` — "fix: remove 30+ as any e catch(err: any) em todos os .tsx — type safety"
+
+---
+
+## Objetivo
+
+Eliminar todas as 30+ ocorrências de `as any` e `catch (err: any)` nos arquivos `.tsx` do React SPA, substituindo por `catch (err: unknown)` com guarda `instanceof Error` e removendo type assertions desnecessárias.
+
+---
+
+## Problema Identificado
+
+O TypeScript estava configurado com `strict: true` no `tsconfig.json`, mas 30+ ocorrências de `as any` e `catch (err: any)` burlavam a checagem de tipos, criando risco de erros em runtime que o compilador não pegaria.
+
+### Padrões encontrados
+
+| Padrão | Ocorrências | Risco |
+|--------|:-----------:|-------|
+| `catch (err: any) { setError(err.message) }` | 25 | `err` pode ser `null`, `undefined` ou string sem `.message` — causa `TypeError` em runtime |
+| `payload as any` (create/update) | 2 | Supressão desnecessária — o payload já é compatível com o tipo esperado |
+| `lesson_type: form.lesson_type as any` (Agenda) | 2 | Deveria usar `as LessonType` (tipo já exportado de `types.ts`) |
+| `const payload: any = { ... }` (Enrollments) | 1 | Destrói toda a checagem de tipos em ~20 linhas de código |
+
+---
+
+## Implementações Realizadas
+
+### Padrão 1: `catch (err: any)` → `catch (err: unknown)` (25 ocorrências em 8 arquivos)
+
+**Antes:**
+```typescript
+} catch (err: any) {
+    setError(err.message);
+    // ou: showToast(err.message || '...', 'error');
+}
+```
+
+**Depois:**
+```typescript
+} catch (err: unknown) {
+    setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    // ou: showToast(err instanceof Error ? err.message : '...', 'error');
+}
+```
+
+### Padrão 2: `payload as any` removido (Students.tsx, Teachers.tsx)
+
+Nos dois casos, o objeto `payload` era construído a partir de `form` (tipado) e já correspondia exatamente ao tipo esperado pela função. A supressão `as any` era redundante.
+
+### Padrão 3: `as any` → `as LessonType` (Agenda.tsx)
+
+```typescript
+// Antes:
+lesson_type: form.lesson_type as any,
+
+// Depois:
+lesson_type: form.lesson_type as LessonType,
+```
+
+### Padrão 4: `const payload: any` tipado corretamente (Enrollments.tsx)
+
+**Antes:**
+```typescript
+const payload: any = {
+    student_id: form.student_id,
+    teacher_id: ...
+    // sem checagem de tipos em 20+ linhas
+};
+```
+
+**Depois:**
+```typescript
+const payload: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'students' | 'teachers'>
+    & { total_amount?: number; installments?: number } = {
+    student_id: form.student_id,
+    // TypeScript agora valida cada campo
+};
+```
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Ocorrências | Mudanças |
+|---------|:-----------:|----------|
+| `app/src/pages/Agenda.tsx` | 6 | 4x `catch (err: any)` → `unknown`, 2x `as any` → `as LessonType` |
+| `app/src/pages/Enrollments.tsx` | 4 | 3x `catch (err: any)` → `unknown`, 1x `payload: any` → tipo explícito |
+| `app/src/pages/Students.tsx` | 4 | 3x `catch (err: any)` → `unknown`, 1x `payload as any` removido |
+| `app/src/pages/Teachers.tsx` | 4 | 3x `catch (err: any)` → `unknown`, 1x `payload as any` removido |
+| `app/src/pages/Financial.tsx` | 9 | 9x `catch (err: any)` → `unknown` (usando showToast global) |
+| `app/src/pages/Dashboard.tsx` | 1 | 1x `catch (err: any)` → `unknown` |
+| `app/src/pages/Admin.tsx` | 1 | 1x `catch (err: any)` → `unknown` |
+| `app/src/pages/StudentDetail.tsx` | 1 | 1x `catch (err: any)` → `unknown` |
+| **Total** | **30** | |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ Busca final com ripgrep: 0 ocorrências de `catch (err: any)` ou `as any` em qualquer `.tsx`
+✅ `npm run build` (Vite) — 71 módulos, 2.85s, sem erros
+✅ Code Review — sem issues: guarda `instanceof Error` correta, sem imports quebrados
+
+---
+
+## Pendências
+
+- ~~Remover 30+ as any e catch(err: any)~~ ✅
+- Relatórios Financeiros (fechamento mensal, exportação)
+- Pagamento automático a professor (rate_per_class × aulas do mês)
+
+---
+
+## Próxima Etapa
+
+Relatórios Financeiros ou Pagamento Automático a Professor.
+
+---
