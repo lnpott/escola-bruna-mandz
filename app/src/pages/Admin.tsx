@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchStudents, fetchTeachers, fetchEnrollments, fetchDashboard, fetchMonthlyTrend } from '@/services/api';
+import { fetchStudents, fetchTeachers, fetchEnrollments, fetchDashboard, fetchMonthlyTrend, fetchFinancialSummary } from '@/services/api';
 import type { Student, Teacher, Enrollment } from '@/types';
 import '@/styles/admin.css';
 
@@ -65,21 +65,27 @@ export default function Admin() {
             store: { pending_orders: number; low_stock_products: { id: string; name: string; stock: number }[] };
         };
         trend: { month: number; year: number; label: string; revenue: number; outgoings: number; balance: number }[];
+        currentSummary: { revenue: number; outgoings: number; balance: number; pending_tuitions: number; overdue_students: number; pending_teacher_payments: number };
     } | null>(null);
 
     const loadStats = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const [students, teachers, enrollments, dash, trend] = await Promise.all([
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+
+            const [students, teachers, enrollments, dash, trend, currentSummary] = await Promise.all([
                 fetchStudents(),
                 fetchTeachers(),
                 fetchEnrollments(),
                 fetchDashboard(),
                 fetchMonthlyTrend(6),
+                fetchFinancialSummary(month, year),
             ]);
 
-            setData({ students, teachers, enrollments, dash, trend });
+            setData({ students, teachers, enrollments, dash, trend, currentSummary });
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas.');
         } finally {
@@ -221,6 +227,43 @@ export default function Admin() {
                         ))}
                     </div>
 
+                    {/* ── Alert Center ────────────────────────────── */}
+                    {(() => {
+                        const alerts: { icon: string; message: string; severity: 'critical' | 'warning' | 'info'; link?: string }[] = [];
+                        if (data.dash.financial.overdue_students > 0)
+                            alerts.push({ icon: '⚠️', message: `${data.dash.financial.overdue_students} aluno(s) com mensalidades em atraso`, severity: 'critical', link: '/financeiro' });
+                        if (data.currentSummary.pending_teacher_payments > 0)
+                            alerts.push({ icon: '👨‍🏫', message: `${formatBRL(data.currentSummary.pending_teacher_payments)} em pagamentos de professores pendentes`, severity: 'warning', link: '/financeiro' });
+                        if (data.dash.store.pending_orders > 0)
+                            alerts.push({ icon: '🛍️', message: `${data.dash.store.pending_orders} pedido(s) aguardando aprovação`, severity: 'warning', link: '/loja' });
+                        if (data.dash.store.low_stock_products.length > 0)
+                            alerts.push({ icon: '📦', message: `${data.dash.store.low_stock_products.length} produto(s) com estoque baixo`, severity: 'info', link: '/loja' });
+
+                        if (alerts.length === 0) return null;
+
+                        return (
+                            <div className="admin-section">
+                                <h2>⚠️ Central de Alertas</h2>
+                                <div className="admin-alerts-grid">
+                                    {alerts.map((a, i) => (
+                                        a.link ? (
+                                            <Link to={a.link} key={i} className={`admin-alert-card severity-${a.severity}`}>
+                                                <span className="admin-alert-icon">{a.icon}</span>
+                                                <span className="admin-alert-msg">{a.message}</span>
+                                                <span className="admin-alert-arrow">→</span>
+                                            </Link>
+                                        ) : (
+                                            <div key={i} className={`admin-alert-card severity-${a.severity}`}>
+                                                <span className="admin-alert-icon">{a.icon}</span>
+                                                <span className="admin-alert-msg">{a.message}</span>
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* ── Charts Grid ───────────────────────────────── */}
                     <div className="admin-charts-grid">
                         {/* Student Status Distribution */}
@@ -274,6 +317,33 @@ export default function Admin() {
                                 <div className="chart-empty">Nenhum professor com vínculos.</div>
                             )}
                         </div>
+
+                        {/* Billing Type Distribution */}
+                        {(() => {
+                            const counts: Record<string, number> = {};
+                            for (const e of data.enrollments) {
+                                const bt = e.billing_type || 'monthly';
+                                counts[bt] = (counts[bt] || 0) + 1;
+                            }
+                            const labels: Record<string, string> = { weekly: 'Semanal', monthly: 'Mensal', full: 'Semestral/Anual' };
+                            const colors: Record<string, string> = { weekly: '#f59e0b', monthly: '#22c55e', full: '#a855f7' };
+                            const arr = Object.entries(counts).map(([key, count]) => ({ key, label: labels[key] || key, count, color: colors[key] || '#71717a' }));
+                            const maxVal = Math.max(...arr.map(a => a.count), 1);
+                            return (
+                                <div className="admin-chart-card">
+                                    <h3 className="admin-chart-title">💳 Distribuição por Tipo de Cobrança</h3>
+                                    {arr.length > 0 ? (
+                                        <div className="chart-bars">
+                                            {arr.map(a => (
+                                                <Bar key={a.key} value={a.count} max={maxVal} color={a.color} label={a.label} />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="chart-empty">Nenhum vínculo registrado.</div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* ── Monthly Financial Trend ───────────────────── */}
@@ -315,6 +385,63 @@ export default function Admin() {
                                 <span className="trend-legend-item"><span className="trend-dot revenue" /> Receita</span>
                                 <span className="trend-legend-item"><span className="trend-dot outgoings" /> Despesas</span>
                                 <span className="trend-legend-item">Valor abaixo = Saldo do mês</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Financial KPIs (Detalhado) ──────────────── */}
+                    <div className="admin-section">
+                        <h2>💰 Indicadores Financeiros</h2>
+                        <div className="admin-fin-kpis">
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">Receita do Mês</span>
+                                <span className="admin-fin-value" style={{ color: '#22c55e' }}>{formatBRL(data.currentSummary.revenue)}</span>
+                                <span className="admin-fin-trend">
+                                    {data.trend.length >= 2 && data.trend[data.trend.length - 1].revenue > data.trend[data.trend.length - 2].revenue ? '📈' : '📉'}
+                                    vs. mês anterior
+                                </span>
+                            </div>
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">Despesas do Mês</span>
+                                <span className="admin-fin-value" style={{ color: '#ef4444' }}>{formatBRL(data.currentSummary.outgoings)}</span>
+                                <span className="admin-fin-trend">
+                                    {data.currentSummary.revenue > 0 ? `${Math.round((data.currentSummary.outgoings / data.currentSummary.revenue) * 100)}% da receita` : '—'}
+                                </span>
+                            </div>
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">Saldo Líquido</span>
+                                <span className={`admin-fin-value ${data.currentSummary.balance >= 0 ? 'positive' : 'negative'}`}>
+                                    {formatBRL(data.currentSummary.balance)}
+                                </span>
+                                <span className="admin-fin-trend">
+                                    {data.currentSummary.balance >= 0 ? '✅ Positivo' : '🔴 Negativo'}
+                                </span>
+                            </div>
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">Mensalidades Pendentes</span>
+                                <span className="admin-fin-value" style={{ color: '#f59e0b' }}>{formatBRL(data.currentSummary.pending_tuitions)}</span>
+                                <span className="admin-fin-trend">
+                                    {data.currentSummary.overdue_students} aluno(s) em atraso
+                                </span>
+                            </div>
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">A Pagar Professores</span>
+                                <span className="admin-fin-value" style={{ color: '#f97316' }}>{formatBRL(data.currentSummary.pending_teacher_payments)}</span>
+                                <span className="admin-fin-trend">
+                                    Pendente do mês
+                                </span>
+                            </div>
+                            <div className="admin-fin-card">
+                                <span className="admin-fin-label">Mensalidade Média</span>
+                                <span className="admin-fin-value" style={{ color: '#a855f7' }}>
+                                    {formatBRL((() => {
+                                        const active = data.enrollments.filter(e => e.status === 'active');
+                                        return active.length > 0 ? active.reduce((s, e) => s + e.monthly_fee, 0) / active.length : 0;
+                                    })())}
+                                </span>
+                                <span className="admin-fin-trend">
+                                    {data.enrollments.filter(e => e.status === 'active').length} vínculo(s) ativo(s)
+                                </span>
                             </div>
                         </div>
                     </div>

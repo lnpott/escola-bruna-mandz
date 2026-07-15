@@ -502,6 +502,158 @@
     background: #ef4444;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Fase 7 — New sections
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Alert Center ──────────────────────────────────────────────── */
+.admin-alerts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.admin-alert-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+    animation: fadeInUp 0.3s var(--ease-out) both;
+}
+
+.admin-alert-card:nth-child(1) { animation-delay: 0.05s; }
+.admin-alert-card:nth-child(2) { animation-delay: 0.1s; }
+.admin-alert-card:nth-child(3) { animation-delay: 0.15s; }
+.admin-alert-card:nth-child(4) { animation-delay: 0.2s; }
+
+.admin-alert-card:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-alert-card.severity-critical {
+    border-left: 3px solid #ef4444;
+}
+.admin-alert-card.severity-critical:hover {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.admin-alert-card.severity-warning {
+    border-left: 3px solid #f59e0b;
+}
+.admin-alert-card.severity-warning:hover {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.admin-alert-card.severity-info {
+    border-left: 3px solid #3b82f6;
+}
+.admin-alert-card.severity-info:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.admin-alert-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.admin-alert-msg {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.admin-alert-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform var(--duration-fast) var(--ease-out);
+    flex-shrink: 0;
+}
+
+.admin-alert-card:hover .admin-alert-arrow {
+    transform: translateX(3px);
+}
+
+/* ── Financial KPIs (detailed) ─────────────────────────────────── */
+.admin-fin-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--space-2);
+}
+
+.admin-fin-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.admin-fin-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-fin-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    font-weight: 700;
+}
+
+.admin-fin-value {
+    font-size: 20px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.admin-fin-value.positive {
+    color: #22c55e;
+}
+
+.admin-fin-value.negative {
+    color: #ef4444;
+}
+
+.admin-fin-trend {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+@media (max-width: 720px) {
+    .admin-fin-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .admin-fin-card {
+        padding: var(--space-3);
+    }
+    .admin-fin-value {
+        font-size: 17px;
+    }
+    .admin-alert-card {
+        padding: var(--space-2) var(--space-3);
+    }
+    .admin-alert-msg {
+        font-size: 12px;
+    }
+}
+
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 720px) {
     .admin-header {
