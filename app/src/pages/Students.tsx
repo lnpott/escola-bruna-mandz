@@ -117,6 +117,7 @@ const BILLING_OPTIONS = [
 ];
 
 export default function Students() {
+    const navigate = useNavigate();
     const { confirm, showToast } = useApp();
     const [students, setStudents] = useState<Student[]>([]);
     const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
