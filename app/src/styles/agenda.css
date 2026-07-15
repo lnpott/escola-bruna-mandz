@@ -514,6 +514,23 @@
     background: var(--color-error-bg);
 }
 
+.btn-lesson-action.btn-reschedule:hover {
+    border-color: var(--color-info);
+    color: var(--color-info-text);
+}
+
+.btn-lesson-action.btn-reschedule {
+    color: var(--color-info-text);
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.btn-lesson-action.btn-cancel:hover {
+    background: var(--color-error-bg);
+    border-color: var(--color-error);
+    color: var(--color-error-text);
+}
+
 /* ── Form Modal ───────────────────────────────────────────────── */
 .agenda-form-grid {
     display: grid;

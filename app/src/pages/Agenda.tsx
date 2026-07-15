@@ -404,6 +404,47 @@ export default function Agenda() {
         setShowCreateModal(true);
     };
 
+    /** Cancel lesson with reason */
+    const handleCancelLesson = async (lesson: Lesson) => {
+        const reason = window.prompt('Motivo do cancelamento (opcional):', '');
+        const confirmed = await confirm({
+            title: 'Cancelar Aula',
+            message: `Deseja cancelar a aula de ${lesson.students?.name || '—'} em ${formatDate(new Date(lesson.date))} às ${lesson.start_time}?`,
+            confirmText: 'Cancelar Aula',
+            cancelText: 'Voltar',
+            danger: true,
+        });
+        if (!confirmed) return;
+        try {
+            const notesUpdate = reason
+                ? (lesson.notes ? `${lesson.notes}\n[Cancelada] ${reason}` : `[Cancelada] ${reason}`)
+                : (lesson.notes ? `${lesson.notes}\n[Cancelada]` : '[Cancelada]');
+            await updateLesson(lesson.id, { status: 'cancelled', notes: notesUpdate });
+            showToast('Aula cancelada.');
+            loadLessons();
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao cancelar aula.', 'error');
+        }
+    };
+
+    /** Reschedule lesson — opens edit form with date/time cleared */
+    const handleReschedule = (lesson: Lesson) => {
+        setForm({
+            id: lesson.id,
+            enrollment_id: lesson.enrollment_id || '',
+            student_id: lesson.student_id,
+            teacher_id: lesson.teacher_id || '',
+            instrument: lesson.instrument || '',
+            date: '',
+            start_time: '',
+            duration_minutes: lesson.duration_minutes,
+            lesson_type: lesson.lesson_type,
+            status: 'scheduled',
+            notes: lesson.notes || '',
+        });
+        setShowCreateModal(true);
+    };
+
     // ── Render ─────────────────────────────────────────────────
     return (
         <div className="agenda-page">
@@ -598,13 +639,19 @@ export default function Agenda() {
                                         <div className="lesson-card-actions">
                                             <button className="btn-lesson-action btn-edit" onClick={() => { setSelectedDay(null); handleEditLesson(l); }} title="Editar">✏️</button>
                                             {l.status === 'scheduled' && (
+                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar">🔄</button>
+                                            )}
+                                            {l.status === 'scheduled' && (
                                                 <button className="btn-lesson-action btn-complete" onClick={() => handleStatusChange(l.id, 'completed')} title="Marcar como realizada">✅</button>
                                             )}
                                             {l.status === 'scheduled' && (
-                                                <button className="btn-lesson-action btn-cancel" onClick={() => handleStatusChange(l.id, 'cancelled')} title="Cancelar aula">❌</button>
+                                                <button className="btn-lesson-action btn-cancel" onClick={() => handleCancelLesson(l)} title="Cancelar aula">🚫</button>
                                             )}
                                             {l.status === 'completed' && (
                                                 <button className="btn-lesson-action btn-revert" onClick={() => handleStatusChange(l.id, 'scheduled')} title="Reverter para agendada">↩️</button>
+                                            )}
+                                            {l.status === 'cancelled' && (
+                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar (criar nova)">🔄</button>
                                             )}
                                             <button className="btn-lesson-action btn-delete" onClick={() => handleDeleteLesson(l.id)} title="Excluir">🗑️</button>
                                         </div>
