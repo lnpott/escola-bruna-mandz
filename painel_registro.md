@@ -1951,3 +1951,171 @@ Nenhuma. Tudo é frontend consumindo APIs existentes (`createStudent`, `createEn
 Deploy na Vercel + validação do wizard de cadastro de aluno em produção.
 
 ---
+
+# ETAPA 62 — CORREÇÃO DOS BUGS EM PRODUÇÃO (WIZARD + NAVEGATION)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commits Git:** `0f1ceab` + `58938cb`
+
+---
+
+## Objetivo
+
+Corrigir 2 bugs críticos identificados em produção no wizard de cadastro de aluno: erro 400 ao criar matrícula (CHECK constraint violation) e `ReferenceError: navigate is not defined` ao interagir com a tabela de alunos.
+
+---
+
+## Problemas Identificados
+
+### Bug #1 — Erro 400 ao criar matrícula (🔴 Crítico)
+
+**Sintoma:** `POST /api/admin-financial?resource=enrollments` retornava HTTP 400.
+
+**Causa raiz:** O schema do Supabase em `enrollments.status` tem um CHECK constraint:
+```sql
+constraint enrollments_status_check
+    check (status in ('active', 'inactive', 'cancelled'))
+```
+
+O wizard enviava `status: form.wizard_schedule_first ? 'active' : 'enrolled'`. Quando o usuário escolhia "Depois" no Step 7 (agendar 1ª aula), `wizard_schedule_first = false`, resultando em `status = 'enrolled'`. O banco rejeitava com erro 23514 (CHECK violation), que o `classifyError()` mapeava para HTTP 400.
+
+**Correção:**
+| Antes | Depois |
+|-------|--------|
+| `status: form.wizard_schedule_first ? 'active' : 'enrolled'` | `status: 'active'` (sempre, independente do agendamento) |
+
+Além disso, a informação da 1ª aula agendada (quando selecionada) é armazenada no campo `notes` da matrícula para referência futura.
+
+**Commit:** `0f1ceab` — "fix: corrige erro 400 na matricula (status 'enrolled' -> 'active') + melhora date picker Step 7"
+
+### Bug #2 — `navigate is not defined` (🔴 Crítico)
+
+**Sintoma:** `ReferenceError: navigate is not defined` ao clicar em qualquer linha da tabela de alunos ou no botão de detalhes.
+
+**Causa raiz:** O `useNavigate` era importado do `react-router-dom` (linha 2), mas a variável `navigate` nunca era inicializada via `const navigate = useNavigate()` dentro do componente. 
+
+**Correção:** Adicionada a linha `const navigate = useNavigate();` logo após a abertura da função componente `Students()`, antes de `const { confirm, showToast } = useApp();`.
+
+**Commit:** `58938cb` — "fix: adiciona const navigate = useNavigate() faltante em Students.tsx"
+
+### Melhoria Adicional — Date Picker no Step 7
+
+O `<input type="date">` nativo foi melhorado com:
+- Wrapper estilizado com ícone 📅
+- Hint "Clique no campo ou no ícone para abrir o calendário"
+- `::-webkit-calendar-picker-indicator` invisível em área total (clique em qualquer lugar abre o calendário)
+- Altura mínima de 42px para melhor toque em mobile
+- Mesmo tratamento para o campo de horário (🕐)
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Students.tsx` | `const navigate = useNavigate()` adicionado; status alterado para `'active'`; `notes` com info da 1ª aula; Step 7 com date picker estilizado |
+| `app/src/styles/students.css` | ~50 linhas novas: `.wizard-date-group`, `.wizard-date-field`, `.wizard-date-input-wrap`, `.wizard-date-icon`, `.wizard-date-hint` |
+
+---
+
+## Alterações no Banco
+
+Nenhuma. A correção é exclusivamente no valor enviado pelo frontend (status 'enrolled' → 'active').
+
+---
+
+## Testes
+
+✅ `npm run build` — 73 módulos, 2.77s, sem erros
+✅ `npm test` — 29/29 passando
+✅ Code Review — sem issues
+
+---
+
+## Pendências
+
+- ~~Corrigir status da matrícula (enrolled → active)~~ ✅
+- ~~Corrigir navigate is not defined~~ ✅
+- ~~Melhorar UX do date picker~~ ✅
+- Reinstalação do node_modules (corrigir ESLint crash)
+- Deploy na Vercel (commits estão na main mas não implantados)
+
+---
+
+## Próxima Etapa
+
+Corrigir ESLint crash (reinstalação node_modules) e deploy na Vercel.
+
+---
+
+# ETAPA 63 — CORREÇÃO DO ESLINT (REINSTALAÇÃO NODE_MODULES)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+---
+
+## Objetivo
+
+Corrigir o crash do ESLint que impedia a execução do `npm run lint`, causado por uma instalação corrompida/incompleta do pacote `eslint@10.6.0`.
+
+---
+
+## Problema Identificado
+
+**Sintoma:** `npm run lint` crashava com:
+```
+Cannot find module '../config/config.js'
+Require stack:
+- node_modules/eslint/lib/linter/apply-disable-directives.js
+```
+
+**Causa raiz:** O arquivo `node_modules/eslint/lib/linter/apply-disable-directives.js` (v10.6.0) tentava fazer:
+```javascript
+const { Config } = require("../config/config.js");
+```
+
+Mas o diretório `node_modules/eslint/lib/config/` não continha `config.js` — apenas `config-loader.js`, `default-config.js`, `flat-config-array.js` e `flat-config-schema.js`. Isso indica que a instalação do pacote ESLint estava corrompida ou com arquivos faltando.
+
+**Correção:** Remoção completa do `node_modules/` e reinstalação limpa:
+```bash
+rm -rf node_modules
+npm install
+```
+
+---
+
+## Arquivos Alterados
+
+Nenhum. Correção exclusivamente no `node_modules/` (não versionado).
+
+---
+
+## Testes
+
+✅ `npm run lint` — agora funciona. 2.029 problemas encontrados em arquivos legados (store/, public/, api/) — 0 em `app/src/pages/`
+✅ `npm run build` — 73 módulos, 4.15s, sem erros
+✅ `npm test` — 29/29 passando
+
+---
+
+## Pendências
+
+- ~~Reinstalar node_modules para corrigir ESLint~~ ✅
+- Deploy na Vercel dos commits pendentes (`0f1ceab`, `58938cb`)
+
+---
+
+## Próxima Etapa
+
+Deploy na Vercel — colocar em produção as correções dos bugs (Erro 400, navigate undefined) e a melhoria do date picker.
+
+---
