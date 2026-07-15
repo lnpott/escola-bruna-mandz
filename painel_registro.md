@@ -1390,3 +1390,130 @@ Nenhuma.
 Relatórios Financeiros ou Pagamento Automático a Professor.
 
 ---
+
+
+# ETAPA 57 — RELATÓRIO FINANCEIRO (FECHAMENTO MENSAL + EXPORTAÇÃO PDF)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `3d7cfc4` — "feat: Etapa 57 - Relatorio Financeiro (fechamento mensal + exportacao PDF)"
+
+---
+
+## Objetivo
+
+Implementar relatório financeiro de fechamento mensal com breakdown detalhado de receitas e despesas, gráfico de tendência mensal e exportação para PDF via impressão nativa do navegador.
+
+---
+
+## Funcionalidades Implementadas
+
+### 1. Nova aba "📊 Relatório" no Financeiro
+
+- Quinta aba na navegação secundária do Financeiro, ao lado de Receitas Avulsas, Custos, Investimentos e Pag. Professores
+- Acessível sem recarregar a página — usa o mesmo seletor de mês/ano do header principal
+- Carrega dados automaticamente ao ativar a aba via useEffect
+
+### 2. Seletor de Período Flexível
+
+| Modo | Descrição |
+|------|-----------|
+| 📅 **Mês** | Dropdown de mês + ano (reusa o filtro do header financeiro) |
+| 📆 **Período Personalizado** | Campos de data inicial e final para intervalo customizado |
+
+- Toggle visual com botões de modo (estilo iOS)
+- Botão "🔍 Gerar Relatório" para recarregar os dados
+- Botão "🖨️ Exportar PDF" que aciona window.print()
+
+### 3. Endpoint API — resource=financial_report
+
+**Arquivo:** `api/_lib/financial/report.js` (novo)
+
+- Aceita `month/year` (mês específico) OU `date_from/date_to` (intervalo personalizado)
+- Reusa `computeFinancialSummary()` para os KPIs (evita duplicação de queries)
+- Queries adicionais para breakdown:
+  - Mensalidades recebidas (total + quantidade)
+  - Receitas avulsas agregadas por categoria
+  - Despesas agregadas por categoria e por tipo (fixo/variável)
+  - Pagamentos a professores agregados por professor
+- Calcula tendência mensal dos últimos 6 meses chamando computeFinancialSummary para cada mês
+- Registrado em `admin-financial.js` como novo case no switch de resources
+
+### 4. Breakdown de Receitas
+
+- **Mensalidades Recebidas**: total arrecadado + quantidade de mensalidades pagas
+- **Receitas Avulsas**: tabela por categoria (material, matrícula, aula_extra, outro) com quantidade e subtotal
+
+### 5. Breakdown de Despesas
+
+- **Por Categoria**: aluguel, energia, água, materiais, outro — com quantidade, total e valor pago
+- **Por Tipo**: fixo vs variável — com quantidade e total
+
+### 6. Pagamentos a Professores
+
+- Lista por professor com total pago vs total no período
+- Exibido apenas quando há dados (seção condicional)
+
+### 7. Gráfico de Tendência Mensal (CSS puro)
+
+- 6 colunas (últimos 6 meses incluindo o atual)
+- 3 barras por mês: verde (receita), vermelha (despesa), azul/roxa (saldo positivo/negativo)
+- Altura proporcional ao valor máximo do período
+- Tooltip com valor exato ao passar o mouse
+- Legendas com valores abaixo de cada coluna
+- Legenda colorida no rodapé
+
+### 8. Exportação PDF
+
+- Botão "🖨️ Exportar PDF" no header do relatório
+- Usa `window.print()` — o navegador exibe o diálogo "Salvar como PDF"
+- `@media print` stylesheet completa (~60 linhas):
+  - Oculta: TopBar, Breadcrumbs, header financeiro, abas de navegação, controles do relatório, toasts
+  - Cores otimizadas para fundo branco (preto no lugar de zinc)
+  - Bordas sutis (#ddd) em vez de backgrounds escuros
+  - Margens de página configuradas via `@page`
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---------|------|
+| `api/_lib/financial/report.js` | **Novo** — handler do endpoint financial_report |
+| `api/admin-financial.js` | Modificado — registrado resource=financial_report |
+| `app/src/pages/Financial.tsx` | Modificado — nova aba + estados + lógica de carregamento + view do relatório |
+| `app/src/services/api.ts` | Modificado — função fetchFinancialReport() |
+| `app/src/types.ts` | Modificado — interface FinancialReport |
+| `app/src/styles/financial.css` | Modificado — ~250 linhas de CSS do relatório + @media print |
+
+---
+
+## Alterações no Banco
+
+Nenhuma.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 71 módulos transformados, 3.27s, sem erros
+✅ Code Review — 3 issues corrigidos (import MONTH_NAMES, setTimeout redundante, print styles)
+
+---
+
+## Pendências
+
+- ~~Relatórios Financeiros (fechamento mensal, exportação)~~ ✅
+- Pagamento automático a professor (rate_per_class × aulas do mês)
+
+---
+
+## Próxima Etapa
+
+Pagamento automático a professor (rate_per_class × aulas do mês).
+
+---
