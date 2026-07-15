@@ -10,7 +10,7 @@ import {
     STATUS_ICONS,
     SOURCE_LABELS,
 } from '@/types';
-import { fetchStudents, createStudent, updateStudent, deleteStudent } from '@/services/api';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchTeachers, createEnrollment } from '@/services/api';
 import '@/styles/students.css';
 
 const STATUS_OPTIONS: { value: StudentStatus; label: string }[] = [
@@ -50,6 +50,13 @@ interface StudentForm {
     guardian_name: string;
     guardian_cpf: string;
     guardian_phone: string;
+    // Enrollment fields
+    enroll_teacher_id: string;
+    enroll_day_of_week: string;
+    enroll_class_time: string;
+    enroll_duration: number;
+    enroll_monthly_fee: string;
+    enroll_billing_type: 'weekly' | 'monthly' | 'full';
 }
 
 const emptyForm: StudentForm = {
@@ -64,11 +71,33 @@ const emptyForm: StudentForm = {
     guardian_name: '',
     guardian_cpf: '',
     guardian_phone: '',
+    enroll_teacher_id: '',
+    enroll_day_of_week: '',
+    enroll_class_time: '',
+    enroll_duration: 60,
+    enroll_monthly_fee: '',
+    enroll_billing_type: 'monthly',
 };
 
+const DAY_OPTIONS = [
+    { value: 'seg', label: 'Segunda' },
+    { value: 'ter', label: 'Terça' },
+    { value: 'qua', label: 'Quarta' },
+    { value: 'qui', label: 'Quinta' },
+    { value: 'sex', label: 'Sexta' },
+    { value: 'sab', label: 'Sábado' },
+];
+
+const BILLING_OPTIONS = [
+    { value: 'monthly', label: 'Mensal' },
+    { value: 'weekly', label: 'Semanal' },
+    { value: 'full', label: 'Semestral/Anual' },
+];
+
 export default function Students() {
-    const { confirm } = useApp();
+    const { confirm, showToast } = useApp();
     const [students, setStudents] = useState<Student[]>([]);
+    const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
@@ -81,8 +110,12 @@ export default function Students() {
     const loadStudents = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await fetchStudents();
+            const [data, teacherData] = await Promise.all([
+                fetchStudents(),
+                fetchTeachers(),
+            ]);
             setStudents(data);
+            setTeachers(teacherData.map(t => ({ id: t.id, name: t.name })));
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
@@ -125,6 +158,12 @@ export default function Students() {
             guardian_name: student.guardian_name || '',
             guardian_cpf: student.guardian_cpf || '',
             guardian_phone: student.guardian_phone || '',
+            enroll_teacher_id: '',
+            enroll_day_of_week: '',
+            enroll_class_time: '',
+            enroll_duration: 60,
+            enroll_monthly_fee: '',
+            enroll_billing_type: 'monthly',
         });
         setEditingId(student.id);
         setShowModal(true);
@@ -146,12 +185,47 @@ export default function Students() {
 
         setSaving(true);
         try {
-            const payload = { ...form };
+            const { enroll_teacher_id, enroll_day_of_week, enroll_class_time, enroll_duration, enroll_monthly_fee, enroll_billing_type, ...studentPayload } = form;
+
+            // Parse BRL currency: "1.500,00" → 1500.00
+            const parseBRL = (val: string): number => {
+                const cleaned = val.replace(/\./g, '').replace(',', '.');
+                const num = parseFloat(cleaned);
+                return isNaN(num) ? 0 : num;
+            };
 
             if (editingId) {
-                await updateStudent(editingId, payload);
+                await updateStudent(editingId, studentPayload);
+                showToast('Aluno atualizado!');
             } else {
-                await createStudent(payload);
+                const created = await createStudent(studentPayload);
+                const monthlyFee = parseBRL(enroll_monthly_fee);
+                // Create enrollment if fields are filled
+                if (enroll_teacher_id && monthlyFee > 0) {
+                    try {
+                        await createEnrollment({
+                            student_id: created.id,
+                            teacher_id: enroll_teacher_id || undefined,
+                            instrument: studentPayload.instruments?.split(',')[0]?.trim() || undefined,
+                            day_of_week: enroll_day_of_week || undefined,
+                            class_time: enroll_class_time || undefined,
+                            duration_minutes: enroll_duration,
+                            monthly_fee: monthlyFee,
+                            billing_type: enroll_billing_type,
+                            classes_per_week: 1,
+                            installments: 1,
+                            status: 'active',
+                        });
+                        showToast('Aluno e matrícula criados com sucesso!');
+                    } catch (enrErr: unknown) {
+                        showToast(
+                            'Aluno criado, mas erro ao criar matrícula: ' + (enrErr instanceof Error ? enrErr.message : 'erro'),
+                            'error'
+                        );
+                    }
+                } else {
+                    showToast('Aluno criado!');
+                }
             }
             closeModal();
             await loadStudents();
@@ -428,6 +502,83 @@ export default function Students() {
                                     </select>
                                 </div>
                             </div>
+
+                            {/* Matrícula (apenas na criação) */}
+                            {!editingId && (
+                                <div className="form-section">
+                                    <h3>📚 Matrícula (opcional)</h3>
+                                    <p style={{ color: '#71717a', fontSize: 12, marginBottom: 12 }}>
+                                        Preencha para criar a matrícula junto com o aluno.
+                                    </p>
+                                    <div className="form-grid">
+                                        <div className="form-field">
+                                            <label>Professor</label>
+                                            <select
+                                                value={form.enroll_teacher_id}
+                                                onChange={e => updateField('enroll_teacher_id', e.target.value)}
+                                            >
+                                                <option value="">Selecione...</option>
+                                                {teachers.map(t => (
+                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-field">
+                                            <label>Dia da Semana</label>
+                                            <select
+                                                value={form.enroll_day_of_week}
+                                                onChange={e => updateField('enroll_day_of_week', e.target.value)}
+                                            >
+                                                <option value="">Selecione...</option>
+                                                {DAY_OPTIONS.map(d => (
+                                                    <option key={d.value} value={d.value}>{d.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-field">
+                                            <label>Horário</label>
+                                            <input
+                                                type="time"
+                                                value={form.enroll_class_time}
+                                                onChange={e => updateField('enroll_class_time', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="form-field">
+                                            <label>Duração (min)</label>
+                                            <select
+                                                value={form.enroll_duration}
+                                                onChange={e => updateField('enroll_duration', Number(e.target.value))}
+                                            >
+                                                <option value={30}>30 min</option>
+                                                <option value={45}>45 min</option>
+                                                <option value={60}>60 min</option>
+                                                <option value={90}>90 min</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-field">
+                                            <label>Valor Mensal (R$)</label>
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                placeholder="0,00"
+                                                value={form.enroll_monthly_fee}
+                                                onChange={e => updateField('enroll_monthly_fee', e.target.value.replace(/[^0-9,]/g, ''))}
+                                            />
+                                        </div>
+                                        <div className="form-field">
+                                            <label>Tipo de Cobrança</label>
+                                            <select
+                                                value={form.enroll_billing_type}
+                                                onChange={e => updateField('enroll_billing_type', e.target.value as 'weekly' | 'monthly' | 'full')}
+                                            >
+                                                {BILLING_OPTIONS.map(b => (
+                                                    <option key={b.value} value={b.value}>{b.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Responsável */}
                             <div className="form-section">
