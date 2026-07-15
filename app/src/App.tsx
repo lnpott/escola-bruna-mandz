@@ -8,6 +8,7 @@ import Agenda from '@/pages/Agenda';
 import Enrollments from '@/pages/Enrollments';
 import Financial from '@/pages/Financial';
 import Admin from '@/pages/Admin';
+import Store from '@/pages/Store';
 import Login from '@/pages/Login';
 import { isAuthenticated, logout } from '@/services/api';
 import './styles/global.css';
@@ -151,6 +152,7 @@ function TopBar() {
         { path: '/agenda', label: 'Agenda', icon: '📅' },
         { path: '/financeiro', label: 'Financeiro', icon: '💰' },
         { path: '/admin', label: 'Admin', icon: '👥' },
+        { path: '/loja', label: 'Loja', icon: '🛒' },
     ];
 
     const isActive = (path: string) => {
@@ -216,6 +218,8 @@ function Breadcrumbs() {
         crumbs.push({ label: 'Financeiro' });
     } else if (location.pathname.startsWith('/admin')) {
         crumbs.push({ label: 'Admin' });
+    } else if (location.pathname.startsWith('/loja')) {
+        crumbs.push({ label: 'Loja' });
     }
 
     if (crumbs.length <= 1) return null;
@@ -280,6 +284,7 @@ function Home() {
                 <ModuleCard icon="📅" title="Agenda" description="Aulas, eventos e conflitos de horário" to="/agenda" />
                 <ModuleCard icon="💰" title="Financeiro" description="Contas a receber/pagar, fluxo de caixa" to="/financeiro" />
                 <ModuleCard icon="👥" title="Administração" description="Usuários, perfis e permissões" to="/admin" />
+                <ModuleCard icon="🛒" title="Loja" description="Produtos e pedidos da loja" to="/loja" />
             </div>
         </div>
     );
@@ -332,6 +337,7 @@ export default function App() {
                     <Route path="/agenda" element={<AuthGuard><AppLayout><Agenda /></AppLayout></AuthGuard>} />
                     <Route path="/financeiro" element={<AuthGuard><AppLayout><Financial /></AppLayout></AuthGuard>} />
                     <Route path="/admin" element={<AuthGuard><AppLayout><Admin /></AppLayout></AuthGuard>} />
+                    <Route path="/loja" element={<AuthGuard><AppLayout><Store /></AppLayout></AuthGuard>} />
                     <Route path="*" element={
                         <AuthGuard>
                             <AppLayout>

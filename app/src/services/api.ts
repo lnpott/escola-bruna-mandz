@@ -550,6 +550,72 @@ export async function fetchPaymentsByStudent(studentId: string): Promise<Payment
     return data.payments;
 }
 
+// ── Store / Products ────────────────────────────────────────────────
+
+const ADMIN_PRODUCTS_BASE = '/api/admin-products';
+const ADMIN_ORDERS_BASE = '/api/admin-orders';
+const UPDATE_ORDER_STATUS_BASE = '/api/update-order-status';
+
+async function storeRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
+    };
+    if (password) headers['x-admin-password'] = password;
+
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+        if (response.status === 401) {
+            sessionStorage.removeItem('admin_password');
+        }
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+}
+
+export async function fetchAdminProducts(): Promise<import('@/types').Product[]> {
+    const data = await storeRequest<{ products: import('@/types').Product[] }>(ADMIN_PRODUCTS_BASE);
+    return data.products;
+}
+
+export async function createAdminProduct(
+    product: { name: string; description?: string; price: number; stock: number; category: string; active?: boolean; badge?: string; image?: string }
+): Promise<import('@/types').Product> {
+    const data = await storeRequest<{ product: import('@/types').Product }>(ADMIN_PRODUCTS_BASE, {
+        method: 'POST',
+        body: JSON.stringify(product),
+    });
+    return data.product;
+}
+
+export async function updateAdminProduct(
+    id: string,
+    updates: Partial<import('@/types').Product>
+): Promise<import('@/types').Product> {
+    const data = await storeRequest<{ product: import('@/types').Product }>(ADMIN_PRODUCTS_BASE, {
+        method: 'PATCH',
+        body: JSON.stringify({ id, ...updates }),
+    });
+    return data.product;
+}
+
+// ── Store / Orders ───────────────────────────────────────────────────
+
+export async function fetchOrders(): Promise<import('@/types').Order[]> {
+    const data = await storeRequest<{ orders: import('@/types').Order[] }>(ADMIN_ORDERS_BASE);
+    return data.orders;
+}
+
+export async function updateOrderStatus(orderId: string, status: string): Promise<import('@/types').Order> {
+    const data = await storeRequest<{ order: import('@/types').Order }>(UPDATE_ORDER_STATUS_BASE, {
+        method: 'POST',
+        body: JSON.stringify({ orderId, status }),
+    });
+    return data.order;
+}
+
 // ── Teacher Payments (Pagamentos a Professores) ─────────────────────
 
 export async function createTeacherPayment(
