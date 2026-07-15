@@ -55,8 +55,8 @@ export default function Enrollments() {
             setEnrollments(enrs);
             setStudents(studs);
             setTeachers(teachs);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar vínculos.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao carregar vínculos.');
         } finally {
             setLoading(false);
         }
@@ -126,7 +126,7 @@ export default function Enrollments() {
         }
         setSaving(true);
         try {
-            const payload: any = {
+            const payload: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'students' | 'teachers'> & { total_amount?: number; installments?: number } = {
                 student_id: form.student_id,
                 teacher_id: form.teacher_id || null,
                 instrument: form.instrument || null,
@@ -153,8 +153,8 @@ export default function Enrollments() {
             }
             setShowModal(false);
             load();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao salvar vínculo.');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao salvar vínculo.');
         } finally {
             setSaving(false);
         }
@@ -173,8 +173,8 @@ export default function Enrollments() {
             await deleteEnrollment(id);
             showToast('Vínculo excluído.');
             load();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao excluir vínculo.');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao excluir vínculo.');
         }
     };
 

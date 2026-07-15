@@ -112,8 +112,8 @@ export default function Dashboard() {
             const result = await fetchDashboard();
             setData(result);
             setLastUpdate(new Date().toLocaleTimeString('pt-BR'));
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
             setLoading(false);
         }

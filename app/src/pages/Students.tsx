@@ -83,8 +83,8 @@ export default function Students() {
             setLoading(true);
             const data = await fetchStudents();
             setStudents(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
             setLoading(false);
         }
@@ -151,12 +151,12 @@ export default function Students() {
             if (editingId) {
                 await updateStudent(editingId, payload);
             } else {
-                await createStudent(payload as any);
+                await createStudent(payload);
             }
             closeModal();
             await loadStudents();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
             setSaving(false);
         }
@@ -174,8 +174,8 @@ export default function Students() {
         try {
             await deleteStudent(id);
             await loadStudents();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         }
     }
 

@@ -41,8 +41,8 @@ export default function Teachers() {
             setLoading(true);
             const data = await fetchTeachers();
             setTeachers(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
             setLoading(false);
         }
@@ -118,12 +118,12 @@ export default function Teachers() {
             if (editingId) {
                 await updateTeacher(editingId, payload);
             } else {
-                await createTeacher(payload as any);
+                await createTeacher(payload);
             }
             closeModal();
             await load();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         } finally {
             setSaving(false);
         }
@@ -141,8 +141,8 @@ export default function Teachers() {
         try {
             await deleteTeacher(id);
             await load();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
         }
     }
 

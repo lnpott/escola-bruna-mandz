@@ -80,8 +80,8 @@ export default function Admin() {
             ]);
 
             setData({ students, teachers, enrollments, dash, trend });
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar estatísticas.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas.');
         } finally {
             setLoading(false);
         }

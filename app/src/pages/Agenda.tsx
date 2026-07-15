@@ -163,8 +163,8 @@ export default function Agenda() {
             const dateTo = formatDate(activeRange.end);
             const lessons = await fetchLessons({ date_from: dateFrom, date_to: dateTo, limit: 500 });
             setAllLessons(lessons);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar agenda.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao carregar agenda.');
         } finally {
             setLoading(false);
         }
@@ -334,7 +334,7 @@ export default function Agenda() {
                     start_time: form.start_time,
                     duration_minutes: form.duration_minutes,
                     status: form.status as LessonStatus,
-                    lesson_type: form.lesson_type as any,
+                    lesson_type: form.lesson_type as LessonType,
                     notes: form.notes || null,
                 });
                 showToast('Aula atualizada!');
@@ -347,7 +347,7 @@ export default function Agenda() {
                     date: form.date,
                     start_time: form.start_time,
                     duration_minutes: form.duration_minutes,
-                    lesson_type: form.lesson_type as any,
+                    lesson_type: form.lesson_type as LessonType,
                     status: form.status as LessonStatus,
                     notes: form.notes || undefined,
                 });
@@ -355,8 +355,8 @@ export default function Agenda() {
             }
             setShowCreateModal(false);
             loadLessons();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao salvar aula.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao salvar aula.', 'error');
         }
     };
 
@@ -365,8 +365,8 @@ export default function Agenda() {
             await updateLesson(lessonId, { status: newStatus });
             showToast(`Aula ${LESSON_STATUS_LABELS[newStatus].toLowerCase()}`);
             loadLessons();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar status.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao atualizar status.', 'error');
         }
     };
 
@@ -382,8 +382,8 @@ export default function Agenda() {
             await deleteLesson(lessonId);
             showToast('Aula excluída.');
             loadLessons();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao excluir aula.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao excluir aula.', 'error');
         }
     };
 

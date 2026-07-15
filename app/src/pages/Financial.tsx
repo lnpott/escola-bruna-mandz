@@ -147,8 +147,8 @@ export default function Financial() {
             setSummary(s);
             setStudents(st);
             setTeachers(te);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar dados financeiros.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao carregar dados financeiros.');
         } finally {
             setLoading(false);
         }
@@ -181,8 +181,8 @@ export default function Financial() {
                     break;
                 }
             }
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao carregar dados.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao carregar dados.', 'error');
         }
     }, [month, year, activeTab, paymentCategory]);
 
@@ -215,8 +215,8 @@ export default function Financial() {
             setPayForm(emptyPaymentForm());
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar receita.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao registrar receita.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -271,8 +271,8 @@ export default function Financial() {
             setExpForm(emptyExpenseForm());
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao salvar despesa.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao salvar despesa.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -283,8 +283,8 @@ export default function Financial() {
             await updateExpense(exp.id, { paid: !exp.paid });
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar despesa.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao atualizar despesa.', 'error');
         }
     };
 
@@ -308,8 +308,8 @@ export default function Financial() {
             setInvForm(emptyInvestmentForm());
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar investimento.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao registrar investimento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -335,8 +335,8 @@ export default function Financial() {
             setTpForm(emptyTPForm());
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao registrar pagamento.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao registrar pagamento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -347,8 +347,8 @@ export default function Financial() {
             await updateTeacherPayment(tp.id, { paid: !tp.paid });
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao atualizar pagamento.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao atualizar pagamento.', 'error');
         }
     };
 
@@ -366,8 +366,8 @@ export default function Financial() {
             showToast('Pagamento excluído!');
             loadSubList();
             loadSummary();
-        } catch (err: any) {
-            showToast(err.message || 'Erro ao excluir.', 'error');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao excluir.', 'error');
         }
     };
 
