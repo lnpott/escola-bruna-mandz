@@ -21,11 +21,25 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
+
     // Nunca usa cache para chamadas de API — sempre busca dados frescos
     // (status de pedido, configuração de chaves, etc. não podem ficar presos em cache).
     if (new URL(event.request.url).pathname.startsWith('/api/')) {
-        event.respondWith(fetch(event.request));
+        event.respondWith(fetch(event.request).catch(() => {
+            return new Response(JSON.stringify({ error: 'Offline' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }));
         return;
     }
-    event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+
+    // Assets estáticos: tenta cache primeiro, fallback para rede
+    event.respondWith(
+        caches.match(event.request).then((cached) => cached || fetch(event.request))
+            .catch(() => {
+                // Se falhar rede e não tiver cache, retorna página offline
+                return caches.match('/');
+            })
+    );
 });
