@@ -1517,3 +1517,128 @@ Nenhuma.
 Reagendamento e Cancelamento de Aula (UI dedicada na Agenda).
 
 ---
+
+# ETAPA 59 — PÁGINA LOJA (GESTÃO DE PRODUTOS E PEDIDOS)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `6766713` — "feat: Etapa 59 - Pagina Loja com gestao de Produtos e Pedidos no React SPA"
+
+---
+
+## Objetivo
+
+Criar uma página de gestão da loja dentro do React SPA, permitindo administrar produtos (CRUD) e pedidos (visualização e atualização de status) sem precisar acessar as APIs avulsas ou o painel clássico.
+
+---
+
+## Problema Identificado
+
+A gestão de produtos e pedidos estava fragmentada:
+- **Produtos**: API standalone em `/api/admin-products` — sem interface no React SPA
+- **Pedidos**: API standalone em `/api/admin-orders` + `/api/update-order-status` — sem interface no React SPA
+- **Vitrine (cliente)**: Vanilla JS em `store/store.js` — funcionando mas sem painel admin
+- O React SPA só mostrava informações de loja na página Admin (cards de resumo), sem permitir ações CRUD
+
+---
+
+## Funcionalidades Implementadas
+
+### 1. Nova Página "🛒 Loja"
+
+**Arquivo:** `app/src/pages/Store.tsx` (novo)
+
+- Rota: `/loja`
+- Aba "🛒 Loja" na TopBar entre Admin e Sair
+- Breadcrumb "Início › Loja"
+- Card "Loja — Produtos e pedidos" na Home
+- Header com link "🔗 Ver vitrine pública" (abre em nova aba)
+
+### 2. Aba 📦 Produtos
+
+| Funcionalidade | Detalhe |
+|----------------|---------|
+| **Tabela** | Nome (com thumbnail), preço, estoque, categoria, badge, status, ações |
+| **Busca** | Filtro por nome do produto |
+| **Criar** | Modal com nome, descrição, preço, estoque, categoria (roupas/acessórios/kits), badge, URL da imagem |
+| **Editar** | Mesmo modal, pré-preenchido, com checkbox "Produto ativo" |
+| **Ativar/Desativar** | Botão toggle na linha |
+| **Status Pill** | Estoque baixo (≤5) em vermelho, OK em verde |
+
+### 3. Aba 📋 Pedidos
+
+| Funcionalidade | Detalhe |
+|----------------|---------|
+| **Tabela** | ID do pedido, cliente (nome + email), total, data, status |
+| **Alterar Status** | Dropdown inline com confirmação via modal `useApp().confirm()` |
+| **Expandir Detalhes** | Botão ▼ para ver itens do pedido (JSON → tabela), endereço de entrega, forma de pagamento |
+| **Cores por Status** | pending (amarelo), approved (verde), cancelled (vermelho), refunded (cinza) |
+
+### 4. API — Novas Funções
+
+**Arquivo:** `app/src/services/api.ts`
+
+| Função | Endpoint | Descrição |
+|--------|----------|-----------|
+| `fetchAdminProducts()` | GET `/api/admin-products` | Lista todos os produtos (inclusive inativos) |
+| `createAdminProduct(data)` | POST `/api/admin-products` | Cria novo produto |
+| `updateAdminProduct(id, updates)` | PATCH `/api/admin-products` | Atualiza campos de um produto |
+| `fetchOrders()` | GET `/api/admin-orders` | Lista todos os pedidos |
+| `updateOrderStatus(orderId, status)` | POST `/api/update-order-status` | Altera o status de um pedido |
+
+- Helper `storeRequest()` reutilizável com autenticação via `x-admin-password` e tratamento de 401
+
+### 5. CSS — Nova Folha de Estilo
+
+**Arquivo:** `app/src/styles/store.css` (~300 linhas)
+
+- Container, header, sub-nav (abas Produtos/Pedidos)
+- Toolbar com busca + botão "Novo Produto"
+- Tabela responsiva com `data-label` para mobile
+- Product thumb (32×32), pills, status pills, stock pills
+- Modal de formulário com overlay blur
+- Order detail expandido
+- Responsivo (breakpoint 720px)
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---------|------|
+| `app/src/pages/Store.tsx` | **Novo** — Página de gestão da loja |
+| `app/src/styles/store.css` | **Novo** — CSS da página Loja |
+| `app/src/services/api.ts` | Modificado — 5 funções para produtos/pedidos |
+| `app/src/App.tsx` | Modificado — rota, TopBar, breadcrumb, Home card |
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Os tipos `Product` e `Order` já existiam em `types.ts` desde implementações anteriores.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 73 módulos transformados, 2.98s, sem erros
+✅ Code Review — sem issues: imports corretos, tipos consistentes, estados de loading/empty tratados
+
+---
+
+## Pendências
+
+- ~~Criar página Loja no React SPA~~ ✅
+- Exportar CSV nos demais módulos financeiros
+
+---
+
+## Próxima Etapa
+
+Exportar CSV nos demais módulos financeiros.
+
+---
