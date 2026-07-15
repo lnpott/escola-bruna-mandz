@@ -501,6 +501,240 @@
     flex-wrap: wrap;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Wizard — Cadastro de Aluno Passo a Passo
+   ═══════════════════════════════════════════════════════════════════ */
+
+.wizard-modal {
+    max-width: 640px !important;
+}
+
+.wizard-steps {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-5) 0;
+    max-width: 640px;
+    margin: 0 auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.wizard-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+}
+
+.wizard-step + .wizard-step::before {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: var(--border-default);
+    margin-right: var(--space-1);
+}
+
+.wizard-step.done + .wizard-step::before,
+.wizard-step.active + .wizard-step::before {
+    background: var(--color-accent);
+}
+
+.wizard-step-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid var(--border-default);
+    color: var(--text-tertiary);
+    background: var(--bg-surface);
+    flex-shrink: 0;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.wizard-step.active .wizard-step-circle {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.wizard-step.done .wizard-step-circle {
+    border-color: var(--color-success);
+    background: var(--color-success);
+    color: #fff;
+    font-size: 10px;
+}
+
+.wizard-step-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    white-space: nowrap;
+    display: none;
+}
+
+.wizard-step.active .wizard-step-label {
+    color: var(--text-primary);
+    display: inline;
+}
+
+.wizard-step.done .wizard-step-label {
+    color: var(--text-secondary);
+}
+
+@media (min-width: 500px) {
+    .wizard-step-label {
+        display: inline;
+    }
+}
+
+.wizard-step-content {
+    min-height: 200px;
+    animation: fadeIn 0.25s ease;
+    padding: var(--space-4) 0;
+}
+
+.wizard-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.wizard-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 var(--space-5);
+}
+
+/* ── Yes/No choice buttons ───────────────────────────── */
+.wizard-yesno {
+    display: flex;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 480px;
+}
+
+.wizard-btn-choice {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-3);
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    text-align: center;
+}
+
+.wizard-btn-choice:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
+}
+
+.wizard-btn-choice.selected {
+    border-color: var(--color-accent);
+    background: rgba(220, 38, 38, 0.06);
+}
+
+.wizard-btn-choice-sm {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.wizard-btn-choice-sm:hover {
+    border-color: var(--border-strong);
+}
+
+.wizard-btn-choice-sm.selected {
+    border-color: var(--color-accent);
+    background: rgba(220, 38, 38, 0.06);
+    color: var(--color-accent);
+}
+
+.wizard-choice-icon {
+    font-size: 28px;
+}
+
+.wizard-choice-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.wizard-choice-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+/* ── Instrument grid ─────────────────────────────────── */
+.wizard-instrument-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--space-2);
+}
+
+.wizard-instrument-grid .instrument-chip {
+    justify-content: center;
+    padding: var(--space-3) var(--space-2);
+}
+
+/* ── Navigation ──────────────────────────────────────── */
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+}
+
+.wizard-nav-right {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* ── Summary ─────────────────────────────────────────── */
+.wizard-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.wizard-summary-section {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.wizard-summary-section h4 {
+    margin: 0 0 var(--space-2);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.wizard-summary-section p {
+    margin: var(--space-1) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 720px) {
     .students-page {
