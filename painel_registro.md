@@ -1642,3 +1642,148 @@ Nenhuma. Os tipos `Product` e `Order` já existiam em `types.ts` desde implement
 Exportar CSV nos demais módulos financeiros.
 
 ---
+
+# ETAPA 60 — ALINHAMENTO DE TIPOS TYPESCRIPT COM SCHEMA SUPABASE (PRODUCT / ORDER)
+
+**Data:** 15/07/2026
+
+**Horário:** —
+
+**Agente Responsável:** Buffy (DeepSeek)
+
+**Commit Git:** `1b6ff27` — "fix: alinha tipos TypeScript com schema Supabase (Product/Order) e corrige Store.tsx"
+
+---
+
+## Objetivo
+
+Alinhar as interfaces TypeScript `Product` e `Order` com o schema real do banco de dados Supabase, removendo campos fantasmas e adicionando campos faltantes. Corrigir o consumo dessas interfaces na página Store.tsx.
+
+---
+
+## Problema Identificado
+
+Uma auditoria cruzada entre o schema SQL (`supabase/schema.sql`) e as interfaces TypeScript (`app/src/types.ts`) revelou divergências:
+
+### Product — Divergências
+
+| Campo | DB (supabase/schema.sql) | TypeScript (antes) | Ação |
+|-------|:------------------------:|:------------------:|:----:|
+| `sizes` | ❌ Não existe | ✅ `string?` | **Removido** (campo fantasma) |
+| `updated_at` | ✅ `timestamptz NOT NULL` | ❌ Ausente | **Adicionado** |
+| `badge_color` | ✅ `text` | ❌ Ausente | **Adicionado** |
+| `reward_xp` | ✅ `integer NOT NULL DEFAULT 0` | ❌ Ausente | **Adicionado** |
+| `variants` | ✅ `jsonb NOT NULL DEFAULT '[]'` | ❌ Ausente | **Adicionado** (`any`) |
+
+### Order — Divergências
+
+| Campo | DB (supabase/schema.sql) | TypeScript (antes) | Ação |
+|-------|:------------------------:|:------------------:|:----:|
+| `payment_method` | ❌ Não existe (coluna é `method`) | ✅ `string?` | **Renomeado** para `method` |
+| `shipping_address` | ❌ Não existe | ✅ `string?` | **Removido** (campo fantasma) |
+| `items` | ✅ `jsonb NOT NULL` | `string?` | **Alterado** para `any` (Supabase retorna objeto JS parseado) |
+| `updated_at` | ✅ `timestamptz NOT NULL` | ❌ Ausente | **Adicionado** |
+| `customer_phone` | ✅ `text` | ❌ Ausente | **Adicionado** |
+| `mp_payment_id` | ✅ `text` | ❌ Ausente | **Adicionado** |
+| `mp_status` | ✅ `text` | ❌ Ausente | **Adicionado** |
+| `mp_status_detail` | ✅ `text` | ❌ Ausente | **Adicionado** |
+| `earned_xp` | ✅ `integer NOT NULL DEFAULT 0` | ❌ Ausente | **Adicionado** |
+| `customer_is_student` | ✅ `boolean NOT NULL DEFAULT false` | ❌ Ausente | **Adicionado** |
+
+---
+
+## Correções Realizadas
+
+### 1. Interface Product (app/src/types.ts)
+
+```typescript
+export interface Product {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    stock: number;
+    category: string;
+    image?: string;
+    active: boolean;
+    badge?: string;
+    badge_color?: string;     // NOVO
+    reward_xp: number;         // NOVO
+    variants: any;             // NOVO (jsonb)
+    created_at: string;
+    updated_at: string;        // NOVO
+    // REMOVIDO: sizes (não existe no banco)
+}
+```
+
+### 2. Interface Order (app/src/types.ts)
+
+```typescript
+export interface Order {
+    id: string;
+    customer_name: string;
+    customer_email: string;
+    customer_phone?: string;    // NOVO
+    total: number;
+    status: string;
+    method: string;             // ANTES: payment_method
+    items: any;                 // ANTES: string? (jsonb → objeto JS)
+    mp_payment_id?: string;     // NOVO
+    mp_status?: string;         // NOVO
+    mp_status_detail?: string;  // NOVO
+    earned_xp: number;          // NOVO
+    customer_is_student: boolean; // NOVO
+    created_at: string;
+    updated_at: string;         // NOVO
+    // REMOVIDO: shipping_address (não existe no banco)
+    // REMOVIDO: payment_method (renomeado para method)
+}
+```
+
+### 3. Store.tsx — Consumo Correto dos Tipos
+
+- **`parseItems()`**: Agora aceita `any` em vez de `string?`.
+  - Se for Array, retorna direto (jsonb já parseado pelo Supabase)
+  - Se for string, faz `JSON.parse()` como fallback legado
+  - Se null/undefined, retorna `[]`
+- **Order details**:
+  - `order.shipping_address` removido do JSX (não existe no banco)
+  - `order.payment_method` substituído por `order.method` com `.toUpperCase()` para exibição
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/types.ts` | Product: +4 campos, -1 removido. Order: +8 campos, -2 removidos, -1 renomeado |
+| `app/src/pages/Store.tsx` | parseItems aceita any; shipping_address removido; payment_method → method |
+
+---
+
+## Alterações no Banco
+
+Nenhuma. Apenas alinhamento de tipos TypeScript com o schema já existente.
+
+---
+
+## Testes
+
+✅ `npm run build` (Vite) — 73 módulos transformados, 7.13s, sem erros
+✅ Code Review — sem issues: campos opcionais corretos, parseItems defensivo, nenhum field phantom
+
+---
+
+## Pendências
+
+- ~~Alinhar Product interface com DB~~ ✅
+- ~~Alinhar Order interface com DB~~ ✅
+- ~~Corrigir Store.tsx para usar tipos corretos~~ ✅
+
+---
+
+## Próxima Etapa
+
+Deploy na Vercel + validação da página Loja em produção.
+
+---
