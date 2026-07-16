@@ -1,19 +1,14 @@
 /**
  * api/admin-orders.js
- * Lista os pedidos salvos no Supabase. Usado pelo painel admin escondido.
+ * Lista os pedidos salvos no Supabase. Usado pelo painel admin.
  *
- * Protegido por senha simples via header 'x-admin-password', comparado com
- * a variável de ambiente ADMIN_PASSWORD. Isso NÃO é um sistema de login
- * robusto (sem sessão, sem usuários) — é uma trava simples para impedir que
- * qualquer pessoa que adivinhe a URL veja dados de clientes.
+ * Delega para handleListOrders em api/_lib/store/handlers.js.
  *
- * VARIÁVEIS DE AMBIENTE NECESSÁRIAS:
- *   ADMIN_PASSWORD             → senha escolhida por você (defina algo forte)
- *   SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ * Protegido por senha simples via header 'x-admin-password'.
  */
 
 import { getSupabase } from './_lib/supabase.js';
+import { handleListOrders } from './_lib/store/handlers.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -32,17 +27,9 @@ export default async function handler(req, res) {
 
     try {
         const supabase = getSupabase();
-        const { data, error } = await supabase
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(200);
-
-        if (error) throw new Error(error.message);
-
-        return res.status(200).json({ orders: data });
+        await handleListOrders(req, res, supabase);
     } catch (err) {
         console.error('Erro ao buscar pedidos:', err.message);
-        return res.status(500).json({ error: 'Erro ao buscar pedidos.', details: err.message });
+        return res.status(500).json({ error: 'Erro ao buscar pedidos.' });
     }
 }

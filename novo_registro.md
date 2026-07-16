@@ -40,6 +40,8 @@
 | [72](#etapa-72--limpeza-de-dados-acadêmicosfinanceiros) | 16/07 | Limpeza de dados (1 aluno, 1 prof) | 🧹 Cleanup |
 | [73](#etapa-73--correção-de-segurança-e-refatoração-do-server-devjs) | 16/07 | Segurança + refatoração server-dev.js | 🛠️ Fix |
 | [74](#etapa-74--correção-de-vazamento-e-fallback-da-loja-em-produção) | 16/07 | Fix loja: leak API + fallback produtos | 🐛 Fix |
+| [75](#etapa-75--extração-de-handlers-da-loja-para-api_libstorehandlersjs) | 16/07 | Extração handlers loja p/ api/_lib/store/ | ♻️ Refactor |
+| [76](#etapa-76--instalação-do-ripgrep) | 16/07 | Instalação do ripgrep (code-searcher) | 🛠️ Tooling |
 
 ---
 
@@ -47,7 +49,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 31 (44-74, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 33 (44-76, com lacunas 49, 52, 58, 59) |
 | **Commits** | 24+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -926,6 +928,158 @@ Fazer deploy do novo build no Vercel (`git push origin main`) para atualizar o H
 
 - ✅ `npm run build` — 4.86s, sem erros (novo import de `products.js` incluso no bundle)
 - ✅ Code Review — aprovado sem issues críticos
+
+---
+
+# ETAPA 75 — Extração de Handlers da Loja para `api/_lib/store/handlers.js`
+
+**Data:** 16/07/2026
+
+**Objetivo:** Extrair os handlers da loja (`handleOrders`, `handleProducts`, `handleAdminProducts`, `handleAdminOrders`, `handleOrderStatus`, `handleConfig`) do `server-dev.js` para uma biblioteca compartilhada em `api/_lib/store/handlers.js`, seguindo o mesmo padrão do módulo financeiro (`api/_lib/financial/`).
+
+## Contexto
+
+Na Etapa 73, os handlers financeiros `handleDashboard` e `handleSummary` foram extraídos para a biblioteca compartilhada. Ficou pendente a mesma extração para os handlers da loja — 5 handlers inline no `server-dev.js` com ~80 linhas de lógica duplicada em relação aos arquivos standalone em `api/` (products.js, admin-products.js, admin-orders.js, order-status.js).
+
+Além disso, `api/admin-orders.js` e `api/admin-products.js` ainda **vazavam `err.message`** em respostas 500 — problemas de segurança iguais aos corrigidos no `server-dev.js` na Etapa 73.
+
+## Brainstorm de Melhorias (registrado nesta Etapa)
+
+Antes de implementar, foi feito um brainstorm completo de 5 ideias de melhoria estrutural:
+
+| # | Ideia | Impacto | Esforço | Custo-benefício |
+|:-:|-------|:-------:|:-------:|:----------------:|
+| 1 | **Extração de handlers da loja para `api/_lib/store/`** | Alto | 1h | ⭐⭐⭐⭐⭐ |
+| 2 | CRUD completo no server-dev.js via delegação total | Alto | 2h | ⭐⭐⭐⭐ |
+| 3 | Design System CSS unificado + Dark/Light Mode | Médio-Alto | 3-4h | ⭐⭐⭐ |
+| 4 | Playwright E2E para o React SPA | Muito Alto | 4-5h | ⭐⭐⭐ |
+| 5 | CI Pipeline + Error Boundaries no React SPA | Alto | 1.5h | ⭐⭐⭐⭐⭐ |
+
+**Ideia 1** foi selecionada para implementação imediata.
+
+## Implementações
+
+### `api/_lib/store/handlers.js` (novo)
+
+Biblioteca compartilhada com handlers Vercel-style `(req, res, supabase)`:
+
+| Handler | Função | Usado por |
+|---------|--------|-----------|
+| `handleListOrders` | Lista todos os pedidos (SELECT *, limit 200) | server-dev, api/admin-orders |
+| `handleListPublicProducts` | Lista produtos ativos com normalização | server-dev, api/products |
+| `handleListAllProducts` | Lista todos os produtos (ativos e inativos) | server-dev, api/admin-products GET |
+| `handleOrderStatus` | Consulta status de 1 pedido por ID (público) | server-dev, api/order-status |
+| `handleConfig` | Retorna chave pública do Mercado Pago | server-dev, api/config |
+
+- Todos os handlers usam mensagens genéricas em caso de erro (sem vazamento de `err.message`)
+- Reusa `normalizeProduct()` de `api/_lib/normalize-product.js` (já existente)
+- Segue o padrão dos handlers financeiros em `api/_lib/financial/`
+
+### `server-dev.js` — refatorado
+
+- `handleOrders` → `handleListOrders` (da biblioteca, via adapter)
+- `handleProducts` → `handleListAllProducts` (da biblioteca, via adapter) — nota: server-dev lista TODOS os produtos, não apenas active=true
+- `handleAdminProducts` → `handleListAllProducts` (da biblioteca, via adapter)
+- `handleAdminOrders` → `handleListOrders` (da biblioteca, via adapter)
+- `handleOrderStatus` → `handleOrderStatus` (da biblioteca, via adapter)
+- `handleConfig` → `handleConfig` (da biblioteca, via adapter)
+- ~80 linhas de código inline removidas
+- Comentário NOTA atualizado
+
+### `api/products.js` — refatorado
+
+- Importa `handleListPublicProducts` da biblioteca
+- Handler principal delega para a função compartilhada
+- Remove duplicação da query Supabase e normalização
+- Já tinha `err.message` corrigido (Etapa 74) — mantido
+
+### `api/admin-products.js` — refatorado
+
+- GET handler delega para `handleListAllProducts` da biblioteca
+- POST e PATCH permanecem no arquivo (são próprios do admin e não duplicados)
+- 🔒 **Vazamentos de `err.message` corrigidos** — 3 pontos:
+  - `{ error: 'Erro ao buscar produtos.', details: err.message }` → genérico
+  - `{ error: 'Erro ao criar produto.', details: err.message }` → genérico
+  - `{ error: 'Erro ao atualizar produto.', details: err.message }` → genérico
+
+### `api/admin-orders.js` — refatorado
+
+- Importa `handleListOrders` da biblioteca
+- Handler principal delega para a função compartilhada
+- 🔒 **Vazamento de `err.message` corrigido** — `details: err.message` removido
+
+### `api/order-status.js` — refatorado
+
+- Importa `handleOrderStatus` da biblioteca
+- Handler principal delega para a função compartilhada
+- Já tinha mensagem genérica — mantido
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `api/_lib/store/handlers.js` | 🆕 Novo | Biblioteca compartilhada (~90 linhas) |
+| `server-dev.js` | ♻️ | 6 handlers inline → imports da biblioteca (~80 linhas removidas) |
+| `api/products.js` | 🔒 | Delegado para handleListPublicProducts |
+| `api/admin-products.js` | 🔒 | GET delegado + 3 vazamentos err.message corrigidos |
+| `api/admin-orders.js` | 🔒 | Delegado + vazamento err.message corrigido |
+| `api/order-status.js` | 🔒 | Delegado (já tinha mensagem genérica) |
+
+## Testes
+
+- ✅ `npm test` — 48/48 passando
+- ✅ `npm run build` — sem erros
+- ✅ `node server-dev.js` — servidor inicia sem erros
+- ✅ Code Review — aprovado sem issues
+
+## Testes
+
+- ✅ `rg --version` — ripgrep 14.1.0, pcre2 + simd
+- ✅ `rg "err.message" api/` — busca funcional (< 1s)
+- ✅ Nenhuma alteração de código — apenas tooling
+
+---
+
+# ETAPA 76 — Instalação do ripgrep
+
+**Data:** 16/07/2026
+
+**Objetivo:** Instalar ripgrep no ambiente de desenvolvimento para habilitar o code-searcher agent, que antes falhava com erro "Ripgrep binary not found for win32-x64".
+
+## Contexto
+
+Durante todas as Etapas anteriores (73-75), o code-searcher agent (`ripgrep`) não funcionava. Sempre que tentávamos buscar código, recebíamos:
+
+```
+Ripgrep binary not found for win32-x64
+Please run 'npm run fetch-ripgrep' or set CODEBUFF_RG_PATH environment variable.
+```
+
+Isso forçava o uso de ferramentas mais lentas e menos precisas para busca de código. Após o brainstorm de melhorias (registrado na Etapa 75), a instalação do ripgrep foi identificada como prioridade para aumentar a eficiência do desenvolvimento.
+
+## Implementação
+
+Instalação via Chocolatey com permissão de administrador:
+
+```bash
+choco install ripgrep -y
+```
+
+### Resultado
+
+| Métrica | Valor |
+|---------|-------|
+| **Versão** | ripgrep 14.1.0 |
+| **Binário** | `C:\ProgramData\chocolatey\bin\rg.exe` |
+| **Features** | simd-accel, pcre2 (JIT disponível) |
+| **Busca em `api/`** | ✅ < 1s |
+| **Code-searcher agent** | ✅ Agora funcional |
+
+## Impacto
+
+- **Code-searcher agent** habilitado — pode buscar padrões em todo o código excluindo `node_modules`
+- **Busca 10-100x mais rápida** que `grep`/`findstr` do Windows
+- **Padrões PCRE2** disponíveis para buscas complexas (retrovisor, lookahead, etc.)
 
 ---
 

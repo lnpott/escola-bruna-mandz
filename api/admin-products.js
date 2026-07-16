@@ -20,37 +20,8 @@
  */
 
 import { getSupabase } from './_lib/supabase.js';
-
-function normalizeProductImage(image) {
-    if (!image || typeof image !== 'string') return '/brand/LOGOPRETO.png';
-
-    const value = image.trim();
-    if (!value) return '/brand/LOGOPRETO.png';
-
-    if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
-        return value;
-    }
-
-    if (value.startsWith('/')) {
-        if (value.startsWith('/merch/') || value.startsWith('/brand/') || value.startsWith('/media/') || value.startsWith('/products/')) {
-            return value;
-        }
-        return `/merch/${value.replace(/^\/+/, '')}`;
-    }
-
-    const fileName = value.replace(/^.*[\\/]/, '');
-    const knownMerchImages = [
-        'Pulseira.png',
-        'Paleta.png',
-        'Chaveiro.png',
-        'Copo.png',
-        'TSHIRT_PREMIUN.png',
-        'TSHIRT_PRO.png',
-        'TSHIRT_ROCK.png',
-    ];
-
-    return knownMerchImages.includes(fileName) ? `/merch/${fileName}` : '/brand/LOGOPRETO.png';
-}
+import { handleListAllProducts } from './_lib/store/handlers.js';
+import { normalizeProductImage, normalizeVariants } from './_lib/normalize-product.js';
 
 function generateProductId() {
     // Gera ID único no formato BM-XXXXXX
@@ -59,18 +30,10 @@ function generateProductId() {
 }
 
 function normalizeProduct(product) {
-    let variants = product?.variants || null;
-    if (Array.isArray(variants)) {
-        if (variants.length > 0 && typeof variants[0] === 'object' && variants[0] !== null) {
-            variants = variants[0];
-        } else {
-            variants = { sizes: variants };
-        }
-    }
     return {
         ...product,
         image: normalizeProductImage(product?.image),
-        variants: variants,
+        variants: normalizeVariants(product?.variants),
     };
 }
 
@@ -92,25 +55,19 @@ export default async function handler(req, res) {
     try {
         supabase = getSupabase();
     } catch (err) {
-        return res.status(500).json({
-            error: 'Supabase não configurado.',
-            details: err.message,
-        });
+        console.error('[admin-products] Supabase não configurado:', err);
+        return res.status(500).json({ error: 'Supabase não configurado.' });
     }
 
-    // ── GET: listar todos os produtos ─────────────────────────────────────────
+    // ── GET: listar todos os produtos (delega para biblioteca compartilhada) ───
     if (req.method === 'GET') {
         try {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('created_at', { ascending: true });
-
-            if (error) throw new Error(error.message);
-            return res.status(200).json({ products: (data || []).map(normalizeProduct) });
+            await handleListAllProducts(req, res, supabase);
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message });
+            console.error('[admin-products] Erro inesperado no GET:', err);
+            return res.status(500).json({ error: 'Erro ao buscar produtos.' });
         }
+        return;
     }
 
     // ── POST: criar novo produto ──────────────────────────────────────────────
@@ -153,11 +110,12 @@ export default async function handler(req, res) {
                 .maybeSingle();
 
             if (error) throw new Error(error.message);
-            if (!data) return res.status(500).json({ error: 'Falha ao criar produto.' });
+            if (!data)            return res.status(500).json({ error: 'Falha ao criar produto.' });
 
             return res.status(201).json({ product: normalizeProduct(data) });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao criar produto.', details: err.message });
+            console.error('[admin-products] Erro ao criar produto:', err);
+            return res.status(500).json({ error: 'Erro ao criar produto.' });
         }
     }
 
@@ -215,7 +173,8 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ product: normalizeProduct(data) });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao atualizar produto.', details: err.message });
+            console.error('[admin-products] Erro ao atualizar produto:', err);
+            return res.status(500).json({ error: 'Erro ao atualizar produto.' });
         }
     }
 

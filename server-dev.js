@@ -18,6 +18,16 @@ import { fileURLToPath } from 'url';
 import { handleDashboard } from './api/_lib/financial/dashboard.js';
 import { handleSummary } from './api/_lib/financial/summary.js';
 
+// ── Reusa handlers da loja da biblioteca compartilhada ───────────
+// Elimina duplicação de ~80 linhas de queries de orders, products,
+// order-status e config.
+import {
+    handleListOrders,
+    handleListAllProducts,
+    handleOrderStatus as handleOrderStatusLib,
+    handleConfig as handleConfigLib,
+} from './api/_lib/store/handlers.js';
+
 
 // Carrega .env manualmente (sem dotenv)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -114,51 +124,37 @@ export function toVercelRes(res) {
 
 // ── Handlers ────────────────────────────────────────────────────
 
-// NOTA: Os handlers abaixo (orders, products, admin-products, admin-orders,
-// config, order-status) NÃO foram movidos para api/_lib/ ainda porque são
-// específicos da loja e não do módulo financeiro. O refatoração futura pode
-// extraí-los para api/_lib/store/.
+// ── Handlers da loja delegados para api/_lib/store/handlers.js ──
+// Foram extraídos seguindo o padrão do módulo financeiro (Etapa 75).
+// Todos aceitam (req, res) para poder propagar req ao adaptador.
 
-async function handleOrders(res) {
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
-  if (error) { json(res, 500, { error: 'Erro ao carregar pedidos.' }); return; }
-  json(res, 200, { orders: data || [] });
+async function handleOrders(req, res) {
+    await handleListOrders(toVercelReq(req), toVercelRes(res), supabase);
 }
 
-async function handleProducts(res) {
-  const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: true });
-  if (error) { json(res, 500, { error: 'Erro ao carregar produtos.' }); return; }
-  json(res, 200, { products: data || [] });
+async function handleProducts(req, res) {
+    await handleListAllProducts(toVercelReq(req), toVercelRes(res), supabase);
 }
 
 async function handleAdminProducts(req, res) {
-  if (req.method === 'GET') {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: true });
-    if (error) { json(res, 500, { error: 'Erro ao carregar produtos.' }); return; }
-    json(res, 200, { products: data || [] });
-    return;
-  }
-  json(res, 405, { error: 'Método não permitido.' });
+    // server-dev só suporta GET — POST/PATCH vão para a Vercel em produção
+    if (req.method === 'GET') {
+        await handleListAllProducts(toVercelReq(req), toVercelRes(res), supabase);
+        return;
+    }
+    json(res, 405, { error: 'Método não permitido.' });
 }
 
-async function handleAdminOrders(res) {
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
-  if (error) { json(res, 500, { error: 'Erro ao carregar pedidos.' }); return; }
-  json(res, 200, { orders: data || [] });
+async function handleAdminOrders(req, res) {
+    await handleListOrders(toVercelReq(req), toVercelRes(res), supabase);
 }
 
-async function handleConfig(res) {
-  json(res, 200, { mercadoPagoPublicKey: process.env.MERCADO_PAGO_PUBLIC_KEY || null });
+async function handleConfig(req, res) {
+    await handleConfigLib(toVercelReq(req), toVercelRes(res));
 }
 
 async function handleOrderStatus(req, res) {
-  const url = parseUrl(req);
-  const id = url.searchParams.get('id');
-  if (!id) { json(res, 400, { error: 'ID é obrigatório' }); return; }
-  const { data, error } = await supabase.from('orders').select('id, status, total').eq('id', id).maybeSingle();
-  if (error) { json(res, 500, { error: 'Erro ao consultar pedido.' }); return; }
-  if (!data) { json(res, 404, { error: 'Pedido não encontrado' }); return; }
-  json(res, 200, data);
+    await handleOrderStatusLib(toVercelReq(req), toVercelRes(res), supabase);
 }
 
 /**
@@ -250,7 +246,7 @@ const server = createServer(async (req, res) => {
 
       case '/api/admin-orders':
         if (!auth(req, res)) return;
-        await handleAdminOrders(res);
+        await handleAdminOrders(req, res);
         break;
 
       case '/api/admin-products':
@@ -259,7 +255,7 @@ const server = createServer(async (req, res) => {
         break;
 
       case '/api/products':
-        await handleProducts(res);
+        await handleProducts(req, res);
         break;
 
       case '/api/order-status':
@@ -267,7 +263,7 @@ const server = createServer(async (req, res) => {
         break;
 
       case '/api/config':
-        await handleConfig(res);
+        await handleConfig(req, res);
         break;
 
       default:
