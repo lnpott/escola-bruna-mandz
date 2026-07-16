@@ -33,5 +33,6 @@ MP_WEBHOOK_SECRET=<segredo gerado pelo Mercado Pago para validar assinatura do w
 - Valide `https://seu-dominio.vercel.app/api/config`.
 
 ## 5) Painel admin
-- Acesse `/painel-x9k2f.html`.
-- Use a senha configurada em `ADMIN_PASSWORD`.
+- Acesse `/app/` (React SPA) no navegador.
+- Faça login com a senha configurada em `ADMIN_PASSWORD`.
+- O painel clássico (`painel-x9k2f.html`) foi arquivado em `backup/`.

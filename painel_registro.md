@@ -1,5 +1,19 @@
 ---
 
+> ⚠️ **ARQUIVADO em 15/07/2026** — Este arquivo foi substituído por `novo_registro.md`
+> (versão condensada de 2121 → ~300 linhas).
+>
+> **Motivo:** arquivo original muito grande (>20K tokens), causando truncamento no
+> leitor. O novo arquivo contém as mesmas informações (Etapas 44-63) de forma
+> resumida e padronizada.
+>
+> **Etapas 1-43** estão preservadas neste arquivo como referência histórica.
+> **Novas etapas** devem ser adicionadas apenas em `novo_registro.md`.
+>
+> _O arquivo completo permanece na raiz do projeto como fallback de emergência._
+
+---
+
 # ETAPA 44 — CORREÇÕES PÓS-AUDITORIA DE BANCO
 
 **Data:** 12/07/2026

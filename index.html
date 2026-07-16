@@ -73,7 +73,7 @@
             }
             /* Transições suaves para os cards do canvas */
             .canvas-card {
-                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             }
             .canvas-card:hover {
                 transform: translateY(-8px) scale(1.02);
@@ -102,7 +102,12 @@
                     #e4e4e7 100%
                 ) !important;
                 border-bottom: 6px solid #b5b5ba !important;
-                transition: all 0.08s ease-out !important;
+                transition: background 0.08s ease-out,
+                            border-bottom 0.08s ease-out,
+                            transform 0.08s ease-out,
+                            box-shadow 0.08s ease-out,
+                            color 0.08s ease-out,
+                            border-color 0.08s ease-out !important;
             }
             .piano-white-key:hover {
                 background: linear-gradient(
@@ -122,7 +127,11 @@
                 border-bottom: 7px solid #000000 !important;
                 border-left: 1px solid #1f1f23 !important;
                 border-right: 1px solid #1f1f23 !important;
-                transition: all 0.08s ease-out !important;
+                transition: background 0.08s ease-out,
+                            border-bottom 0.08s ease-out,
+                            transform 0.08s ease-out,
+                            box-shadow 0.08s ease-out,
+                            border-color 0.08s ease-out !important;
             }
             .piano-black-key:hover {
                 background: linear-gradient(

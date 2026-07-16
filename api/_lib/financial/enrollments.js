@@ -102,7 +102,7 @@ export async function handleEnrollments(req, res, supabase) {
     }
 
     if (method === 'DELETE') {
-        const { id } = req.query;
+        const { id, cancel_tuitions } = req.query;
         if (!id) return res.status(400).json({ error: 'ID do vínculo (enrollment) é obrigatório na query string.' });
 
         const { count, error: countError } = await supabase
@@ -117,9 +117,36 @@ export async function handleEnrollments(req, res, supabase) {
             });
         }
 
+        // Se solicitado, cancela mensalidades pendentes/atrasadas do vínculo
+        let cancelledCount = 0;
+        if (cancel_tuitions === 'true') {
+            const { data: tuitions, error: tErr } = await supabase
+                .from('tuitions')
+                .select('id')
+                .eq('enrollment_id', id)
+                .in('status', ['pending', 'overdue']);
+            if (tErr) throw tErr;
+
+            if (tuitions && tuitions.length > 0) {
+                const { error: updErr } = await supabase
+                    .from('tuitions')
+                    .update({ status: 'cancelled', notes: 'Cancelada automaticamente ao excluir vínculo.' })
+                    .eq('enrollment_id', id)
+                    .in('status', ['pending', 'overdue']);
+                if (updErr) throw updErr;
+                cancelledCount = tuitions.length;
+            }
+        }
+
         const { error } = await supabase.from('enrollments').delete().eq('id', id);
         if (error) throw error;
-        return res.status(200).json({ success: true });
+        return res.status(200).json({
+            success: true,
+            cancelled_tuitions: cancelledCount,
+            message: cancelledCount > 0
+                ? `${cancelledCount} mensalidade(s) cancelada(s) e vínculo excluído.`
+                : 'Vínculo excluído com sucesso.',
+        });
     }
 
     return res.status(405).json({ error: 'Método não permitido.' });

@@ -28,8 +28,10 @@
     font-size: 13px;
 }
 
-.enrollments-search:focus {
+.enrollments-search:focus:not(:focus-visible) {
     outline: none;
+}
+.enrollments-search:focus {
     border-color: #dc2626;
 }
 
@@ -43,8 +45,10 @@
     min-width: 150px;
 }
 
-.enrollments-filter:focus {
+.enrollments-filter:focus:not(:focus-visible) {
     outline: none;
+}
+.enrollments-filter:focus {
     border-color: #dc2626;
 }
 
@@ -58,7 +62,7 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s;
     white-space: nowrap;
 }
 
@@ -124,7 +128,7 @@
     background: #18181b;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.15s;
+    transition: background 0.15s, border-color 0.15s;
     line-height: 1;
 }
 
@@ -222,7 +226,7 @@
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 6px;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s;
 }
 
 .enrollments-modal-close:hover {
@@ -267,10 +271,14 @@
     transition: border-color 0.15s;
 }
 
+.form-group input:focus:not(:focus-visible),
+.form-group select:focus:not(:focus-visible),
+.form-group textarea:focus:not(:focus-visible) {
+    outline: none;
+}
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    outline: none;
     border-color: #dc2626;
 }
 
@@ -317,7 +325,7 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .enrollments-form-actions .btn-cancel {
@@ -398,7 +406,7 @@
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    transition: all 0.15s;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .enrollment-card-actions button:hover {

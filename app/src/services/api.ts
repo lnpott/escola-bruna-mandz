@@ -281,8 +281,18 @@ export async function updateEnrollment(
     return data.enrollment;
 }
 
-export async function deleteEnrollment(id: string): Promise<void> {
-    await request(`enrollments&id=${encodeURIComponent(id)}`, {
+/**
+ * Exclui um vínculo (enrollment).
+ * @param cancelTuitions Se true, também cancela mensalidades pendentes/atrasadas do vínculo.
+ */
+export async function deleteEnrollment(id: string, cancelTuitions?: boolean): Promise<{
+    success: boolean;
+    cancelled_tuitions: number;
+    message: string;
+}> {
+    let resource = `enrollments&id=${encodeURIComponent(id)}`;
+    if (cancelTuitions) resource += '&cancel_tuitions=true';
+    return request(resource, {
         method: 'DELETE',
     });
 }
@@ -643,4 +653,26 @@ export async function deleteTeacherPayment(id: string): Promise<void> {
     await request(`teacher_payments&id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
     });
+}
+
+/**
+ * Gera pagamentos a professores automaticamente para um mês/ano.
+ * rate_per_class × aulas completadas no mês.
+ */
+export async function generateTeacherPayments(month: number, year: number): Promise<{
+    generated: { teacher_id: string; teacher_name: string; completed_lessons: number; amount: number; payment_id: string }[];
+    skipped: { teacher_id: string; teacher_name: string; reason: string }[];
+    summary: { total_teachers: number; generated_count: number; skipped_count: number; total_amount: number };
+}> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=teacher_payments&action=generate&month=${month}&year=${year}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
 }

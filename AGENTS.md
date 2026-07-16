@@ -17,7 +17,7 @@ Before `npm run dev`, start the local API: `node server-dev.js` (reads `.env` ma
 Two apps, one Vite build:
 - **Main site** — `index.html` (vanilla JS, Tailwind CDN, Tone.js CDN). Landing page, piano, quiz, store.
 - **React SPA** — `app/index.html` → `app/src/main.tsx` → `App.tsx`. ERP admin (Dashboard, Students, Teachers, Enrollments, Agenda, Financial, Admin). TS path alias `@/*` → `app/src/*`.
-- **Legacy admin** — `painel-x9k2f.html` (obfuscated route, unprotected by password).
+- **Legacy admin (archived)** — `painel-x9k2f.html` movido para `backup/`. Não é mais compilado nem acessível por navegação.
 
 API endpoints live in `api/` (Vercel Functions). React app talks through `/api/admin-financial?resource=<name>`. Auth via `x-admin-password` header, stored in `sessionStorage`.
 
@@ -27,7 +27,7 @@ Financial API resources: `students`, `teachers`, `enrollments`, `tuitions`, `pay
 
 ## Key conventions
 
-- **Admin auth**: password goes in `sessionStorage` key `admin_password`. Send as `x-admin-password` header. On 401, session is cleared. The classic portal (`painel-x9k2f.html`) and the React SPA share the same sessionStorage key — logging in on one authorizes the other.
+- **Admin auth**: password goes in `sessionStorage` key `admin_password`. Send as `x-admin-password` header. On 401, session is cleared. O classic portal (`painel-x9k2f.html`) foi arquivado em `backup/` — o React SPA é o único frontend autenticado ativo.
 - **Supabase**: all access via Service Role Key (bypasses RLS). RLS enabled but zero public policies. Schema SQL in `supabase/schema.sql` + `supabase/financial-schema.sql`. Migrations in `supabase/migrations/`. Apply with `npx supabase db query --linked -f <file>` (requires PAT, not service role key).
 - **Store**: `store/` directory — ES modules for cart, checkout, products, payment config. No framework.
 - **Vercel rewrites** (in `vercel.json`): `/app/*` → `/app/index.html`; `/comercial`, `/commercial*` → `/commercial/index.html`; `/academico*` → `/academic/index.html`.
@@ -36,7 +36,7 @@ Financial API resources: `students`, `teachers`, `enrollments`, `tuitions`, `pay
 - **Style**: Tailwind via CDN (no npm package). Brand colors: red-600/red-500 primary, zinc-950 background.
 - **Security API helpers** (`api/admin-financial.js`): `safeFloat(val, fallback, min)` and `safeInt(val, fallback, min)` replace `parseFloat`/`parseInt` (reject NaN, enforce min). Never leak `err.message` in 500 responses.
 - **Branch**: All development now happens directly on `main`. No more feature branches — deploy to Vercel production is automatic on every `git push origin main`. Keep commits small and working.
-- **Painel_registro.md** is the official dev diary — every implementation must be logged as a new numbered stage at its end.
+- **novo_registro.md** is the official dev diary — every implementation must be logged as a new numbered stage at its end.
 
 ## Projects not tracked by tsc
 

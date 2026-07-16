@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Este documento descreve os módulos **realmente implementados** no sistema Escola Bruna Mandz, dentro do painel administrativo (`painel-x9k2f.html`) e da loja pública.
+Este documento descreve os módulos **realmente implementados** no sistema Escola Bruna Mandz, dentro do painel administrativo (React SPA em `/app/`) e da loja pública. O painel clássico (`painel-x9k2f.html`) foi arquivado em `backup/`.
 
 > Revisão de 10/07/2026: reescrito para refletir o que existe no código hoje. A versão anterior descrevia módulos genéricos de planejamento, sem relação com a implementação real (nomes de tabelas incorretos, funcionalidades listadas como "a definir" que já estão prontas há várias etapas).
 

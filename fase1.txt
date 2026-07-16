@@ -1,5 +1,5 @@
 Fase 0 — Investigação: identidade de painel-x9k2f.html + reprodução do 500
-Contexto: este projeto tem um histórico de documentação (painel_registro.md, 58 etapas) com três descrições incompatíveis para o mesmo arquivo `painel-x9k2f.html`:
+Contexto: este projeto tem um histórico de documentação (painel_registro.md — arquivado, ver novo_registro.md) com três descrições incompatíveis para o mesmo arquivo `painel-x9k2f.html`:
 
 1. Em etapas anteriores do registro, é descrito como o painel administrativo completo (acadêmico/financeiro), com modais de Alunos, Professores, Matrículas, campos de CPF etc.
 2. Em uma etapa posterior, é descrito como um portal de login que apenas exibe cards e redireciona para academic/index.html (painel acadêmico) e commercial/index.html (painel comercial).

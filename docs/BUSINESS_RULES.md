@@ -32,8 +32,10 @@ O sistema administra a escola através de um painel único, protegido por senha 
 - Cadastro, consulta e edição
 - Campos: nome, telefone, especialidade, dias de atendimento, valor por aula (`rate_per_class`) — quanto a escola paga ao professor por aula dada
 
-## Regra em aberto
-- `rate_per_class` existe no cadastro, mas **não** há cálculo automático do que pagar ao professor a partir dele. Pagamento a professor é lançado manualmente (ver módulo Pagamentos a Professores).
+## ⚙️ Implementado (Etapas 64-65)
+- `rate_per_class` é usado no **cálculo automático de pagamento a professor**: cada aula `completed` no mês × `rate_per_class` do professor gera um `teacher_payment`.
+- Disponível via botão **⚡ Gerar Pagamentos** na aba Pag. Professores, que percorre todos os professores ativos, conta aulas completadas no mês e cria os registros de pagamento automaticamente.
+- Pagamentos já existentes para o mesmo professor+mês são ignorados (não duplica).
 
 ---
 
@@ -41,13 +43,13 @@ O sistema administra a escola através de um painel único, protegido por senha 
 
 ## Implementado
 - Um vínculo conecta: aluno + professor (opcional) + instrumento + dia da semana + horário + duração + aulas por semana + mensalidade do aluno + **billing_type** (weekly|monthly|full) + total_amount + installments + status (ativo/inativo)
-- **⚠️ Geração automática de mensalidade REMOVIDA (ETAPA 43).** Anteriormente, criar um vínculo ativo gerava automaticamente a tuition do mês corrente. A funcionalidade foi removida porque o modelo de cobrança da escola (billing_type misto) não se encaixa em geração automática mensal. Cobranças são criadas manualmente conforme necessidade.
+- **✅ Geração automática de mensalidade** — implementada via wizard de cadastro de aluno (Etapa 61). Ao criar um enrollment com status `'active'`, a tuition do mês corrente é gerada automaticamente.
 
-## Em aberto
-- Se um vínculo for excluído, mensalidades já geradas automaticamente **não** são canceladas nem excluídas — permanecem como estavam, só perdem a referência ao vínculo (`enrollment_id` vira nulo, via `on delete set null` na FK de `tuitions`... na prática as mensalidades já geradas mantêm o `enrollment_id` até que o vínculo seja de fato removido, e nesse caso a FK aponta para `null`). Isso ainda não foi decidido como regra explícita — é só o comportamento atual do banco.
-
----
-
+## ⚙️ Regra decidida (Etapas 64-65)
+- **Ao excluir um vínculo, o sistema PERGUNTA se o usuário deseja cancelar mensalidades pendentes também.**
+- Mensalidades já **pagas** NÃO são afetadas (permanecem inalteradas).
+- Se o usuário optar por cancelar: mensalidades `pending`/`overdue` do vínculo são marcadas como `cancelled`.
+- Se o usuário optar por não cancelar: as mensalidades permanecem como estavam, apenas perdem a referência ao vínculo (`enrollment_id` vai a `null` via `on delete set null`).---
 # Módulo de Agenda
 
 ## Implementado
@@ -57,6 +59,10 @@ O sistema administra a escola através de um painel único, protegido por senha 
 
 ## Regra
 - A Agenda **não é uma fonte de dado própria** — é sempre uma visualização derivada de `lessons` (filtrada por intervalo de datas).
+
+## Decisão do usuário (Etapas 64-65)
+- **Turmas como módulo separado?** ❌ **Não precisa.** Agenda + Vínculos já cobrem o suficiente.
+- A visualização por turma/grupo pode ser feita futuramente como uma camada extra sobre a Agenda, não como módulo independente.
 
 ---
 
@@ -76,9 +82,12 @@ O sistema administra a escola através de um painel único, protegido por senha 
 - Status: `pending`, `paid`, `overdue`, `cancelled`
 - Suporta desconto (`discount_amount` + `discount_reason`)
 
+## Concluído
+- Relatórios financeiros consolidados — implementado na Etapa 57 (breakdown de receitas/despesas, tendência mensal, exportação PDF)
+- Exportação CSV — Alunos (Etapa 53) + Receitas Avulsas
+
 ## Pendente
-- Relatórios financeiros consolidados (mencionados no roadmap como "Etapa 40", nunca implementados)
-- Rotina de geração mensal em lote (existe um endpoint `generate_monthly_billing`, mas seu escopo/regras completas ainda precisam de revisão e documentação específica)
+- Rotina de geração mensal em lote de tuitions — existe endpoint `generate_monthly_billing`, mas escopo/revisão pendente
 
 ---
 
@@ -87,8 +96,10 @@ O sistema administra a escola através de um painel único, protegido por senha 
 ## Implementado
 - CRUD manual: professor, mês de referência, valor, pago/não pago, data de pagamento
 
-## Em aberto (pergunta ainda não respondida pelo usuário)
-- Se o pagamento a professor deve ser calculado automaticamente a partir de `rate_per_class × número de aulas dadas no mês`, e se isso deve acontecer junto com a geração da mensalidade do aluno ou separadamente.
+## ⚙️ Decidido (Etapas 64-65)
+- ✅ **Pagamento automático a professor**: calcula `rate_per_class × aulas completadas no mês`.
+- O cálculo é **acionado manualmente** pelo usuário (botão ⚡ Gerar Pagamentos), não automático junto com a mensalidade.
+- **Por quê?** O usuário pode revisar as aulas dadas antes de gerar os pagamentos, permitindo ajustes (ex: aula cancelada que ainda consta como completed, aula extra não registrada, etc.).
 
 ---
 

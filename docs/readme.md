@@ -64,10 +64,10 @@ public/               → assets estáticos, PWA manifest, service worker
 
 supabase/             → schema.sql, financial-schema.sql, migrations/, seeds
 
-painel-x9k2f.html     → painel administrativo (arquivo único, ~4400 linhas)
+painel-x9k2f.html     → arquivado em backup/ (painel clássico, ~4400 linhas). React SPA em /app/ é o frontend ativo.
 index.html            → página da loja pública
 
-painel_registro.md    → histórico de desenvolvimento do painel, por etapa
+novo_registro.md       → histórico condensado de desenvolvimento do painel (Etapas 44-63)
 loja_registro.md       → histórico de desenvolvimento da loja
 ```
 
@@ -102,7 +102,7 @@ Usuário
 
 ↓
 
-Acessa /painel-x9k2f.html
+Acessa /app/ (React SPA). Painel clássico em backup/painel-x9k2f.html
 
 ↓
 
@@ -150,6 +150,6 @@ Resposta atualiza a interface (sem recarregar a página)
 | `docs/CONFIGURACAO_ENV.md` | Setup de ambiente local/produção |
 | `docs/PUBLICACAO.md` | Checklist de publicação da loja |
 | `docs/proxima-etapa-spec.md` | Spec da próxima etapa, com auditoria do estado atual |
-| `painel_registro.md` | Histórico completo de desenvolvimento do painel, por etapa |
+| `novo_registro.md` | Histórico condensado de desenvolvimento do painel (Etapas 44-63) — substitui painel_registro.md |
 
 Sempre que houver mudança estrutural real, o documento correspondente deve ser atualizado **junto** com a implementação — não antes, como planejamento especulativo.

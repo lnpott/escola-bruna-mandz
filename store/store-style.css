@@ -18,7 +18,7 @@
     cursor: pointer;
     background: #18181b;
     color: #71717a;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 .store-tab-btn:hover {
     background: #27272a;
@@ -37,7 +37,9 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
 }
 .product-card:hover {
@@ -139,7 +141,7 @@
     color: #a1a1aa;
     border-radius: 0.35rem;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease;
 }
 .size-btn:hover {
     border-color: #ef4444;
@@ -177,7 +179,7 @@
     border: none;
     border-radius: 0.6rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
     white-space: nowrap;
 }
 .btn-add-cart:hover {
@@ -305,7 +307,7 @@
     font-weight: 900;
     border-radius: 0.35rem;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -336,7 +338,8 @@
     width: 100%;
     max-width: 28rem;
     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
 }
 
@@ -365,7 +368,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
 }
 .checkout-modal-close:hover {
@@ -393,8 +396,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #71717a;
-}
-.checkout-input {
+}.checkout-input {
     background: #09090b;
     border: 1px solid #3f3f46;
     border-radius: 0.65rem;
@@ -403,9 +405,13 @@
     font-size: 0.85rem;
     font-family: 'Inter', sans-serif;
     transition: border-color 0.2s;
-    outline: none;
     width: 100%;
 }
+
+.checkout-input:focus:not(:focus-visible) {
+    outline: none;
+}
+
 .checkout-input:focus {
     border-color: #ef4444;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
@@ -432,7 +438,7 @@
     border: none;
     border-radius: 0.75rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
     letter-spacing: 0.04em;
     margin-top: 0.25rem;
 }
@@ -453,7 +459,7 @@
     border: 1px solid #3f3f46;
     border-radius: 0.75rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 .checkout-btn-secondary:hover {
     background: #3f3f46;
@@ -629,7 +635,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .checkout-close-btn:hover {
     background: #ef4444;

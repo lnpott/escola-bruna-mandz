@@ -46,7 +46,7 @@ A loja foi transformada de uma simples seção "Brindes & Identidade" em uma **l
                             ▼
                     ┌──────────────────┐
                     │  Painel Admin      │
-                    │  /painel-x9k2f.html│
+                    │  React SPA (/app/) │
                     └──────────────────┘
 ```
 
@@ -97,7 +97,7 @@ A loja foi transformada de uma simples seção "Brindes & Identidade" em uma **l
 
 ## 🔐 Segurança
 
-- ✅ Painel admin com rota oculta (`/painel-x9k2f.html`) e senha (`ADMIN_PASSWORD`)
+- ✅ Painel admin no React SPA (`/app/`) com senha (`ADMIN_PASSWORD`). Painel clássico (`painel-x9k2f.html`) arquivado em `backup/`.
 - ✅ RLS habilitado no Supabase sem políticas públicas
 - ✅ Service Role Key do Supabase **nunca exposta** ao front-end
 - ✅ Backup automático via **GitHub Actions Artifacts** (não commitado no repo)

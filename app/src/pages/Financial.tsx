@@ -8,6 +8,7 @@ import {
     fetchExpenses, createExpense, updateExpense,
     fetchInvestments, createInvestment,
     fetchTeacherPayments, createTeacherPayment, updateTeacherPayment, deleteTeacherPayment,
+    generateTeacherPayments,
     fetchStudents,
     fetchTeachers,
 } from '@/services/api';
@@ -668,6 +669,34 @@ export default function Financial() {
                         <span className="fin-toolbar-info">
                             {teacherPayments.filter(tp => !tp.paid).length} pendente(s)
                         </span>
+                        <button
+                            className="fin-btn fin-btn-secondary"
+                            onClick={async () => {
+                                const confirmed = await confirm({
+                                    title: 'Gerar Pagamentos Automáticos',
+                                    message: `Calcular rate_per_class × aulas completadas para ${MONTH_NAMES[month - 1]} de ${year}?\n\nSerão criados registros apenas para professores que ainda não têm pagamento neste mês.`,
+                                    confirmText: 'Gerar',
+                                    cancelText: 'Cancelar',
+                                });
+                                if (!confirmed) return;
+                                try {
+                                    const result = await generateTeacherPayments(month, year);
+                                    if (result.generated.length > 0) {
+                                        showToast(`${result.generated.length} pagamento(s) gerado(s) — Total: ${formatCurrency(result.generated.reduce((s, r) => s + r.amount, 0))}`);
+                                    } else {
+                                        showToast(result.summary.total_teachers === 0
+                                            ? 'Nenhum professor ativo com rate_per_class > 0 encontrado.'
+                                            : 'Nenhum novo pagamento gerado (já existem ou sem aulas no mês).');
+                                    }
+                                    loadSubList();
+                                    loadSummary();
+                                } catch (err: unknown) {
+                                    showToast(err instanceof Error ? err.message : 'Erro ao gerar pagamentos.', 'error');
+                                }
+                            }}
+                        >
+                            ⚡ Gerar Pagamentos
+                        </button>
                         <button className="fin-btn fin-btn-primary" onClick={() => {
                             setTpForm(emptyTPForm());
                             setShowTeacherPaymentModal(true);

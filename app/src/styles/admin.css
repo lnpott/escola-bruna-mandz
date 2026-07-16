@@ -47,7 +47,9 @@
     font-size: 12px;
     font-weight: 600;
     font-family: var(--font-sans);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
     min-height: 36px;
     display: inline-flex;
     align-items: center;
@@ -81,7 +83,9 @@
     display: flex;
     align-items: flex-start;
     gap: var(--space-4);
-    transition: all var(--duration-normal) var(--ease-out);
+    transition: border-color var(--duration-normal) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -181,7 +185,10 @@
     border-radius: var(--radius-lg);
     padding: var(--space-5);
     text-decoration: none;
-    transition: all var(--duration-normal) var(--ease-out);
+    transition: border-color var(--duration-normal) var(--ease-out),
+                background var(--duration-normal) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
 }
 
 .admin-link-card:hover {
@@ -522,7 +529,10 @@
     border: 1px solid var(--border-default);
     background: var(--bg-surface);
     text-decoration: none;
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
     animation: fadeInUp 0.3s var(--ease-out) both;
 }
 
@@ -598,7 +608,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .admin-fin-card:hover {

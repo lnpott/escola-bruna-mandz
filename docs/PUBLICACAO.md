@@ -20,7 +20,8 @@
 ## 4. Segurança
 - [ ] Confirmar que `.env` nunca foi commitado (está no `.gitignore`)
 - [ ] Definir uma `ADMIN_PASSWORD` forte e única
-- [ ] Acessar `/painel-x9k2f.html` e confirmar que pede senha
+- [ ] Acessar `/app/` (React SPA) e confirmar que o login pede senha.
+- [ ] Painel clássico (`painel-x9k2f.html`) arquivado em `backup/` — apenas consulta histórica.
 - [ ] Testar uma compra PIX de ponta a ponta (com valor baixo) antes de divulgar a loja
 
 ## 5. Testes finais

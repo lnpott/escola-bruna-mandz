@@ -1,6 +1,6 @@
 # Refatoração do painel administrativo acadêmico — jul/2026
 
-Resumo do que foi feito nesta rodada, pra registrar no `painel_registro.md`
+Resumo do que foi feito nesta rodada, pra registrar no `novo_registro.md`
 como próxima Etapa e alinhar `AGENTS.md`/`TODO_PROGRESS.md`/`refatora.md`
 com o estado real do código (que tinha divergido bastante da documentação).
 

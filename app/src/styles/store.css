@@ -37,7 +37,9 @@
     text-decoration: none;
     font-size: 12px;
     font-weight: 600;
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
 }
 .store-link-out:hover {
     background: var(--bg-hover);
@@ -65,7 +67,8 @@
     position: relative;
     bottom: -1px;
     font-family: var(--font-sans);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
 }
 .store-sub-tab:hover {
     color: var(--text-secondary);
@@ -114,8 +117,10 @@
     max-width: 320px;
     transition: border-color var(--duration-fast) var(--ease-out);
 }
-.store-search:focus {
+.store-search:focus:not(:focus-visible) {
     outline: none;
+}
+.store-search:focus {
     border-color: var(--border-accent);
 }
 
@@ -130,7 +135,9 @@
     font-size: 13px;
     font-weight: 700;
     font-family: var(--font-sans);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
     white-space: nowrap;
     min-height: 38px;
     display: inline-flex;
@@ -152,7 +159,9 @@
     font-size: 13px;
     font-weight: 600;
     font-family: var(--font-sans);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
     min-height: 38px;
 }
 .store-btn-secondary:hover {
@@ -303,7 +312,9 @@
     cursor: pointer;
     font-size: 14px;
     font-family: var(--font-sans);
-    transition: all var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
     min-height: 32px;
     display: inline-flex;
     align-items: center;
@@ -436,10 +447,14 @@
     min-height: 60px;
     resize: vertical;
 }
+.store-form-group input:focus:not(:focus-visible),
+.store-form-group select:focus:not(:focus-visible),
+.store-form-group textarea:focus:not(:focus-visible) {
+    outline: none;
+}
 .store-form-group input:focus,
 .store-form-group select:focus,
 .store-form-group textarea:focus {
-    outline: none;
     border-color: var(--border-accent);
 }
 .store-form-row {

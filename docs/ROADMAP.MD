@@ -6,7 +6,8 @@ Este documento define o que já foi entregue e o que está planejado para o sist
 
 O Roadmap não representa datas de entrega, apenas ordem lógica e prioridade.
 
-> Revisão de 10/07/2026: a versão anterior estava com **tudo desmarcado** (fase "Planejamento", v0.1.0), mesmo com boa parte do MVP já em produção há várias etapas. Reescrito com base no código real (`painel_registro.md` Etapas 1–42, `docs/proxima-etapa-spec.md`, `TODO_PROGRESS.md`).
+> Revisão de 15/07/2026 — **3ª revisão do dia**: pagamento automático a professor marcado como implementado.
+> Etapas de referência: `novo_registro.md` 44–65.
 
 ---
 
@@ -14,21 +15,23 @@ O Roadmap não representa datas de entrega, apenas ordem lógica e prioridade.
 
 **Fase:** Em uso ativo — painel administrativo e loja em produção na Vercel/Supabase.
 
-**Onde estamos:** MVP do painel administrativo (Alunos, Professores, Vínculos, Agenda, Aulas/Presença, Financeiro) está funcional e em uso. A Loja está publicada com checkout real via Mercado Pago. Faltam alguns refinamentos pontuais antes de considerar o MVP "fechado" — ver seção **Próximas Melhorias**.
+**Onde estamos:** MVP do painel administrativo (Alunos, Professores, Vínculos, Agenda, Aulas/Presença, Financeiro) está funcional e em uso. A Loja está publicada com checkout real via Mercado Pago.
+
+**Próximas melhorias identificadas:** ver seção **Próximas Melhorias**.
 
 ---
 
-# MVP (Versão 1.0)
+# ✅ MVP (Versão 1.0) — Concluído
 
 Objetivo: disponibilizar um sistema totalmente funcional para uso interno da Escola Bruna Mandz.
 
 ## Infraestrutura
 - [x] Configuração do projeto (Vite + Vercel)
-- [ ] Docker — **não aplicável**: o projeto roda sem containers (Vercel + Supabase gerenciados); item removido da meta, não é mais objetivo do MVP
+- [-] Docker — **não aplicável** (Vercel + Supabase gerenciados); item removido
 - [x] Supabase
 - [x] Vercel
 - [x] Autenticação — senha única de admin (`ADMIN_PASSWORD`), não Supabase Auth
-- [ ] Controle de permissões — não implementado (acesso único, sem perfis)
+- [ ] Controle de permissões — não implementado (acesso único, sem perfis) → **V2.0**
 
 ---
 
@@ -42,56 +45,51 @@ Objetivo: disponibilizar um sistema totalmente funcional para uso interno da Esc
 ---
 
 ## Alunos
-- [x] Cadastro
-- [x] Edição
-- [x] Consulta
-- [x] Inativação (`active = false`)
-- [x] Matrículas — implementado como módulo **Vínculos** (enrollments), conectando aluno + professor + instrumento + horário
-- [ ] Histórico — ainda não existe uma tela dedicada de histórico do aluno (aulas passadas, mensalidades, presença, tudo junto)
+- [x] Cadastro, edição, consulta, inativação
+- [x] Campos: nome, CPF, e-mail, telefone, endereço, instrumento(s), responsável (nome/telefone)
+- [x] Matrículas — módulo **Vínculos** (enrollments)
+- [x] **Histórico do aluno** — página StudentDetail.tsx (Etapa 53) com aulas, mensalidades e pagamentos
 
 ---
 
 ## Professores
-- [x] Cadastro
-- [x] Especialidades
-- [x] Disponibilidade (dias de atendimento)
+- [x] Cadastro, edição, consulta
+- [x] Especialidades, disponibilidade, valor/aula (`rate_per_class`)
 - [x] Agenda — via vínculos + aulas
 
 ---
 
 ## Agenda
-- [x] Calendário — visão mensal, estilo Google Calendar
-- [x] Agendamento (botão "Nova Aula")
-- [ ] Reagendamento — ainda não há fluxo dedicado para reagendar uma aula existente
-- [ ] Cancelamento — status `cancelled` existe no schema de `lessons`, mas não há ação de UI dedicada para cancelar
-- [x] Reposição — tipo de aula `make_up` já existe no schema e é selecionável
-- [x] Frequência — presença (attendance) implementada
+- [x] Calendário — visão mensal estilo Google Calendar (Etapas 46/50)
+- [x] Agendamento (Nova Aula), reposição (`make_up`)
+- [x] Frequência — presença (attendance)
+- [ ] Reagendamento — sem fluxo dedicado
+- [ ] Cancelamento — status existe no banco, sem UI dedicada
 
 ---
 
 ## Financeiro
-- [x] Cobranças (mensalidades — geração automática ao criar vínculo ativo)
+- [x] Cobranças (mensalidades — geração automática ao criar vínculo ativo via wizard Etapa 61)
 - [x] Pagamentos (mensalidades, pagamentos a professores, receitas avulsas)
 - [x] Despesas (fixas e variáveis)
-- [ ] Fluxo de Caixa — existem KPIs de receita/despesa/saldo no Dashboard, mas não uma visão de fluxo de caixa ao longo do tempo
-- [x] Inadimplência — alerta de alunos em atraso no Dashboard
+- [x] **Relatórios Financeiros** — implementado na Etapa 57 (breakdown + gráfico tendência + PDF)
+- [x] **Exportação CSV** — Alunos (Etapa 53) + Receitas Avulsas
+- [x] Inadimplência — alerta no Dashboard
+- [ ] Fluxo de Caixa — KPIs existem, sem visão temporal dedicada
 
 ---
 
 ## Loja
 - [x] Categorias (roupas, acessórios, kits)
-- [x] Produtos
-- [x] Estoque
-- [x] Vendas (pedidos + checkout Mercado Pago)
-- [ ] Caixa — não há um módulo de fechamento de caixa da loja separado do financeiro geral
+- [x] Produtos com variantes e estoque
+- [x] Vendas (pedidos + checkout Mercado Pago PIX/Cartão)
+- [ ] Caixa — não há módulo separado do financeiro geral
 
 ---
 
 ## Configurações
-- [ ] Usuários — não implementado (só uma senha única)
-- [ ] Perfis — não implementado
-- [ ] Permissões — não implementado
-- [ ] Dados da escola — não há tela de configuração de dados institucionais
+- [ ] Usuários, Perfis, Permissões — não implementado → **V2.0**
+- [ ] Dados da escola — não implementado
 
 ---
 
@@ -100,19 +98,16 @@ Objetivo: disponibilizar um sistema totalmente funcional para uso interno da Esc
 Objetivo: melhorar a produtividade da equipe.
 
 ## Dashboard
-- [ ] Mais indicadores
-- [ ] Gráficos
 - [ ] Personalização
 
 ## Agenda
-- [x] Agenda semanal — implementada e depois **substituída** pela mensal (decisão do usuário: "semanal assim não adianta")
-- [x] Agenda mensal
-- [ ] Busca avançada (ex: filtrar agenda por professor ou aluno)
+- [x] Agenda mensal ✅
+- [ ] Busca avançada (filtrar por professor ou aluno)
 
 ## Financeiro
 - [ ] Parcelamentos
-- [ ] Relatórios — mencionado como "Etapa 40" em registros antigos, nunca implementado
-- [x] Exportação — CSV já existe para Receitas Avulsas; falta para os demais módulos financeiros
+- [x] Relatórios Financeiros ✅ (Etapa 57)
+- [x] Exportação CSV ✅ (Alunos + Receitas Avulsas)
 
 ## Loja
 - [ ] Relatórios de vendas
@@ -124,8 +119,8 @@ Objetivo: melhorar a produtividade da equipe.
 
 Objetivo: automatizar processos.
 
-- [x] Geração automática de cobranças — implementado para mensalidades (tuitions), ao criar vínculo ativo
-- [ ] Geração automática de pagamento a professor — `rate_per_class` já existe no cadastro do professor, mas o cálculo `rate_per_class × aulas dadas no mês` ainda não é automático (pergunta em aberto, ver seção abaixo)
+- [x] Geração automática de cobranças (tuitions) ao criar vínculo ativo ✅
+- [x] **Geração automática de pagamento a professor** — `rate_per_class × aulas dadas no mês` ✅ (Etapa 64 — botão ⚡ Gerar Pagamentos)
 - [ ] Atualização automática do fluxo de caixa
 - [ ] Notificações internas
 - [ ] Auditoria de alterações
@@ -137,44 +132,52 @@ Objetivo: automatizar processos.
 Objetivo: ampliar o sistema.
 
 ## Portal do Professor
-- [ ] Login próprio
-- [ ] Agenda
-- [ ] Frequência
-- [ ] Histórico
+- Login próprio, agenda, frequência, histórico
 
 ## Portal do Aluno
-- [ ] Login próprio
-- [ ] Agenda
-- [ ] Financeiro
-- [ ] Histórico
-
-## Loja
-- [x] Catálogo online
-- [x] Pedidos
-- [x] Integração com pagamentos
-
-> Nota: os 3 itens de Loja acima já foram entregues antes da Versão 2.0 formalmente começar — a Loja evoluiu em paralelo ao painel administrativo. Mantidos aqui só para referência histórica do plano original.
+- Login próprio, agenda, financeiro, histórico
 
 ---
 
 # Próximas Melhorias (curto prazo)
 
-Com base na auditoria mais recente (`docs/proxima-etapa-spec.md`, 10/07/2026) e no `TODO_PROGRESS.md`, o que falta para fechar o ciclo atual, em ordem de prioridade:
+Com base na auditoria mais recente (15/07/2026), em ordem de prioridade:
 
-| Prioridade | Item | Descrição |
-|---|---|---|
-| 🔴 1 | **Alunos Expandido** | Adicionar `guardian_name` e `guardian_phone` (responsável) no cadastro e no modal |
-| 🟡 2 | **Testes ponta a ponta pós-deploy** | Validar em produção o fluxo completo: criar vínculo → mensalidade gerada → aula → presença → agenda mensal |
-| 🟢 3 | **Relatórios Financeiros** | Definir formato (fechamento mensal? por aluno? por professor?) e implementar |
-| 🟢 4 | **Pagamento automático a professor** | Decidir se `teacher_payments` deve ser calculado a partir de `rate_per_class × aulas do mês`, e se deve ser gerado junto com a mensalidade do aluno ou separado |
-| 🟢 5 | **Reagendamento e cancelamento de aula** | Hoje os status/tipos existem no banco (`cancelled`, `make_up`) mas faltam ações de UI dedicadas para reagendar/cancelar uma aula já criada |
-| 🟢 6 | **Histórico do aluno** | Tela única reunindo aulas passadas, presença, mensalidades e status por aluno |
+| Prioridade | Item | Descrição | Status |
+|:----------:|------|-----------|:------:|
+| 🔴 1 | **Testes ponta a ponta pós-deploy** | Validar fluxo completo: criar vínculo → mensalidade gerada → aula → presença → agenda | ⚠️ Pendente |
+| 🟡 2 | **Agenda: busca avançada** | Filtrar agenda por professor ou aluno | ⏳ Não iniciado |
+| 🟢 3 | **Agenda: reagendar/cancelar aula** | UI dedicada para ações em aulas já criadas | ⏳ Não iniciado |
+| 🟢 4 | **Financeiro: parcelamentos** | Suporte a parcelamento de mensalidades | ⏳ Não iniciado |
+| 🟢 5 | **Loja: relatórios de vendas** | Relatórios de vendas da loja | ⏳ Não iniciado |
 
-Perguntas ainda em aberto (não decididas pelo usuário — não implementar sem confirmar):
-1. Pagamento automático a professor: automático ou continua manual?
-2. Formato dos Relatórios Financeiros
-3. Exclusão de vínculo: mensalidades já geradas automaticamente devem ser canceladas junto?
-4. "Turmas" como módulo separado ainda faz sentido, ou Agenda + Vínculos já cobre essa necessidade?
+
+## Itens concluídos (removidos da lista de pendências)
+
+| Item | Concluído em |
+|------|:------------:|
+| Alunos Expandido (guardian fields, CSV, multi-instrumento) | Etapa 53 |
+| Relatórios Financeiros (breakdown + PDF) | Etapa 57 |
+| Histórico do aluno (StudentDetail.tsx) | Etapa 53 |
+| Geração automática de tuitions no wizard | Etapa 61 |
+| Agenda Mensal (substituiu visão semanal) | Etapas 46/50 |
+| **Pagamento automático a professor** (rate_per_class × aulas) | **Etapa 64 — ⚡ Gerar Pagamentos** |
+
+## Decisões do Usuário (15/07/2026)
+
+| Decisão | Resposta |
+|---------|:--------:|
+| **Pagamento automático a professor** (`rate_per_class × aulas`) | ✅ **Automático** — implementado nas Etapas 64-65 (botão ⚡ Gerar Pagamentos) |
+| **Relatório Financeiro atual (Etapa 57)** | ✅ **Atende** — manter formato como está |
+| **Exclusão de vínculo: cancelar mensalidades?** | ✅ **Perguntar antes** — sistema pergunta se quer cancelar as mensalidades também |
+
+## Todas as perguntas decididas ✅
+
+Todas as questões em aberto foram respondidas pelo usuário (15/07/2026). Nenhuma pendência de decisão restante.
+
+| Decisão | Resposta |
+|---------|:--------:|
+| **'Turmas' como módulo separado?** | ✅ **Não precisa** — Vínculos + Agenda já cobrem a necessidade |
 
 ---
 

@@ -160,21 +160,37 @@ export default function Enrollments() {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string, studentName?: string) => {
+        // Primeira confirmação: excluir o vínculo
         const confirmed = await confirm({
             title: 'Excluir Vínculo',
-            message: 'Tem certeza que deseja excluir este vínculo? Esta ação não pode ser desfeita.',
+            message: studentName
+                ? `Tem certeza que deseja excluir o vínculo de ${studentName}? Esta ação não pode ser desfeita.`
+                : 'Tem certeza que deseja excluir este vínculo? Esta ação não pode ser desfeita.',
             confirmText: 'Excluir',
             cancelText: 'Cancelar',
             danger: true,
         });
         if (!confirmed) return;
+
+        // Segunda pergunta: cancelar mensalidades também?
+        const cancelTuitions = await confirm({
+            title: 'Cancelar Mensalidades?',
+            message: 'Deseja também cancelar as mensalidades pendentes deste vínculo?\n\nAs mensalidades já pagas NÃO serão afetadas.',
+            confirmText: 'Sim, cancelar mensalidades',
+            cancelText: 'Não, manter mensalidades',
+        });
+
         try {
-            await deleteEnrollment(id);
-            showToast('Vínculo excluído.');
+            const result = await deleteEnrollment(id, cancelTuitions);
+            if (result.cancelled_tuitions > 0) {
+                showToast(`${result.cancelled_tuitions} mensalidade(s) cancelada(s) e vínculo excluído.`);
+            } else {
+                showToast('Vínculo excluído.');
+            }
             load();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao excluir vínculo.');
+            showToast(err instanceof Error ? err.message : 'Erro ao excluir vínculo.', 'error');
         }
     };
 
@@ -288,7 +304,7 @@ export default function Enrollments() {
                                         <td data-label="Ações">
                                             <div className="enrollments-actions">
                                                 <button className="btn-action-small" onClick={() => openEdit(enr)} title="Editar">✏️</button>
-                                                <button className="btn-action-small" onClick={() => handleDelete(enr.id)} title="Excluir">🗑️</button>
+                                                <button className="btn-action-small" onClick={() => handleDelete(enr.id, enr.students?.name)} title="Excluir">🗑️</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -316,7 +332,7 @@ export default function Enrollments() {
                                 </div>
                                 <div className="enrollment-card-actions">
                                     <button onClick={() => openEdit(enr)} title="Editar">✏️ Editar</button>
-                                    <button onClick={() => handleDelete(enr.id)} title="Excluir">🗑️ Excluir</button>
+                                    <button onClick={() => handleDelete(enr.id, enr.students?.name)} title="Excluir">🗑️ Excluir</button>
                                 </div>
                             </div>
                         ))}

@@ -80,9 +80,9 @@ Registrar no:
 ---
 
 ## Como continuar o trabalho “oficialmente”
-1. Ler `painel_registro.md` completamente.
+1. Ler `novo_registro.md` completamente.
 2. Identificar a última etapa registrada.
-3. Criar uma nova etapa no final do `painel_registro.md` para cada implementação relevante.
+3. Criar uma nova etapa no final do `novo_registro.md` para cada implementação relevante.
 4. Atualizar/usar evidências em `MCP_GIT_VERIFICATION.md`.
 
 ---

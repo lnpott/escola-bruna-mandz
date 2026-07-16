@@ -3,6 +3,15 @@
 > **Data:** 10/07/2026
 > **Agente:** Buffy (Freebuff)
 > **Baseado em:** Entrevista com o usuário + análise do código atual
+>
+> ⚠️ **Nota histórica (15/07/2026):** As 3 prioridades definidas neste documento
+> **já foram implementadas**:
+> - 🔴 Agenda Mensal → ✅ Etapas 46/50
+> - 🟡 Geração automática de mensalidade → ✅ Etapa 61 (wizard)
+> - 🟢 Alunos Expandido → ✅ Etapa 53 (StudentDetail, CSV, guardian fields)
+>
+> Este documento é mantido como **referência histórica** da especificação original.
+> Pendências atuais atualizadas em `docs/ROADMAP.MD`.
 
 ---
 
@@ -12,16 +21,16 @@
 
 Este documento especifica as **próximas melhorias** a serem implementadas no Painel Administrativo da Escola Bruna Mandz, com base em:
 - Análise do estado atual do código (API, frontend, banco)
-- Documentação existente (ROADMAP, TODO, BUSINESS_RULES, painel_registro)
+- Documentação existente (ROADMAP, TODO, BUSINESS_RULES, novo_registro)
 - Entrevista com o usuário (3 rodadas de perguntas)
 
-### 1.2 Prioridades definidas pelo usuário
+### 1.2 Prioridades definidas pelo usuário (TODAS IMPLEMENTADAS ✅)
 
-| Prioridade | Área | Descrição |
-|------------|------|-----------|
-| 🔴 **1** | **Agenda** | Substituir visão semanal por **visão mensal** (calendário tipo Google Calendar) |
-| 🟡 **2** | **Financeiro** | Melhorar criação de mensalidades: **geração automática ao criar vínculo** |
-| 🟢 **3** | **Alunos** | Expandir cadastro de alunos com novos campos + melhorar visualização |
+| Prioridade | Área | Descrição | Status |
+|------------|------|-----------|:------:|
+| 🔴 **1** | **Agenda** | Substituir visão semanal por **visão mensal** (calendário tipo Google Calendar) | ✅ Etapas 46/50 |
+| 🟡 **2** | **Financeiro** | Melhorar criação de mensalidades: **geração automática ao criar vínculo** | ✅ Etapa 61 |
+| 🟢 **3** | **Alunos** | Expandir cadastro de alunos com novos campos + melhorar visualização | ✅ Etapa 53 |
 
 ---
 
@@ -77,13 +86,13 @@ Este documento especifica as **próximas melhorias** a serem implementadas no Pa
 
 | Item | Documentado em | Status |
 |------|---------------|--------|
-| Relatórios Financeiros (Etapa 40) | ROADMAP, painel_registro | ⏳ Não iniciado |
-| Rotina automática de geração mensal de tuitions | painel_registro (pendências Etapa 38) | ⏳ Não iniciado |
-| Rotina automática de geração mensal de teacher_payments | painel_registro (pendências Etapa 38) | ⏳ Não iniciado |
+| Relatórios Financeiros (Etapa 40) | ROADMAP, novo_registro | ✅ Concluído (Etapa 57) |
+| Rotina automática de geração mensal de tuitions | novo_registro (Etapa 61) | ✅ Concluído |
+| Rotina automática de geração mensal de teacher_payments | novo_registro (pendências) | ⏳ Não iniciado |
 | Portal do Professor (V2.0) | ROADMAP | ⏳ Futuro |
 | Portal do Aluno (V2.0) | ROADMAP | ⏳ Futuro |
 | Configurações (usuários, permissões) | ROADMAP, modules.md | ⏳ Futuro |
-| Testes funcionais ponta a ponta pós-deploy | painel_registro (pendências Etapa 38/39) | ⚠️ Pendente |
+| Testes funcionais ponta a ponta pós-deploy | novo_registro (pendências) | ⚠️ Pendente |
 
 ---
 
@@ -387,7 +396,7 @@ ALTER TABLE students ADD COLUMN guardian_phone TEXT;
 | `docs/modules.md` | Descrição dos módulos |
 | `docs/database.md` | Schema e relacionamentos |
 | `docs/ARCHITECTURE.MD` | Arquitetura do sistema |
-| `painel_registro.md` | Histórico completo de desenvolvimento do painel (Etapas 33-39) |
+| `novo_registro.md` | Histórico completo de desenvolvimento do painel (Etapas 44-63) — versão condensada |
 | `loja_registro.md` | Histórico da Loja |
 | `TODO.md` / `TODO_PROGRESS.md` | Listas de tarefas pendentes |
 | `supabase/financial-schema.sql` | Schema financeiro atual |
