@@ -8,6 +8,9 @@ import {
 } from './cart.js';
 import { openCheckoutFlow } from './checkout-modal.js';
 
+// ── Fallback: produtos estáticos caso a API falhe ────────────────────────────
+import { PRODUCTS as STATIC_PRODUCTS } from './products.js';
+
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 /** Escapa caracteres HTML para prevenir XSS em dados dinâmicos */
@@ -18,7 +21,7 @@ function esc(str) {
     return div.innerHTML;
 }
 
-// ─── Cache de produtos (carregados via /api/products) ─────────────────────────
+// ─── Cache de produtos (carregados via /api/products, fallback p/ estático) ──
 
 let PRODUCTS = [];
 let productLoadError = false;
@@ -36,10 +39,16 @@ async function loadProducts() {
 
         const { products } = await res.json();
         PRODUCTS = Array.isArray(products) ? products : [];
+
+        // Se a API retornou array vazio (sem produtos no Supabase), usa fallback
+        if (PRODUCTS.length === 0) {
+            console.log('store.js: API retornou 0 produtos — usando fallback estático.');
+            PRODUCTS = STATIC_PRODUCTS;
+        }
     } catch (err) {
-        console.warn('store.js: erro ao carregar produtos:', err.message);
-        PRODUCTS = [];
-        productLoadError = true;
+        console.warn('store.js: erro ao carregar produtos via API — usando fallback estático:', err.message);
+        PRODUCTS = STATIC_PRODUCTS;
+        productLoadError = false; // fallback ativo, não mostra erro
     }
 }
 

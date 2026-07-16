@@ -13,6 +13,12 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+// ── Reusa handlers financeiros da biblioteca compartilhada ───────
+// Elimina duplicação de ~100 linhas de queries de dashboard e summary.
+import { handleDashboard } from './api/_lib/financial/dashboard.js';
+import { handleSummary } from './api/_lib/financial/summary.js';
+
+
 // Carrega .env manualmente (sem dotenv)
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const envPath = resolve(__dirname, '.env');
@@ -40,7 +46,8 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
-// Helpers
+// ── Helpers ──────────────────────────────────────────────────────
+
 function json(res, status, data) {
   res.writeHead(status, {
     'Content-Type': 'application/json',
@@ -59,10 +66,12 @@ function auth(req, res) {
   return true;
 }
 
-function parseUrl(req) {
+export function parseUrl(req) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   return url;
 }
+
+
 
 function monthRange(month, year) {
   const m = String(month).padStart(2, '0');
@@ -75,83 +84,57 @@ function monthRange(month, year) {
   };
 }
 
-async function handleDashboard(res) {
-  const now = new Date();
-  const today = now.toISOString().split('T')[0];
-  const thisMonth = now.getMonth() + 1;
-  const thisYear = now.getFullYear();
-  const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(thisMonth, thisYear);
-
-  const [
-    { data: paidTuitions }, { data: avulsoPayments }, { data: paidExpenses },
-    { data: investments }, { data: pendingTuitions }, { data: overdue },
-    { data: activeStudents }, { data: activeTeachers }, { data: todayClasses },
-    { data: pendingOrders }, { data: recentOrders }, { data: lowStock },
-  ] = await Promise.all([
-    supabase.from('tuitions').select('amount,discount_amount').eq('status', 'paid').gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('payments').select('amount').gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('expenses').select('amount').eq('paid', true).gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('investments').select('amount').gte('purchased_at', dateStart).lte('purchased_at', dateEnd),
-    supabase.from('tuitions').select('amount,discount_amount').in('status', ['pending', 'overdue']).gte('due_date', dateStart).lte('due_date', dateEnd),
-    supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
-    supabase.from('students').select('id').eq('active', true),
-    supabase.from('teachers').select('id'),
-    supabase.from('lessons').select('*, enrollments(monthly_fee), students(name), teachers(name, specialty)').eq('date', today).in('status', ['scheduled', 'completed']).order('start_time', { ascending: true }),
-    supabase.from('orders').select('id').eq('status', 'pending'),
-    supabase.from('orders').select('id,customer_name,total,created_at,status').order('created_at', { ascending: false }).limit(5),
-    supabase.from('products').select('id,name,stock,active').lte('stock', 5).eq('active', true),
-  ]);
-
-  const revenue = (paidTuitions || []).reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount || 0), 0)
-    + (avulsoPayments || []).reduce((s, p) => s + Number(p.amount), 0);
-  const outgoings = (paidExpenses || []).reduce((s, e) => s + Number(e.amount), 0)
-    + (investments || []).reduce((s, i) => s + Number(i.amount), 0);
-  const pendingTotal = (pendingTuitions || []).reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount || 0), 0);
-  const overdueCount = new Set((overdue || []).map(t => t.student_id)).size;
-
-  json(res, 200, {
-    dashboard: {
-      financial: {
-        revenue,
-        outgoings,
-        balance: revenue - outgoings,
-        pending_tuitions: pendingTotal,
-        overdue_students: overdueCount,
-      },
-      school: {
-        active_students: activeStudents?.length ?? 0,
-        active_teachers: activeTeachers?.length ?? 0,
-        today_classes: todayClasses || [],
-        today_classes_count: todayClasses?.length ?? 0,
-      },
-      store: {
-        pending_orders: pendingOrders?.length ?? 0,
-        recent_orders: recentOrders || [],
-        low_stock_products: lowStock || [],
-      },
-    },
-  });
+/**
+ * Adapta req/res do Node http.createServer para o formato Vercel
+ * que os handlers em api/_lib/financial/ esperam:
+ *   - req.query  → objeto de query params
+ *   - req.method → string HTTP method
+ *   - res.status(code).json(data) → encadeável
+ *
+ * Exportadas para testes unitários (ver tests/adapters.test.js).
+ */
+export function toVercelReq(req) {
+  const url = parseUrl(req);
+  return {
+    method: req.method,
+    query: Object.fromEntries(url.searchParams),
+    headers: req.headers,
+  };
 }
+
+export function toVercelRes(res) {
+  return {
+    status(code) {
+      return {
+        json: (data) => json(res, code, data),
+      };
+    },
+  };
+}
+
+// ── Handlers ────────────────────────────────────────────────────
+
+// NOTA: Os handlers abaixo (orders, products, admin-products, admin-orders,
+// config, order-status) NÃO foram movidos para api/_lib/ ainda porque são
+// específicos da loja e não do módulo financeiro. O refatoração futura pode
+// extraí-los para api/_lib/store/.
 
 async function handleOrders(res) {
   const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
-  if (error) { json(res, 500, { error: error.message }); return; }
+  if (error) { json(res, 500, { error: 'Erro ao carregar pedidos.' }); return; }
   json(res, 200, { orders: data || [] });
 }
 
 async function handleProducts(res) {
   const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: true });
-  if (error) { json(res, 500, { error: error.message }); return; }
+  if (error) { json(res, 500, { error: 'Erro ao carregar produtos.' }); return; }
   json(res, 200, { products: data || [] });
 }
 
 async function handleAdminProducts(req, res) {
-  const url = parseUrl(req);
-  const method = req.method;
-
-  if (method === 'GET') {
+  if (req.method === 'GET') {
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: true });
-    if (error) { json(res, 500, { error: error.message }); return; }
+    if (error) { json(res, 500, { error: 'Erro ao carregar produtos.' }); return; }
     json(res, 200, { products: data || [] });
     return;
   }
@@ -160,24 +143,48 @@ async function handleAdminProducts(req, res) {
 
 async function handleAdminOrders(res) {
   const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
-  if (error) { json(res, 500, { error: error.message }); return; }
+  if (error) { json(res, 500, { error: 'Erro ao carregar pedidos.' }); return; }
   json(res, 200, { orders: data || [] });
 }
 
+async function handleConfig(res) {
+  json(res, 200, { mercadoPagoPublicKey: process.env.MERCADO_PAGO_PUBLIC_KEY || null });
+}
+
+async function handleOrderStatus(req, res) {
+  const url = parseUrl(req);
+  const id = url.searchParams.get('id');
+  if (!id) { json(res, 400, { error: 'ID é obrigatório' }); return; }
+  const { data, error } = await supabase.from('orders').select('id, status, total').eq('id', id).maybeSingle();
+  if (error) { json(res, 500, { error: 'Erro ao consultar pedido.' }); return; }
+  if (!data) { json(res, 404, { error: 'Pedido não encontrado' }); return; }
+  json(res, 200, data);
+}
+
+/**
+ * Roteia /api/admin-financial delegando dashboard e summary para os
+ * handlers da biblioteca compartilhada (elimina ~120 linhas duplicadas).
+ * Os demais resources usam uma listagem simples (GET-only) pois o
+ * server-dev.js não implementa CRUD completo — em produção as chamadas
+ * POST/PATCH/DELETE vão para as Vercel Functions reais em api/.
+ */
 async function handleFinancial(req, res) {
   const url = parseUrl(req);
   const resource = url.searchParams.get('resource');
 
   if (resource === 'dashboard') {
-    await handleDashboard(res);
+    // Delega para o handler da biblioteca, que reusa computeFinancialSummary
+    await handleDashboard(toVercelReq(req), toVercelRes(res), supabase);
     return;
   }
   if (resource === 'summary') {
-    await handleSummary(req, res);
+    // Delega para o handler da biblioteca (valida month/year, chama computeFinancialSummary)
+    await handleSummary(toVercelReq(req), toVercelRes(res), supabase);
     return;
   }
 
-  // Recursos financeiros: listagem simples
+  // Recursos financeiros: listagem simples (GET).
+  // POST/PATCH/DELETE só funcionam em produção (Vercel).
   const validResources = {
     students: { table: 'students', orderBy: 'name', select: '*' },
     teachers: { table: 'teachers', orderBy: 'name', select: '*' },
@@ -197,66 +204,24 @@ async function handleFinancial(req, res) {
     return;
   }
 
-  let q = supabase.from(cfg.table).select(cfg.select, { count: 'exact' }).order(cfg.orderBy, { ascending: false }).limit(500);
-  const { data, error, count } = await q;
-  if (error) { json(res, 500, { error: error.message }); return; }
-  json(res, 200, { [resource]: data || [], count });
-}
+  try {
+    const { data, error, count } = await supabase
+      .from(cfg.table)
+      .select(cfg.select, { count: 'exact' })
+      .order(cfg.orderBy, { ascending: false })
+      .limit(500);
 
-async function handleSummary(req, res) {
-  const url = parseUrl(req);
-  const month = parseInt(url.searchParams.get('month'), 10);
-  const year = parseInt(url.searchParams.get('year'), 10);
-  if (!month || !year) { json(res, 400, { error: 'month e year são obrigatórios' }); return; }
+    if (error) {
+      console.error(`[server-dev] Erro na consulta ${resource}:`, error);
+      json(res, 500, { error: 'Erro ao carregar dados.' });
+      return;
+    }
 
-  const today = new Date().toISOString().split('T')[0];
-  const { dateStart, dateEnd, tzStart, tzEnd } = monthRange(month, year);
-
-  const [
-    { data: paidTuitions }, { data: avulsoPayments }, { data: paidExpenses },
-    { data: investments }, { data: pendingTuitions }, { data: overdueTuitions },
-    { data: paidTeacherPayments }, { data: pendingTeacherPayments },
-  ] = await Promise.all([
-    supabase.from('tuitions').select('amount,discount_amount').eq('status', 'paid').gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('payments').select('amount').gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('expenses').select('amount').eq('paid', true).gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('investments').select('amount').gte('purchased_at', dateStart).lte('purchased_at', dateEnd),
-    supabase.from('tuitions').select('amount,discount_amount').in('status', ['pending', 'overdue']).gte('due_date', dateStart).lte('due_date', dateEnd),
-    supabase.from('tuitions').select('student_id').or(`status.eq.overdue,and(status.eq.pending,due_date.lt.${today})`),
-    supabase.from('teacher_payments').select('amount').eq('paid', true).gte('paid_at', tzStart).lte('paid_at', tzEnd),
-    supabase.from('teacher_payments').select('amount').eq('paid', false).gte('reference_month', dateStart).lte('reference_month', dateEnd),
-  ]);
-
-  const revenue = (paidTuitions || []).reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount || 0), 0)
-    + (avulsoPayments || []).reduce((s, p) => s + Number(p.amount), 0);
-  const outgoings = (paidExpenses || []).reduce((s, e) => s + Number(e.amount), 0)
-    + (investments || []).reduce((s, i) => s + Number(i.amount), 0)
-    + (paidTeacherPayments || []).reduce((s, p) => s + Number(p.amount), 0);
-
-  json(res, 200, {
-    summary: {
-      revenue,
-      outgoings,
-      balance: revenue - outgoings,
-      pending_tuitions: (pendingTuitions || []).reduce((s, t) => s + Number(t.amount) - Number(t.discount_amount || 0), 0),
-      overdue_students: new Set((overdueTuitions || []).map(t => t.student_id)).size,
-      pending_teacher_payments: (pendingTeacherPayments || []).reduce((s, p) => s + Number(p.amount), 0),
-    },
-  });
-}
-
-async function handleConfig(res) {
-  json(res, 200, { mercadoPagoPublicKey: process.env.MERCADO_PAGO_PUBLIC_KEY || null });
-}
-
-async function handleOrderStatus(req, res) {
-  const url = parseUrl(req);
-  const id = url.searchParams.get('id');
-  if (!id) { json(res, 400, { error: 'ID é obrigatório' }); return; }
-  const { data, error } = await supabase.from('orders').select('id, status, total').eq('id', id).maybeSingle();
-  if (error) { json(res, 500, { error: error.message }); return; }
-  if (!data) { json(res, 404, { error: 'Pedido não encontrado' }); return; }
-  json(res, 200, data);
+    json(res, 200, { [resource]: data || [], count });
+  } catch (err) {
+    console.error(`[server-dev] Erro inesperado em ${resource}:`, err);
+    json(res, 500, { error: 'Erro interno do servidor.' });
+  }
 }
 
 // ── Router ───────────────────────────────────────────────────
@@ -310,12 +275,19 @@ const server = createServer(async (req, res) => {
     }
   } catch (err) {
     console.error('Erro no servidor:', err);
-    json(res, 500, { error: 'Erro interno.', details: err.message });
+    // NÃO vaza err.message — a mensagem só aparece no console do servidor.
+    json(res, 500, { error: 'Erro interno do servidor.' });
   }
 });
 
-const PORT = 3001;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ API Server rodando em http://localhost:${PORT}`);
-  console.log(`   Endpoints: /api/admin-financial, /api/admin-orders, /api/admin-products, etc.`);
-});
+// ── Só inicia o servidor se executado diretamente (não ao ser importado) ──
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule = process.argv[1] && resolve(__filename) === resolve(process.argv[1]);
+
+if (isMainModule) {
+  const PORT = 3001;
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ API Server rodando em http://localhost:${PORT}`);
+    console.log(`   Endpoints: /api/admin-financial, /api/admin-orders, /api/admin-products, etc.`);
+  });
+}

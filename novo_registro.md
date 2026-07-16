@@ -38,6 +38,8 @@
 | [70](#etapa-70--arquivamento-físico-do-painel-x9k2fhtml) | 16/07 | painel-x9k2f.html → backup/ | 🧹 Cleanup |
 | [71](#etapa-71--auditoria-de-referências-obsoletas-commercialindexhtml) | 16/07 | Auditoria commercial/index.html | 🧹 Cleanup |
 | [72](#etapa-72--limpeza-de-dados-acadêmicosfinanceiros) | 16/07 | Limpeza de dados (1 aluno, 1 prof) | 🧹 Cleanup |
+| [73](#etapa-73--correção-de-segurança-e-refatoração-do-server-devjs) | 16/07 | Segurança + refatoração server-dev.js | 🛠️ Fix |
+| [74](#etapa-74--correção-de-vazamento-e-fallback-da-loja-em-produção) | 16/07 | Fix loja: leak API + fallback produtos | 🐛 Fix |
 
 ---
 
@@ -45,8 +47,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 29 (44-72, com lacunas 49, 52, 58, 59) |
-| **Commits** | 22+ |
+| **Etapas** | 31 (44-74, com lacunas 49, 52, 58, 59) |
+| **Commits** | 24+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
 | **Decisões do usuário respondidas** | 4 (pag. professor, relatório, exclusão vínculo, turmas) |
@@ -811,6 +813,119 @@ Script Node.js que lê `.env` manualmente e usa `@supabase/supabase-js` com a `s
 ## Testes
 
 ✅ `npm test` — 48/48 | ✅ `npm run build` — 2.98s | ✅ Code Review — sem issues
+
+---
+
+# ETAPA 73 — Correção de Segurança e Refatoração do server-dev.js
+
+**Data:** 16/07/2026
+
+**Objetivo:** Corrigir vazamento de `err.message` nas respostas 500 do `server-dev.js` (7 pontos) e eliminar ~120 linhas de lógica duplicada de dashboard/summary reaproveitando os handlers da biblioteca `api/_lib/financial/`.
+
+## Contexto
+
+A auditoria de código (code review completo do projeto) identificou que o `server-dev.js` tinha **7 pontos de vazamento** de `err.message` em respostas HTTP 500, expondo detalhes internos do servidor ao cliente. Além disso, as funções `handleDashboard` (~60 linhas) e `handleSummary` (~50 linhas) duplicavam exatamente as mesmas queries já existentes em `api/_lib/financial/dashboard.js` e `api/_lib/financial/summary.js`, criando risco de divergência futura.
+
+## Implementações
+
+### 🔒 Segurança — 7 vazamentos de `err.message` fechados
+
+| Handler | Antes (vazava) | Depois (genérico) |
+|---------|----------------|-------------------|
+| **Global catch** | `{ error, details: err.message }` | `{ error: 'Erro interno do servidor.' }` |
+| `handleOrders` | `{ error: error.message }` | `{ error: 'Erro ao carregar pedidos.' }` |
+| `handleProducts` | `{ error: error.message }` | `{ error: 'Erro ao carregar produtos.' }` |
+| `handleAdminProducts` | `{ error: error.message }` | `{ error: 'Erro ao carregar produtos.' }` |
+| `handleAdminOrders` | `{ error: error.message }` | `{ error: 'Erro ao carregar pedidos.' }` |
+| `handleFinancial` | `{ error: error.message }` | `{ error: 'Erro ao carregar dados.' }` / `'Erro interno do servidor.'` |
+| `handleOrderStatus` | `{ error: error.message }` | `{ error: 'Erro ao consultar pedido.' }` |
+
+### ♻️ Reuso — eliminação de ~120 linhas duplicadas
+
+**Antes:** `server-dev.js` tinha suas próprias `handleDashboard` e `handleSummary` com 12+ queries Supabase cada, copiadas manualmente de `api/_lib/financial/`.
+
+**Depois:**
+- Importados `handleDashboard` (de `dashboard.js`) e `handleSummary` (de `summary.js`)
+- Criados adaptadores `toVercelReq()` e `toVercelRes()` que traduzem `req`/`res` do Node `http.createServer` para o formato Vercel-style esperado pelos handlers:
+  - `req.query` → objeto de query params via `Object.fromEntries(url.searchParams)`
+  - `res.status(code).json(data)` → wrapper encadeável sobre a função `json()` local
+- `handleFinancial` agora delega `resource=dashboard` e `resource=summary` para os handlers da biblioteca via adaptador
+
+### 🧹 Limpeza
+
+- `classifyError` removido do import (não era usado — os handlers da biblioteca têm seu próprio tratamento de erro)
+- `const url = parseUrl(req)` removido de `handleAdminProducts` (variável não usada)
+- Bloco `validResources` envolvido em `try/catch` com mensagens genéricas
+
+## Arquivo Alterado
+
+| Arquivo | Mudança |
+|---------|---------|
+| `server-dev.js` | Removidas `handleDashboard` + `handleSummary` (~120 linhas); adicionados imports + adaptadores; 7 mensagens de erro genéricas |
+
+## Testes
+
+- ✅ `node server-dev.js` — servidor inicia sem erros de importação
+- ✅ Code Review (deepseek-flash) — 1 issue encontrado (import morto de `classifyError`) e corrigido; versão final aprovada sem issues
+- ✅ Nenhuma regressão funcional — os handlers da biblioteca são os mesmos usados em produção (Vercel)
+
+---
+
+# ETAPA 74 — Correção de Vazamento e Fallback da Loja em Produção
+
+**Data:** 16/07/2026
+
+**Objetivo:** Corrigir problema em produção onde itens da loja não apareciam — causado por chunk JS 404 (hash desatualizado no deploy) + vazamento de `err.message` em `api/products.js` + falta de fallback para produtos estáticos.
+
+## Diagnóstico
+
+O console do navegador em produção apresentava:
+
+| Erro | Causa |
+|------|-------|
+| `main-O-tkMRsf.js 404` | Deploy desatualizado — o build local gera hash `BgKCwKDo`, mas o servidor ainda serve o HTML com hash antigo |
+| `css2:1 400` | Google Fonts CSS2 API — provável rate limiting/bloqueio. Cosmético, não afeta funcionalidade |
+| Loja vazia | Consequência do 404: se o JS chunk não carrega, `store.js` nunca executa |
+
+## Correções
+
+### 🔒 `api/products.js` — vazamento de `err.message` corrigido
+
+**Antes:** `return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message })`
+
+**Depois:** `return res.status(500).json({ error: 'Erro ao buscar produtos.' })`
+
+O campo `details` foi removido para não expor detalhes internos do servidor.
+
+### ♻️ `store/store.js` — fallback para produtos estáticos
+
+Adicionado import de `./products.js` como fallback:
+
+```javascript
+import { PRODUCTS as STATIC_PRODUCTS } from './products.js';
+```
+
+Dois cenários de fallback:
+1. **API retorna erro** (fetch falha, status != 200, ou resposta não-JSON): usa `STATIC_PRODUCTS` e marca `productLoadError = false` (fallback ativo, sem tela de erro)
+2. **API retorna array vazio** (sem produtos no Supabase): usa `STATIC_PRODUCTS` com log informativo
+
+Isso garante que a loja sempre mostre os 3 produtos estáticos (`Camisa "Não Posso, Tenho Ensaio"`, `Camisa Oficial Padrão`, `Suporte de Baqueta`) mesmo se a API ou o Supabase estiverem indisponíveis.
+
+### 🚀 Recomendação
+
+Fazer deploy do novo build no Vercel (`git push origin main`) para atualizar o HTML com o novo hash do chunk JS (`BgKCwKDo`) e eliminar o erro 404.
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `api/products.js` | `details: err.message` removido da resposta 500 |
+| `store/store.js` | Import de `./products.js` + fallback no `catch` e quando API retorna vazio |
+
+## Testes
+
+- ✅ `npm run build` — 4.86s, sem erros (novo import de `products.js` incluso no bundle)
+- ✅ Code Review — aprovado sem issues críticos
 
 ---
 
