@@ -6,8 +6,8 @@ Este documento define o que já foi entregue e o que está planejado para o sist
 
 O Roadmap não representa datas de entrega, apenas ordem lógica e prioridade.
 
-> Revisão de 15/07/2026 — **3ª revisão do dia**: pagamento automático a professor marcado como implementado.
-> Etapas de referência: `novo_registro.md` 44–65.
+> Revisão de 16/07/2026 — **4ª revisão**: testes, auditoria Web, acessibilidade CSS, performance CSS, arquivamento painel, limpeza de dados.
+> Etapas de referência: `novo_registro.md` 44–72.
 
 ---
 
@@ -162,8 +162,15 @@ Com base na auditoria mais recente (15/07/2026), em ordem de prioridade:
 | Geração automática de tuitions no wizard | Etapa 61 |
 | Agenda Mensal (substituiu visão semanal) | Etapas 46/50 |
 | **Pagamento automático a professor** (rate_per_class × aulas) | **Etapa 64 — ⚡ Gerar Pagamentos** |
+| **18 testes unitários** (teacherPayments + deleteEnrollment) | Etapa 66 |
+| **Auditoria de Design Web** (48 regras Vercel, 20 arquivos revisados) | Etapa 67 |
+| **Acessibilidade** (13 `outline:none` → `:focus-visible`) | Etapa 68 |
+| **Performance CSS** (53 `transition:all` → props explícitas) | Etapa 69 |
+| **Arquivamento painel-x9k2f.html** (movido para backup/) | Etapa 70 |
+| **Auditoria commercial/index.html** (0 referências obsoletas) | Etapas 70-71 |
+| **Limpeza de dados** (6 alunos → 1, 3 professores → 1) | Etapa 72 |
 
-## Decisões do Usuário (15/07/2026)
+## Decisões do Usuário (15-16/07/2026)
 
 | Decisão | Resposta |
 |---------|:--------:|
@@ -173,11 +180,12 @@ Com base na auditoria mais recente (15/07/2026), em ordem de prioridade:
 
 ## Todas as perguntas decididas ✅
 
-Todas as questões em aberto foram respondidas pelo usuário (15/07/2026). Nenhuma pendência de decisão restante.
+Todas as questões em aberto foram respondidas pelo usuário (15-16/07/2026). Nenhuma pendência de decisão restante.
 
 | Decisão | Resposta |
 |---------|:--------:|
 | **'Turmas' como módulo separado?** | ✅ **Não precisa** — Vínculos + Agenda já cobrem a necessidade |
+| **1 aluno + 1 professor para começar?** | ✅ **Sim** — manter Sofia + Bruna, limpar resto |
 
 ---
 

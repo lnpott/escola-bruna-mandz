@@ -2,7 +2,7 @@
 
 > **Documento condensado** a partir de `painel_registro.md` (2121 linhas → ~300).
 > Criado em 15/07/2026 para substituir o arquivo original como fonte de verdade única.
-> Etapas aqui documentadas: **44 a 71** (12/07/2026 — 16/07/2026).
+> Etapas aqui documentadas: **44 a 72** (12/07/2026 — 16/07/2026).
 >
 > **Etapas 1-43** permanecem preservadas em `painel_registro.md` (arquivado na raiz
 > como referência histórica). Novas etapas devem ser adicionadas **apenas** neste arquivo.
@@ -37,6 +37,7 @@
 | [69](#etapa-69--performance-css-transition-all--propriedades-explícitas) | 16/07 | transition: all → props explícitas | ♻️ Refactor |
 | [70](#etapa-70--arquivamento-físico-do-painel-x9k2fhtml) | 16/07 | painel-x9k2f.html → backup/ | 🧹 Cleanup |
 | [71](#etapa-71--auditoria-de-referências-obsoletas-commercialindexhtml) | 16/07 | Auditoria commercial/index.html | 🧹 Cleanup |
+| [72](#etapa-72--limpeza-de-dados-acadêmicosfinanceiros) | 16/07 | Limpeza de dados (1 aluno, 1 prof) | 🧹 Cleanup |
 
 ---
 
@@ -44,8 +45,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 28 (44-71, com lacunas 49, 52, 58, 59) |
-| **Commits** | 20+ |
+| **Etapas** | 29 (44-72, com lacunas 49, 52, 58, 59) |
+| **Commits** | 22+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
 | **Decisões do usuário respondidas** | 4 (pag. professor, relatório, exclusão vínculo, turmas) |
@@ -734,6 +735,82 @@ Na Etapa 48 (12/07), o painel clássico foi removido do build e dos links de nav
 | `window.location` / `location.href` | 0 matches ✅ |
 | Links para `.html` | 0 matches ✅ |
 | API calls (`/api/*`) | 20 matches — todos endpoints existentes ✅ |
+
+---
+
+# ETAPA 72 — Limpeza de Dados Acadêmicos/Financeiros
+
+**Data:** 16/07/2026 | **Commits:** `3ae17dc`
+
+**Objetivo:** Remover dados de teste/academicos do Supabase, mantendo apenas 1 aluno (Sofia Almeida), 1 professor (Bruna Mandz), 1 vínculo e 1 mensalidade. Store (products, orders) intacta.
+
+## Contexto
+
+O banco de dados de produção continha dados de desenvolvimento/seeding com 6 alunos, 3 professores e diversos vínculos, mensalidades, aulas e pagamentos. O usuário solicitou limpeza para começar a usar o sistema com dados reais, mantendo apenas registros mínimos de referência.
+
+## Implementações
+
+### `supabase/cleanup-minimal.sql` (novo)
+
+Script SQL para ser executado no Supabase (SQL Editor ou via script Node):
+
+| Passo | Ação |
+|:-----:|------|
+| 1-7 | DELETE em attendance, lessons, teacher_payments, tuitions, payments, expenses, investments |
+| 8 | DELETE em enrollments |
+| 9 | DELETE students WHERE id <> 'ST-ABCDEF' (mantém Sofia) |
+| 10 | DELETE teachers WHERE id <> 'TE-A7B2C3' (mantém Bruna) |
+| 11 | INSERT 1 enrollment (Piano, Seg 14h, R$300) |
+| 12 | INSERT 1 tuition (paga, mês corrente) |
+| Final | SELECT count(*) em todas as tabelas como verificação |
+
+- Ordem de deleção respeita constraints de FK (filhos antes dos pais)
+- Store (products, orders) **não é tocada**
+- `date_trunc('month', CURRENT_DATE)` para datas dinâmicas
+
+### `supabase/seed-escola.sql` (atualizado)
+
+- Substituído seed completo (6 alunos, 3 professores, 8 enrollments, 9 tuitions) por dados mínimos
+- Agora usa `ON CONFLICT (id) DO NOTHING` (idempotente)
+- Datas dinâmicas via `date_trunc('month', CURRENT_DATE)`
+- Cabeçalho orienta usar `cleanup-minimal.sql` primeiro
+
+### `scripts/run-cleanup.js` (novo, gitignorado)
+
+Script Node.js que lê `.env` manualmente e usa `@supabase/supabase-js` com a `service_role_key` para executar a limpeza programaticamente.
+
+## Execução
+
+✅ Script `scripts/run-cleanup.js` executado com sucesso no Supabase de produção:
+
+| Tabela | Antes | Depois |
+|--------|:-----:|:------:|
+| students | 6 | **1** (Sofia Almeida) |
+| teachers | 3 | **1** (Bruna Mandz) |
+| enrollments | 8 | **1** |
+| tuitions | 9 | **1** |
+| lessons | vários | **0** |
+| attendance | vários | **0** |
+| products | 10 | **10** (intacto) |
+| orders | 18 | **18** (intacto) |
+
+## Arquivos
+
+| Arquivo | Tipo |
+|---------|:----:|
+| `supabase/cleanup-minimal.sql` | Novo — script SQL de limpeza |
+| `supabase/seed-escola.sql` | Modificado — seed mínimo |
+| `scripts/run-cleanup.js` | Novo (gitignorado) — executor programático |
+
+## Decisão do Usuário
+
+- ✅ Manter 1 aluno (Sofia) + 1 professor (Bruna) + 1 vínculo
+- ✅ Store intacta (products + orders)
+- ✅ Limpeza já executada na produção
+
+## Testes
+
+✅ `npm test` — 48/48 | ✅ `npm run build` — 2.98s | ✅ Code Review — sem issues
 
 ---
 
