@@ -239,55 +239,7 @@
     gap: var(--space-3);
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.form-group label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-strong);
-    background: var(--bg-base);
-    color: var(--text-primary);
-    font-size: 13px;
-    font-family: var(--font-sans);
-    box-sizing: border-box;
-    transition: border-color var(--duration-fast) var(--ease-out),
-                box-shadow var(--duration-fast) var(--ease-out);
-    min-height: 38px;
-}
-
-.form-group input:focus:not(:focus-visible),
-.form-group select:focus:not(:focus-visible),
-.form-group textarea:focus:not(:focus-visible) {
-    outline: none;
-}
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: var(--border-accent);
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 60px;
-}
-
-.form-group-full {
-    grid-column: 1 / -1;
-}
+/* .form-group now defined in global.css */
 
 .enrollments-form-info {
     margin-top: var(--space-3);
@@ -331,28 +283,7 @@
                 border-color var(--duration-fast) var(--ease-out);
 }
 
-.enrollments-form-actions .btn-cancel {
-    border: 1px solid var(--border-strong);
-    background: none;
-    color: var(--text-tertiary);
-}
-
-.enrollments-form-actions .btn-cancel:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.enrollments-form-actions .btn-save {
-    border: 1px solid var(--color-success);
-    background: var(--color-success);
-    color: #000;
-}
-
-.enrollments-form-actions .btn-save:hover {
-    background: #16a34a;
-    border-color: #16a34a;
-}
-
+/* .btn-cancel / .btn-save now defined in global.css */
 .enrollments-form-actions .btn-save:disabled {
     opacity: 0.5;
     cursor: not-allowed;

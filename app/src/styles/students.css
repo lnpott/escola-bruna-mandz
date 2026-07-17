@@ -122,39 +122,6 @@
     border-bottom: none;
 }
 
-/* ── Status pills ──────────────────────────────────────────── */
-.status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: 3px 10px;
-    border-radius: var(--radius-full);
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-}
-
-.status-approved {
-    background: var(--color-success-bg);
-    color: var(--color-success-text);
-}
-
-.status-pending {
-    background: var(--color-warning-bg);
-    color: var(--color-warning-text);
-}
-
-.status-cancelled {
-    background: var(--color-error-bg);
-    color: var(--color-error-text);
-}
-
-.status-warn {
-    background: var(--color-warning-bg);
-    color: var(--color-warning-text);
-}
-
 /* ── Action buttons ────────────────────────────────────────── */
 .btn-action {
     background: none;
