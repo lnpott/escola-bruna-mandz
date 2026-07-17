@@ -54,6 +54,8 @@
 | [86](#etapa-86--backup-completo-do-supabase-12-tabelas-storage--paginação) | 17/07 | Backup completo: 12 tabelas, Storage, gzip, paginação, restauração | 🛠️ Fix |
 | [87](#etapa-87--correção-de-404s-google-fonts-e-tailwind-cdn) | 17/07 | Correção: 404s chunks, Google Fonts 400, Tailwind CDN warning | 🐛 Fix |
 | [88](#etapa-88--acesso-ao-painel-admin-pelo-logo-e-footer) | 17/07 | Acesso ao /app pelo logo (header) + link no footer | ✨ Feature |
+| [89](#etapa-89--limpeza-do-banco-supabase-para-uso-real) | 17/07 | Limpeza do banco Supabase (dados mínimos para produção) | 🛠️ Fix |
+| [90](#etapa-90--auditoria-de-segurança-completa) | 17/07 | Auditoria de segurança: credenciais, headers, XSS, CSRF, err.message | 🔒 Audit |
 
 ---
 
@@ -1659,6 +1661,88 @@ O script `backup-api.js` original só fazia backup de `products` e `orders`:
 | Arquivo | Mudança |
 |---------|---------|
 | `index.html` | Header logo href + footer link Painel Administrativo |
+
+---
+
+# ETAPA 89 — Limpeza do Banco Supabase para Uso Real
+
+**Data:** 17/07/2026 | **Commit:** `f2ab2f8`
+
+**Objetivo:** Limpar dados de teste do Supabase de produção, mantendo apenas o mínimo para começar a usar o sistema com dados reais.
+
+## Ações
+
+| Tabela | Antes | Depois |
+|--------|:-----:|:------:|
+| `attendance`, `lessons`, `teacher_payments` | diversos | **0** 🧹 |
+| `payments`, `expenses`, `investments` | 1 cada | **0** 🧹 |
+| `tuitions` | 1 | **1** (recriado) ✅ |
+| `enrollments` | 2 | **1** (Sofia + Bruna) ✅ |
+| `students` | 2 | **1** (Sofia Almeida) ✅ |
+| `teachers` | 2 | **1** (Bruna Mandz) ✅ |
+| `products` 🛍️ | 10 | **10** (intacto) ✅ |
+| `orders` 🛍️ | 19 | **19** (intacto) ✅ |
+
+## Arquivos
+
+| Arquivo | Mudança |
+|---------|---------|
+| `scripts/run-cleanup.js` | Novo — script Node com `supabase-js` que executa a limpeza programaticamente |
+
+---
+
+# ETAPA 90 — Auditoria de Segurança Completa
+
+**Data:** 17/07/2026
+
+**Objetivo:** Auditoria completa de segurança do projeto: vazamento de credenciais, headers HTTP, proteção XSS/CSRF, vazamento de `err.message`, e CORS.
+
+## Metodologia
+
+- Varredura do git history completo em busca de credenciais commitadas
+- Análise de `vercel.json`, `api/*.js`, `server-dev.js` e frontend (.tsx, .js, .html)
+- Verificação de sanitização XSS no frontend (innerHTML + escape functions)
+- Verificação de headers de segurança HTTP
+- Verificação de CORS, CSRF e tratamento de erros
+
+## Resultados
+
+### ✅ Itens OK (sem ação necessária)
+
+| Item | Status | Detalhes |
+|------|:------:|----------|
+| **Credenciais no git** | ✅ | `.env` no `.gitignore`. Nenhuma credencial real commitada |
+| **XSS na Loja (store.js)** | ✅ | Uso de `innerHTML` com função `esc()` que sanitiza saída |
+| **XSS no React SPA** | ✅ | React protege contra XSS por padrão (sem `dangerouslySetInnerHTML`) |
+| **Service Worker** | ✅ | Não cacheia `/api/*` |
+
+### 🔴 4 Críticos — Corrigir
+
+| # | Problema | Severidade | Ocorrências |
+|:-:|----------|:----------:|:-----------:|
+| C1 | **err.message exibido para o usuário** em toasts (`showToast(err.message)`) | 🔴 Alta | Agenda.tsx, Enrollments.tsx, Financial.tsx, checkout-modal.js |
+| C2 | **Nenhum header de segurança no Vercel** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options | 🔴 Alta | `vercel.json` (só rewrites) |
+| C3 | **Sem proteção CSRF** — nenhuma validação de origem/referrer nos endpoints da API | 🔴 Alta | Todos os endpoints |
+| C4 | **CORS permissivo** — `Access-Control-Allow-Origin: *` | 🔴 Média | server-dev.js |
+
+### 🟡 4 Moderados — Corrigir quando possível
+
+| # | Problema | Severidade | Ocorrências |
+|:-:|----------|:----------:|:-----------:|
+| M1 | **err.message logado no console do servidor** (pode vazar em logs centralizados) | 🟡 Média | 7 arquivos API |
+| M2 | **Inline `onclick` no index.html** — 50+ handlers inline | 🟡 Baixa | index.html todo |
+| M3 | **backup/painel-x9k2f.html** arquivado mas contém innerHTML com err.message | 🟡 Baixa | 6 ocorrências (arquivo morto) |
+| M4 | **x-admin-password fixo** no `.env`/sessionStorage, sem MFA/rotação | 🟡 Média | Todo o SPA |
+
+## Plano de Correção (Etapa 91+)
+
+| Prioridade | Ação | Esforço |
+|:----------:|------|:-------:|
+| 🔴 C1 | Substituir `err.message` em toasts por mensagens genéricas | 15min |
+| 🔴 C2 | Adicionar `headers` de segurança no `vercel.json` | 10min |
+| 🔴 C3 | Adicionar validação de `Origin`/`Referer` nos handlers da API | 20min |
+| 🔴 C4 | Restringir CORS no `server-dev.js` | 5min |
+| 🟡 M1 | Manter logs só no servidor, nunca no cliente | 15min |
 
 ---
 
