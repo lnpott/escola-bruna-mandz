@@ -2,10 +2,13 @@ name: Daily Supabase Backup
 
 on:
   schedule:
-    # Roda todos os dias às 05:00 UTC
+    # Runs daily at 05:00 UTC
     - cron: '0 5 * * *'
   workflow_dispatch:
-    # Permite rodar manualmente pelo painel do GitHub Actions
+    # Allows manual trigger from GitHub Actions UI
+
+env:
+  NODE_VERSION: '22'
 
 jobs:
   backup:
@@ -18,18 +21,74 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Run backup script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_STORAGE: 'true'
         run: node backup-api.js
+        timeout-minutes: 10
+
+      - name: Validate backup integrity
+        run: |
+          echo "🔍 Validando integridade do backup..."
+
+          # Verifica se o JSON cru existe
+          if [ ! -f backup_dados.json ]; then
+            echo "❌ backup_dados.json não encontrado!"
+            exit 1
+          fi
+
+          RAW_SIZE=$(stat -c%s backup_dados.json)
+          echo "📄 JSON cru: $(numfmt --to=iec $RAW_SIZE)"
+
+          # Verifica se o .gz existe
+          if [ ! -f backup_dados.json.gz ]; then
+            echo "❌ backup_dados.json.gz não encontrado!"
+            exit 1
+          fi
+
+          GZ_SIZE=$(stat -c%s backup_dados.json.gz)
+          echo "📦 JSON.gz:  $(numfmt --to=iec $GZ_SIZE)"
+
+          # Valida JSON (decomprime e parse)
+          if gunzip -c backup_dados.json.gz | node -e "
+            let raw = '';
+            process.stdin.on('data', d => raw += d);
+            process.stdin.on('end', () => {
+              try {
+                const data = JSON.parse(raw);
+                const count = data._meta?.summary?.total_records || 'unknown';
+                const tables = data._meta?.tables?.length || 0;
+                console.log(JSON.stringify({
+                  status: 'ok',
+                  date: data._meta?.date,
+                  tables,
+                  records: count,
+                  hasErrors: data._meta?.summary?.has_errors || false,
+                  errorCount: data._meta?.summary?.error_count || 0
+                }));
+              } catch(e) {
+                console.log(JSON.stringify({ status: 'invalid_json', error: e.message }));
+                process.exit(1);
+              }
+            });
+          "; then
+            echo "✅ Backup validado com sucesso!"
+          else
+            echo "❌ Validação do JSON falhou!"
+            exit 1
+          fi
 
       - name: Upload backup as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: supabase-backup-${{ github.run_id }}-${{ github.run_attempt }}
-          path: backup_dados.json
+          path: |
+            backup_dados.json
+            backup_dados.json.gz
           retention-days: 90
           if-no-files-found: error
+          compression-level: 0  # já estamos comprimindo

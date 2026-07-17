@@ -51,6 +51,7 @@
 | [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar órfãs, excluir imagens | ✨ Feature |
 | [84](#etapa-84--compressão-automática-de-imagens-com-sharp-webp-800px) | 16/07 | Compressão de imagens com Sharp (WebP + resize 800px) | ✨ Feature |
 | [85](#etapa-85--consolidar-funções-serverless-para-limite-de-12-do-vercel-hobby) | 16/07 | Consolidar funções Serverless (limite Hobby 12) + Deploy manual | 🛠️ Fix |
+| [86](#etapa-86--backup-completo-do-supabase-12-tabelas-storage--paginação) | 17/07 | Backup completo: 12 tabelas, Storage, gzip, paginação, restauração | 🛠️ Fix |
 
 ---
 
@@ -1540,6 +1541,77 @@ npx vercel deploy --prod
 - ✅ `npx vercel deploy --prod` — 34s, sem erros
 - ✅ API endpoints respondendo (401 com senha errada = esperado)
 - ✅ Code Review — aprovado (3 rodadas)
+
+---
+
+# ETAPA 86 — Backup Completo do Supabase (12 Tabelas + Storage + Paginação)
+
+**Data:** 17/07/2026
+
+**Objetivo:** Corrigir o backup que só copiava 2 tabelas (products, orders) e ignorava **10 tabelas críticas** do domínio acadêmico/financeiro. Adicionar paginação, compressão gzip, backup de Storage e script de restauração.
+
+## Problema
+
+O script `backup-api.js` original só fazia backup de `products` e `orders`:
+
+| Tabela | Backup antes | Risco |
+|--------|:------------:|-------|
+| `students`, `teachers`, `enrollments`, `tuitions` | ❌ | Perda total de cadastro/financeiro |
+| `payments`, `expenses`, `investments`, `teacher_payments` | ❌ | Perda de histórico financeiro |
+| `lessons`, `attendance` | ❌ | Perda de agenda e frequência |
+| `products`, `orders` | ✅ | — |
+
+**Total: 2/12 tabelas cobertas (16%).**
+
+## Implementações
+
+### 1. 🔒 `backup-api.js` — Rewrite Completo
+
+| Melhoria | Detalhes |
+|----------|----------|
+| **Todas as 12 tabelas** | Ordem FK-safe: students → teachers → enrollments → tuitions → payments → expenses → investments → teacher_payments → lessons → attendance → products → orders |
+| **Paginação** | `fetchAllRows()` com loop `offset += PAGE_SIZE` (1000 registros/página). Funciona para tabelas com >1000 registros |
+| **Storage** | `listStorageFiles()` lista objetos do bucket `product-images` via API REST `/storage/v1/object/list/` + adiciona URLs públicas |
+| **Compressão gzip** | `zlib.gzipSync(json, { level: 9 })` — salva `backup_dados.json.gz` com taxa de compressão reportada |
+| **Validação pós-backup** | Decompress + `JSON.parse()` do .gz para verificar integridade |
+| **Resumo detalhado** | Console log com tabelas, registros, erros, tamanhos, taxa de compressão |
+| **Env var** | `BACKUP_STORAGE` (default `true`) para pular Storage se desejado |
+
+### 2. 🆕 `restore-backup.js` — Script de Restauração
+
+| Funcionalidade | Detalhes |
+|----------------|----------|
+| **Formato** | Lê `.json` ou `.gz` automaticamente |
+| **Confirmação** | Prompt interativo (digitar `RESTAURAR`) ou flag `--force` |
+| **Dry run** | Flag `--dry-run` — apenas simula, não modifica dados |
+| **Limpeza ordenada** | `TABELAS_DELETE_ORDER` — filhos primeiro (FK-safe) |
+| **Inserção batch** | 500 registros/lote com `resolution=merge-duplicates` (permite re-executar) |
+| **DELETE batch** | 100 IDs/lote via `id=in.(...)` |
+| **Notas Storage** | Avisa que arquivos do Storage não são restaurados automaticamente |
+
+### 3. ♻️ `.github/workflows/supabase-backup.yml` — Workflow Atualizado
+
+| Melhoria | Detalhes |
+|----------|----------|
+| **Node 22** | Atualizado de 20 para 22 |
+| **Validação** | Step dedicado: verifica existência de ambos arquivos, decompress + parse do .gz |
+| **Upload duplo** | `path: backup_dados.json*` — envia .json e .gz como artifact |
+| **Timeout** | `timeout-minutes: 10` para backups grandes |
+| **Compressão 0** | `compression-level: 0` no upload (já comprimido internamente) |
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `backup-api.js` | 🔒 Rewrite | De 2 para 12 tabelas + paginação + Storage + gzip + validação |
+| `restore-backup.js` | 🆕 Novo | Script de restauração com confirmação, dry-run, batch FK-safe |
+| `.github/workflows/supabase-backup.yml` | ♻️ | Node 22, validação, upload duplo, timeout 10min |
+
+## Testes
+
+- ✅ `node --check backup-api.js` — sintaxe válida
+- ✅ `node --check restore-backup.js` — sintaxe válida
+- ✅ Code Review — aprovado (1 bug corrigido: `github.run_date` → `github.run_id-run_attempt`)
 
 ---
 
