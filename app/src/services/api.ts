@@ -657,6 +657,87 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
     return data.order;
 }
 
+// ── Storage Manager ────────────────────────────────────────────
+
+const STORAGE_MANAGER_BASE = '/api/storage-manager';
+
+export interface StorageFile {
+    name: string;
+    filePath: string;
+    url: string;
+    size: number;
+    createdAt: string;
+    updatedAt: string;
+    isOrphan: boolean;
+    linkedTo: { id: string; name: string }[];
+}
+
+export interface StorageStats {
+    totalImages: number;
+    totalSize: number;
+    totalSizeFormatted: string;
+    orphanedCount: number;
+    orphanedSize: number;
+    orphanedSizeFormatted: string;
+    linkedCount: number;
+}
+
+export interface StorageManagerResponse {
+    success: boolean;
+    stats: StorageStats;
+    images: StorageFile[];
+}
+
+/**
+ * Lista todas as imagens no Storage com status de órfã.
+ */
+export async function fetchStorageFiles(): Promise<StorageManagerResponse> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const response = await fetch(STORAGE_MANAGER_BASE, { headers });
+    if (!response.ok) {
+        if (response.status === 401) sessionStorage.removeItem('admin_password');
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * Exclui uma imagem do Storage.
+ */
+export async function deleteStorageFile(filePath: string): Promise<void> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${STORAGE_MANAGER_BASE}?filePath=${encodeURIComponent(filePath)}`;
+    const response = await fetch(url, { method: 'DELETE', headers });
+    if (!response.ok) {
+        if (response.status === 401) sessionStorage.removeItem('admin_password');
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+}
+
+/**
+ * Exclui múltiplas imagens órfãs de uma vez.
+ */
+export async function cleanOrphanedFiles(filePaths: string[]): Promise<{ deleted: number }> {
+    let deleted = 0;
+    for (const fp of filePaths) {
+        try {
+            await deleteStorageFile(fp);
+            deleted++;
+        } catch {
+            // Continua com a próxima
+        }
+    }
+    return { deleted };
+}
+
 // ── Teacher Payments (Pagamentos a Professores) ─────────────────────
 
 export async function createTeacherPayment(
