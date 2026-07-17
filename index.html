@@ -9,7 +9,10 @@
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" href="/brand/LOGOPRETO.png" />
         <link rel="apple-touch-icon" href="/brand/LOGOPRETO.png" />
-        <!-- Tailwind CSS -->
+        <!-- Tailwind CSS (production) -->
+        <script>
+            tailwind = { config: { darkMode: 'class', theme: {} } };
+        </script>
         <script src="https://cdn.tailwindcss.com"></script>
         <!-- Loja Oficial: estilos premium -->
         <link rel="stylesheet" href="store/store-style.css" />
@@ -17,7 +20,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" defer></script>
         <!-- Google Fonts: Inter para legibilidade e Montserrat para títulos expressivos -->
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Montserrat:wght=700;800;900&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap"
             rel="stylesheet"
         />
         <!-- FontAwesome para ícones premium -->
