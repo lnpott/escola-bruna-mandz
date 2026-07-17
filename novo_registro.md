@@ -44,6 +44,7 @@
 | [76](#etapa-76--instalação-do-ripgrep) | 16/07 | Instalação do ripgrep (code-searcher) | 🛠️ Tooling |
 | [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | ♻️ Refactor |
 | [78](#etapa-78--guard-delete-student-helper-mock-compartilhado-e-leak-fix) | 16/07 | Guard DELETE student + helper mock + leak fix | ♻️ Refactor |
+| [79](#etapa-79--design-upgrade-fonte-premium-enrollmentscss-migrado) | 16/07 | Design upgrade: font swap + enrollments CSS vars | 🎨 Design |
 
 ---
 
@@ -51,7 +52,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 35 (44-78, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 36 (44-79, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |

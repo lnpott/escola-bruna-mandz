@@ -5,14 +5,14 @@
 .enrollments-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 32px 20px;
+    padding: var(--space-8) var(--space-5);
 }
 
 /* ── Toolbar ───────────────────────────────────────────────── */
 .enrollments-toolbar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
     flex-wrap: wrap;
     align-items: center;
 }
@@ -20,55 +20,73 @@
 .enrollments-search {
     flex: 1;
     min-width: 200px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #3f3f46;
-    background: #09090b;
-    color: #e4e4e7;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-primary);
     font-size: 13px;
+    font-family: var(--font-sans);
+    transition: border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .enrollments-search:focus:not(:focus-visible) {
     outline: none;
 }
 .enrollments-search:focus {
-    border-color: #dc2626;
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.enrollments-search::placeholder {
+    color: var(--text-muted);
 }
 
 .enrollments-filter {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #3f3f46;
-    background: #09090b;
-    color: #e4e4e7;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-primary);
     font-size: 13px;
+    font-family: var(--font-sans);
     min-width: 150px;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .enrollments-filter:focus:not(:focus-visible) {
     outline: none;
 }
 .enrollments-filter:focus {
-    border-color: #dc2626;
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .enrollments-btn-new {
     margin-left: auto;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #22c55e;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-success);
     background: none;
-    color: #22c55e;
+    color: var(--color-success);
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: background 0.15s, color 0.15s;
+    font-family: var(--font-sans);
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
     white-space: nowrap;
+    touch-action: manipulation;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .enrollments-btn-new:hover {
-    background: #22c55e;
-    color: #09090b;
+    background: var(--color-success);
+    color: #000;
 }
 
 /* ── Table ─────────────────────────────────────────────────── */
@@ -84,35 +102,35 @@
 
 .enrollments-table th {
     text-align: left;
-    padding: 10px 12px;
-    color: #71717a;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-secondary);
     font-weight: 700;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 1px solid #27272a;
+    border-bottom: 1px solid var(--border-default);
     white-space: nowrap;
 }
 
 .enrollments-table td {
-    padding: 10px 12px;
-    color: #e4e4e7;
-    border-bottom: 1px solid #1a1a1e;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
     vertical-align: middle;
 }
 
 .enrollments-table tbody tr {
-    transition: background 0.1s;
+    transition: background var(--duration-fast) var(--ease-out);
 }
 
 .enrollments-table tbody tr:hover {
-    background: #1e1e21;
+    background: var(--bg-hover);
 }
 
 .enrollments-table .td-currency {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
-    color: #86efac;
+    color: var(--color-success-text);
     font-weight: 600;
 }
 
@@ -123,49 +141,25 @@
 
 .btn-action-small {
     padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #18181b;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
     cursor: pointer;
     font-size: 14px;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
     line-height: 1;
+    touch-action: manipulation;
 }
 
 .btn-action-small:hover {
-    background: #27272a;
-    border-color: #dc2626;
+    background: var(--bg-hover);
+    border-color: var(--border-accent);
 }
 
 /* ── Status pills ──────────────────────────────────────────── */
-.status-pill {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 9999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-}
-
-.status-approved {
-    background: #0d2818;
-    color: #86efac;
-}
-
-.status-pending {
-    background: #1a1a0d;
-    color: #fcd34d;
-}
-
-.status-warn {
-    background: #1a1400;
-    color: #fbbf24;
-}
-
-.status-cancelled {
-    background: #2a0d0d;
-    color: #fca5a5;
-}
+/* Note: .status-pill etc. also defined in students.css —
+   ideally extract to global.css in future */
 
 /* ── Mobile cards ─────────────────────────────────────────── */
 .enrollments-cards {
@@ -176,84 +170,84 @@
 .enrollments-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.75);
     z-index: 1000;
     display: flex;
     justify-content: center;
     align-items: center;
+    animation: modalOverlayIn var(--duration-fast) var(--ease-out);
+    backdrop-filter: blur(4px);
+    padding: var(--space-5);
 }
 
 .enrollments-modal {
-    background: #18181b;
-    border: 1px solid #27272a;
-    border-radius: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
     max-width: 600px;
     width: 92%;
     max-height: 85vh;
     overflow-y: auto;
-    animation: enrModalIn 0.2s ease-out;
-}
-
-@keyframes enrModalIn {
-    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
+    box-shadow: var(--shadow-lg);
+    animation: modalContentIn var(--duration-normal) var(--ease-out);
 }
 
 .enrollments-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #27272a;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-default);
     position: sticky;
     top: 0;
-    background: #18181b;
+    background: var(--bg-surface);
     z-index: 1;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .enrollments-modal-header h3 {
     margin: 0;
     font-size: 16px;
-    color: #e4e4e7;
+    color: var(--text-primary);
 }
 
 .enrollments-modal-close {
     background: none;
     border: none;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-size: 18px;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: background 0.15s, color 0.15s;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
 }
 
 .enrollments-modal-close:hover {
-    background: #27272a;
-    color: #e4e4e7;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .enrollments-modal-body {
-    padding: 16px 20px;
+    padding: var(--space-4) var(--space-5);
 }
 
 /* ── Form Grid ─────────────────────────────────────────────── */
 .enrollments-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .form-group label {
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -261,14 +255,17 @@
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #09090b;
-    color: #e4e4e7;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-primary);
     font-size: 13px;
+    font-family: var(--font-sans);
     box-sizing: border-box;
-    transition: border-color 0.15s;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
+    min-height: 38px;
 }
 
 .form-group input:focus:not(:focus-visible),
@@ -279,7 +276,8 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #dc2626;
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .form-group textarea {
@@ -292,18 +290,18 @@
 }
 
 .enrollments-form-info {
-    margin-top: 12px;
-    padding: 10px 14px;
-    background: #0d1117;
-    border: 1px solid #1a2332;
-    border-radius: 8px;
-    color: #a1a1aa;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-info-bg);
+    border: 1px solid var(--color-info);
+    border-radius: var(--radius-md);
+    color: var(--color-info-text);
     font-size: 12px;
     line-height: 1.5;
 }
 
 .enrollments-form-info a {
-    color: #fcd34d;
+    color: var(--color-warning-text);
     font-weight: 600;
     text-decoration: none;
 }
@@ -314,35 +312,40 @@
 
 .enrollments-form-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     justify-content: flex-end;
-    margin-top: 16px;
+    margin-top: var(--space-4);
 }
 
 .enrollments-form-actions button {
-    padding: 8px 20px;
-    border-radius: 8px;
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-md);
     font-size: 13px;
     font-weight: 600;
+    font-family: var(--font-sans);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    touch-action: manipulation;
+    min-height: 40px;
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
 }
 
 .enrollments-form-actions .btn-cancel {
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--border-strong);
     background: none;
-    color: #a1a1aa;
+    color: var(--text-tertiary);
 }
 
 .enrollments-form-actions .btn-cancel:hover {
-    background: #27272a;
-    color: #e4e4e7;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .enrollments-form-actions .btn-save {
-    border: 1px solid #22c55e;
-    background: #22c55e;
-    color: #09090b;
+    border: 1px solid var(--color-success);
+    background: var(--color-success);
+    color: #000;
 }
 
 .enrollments-form-actions .btn-save:hover {
@@ -357,67 +360,69 @@
 
 /* ── Mobile card details ───────────────────────────────────── */
 .enrollment-card {
-    background: #1a1a1e;
-    border: 1px solid #27272a;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-2);
 }
 
 .enrollment-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-2);
 }
 
 .enrollment-card-header strong {
-    color: #e4e4e7;
+    color: var(--text-primary);
     font-size: 14px;
 }
 
 .enrollment-card-body .card-row {
     font-size: 12px;
-    color: #a1a1aa;
-    margin-bottom: 4px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
 }
 
 .enrollment-card-body .card-row span {
-    color: #71717a;
+    color: var(--text-tertiary);
     display: inline-block;
     min-width: 80px;
 }
 
 .enrollment-card-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #27272a;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-default);
 }
 
 .enrollment-card-actions button {
     flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #18181b;
-    color: #e4e4e7;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    color: var(--text-primary);
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    transition: background 0.15s, border-color 0.15s;
+    font-family: var(--font-sans);
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
 }
 
 .enrollment-card-actions button:hover {
-    background: #27272a;
-    border-color: #dc2626;
+    background: var(--bg-hover);
+    border-color: var(--border-accent);
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .enrollments-page {
-        padding: 16px 10px;
+        padding: var(--space-4) var(--space-3);
     }
 
     .enrollments-toolbar {
