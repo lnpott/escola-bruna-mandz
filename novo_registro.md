@@ -50,6 +50,7 @@
 | [82](#etapa-82--correções-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | Correções: CPF/phone masks, specialty select, fee validation, image upload | 🐛 Fix |
 | [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar órfãs, excluir imagens | ✨ Feature |
 | [84](#etapa-84--compressão-automática-de-imagens-com-sharp-webp-800px) | 16/07 | Compressão de imagens com Sharp (WebP + resize 800px) | ✨ Feature |
+| [85](#etapa-85--consolidar-funções-serverless-para-limite-de-12-do-vercel-hobby) | 16/07 | Consolidar funções Serverless (limite Hobby 12) + Deploy manual | 🛠️ Fix |
 
 ---
 
@@ -57,7 +58,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 41 (44-84, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 42 (44-85, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1479,6 +1480,66 @@ async function compressImage(buffer) {
 - ✅ `node --check api/upload-image.js` — sintaxe válida
 - ✅ `npm run build` — 3.65s sem erros
 - ✅ Code Review — aprovado (1 sugestão aplicada: simplificar metadata check)
+
+---
+
+# ETAPA 85 — Consolidar Funções Serverless para Limite de 12 do Vercel Hobby + Deploy Manual
+
+**Data:** 16/07/2026
+
+**Objetivo:** Fazer deploy manual no Vercel para verificar os endpoints `/api/upload-image` (Sharp) e `/api/storage-manager`, corrigindo o limite de 12 Serverless Functions do plano Hobby.
+
+## Problema
+
+O deploy manual falhou com:
+
+```
+Error: No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.
+```
+
+Havia **13 arquivos** em `api/` com `export default`, porém o plano Hobby da Vercel permite no máximo **12 Serverless Functions** por deploy.
+
+## Solução
+
+| Antes | Depois |
+|:-----:|:------:|
+| `api/storage-manager.js` (standalone) | ❌ Removido como função autônoma |
+| `api/_lib/financial/storage.js` (handler compartilhado) | ✅ Novo — segue padrão dos handlers financeiros |
+| `api/admin-financial.js` | ✅ Importa `handleStorageManager` + case `storage_manager` no switch |
+| `app/src/services/api.ts` | ✅ URLs atualizadas para `?resource=storage_manager` |
+
+### Resultado
+- **13 → 12 funções Serverless** (dentro do limite do Hobby plan)
+- Storage Manager continua funcionando via `?resource=storage_manager` no mesmo endpoint
+- Código mais consistente: todos os recursos administrativos passam pelo mesmo roteador
+
+## Deploy Manual
+
+```bash
+npx vercel deploy --prod
+```
+
+| Etapa | URL | Status |
+|:-----:|:---:|:------:|
+| Build | Vercel (2.97s) | ✅ 75 módulos |
+| Deploy | `escola-bruna-mandz.vercel.app` | ✅ Aliased |
+| Endpoint storage_manager | `GET /api/admin-financial?resource=storage_manager` | ✅ 200 (com auth) |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `api/_lib/financial/storage.js` | 🆕 Handler compartilhado (antes era standalone) |
+| `api/admin-financial.js` | ♻️ Import + switch case `storage_manager` |
+| `api/storage-manager.js` | ❌ Deletado (não é mais função autônoma) |
+| `app/src/services/api.ts` | ♻️ URLs de `/api/storage-manager` para `?resource=storage_manager` |
+
+## Testes
+
+- ✅ `npm run build` — 2.49s sem erros
+- ✅ `npx vercel deploy --prod` — 34s, sem erros
+- ✅ API endpoints respondendo (401 com senha errada = esperado)
+- ✅ Code Review — aprovado (3 rodadas)
 
 ---
 
