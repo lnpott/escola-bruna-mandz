@@ -1,35 +1,19 @@
 /**
- * api/storage-manager.js
- * Gerenciamento de arquivos no Supabase Storage (bucket product-images).
- * Protegido pela mesma senha do painel admin via header 'x-admin-password'.
+ * api/_lib/financial/storage.js
+ * Handler de gerenciamento de arquivos no Supabase Storage (bucket product-images).
+ * Segue o padrão dos demais handlers financeiros: (req, res, supabase).
  *
- * GET   /api/storage-manager                         → Lista imagens, detecta órfãs, mostra uso
- * DELETE /api/storage-manager?filePath=products/X.jpg  → Exclui imagem
+ * Recurso: ?resource=storage_manager
  *
- * VARIÁVEIS DE AMBIENTE NECESSÁRIAS:
- *   ADMIN_PASSWORD, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * GET    → Lista imagens, detecta órfãs, mostra uso
+ * DELETE → filePath param → Exclui imagem
  */
-
-import { getSupabase } from './_lib/supabase.js';
 
 const BUCKET = 'product-images';
 const FOLDER = 'products';
 
-function auth(req, res) {
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword) {
-        res.status(500).json({ error: 'ADMIN_PASSWORD não configurado.' });
-        return false;
-    }
-    if (req.headers['x-admin-password'] !== adminPassword) {
-        res.status(401).json({ error: 'Senha incorreta.' });
-        return false;
-    }
-    return true;
-}
-
 /**
- * Extrai o nome do arquivo de uma URL pública do Supabase Storage.
+ * Extrai o caminho do arquivo de uma URL pública do Supabase Storage.
  * Ex: https://xxx.supabase.co/storage/v1/object/public/product-images/products/camiseta-123.jpg
  * → "products/camiseta-123.jpg"
  */
@@ -38,7 +22,6 @@ function extractFilePathFromUrl(url) {
     try {
         const urlObj = new URL(url);
         const pathParts = urlObj.pathname.split('/');
-        // Path: /storage/v1/object/public/product-images/products/filename
         const bucketIndex = pathParts.indexOf(BUCKET);
         if (bucketIndex !== -1 && bucketIndex + 1 < pathParts.length) {
             return pathParts.slice(bucketIndex + 1).join('/');
@@ -49,16 +32,10 @@ function extractFilePathFromUrl(url) {
     return null;
 }
 
-/**
- * Calcula o tamanho total (bytes) de uma lista de arquivos
- */
 function calculateTotalSize(files) {
     return files.reduce((sum, f) => sum + (f.metadata?.size || f.size || 0), 0);
 }
 
-/**
- * Formata bytes humanamente
- */
 function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -67,17 +44,7 @@ function formatBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export default async function handler(req, res) {
-    if (!auth(req, res)) return;
-
-    let supabase;
-    try {
-        supabase = getSupabase();
-    } catch (err) {
-        console.error('[storage-manager] Supabase não configurado:', err);
-        return res.status(500).json({ error: 'Supabase não configurado.' });
-    }
-
+export async function handleStorageManager(req, res, supabase) {
     // ── DELETE: excluir uma imagem ────────────────────────────────────
     if (req.method === 'DELETE') {
         const filePath = req.query?.filePath;
@@ -94,7 +61,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ success: true, message: 'Imagem excluída.' });
         } catch (err) {
-            console.error('[storage-manager] Erro ao excluir:', err);
+            console.error('[storage] Erro ao excluir:', err);
             return res.status(500).json({ error: 'Erro ao excluir imagem.' });
         }
     }
@@ -118,7 +85,7 @@ export default async function handler(req, res) {
 
             // 3. Extrair todos os file paths das imagens dos produtos
             const usedFilePaths = new Set();
-            for (const p of products) {
+            for (const p of products || []) {
                 if (p.image) {
                     const fp = extractFilePathFromUrl(p.image);
                     if (fp) usedFilePaths.add(fp);
@@ -131,7 +98,7 @@ export default async function handler(req, res) {
             const images = (files || []).map((file) => {
                 const filePath = `${FOLDER}/${file.name}`;
                 const isOrphan = !usedFilePaths.has(filePath);
-                const productLinks = products.filter(p => {
+                const productLinks = (products || []).filter(p => {
                     const fp = extractFilePathFromUrl(p.image);
                     return fp === filePath;
                 });
@@ -167,7 +134,7 @@ export default async function handler(req, res) {
                 images,
             });
         } catch (err) {
-            console.error('[storage-manager] Erro ao listar:', err);
+            console.error('[storage] Erro ao listar:', err);
             return res.status(500).json({ error: 'Erro ao listar imagens.' });
         }
     }

@@ -659,7 +659,7 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 
 // ── Storage Manager ────────────────────────────────────────────
 
-const STORAGE_MANAGER_BASE = '/api/storage-manager';
+const STORAGE_MANAGER_RESOURCE = 'storage_manager';
 
 export interface StorageFile {
     name: string;
@@ -696,7 +696,7 @@ export async function fetchStorageFiles(): Promise<StorageManagerResponse> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (password) headers['x-admin-password'] = password;
 
-    const response = await fetch(STORAGE_MANAGER_BASE, { headers });
+    const response = await fetch(`${API_BASE}?resource=${STORAGE_MANAGER_RESOURCE}`, { headers });
     if (!response.ok) {
         if (response.status === 401) sessionStorage.removeItem('admin_password');
         const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
@@ -713,7 +713,7 @@ export async function deleteStorageFile(filePath: string): Promise<void> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (password) headers['x-admin-password'] = password;
 
-    const url = `${STORAGE_MANAGER_BASE}?filePath=${encodeURIComponent(filePath)}`;
+    const url = `${API_BASE}?resource=${STORAGE_MANAGER_RESOURCE}&filePath=${encodeURIComponent(filePath)}`;
     const response = await fetch(url, { method: 'DELETE', headers });
     if (!response.ok) {
         if (response.status === 401) sessionStorage.removeItem('admin_password');
