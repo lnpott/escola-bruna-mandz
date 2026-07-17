@@ -77,6 +77,21 @@ export async function handleTeachers(req, res, supabase) {
     if (method === 'DELETE') {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'ID do professor é obrigatório na query string.' });
+
+        // Verifica se existem vínculos ativos para este professor
+        const { count, error: countError } = await supabase
+            .from('enrollments')
+            .select('id', { count: 'exact', head: true })
+            .eq('teacher_id', id)
+            .eq('status', 'active');
+        if (countError) throw countError;
+
+        if (count && count > 0) {
+            return res.status(409).json({
+                error: `Não é possível excluir este professor: existem ${count} vínculo(s) ativo(s) vinculado(s) a ele. Remova ou inative os vínculos primeiro.`
+            });
+        }
+
         const { error } = await supabase.from('teachers').delete().eq('id', id);
         if (error) throw error;
         return res.status(200).json({ success: true });

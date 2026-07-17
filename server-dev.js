@@ -17,6 +17,16 @@ import { fileURLToPath } from 'url';
 // Elimina duplicação de ~100 linhas de queries de dashboard e summary.
 import { handleDashboard } from './api/_lib/financial/dashboard.js';
 import { handleSummary } from './api/_lib/financial/summary.js';
+import { handleStudents } from './api/_lib/financial/students.js';
+import { handleTeachers } from './api/_lib/financial/teachers.js';
+import { handleEnrollments } from './api/_lib/financial/enrollments.js';
+import { handleTuitions } from './api/_lib/financial/tuitions.js';
+import { handlePayments } from './api/_lib/financial/payments.js';
+import { handleExpenses } from './api/_lib/financial/expenses.js';
+import { handleInvestments } from './api/_lib/financial/investments.js';
+import { handleTeacherPayments } from './api/_lib/financial/teacherPayments.js';
+import { handleLessons } from './api/_lib/financial/lessons.js';
+import { handleAttendance } from './api/_lib/financial/attendance.js';
 
 // ── Reusa handlers da loja da biblioteca compartilhada ───────────
 // Elimina duplicação de ~80 linhas de queries de orders, products,
@@ -109,6 +119,7 @@ export function toVercelReq(req) {
     method: req.method,
     query: Object.fromEntries(url.searchParams),
     headers: req.headers,
+    body: req.body,
   };
 }
 
@@ -120,6 +131,37 @@ export function toVercelRes(res) {
       };
     },
   };
+}
+
+// ── Parsing de JSON body para POST/PATCH ─────────────────────────
+/**
+ * Lê o body da requisição HTTP e faz parse como JSON.
+ * Anexa o resultado em req.body. Se não houver body ou não for
+ * JSON válido, req.body fica como null.
+ */
+function parseRequestBody(req) {
+  return new Promise((resolve) => {
+    if (req.method === 'GET' || req.method === 'DELETE' || req.method === 'OPTIONS') {
+      req.body = null;
+      resolve();
+      return;
+    }
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      if (body) {
+        try {
+          req.body = JSON.parse(body);
+        } catch {
+          req.body = null;
+        }
+      } else {
+        req.body = null;
+      }
+      resolve();
+    });
+    req.on('error', () => { req.body = null; resolve(); });
+  });
 }
 
 // ── Handlers ────────────────────────────────────────────────────
@@ -158,64 +200,44 @@ async function handleOrderStatus(req, res) {
 }
 
 /**
- * Roteia /api/admin-financial delegando dashboard e summary para os
- * handlers da biblioteca compartilhada (elimina ~120 linhas duplicadas).
- * Os demais resources usam uma listagem simples (GET-only) pois o
- * server-dev.js não implementa CRUD completo — em produção as chamadas
- * POST/PATCH/DELETE vão para as Vercel Functions reais em api/.
+ * Roteia /api/admin-financial delegando TODOS os resources para os
+ * handlers da biblioteca compartilhada.
+ *
+ * CRUD completo (GET/POST/PATCH/DELETE) — diferente da versão anterior
+ * que só suportava GET. O body de POST/PATCH é parseado automaticamente
+ * pelo parseRequestBody() no router.
  */
 async function handleFinancial(req, res) {
   const url = parseUrl(req);
   const resource = url.searchParams.get('resource');
 
-  if (resource === 'dashboard') {
-    // Delega para o handler da biblioteca, que reusa computeFinancialSummary
-    await handleDashboard(toVercelReq(req), toVercelRes(res), supabase);
-    return;
-  }
-  if (resource === 'summary') {
-    // Delega para o handler da biblioteca (valida month/year, chama computeFinancialSummary)
-    await handleSummary(toVercelReq(req), toVercelRes(res), supabase);
-    return;
-  }
-
-  // Recursos financeiros: listagem simples (GET).
-  // POST/PATCH/DELETE só funcionam em produção (Vercel).
-  const validResources = {
-    students: { table: 'students', orderBy: 'name', select: '*' },
-    teachers: { table: 'teachers', orderBy: 'name', select: '*' },
-    enrollments: { table: 'enrollments', orderBy: 'day_of_week', select: '*, students(name), teachers(name, specialty)' },
-    tuitions: { table: 'tuitions', orderBy: 'due_date', select: '*, students(name), enrollments(instrument, teacher_id, teachers(name))' },
-    payments: { table: 'payments', orderBy: 'paid_at', select: '*, students(name)' },
-    expenses: { table: 'expenses', orderBy: 'due_date', select: '*' },
-    investments: { table: 'investments', orderBy: 'purchased_at', select: '*' },
-    teacher_payments: { table: 'teacher_payments', orderBy: 'reference_month', select: '*, teachers(name, specialty)' },
-    lessons: { table: 'lessons', orderBy: 'date', select: '*, enrollments(monthly_fee, day_of_week), students(name), teachers(name, specialty)' },
-    attendance: { table: 'attendance', orderBy: 'recorded_at', select: '*, lessons(date, start_time, end_time, students(name)), students!attendance_student_id_fkey(name)' },
+  const resourceHandlers = {
+    students:         handleStudents,
+    teachers:         handleTeachers,
+    enrollments:      handleEnrollments,
+    tuitions:         handleTuitions,
+    payments:         handlePayments,
+    expenses:         handleExpenses,
+    investments:      handleInvestments,
+    teacher_payments: handleTeacherPayments,
+    lessons:          handleLessons,
+    attendance:       handleAttendance,
+    dashboard:        handleDashboard,
+    summary:          handleSummary,
   };
 
-  const cfg = validResources[resource];
-  if (!cfg) {
-    json(res, 400, { error: `Resource inválido: ${resource}` });
+  const handler = resourceHandlers[resource];
+  if (!handler) {
+    json(res, 400, {
+      error: 'Parâmetro ?resource= inválido ou ausente. Use: students, teachers, enrollments, tuitions, payments, expenses, investments, teacher_payments, summary, dashboard, lessons, attendance.',
+    });
     return;
   }
 
   try {
-    const { data, error, count } = await supabase
-      .from(cfg.table)
-      .select(cfg.select, { count: 'exact' })
-      .order(cfg.orderBy, { ascending: false })
-      .limit(500);
-
-    if (error) {
-      console.error(`[server-dev] Erro na consulta ${resource}:`, error);
-      json(res, 500, { error: 'Erro ao carregar dados.' });
-      return;
-    }
-
-    json(res, 200, { [resource]: data || [], count });
+    await handler(toVercelReq(req), toVercelRes(res), supabase);
   } catch (err) {
-    console.error(`[server-dev] Erro inesperado em ${resource}:`, err);
+    console.error(`[server-dev] Erro em ${resource}:`, err);
     json(res, 500, { error: 'Erro interno do servidor.' });
   }
 }
@@ -230,7 +252,7 @@ const server = createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': '*',
     });
     res.end();
@@ -238,6 +260,9 @@ const server = createServer(async (req, res) => {
   }
 
   try {
+    // Parseia JSON body para POST/PATCH antes de rotear
+    await parseRequestBody(req);
+
     switch (path) {
       case '/api/admin-financial':
         if (!auth(req, res)) return;

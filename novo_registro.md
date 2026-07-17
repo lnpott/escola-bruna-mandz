@@ -42,6 +42,7 @@
 | [74](#etapa-74--correção-de-vazamento-e-fallback-da-loja-em-produção) | 16/07 | Fix loja: leak API + fallback produtos | 🐛 Fix |
 | [75](#etapa-75--extração-de-handlers-da-loja-para-api_libstorehandlersjs) | 16/07 | Extração handlers loja p/ api/_lib/store/ | ♻️ Refactor |
 | [76](#etapa-76--instalação-do-ripgrep) | 16/07 | Instalação do ripgrep (code-searcher) | 🛠️ Tooling |
+| [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | ♻️ Refactor |
 
 ---
 
@@ -49,8 +50,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 33 (44-76, com lacunas 49, 52, 58, 59) |
-| **Commits** | 24+ |
+| **Etapas** | 34 (44-77, com lacunas 49, 52, 58, 59) |
+| **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
 | **Decisões do usuário respondidas** | 4 (pag. professor, relatório, exclusão vínculo, turmas) |
@@ -1080,6 +1081,99 @@ choco install ripgrep -y
 - **Code-searcher agent** habilitado — pode buscar padrões em todo o código excluindo `node_modules`
 - **Busca 10-100x mais rápida** que `grep`/`findstr` do Windows
 - **Padrões PCRE2** disponíveis para buscas complexas (retrovisor, lookahead, etc.)
+
+## Testes
+
+- ✅ `npm test` — 68/68 passando (+7 novos testes teachers)
+- ✅ `npm run build` — 3.40s
+- ✅ `node server-dev.js` — servidor inicia sem erros
+- ✅ Code Review — aprovado, 3 correções aplicadas (CORS DELETE, empty body null, head:true test)
+
+---
+
+# ETAPA 77 — Guard DELETE Teacher + CRUD Completo server-dev.js + Testes
+
+**Data:** 16/07/2026
+
+**Objetivo:** Implementar duas melhorias identificadas na auditoria dos 4 fluxos críticos (Etapa 75): segurança no DELETE de professores (guard de vínculos ativos) e CRUD completo no server-dev.js via delegação para todos os handlers financeiros. Além disso, criar testes unitários para o guard.
+
+## Contexto
+
+Na auditoria de fluxos (realizada nesta mesma sessão), foram identificadas duas oportunidades de melhoria:
+
+1. **DELETE de professor sem verificação**: O handler `handleTeachers` permitia excluir um professor mesmo se ele tivesse vínculos ativos (enrollments), criando dados órfãos.
+2. **server-dev.js GET-only**: O server-dev.js só suportava GET para resources financeiros. POST/PATCH/DELETE só funcionavam na Vercel, impossibilitando testes locais de CRUD completo.
+
+## Implementações
+
+### 1. 🔒 `api/_lib/financial/teachers.js` — Guard no DELETE
+
+**Antes:** Excluía o professor diretamente, sem verificar vínculos ativos.
+
+**Depois:** Antes de excluir, consulta `enrollments` com `teacher_id + status='active'`. Se houver vínculos ativos, retorna **409 Conflict**:
+
+```
+"Não é possível excluir este professor: existem N vínculo(s) ativo(s)
+vinculado(s) a ele. Remova ou inative os vínculos primeiro."
+```
+
+Segue o mesmo padrão do guard já existente em `enrollments.js` (que verifica aulas vinculadas antes de excluir um vínculo).
+
+### 2. ♻️ `server-dev.js` — CRUD Completo via Delegação
+
+**Antes:** O `handleFinancial` tinha um bloco `validResources` que só fazia SELECT simples (GET-only). Para POST/PATCH/DELETE, o desenvolvedor precisava testar na Vercel.
+
+**Depois:** O `handleFinancial` agora importa **todos os 10 handlers financeiros** e delega para eles com base no parâmetro `?resource=`:
+
+| Handler | Resource |
+|---------|----------|
+| `handleStudents` | students |
+| `handleTeachers` | teachers |
+| `handleEnrollments` | enrollments |
+| `handleTuitions` | tuitions |
+| `handlePayments` | payments |
+| `handleExpenses` | expenses |
+| `handleInvestments` | investments |
+| `handleTeacherPayments` | teacher_payments |
+| `handleLessons` | lessons |
+| `handleAttendance` | attendance |
+| `handleDashboard` | dashboard |
+| `handleSummary` | summary |
+
+**Mudanças técnicas:**
+- `parseRequestBody()` — nova função que lê o stream HTTP e faz parse do JSON body para POST/PATCH
+- `toVercelReq()` agora inclui `body: req.body` (necessário para POST/PATCH)
+- CORS `Access-Control-Allow-Methods` atualizado para incluir `DELETE`
+- `req.body` explicitamente setado como `null` quando body vazio (evita TypeError nos handlers)
+
+### 3. 🧪 `tests/financial-teachers.test.js` — 7 Testes Unitários
+
+| Teste | O que valida |
+|-------|-------------|
+| DELETE sem id | Retorna 400 |
+| Com vínculos ativos | Retorna 409 (bloqueia exclusão) |
+| Sem vínculos ativos | Retorna 200 (permite exclusão) |
+| Só vínculos inativos | Retorna 200 (filtro por `status=active` funciona) |
+| Ordem das queries | `enrollments` → `teachers` |
+| Filtros corretos | `teacher_id` e `status=active` |
+| `head:true` | Usa `{ count: 'exact', head: true }` para não trazer linhas |
+
+Segue o padrão de mock (`makeSupabaseMock`/`makeRes`) já estabelecido em `financial-enrollments.test.js` e `financial-teacher-payments.test.js`.
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `api/_lib/financial/teachers.js` | 🔒 | Guard DELETE: verifica vínculos ativos antes de excluir |
+| `server-dev.js` | ♻️ | CRUD completo: imports + parseRequestBody + resourceHandlers map + CORS DELETE |
+| `tests/financial-teachers.test.js` | 🆕 | 7 testes unitários para o guard DELETE |
+
+## Testes
+
+- ✅ `npm test` — **68/68 passando** (61 anteriores + 7 novos)
+- ✅ `npm run build` — 3.40s sem erros
+- ✅ `node server-dev.js` — servidor inicia sem erros
+- ✅ Code Review — aprovado; 3 correções aplicadas: CORS DELETE, empty body null, head:true test fix
 
 ---
 
