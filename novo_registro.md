@@ -48,6 +48,7 @@
 | [80](#etapa-80--p2-design-cleanup-centralizar-css-duplicado--unificar-active-states) | 16/07 | P2 design cleanup: CSS duplicado + active states | ♻️ Refactor |
 | [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | 🎨 Design |
 | [82](#etapa-82--correções-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | Correções: CPF/phone masks, specialty select, fee validation, image upload | 🐛 Fix |
+| [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar órfãs, excluir imagens | ✨ Feature |
 
 ---
 
@@ -55,7 +56,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 39 (44-82, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 40 (44-83, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1335,6 +1336,81 @@ A variável `--bg-base-rgb` permite que as sombras sejam **tintadas com o matiz 
 ## Testes
 
 - ✅ `npm run build` — 6.31s sem erros
+- ✅ Code Review — aprovado sem issues
+
+---
+
+# ETAPA 83 — Painel de Gerenciamento de Imagens (Supabase Storage)
+
+**Data:** 16/07/2026
+
+**Objetivo:** Criar painel de visualização de uploads no Supabase Storage: listar todas as imagens enviadas, detectar e excluir imagens órfãs (sem produto vinculado), e mostrar uso de armazenamento.
+
+## Implementações
+
+### `api/storage-manager.js` (novo)
+
+Endpoint Vercel Function protegido pela mesma senha do admin:
+| Método | Parâmetros | O que faz |
+|--------|-------------|-----------|
+| GET | — | Lista arquivos do bucket `product-images`, cruza com produtos para detectar órfãs, calcula estatísticas de uso |
+| DELETE | `filePath` | Exclui uma imagem do Storage |
+
+- `extractFilePathFromUrl()` — extrai o caminho do arquivo da URL pública do Supabase
+- `calculateTotalSize()` + `formatBytes()` — cálculo e formatação de tamanho
+- Mensagens de erro genéricas (segurança)
+
+### `app/src/pages/StorageManager.tsx` (novo)
+
+Página React acessível em `/admin/storage`:
+- **Cards de estatísticas**: Total de imagens (com tamanho formatado), vinculadas, órfãs (com destaque vermelho se > 0)
+- **Filtros**: "📋 Todas", "🗑️ Órfãs", "✅ Vinculadas"
+- **Grid de imagens**: Thumbnail 1:1 com lazy loading, badge "Órfã" em vermelho, nome, tamanho, data de upload, links para produtos vinculados
+- **Ações por imagem**: 🔗 Abrir em nova aba, 🗑️ Excluir (com confirmação que alerta se a imagem está vinculada)
+- **🧹 Limpar Órfãs**: Botão de ação em massa para excluir todas as imagens órfãs de uma vez
+- Estados de loading, empty e error
+
+### `app/src/services/api.ts`
+
+| Função | Descrição |
+|--------|-----------|
+| `fetchStorageFiles()` | GET /api/storage-manager → `{ stats, images }` |
+| `deleteStorageFile(filePath)` | DELETE /api/storage-manager?filePath=... |
+| `cleanOrphanedFiles(filePaths)` | Exclui múltiplas órfãs sequencialmente |
+
+Interfaces `StorageFile`, `StorageStats`, `StorageManagerResponse` exportadas.
+
+### `app/src/App.tsx`
+
+- Import `StorageManager`
+- Rota `/admin/storage` com `AuthGuard` + `AppLayout`
+- Breadcrumbs: Admin → Gerenciador de Imagens
+
+### `app/src/styles/admin.css` (+250 linhas)
+
+Estilos para todo o Storage Manager:
+- `.admin-storage-grid` — grid responsivo auto-fill 200px
+- `.admin-storage-card` — card com thumbnail, hover com scale(1.05)
+- `.admin-storage-badge.orphan` — badge vermelho "Órfã"
+- `.admin-storage-deleting-overlay` — overlay escuro durante exclusão
+- `.admin-storage-product-link` — link para produto vinculado
+- `.admin-storage-btn.danger` — botão vermelho
+- `.admin-storage-toolbar` + `.admin-storage-filter-btn` — filtros
+- Responsivo mobile (2 colunas em ≤720px)
+
+## Arquivos Criados/Modificados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `api/storage-manager.js` | 🆕 Novo | Endpoint GET + DELETE para gerenciar Storage |
+| `app/src/pages/StorageManager.tsx` | 🆕 Novo | Página completa com grid, stats e ações |
+| `app/src/services/api.ts` | ✨ | 3 funções + interfaces de Storage |
+| `app/src/App.tsx` | ♻️ | Rota `/admin/storage` + breadcrumbs |
+| `app/src/styles/admin.css` | ✨ | ~250 linhas de estilos do Storage Manager |
+
+## Testes
+
+- ✅ `npm run build` — 5.42s sem erros (805 inserções, 74 módulos)
 - ✅ Code Review — aprovado sem issues
 
 ---
