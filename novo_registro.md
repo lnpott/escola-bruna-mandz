@@ -49,6 +49,7 @@
 | [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | 🎨 Design |
 | [82](#etapa-82--correções-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | Correções: CPF/phone masks, specialty select, fee validation, image upload | 🐛 Fix |
 | [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar órfãs, excluir imagens | ✨ Feature |
+| [84](#etapa-84--compressão-automática-de-imagens-com-sharp-webp-800px) | 16/07 | Compressão de imagens com Sharp (WebP + resize 800px) | ✨ Feature |
 
 ---
 
@@ -56,7 +57,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 40 (44-83, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 41 (44-84, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1412,6 +1413,72 @@ Estilos para todo o Storage Manager:
 
 - ✅ `npm run build` — 5.42s sem erros (805 inserções, 74 módulos)
 - ✅ Code Review — aprovado sem issues
+
+---
+
+# ETAPA 84 — Compressão Automática de Imagens com Sharp (WebP + Resize 800px)
+
+**Data:** 16/07/2026
+
+**Objetivo:** Implementar compressão automática de imagens no upload, redimensionando para no máximo 800px de largura e convertendo para WebP com qualidade 80, reduzindo drasticamente o tamanho dos arquivos e economizando armazenamento no Supabase Storage.
+
+## Contexto
+
+O upload de imagens (`api/upload-image.js`) fazia upload do arquivo original sem qualquer processamento, ocupando espaço desnecessário no Storage. Imagens de celular (12MP+) podiam ter vários MB cada.
+
+## Implementações
+
+### `api/upload-image.js` — refatorado com Sharp
+
+1. **Sharp integrado**: `import sharp from 'sharp'` para processamento de imagens
+2. **Redimensionamento automático**: Largura máxima de **800px** (mantendo proporção). Imagens menores não são ampliadas (`withoutEnlargement: true`)
+3. **Conversão para WebP**: Qualidade **80** com esforço `4` (balanced), resultando em arquivos muito menores com qualidade visual similar
+4. **Sempre .webp**: O nome do arquivo sanitizado agora sempre termina em `.webp`
+5. **Limite de upload aumentado**: De **2MB → 10MB** (o arquivo original pode ser maior porque será comprimido)
+6. **Formatos aceitos**: Agora aceita JPEG, PNG, WebP, GIF e AVIF (todos convertidos para WebP na saída)
+7. **Estatísticas de compressão**: Resposta inclui `originalSize`, `compressedSize` e `savingsPercent`
+
+### `npm install sharp`
+
+Sharp adicionado como dependência de produção no `package.json`.
+
+### Pipeline de compressão
+
+```javascript
+async function compressImage(buffer) {
+    return sharp(buffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .webp({ quality: 80, effort: 4 })
+        .toBuffer();
+}
+```
+
+- **withoutEnlargement**: Evita ampliar imagens menores que 800px
+- **effort 4**: Nível de compressão balanced (0 = rápido/maior, 6 = lento/menor)
+- **quality 80**: Boa qualidade visual com economia significativa
+
+## Impacto Esperado
+
+| Métrica | Antes | Depois | Economia |
+|---------|:-----:|:------:|:--------:|
+| Tamanho médio por imagem (JPEG 12MP) | ~3-5MB | ~100-300KB | **~90-95%** |
+| Tamanho médio por imagem (PNG) | ~2MB | ~150-400KB | **~80-90%** |
+| Limite de upload | 2MB | 10MB | — |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `api/upload-image.js` | Sharp: resize 800px + WebP quality 80 + +5 formatos aceitos + limites atualizados |
+| `package.json` | `"sharp": "^..."` adicionado às dependências |
+| `package-lock.json` | Atualizado automaticamente |
+
+## Testes
+
+- ✅ `node -e "import('sharp')"` — Sharp ESM carregado corretamente
+- ✅ `node --check api/upload-image.js` — sintaxe válida
+- ✅ `npm run build` — 3.65s sem erros
+- ✅ Code Review — aprovado (1 sugestão aplicada: simplificar metadata check)
 
 ---
 
