@@ -43,6 +43,7 @@
 | [75](#etapa-75--extração-de-handlers-da-loja-para-api_libstorehandlersjs) | 16/07 | Extração handlers loja p/ api/_lib/store/ | ♻️ Refactor |
 | [76](#etapa-76--instalação-do-ripgrep) | 16/07 | Instalação do ripgrep (code-searcher) | 🛠️ Tooling |
 | [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | ♻️ Refactor |
+| [78](#etapa-78--guard-delete-student-helper-mock-compartilhado-e-leak-fix) | 16/07 | Guard DELETE student + helper mock + leak fix | ♻️ Refactor |
 
 ---
 
@@ -50,7 +51,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 34 (44-77, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 35 (44-78, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1174,6 +1175,84 @@ Segue o padrão de mock (`makeSupabaseMock`/`makeRes`) já estabelecido em `fina
 - ✅ `npm run build` — 3.40s sem erros
 - ✅ `node server-dev.js` — servidor inicia sem erros
 - ✅ Code Review — aprovado; 3 correções aplicadas: CORS DELETE, empty body null, head:true test fix
+
+---
+
+# ETAPA 78 — Guard DELETE Student + Helper Mock Compartilhado + Leak Fix
+
+**Data:** 16/07/2026
+
+**Objetivo:** Completar a auditoria de fluxos com 3 melhorias: guard de vínculos ativos no DELETE de alunos, extração do mock Supabase para helper compartilhado, e varredura de vazamentos `err.message` residuais.
+
+## Contexto
+
+Após implementar o guard no DELETE de professores (Etapa 77) e instalar o ripgrep (Etapa 76), ficaram pendentes:
+
+1. **DELETE de aluno sem verificação**: O handler `handleStudents` permitia excluir um aluno mesmo se ele tivesse vínculos ativos, criando dados órfãos — mesmo problema do teacher.
+2. **Mock duplicado**: Os 3 arquivos de teste (`financial-enrollments`, `financial-teacher-payments`, `financial-teachers`) tinham ~100 linhas de `makeSupabaseMock`/`makeRes` copiadas.
+3. **Leaks residuais**: Varredura com ripgrep em `api/` poderia encontrar vazamentos de `err.message` ainda não corrigidos.
+
+## Implementações
+
+### 1. 🔒 `api/_lib/financial/students.js` — Guard no DELETE
+
+**Antes:** Excluía o aluno diretamente, sem verificar vínculos ativos.
+
+**Depois:** Antes de excluir, consulta `enrollments` com `student_id + status='active'`. Se houver vínculos ativos, retorna **409 Conflict**:
+
+```
+"Não é possível excluir este aluno: existem N vínculo(s) ativo(s) vinculado(s) a ele. Remova ou inative os vínculos primeiro."
+```
+
+Segue o mesmo padrão do guard em `teachers.js` (Etapa 77) e `enrollments.js` (Etapa 65).
+
+### 2. ♻️ `tests/_helpers/supabase-mock.js` — Helper Compartilhado
+
+Criado arquivo compartilhado com `makeSupabaseMock()` e `makeRes()`, extraídos dos 3 arquivos de teste:
+
+- `from(table)` → retorna chain builder com `.select()`, `.eq()`, `.in()`, `.gt()`, `.gte()`, `.lte()`, `.order()`, `.range()`, `.insert()`, `.update()`, `.delete()`, `.single()`, `.maybeSingle()`, `.then()`
+- `makeRes()` → simula `res.status(code).json(data)` com captura de status e body
+- `head: true` suportado na chamada `.select()`, passado como segundo argumento
+
+**3 arquivos de teste atualizados** (sem mudança de lógica):
+
+| Arquivo | Linhas removidas |
+|---------|:----------------:|
+| `tests/financial-enrollments.test.js` | ~35 (definições inline) |
+| `tests/financial-teacher-payments.test.js` | ~35 (definições inline) |
+| `tests/financial-teachers.test.js` | ~30 (definições inline) |
+
+### 3. 🔒 `api/update-order-status.js` — Leak Fix
+
+**Antes:** `return res.status(500).json({ error: 'Erro ao atualizar status do pedido.', details: err.message })`
+
+**Depois:** `return res.status(500).json({ error: 'Erro ao atualizar status do pedido.' })`
+
+Último vazamento encontrado pela varredura com ripgrep:
+
+```bash
+rg 'details.*err\.message' --glob 'api/**/*.js'
+```
+
+Resultado: **1 ocorrência** em `api/update-order-status.js` — corrigida.
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `api/_lib/financial/students.js` | 🔒 | Guard DELETE: verifica vínculos ativos antes de excluir |
+| `tests/_helpers/supabase-mock.js` | 🆕 | Helper compartilhado (~60 linhas) |
+| `tests/financial-enrollments.test.js` | ♻️ | Importa de helper (sem lógica alterada) |
+| `tests/financial-teacher-payments.test.js` | ♻️ | Importa de helper (sem lógica alterada) |
+| `tests/financial-teachers.test.js` | ♻️ | Importa de helper (sem lógica alterada) |
+| `api/update-order-status.js` | 🔒 | `details: err.message` removido |
+
+## Testes
+
+- ✅ `npm test` — **68/68 passando** (nenhuma regressão)
+- ✅ `npm run build` — 2.43s sem erros
+- ✅ Code Review — aprovado sem issues
+- ✅ Ripgrep: **0 ocorrências** de `details.*err\\.message` em `api/`
 
 ---
 
