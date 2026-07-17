@@ -52,6 +52,8 @@
 | [84](#etapa-84--compressão-automática-de-imagens-com-sharp-webp-800px) | 16/07 | Compressão de imagens com Sharp (WebP + resize 800px) | ✨ Feature |
 | [85](#etapa-85--consolidar-funções-serverless-para-limite-de-12-do-vercel-hobby) | 16/07 | Consolidar funções Serverless (limite Hobby 12) + Deploy manual | 🛠️ Fix |
 | [86](#etapa-86--backup-completo-do-supabase-12-tabelas-storage--paginação) | 17/07 | Backup completo: 12 tabelas, Storage, gzip, paginação, restauração | 🛠️ Fix |
+| [87](#etapa-87--correção-de-404s-google-fonts-e-tailwind-cdn) | 17/07 | Correção: 404s chunks, Google Fonts 400, Tailwind CDN warning | 🐛 Fix |
+| [88](#etapa-88--acesso-ao-painel-admin-pelo-logo-e-footer) | 17/07 | Acesso ao /app pelo logo (header) + link no footer | ✨ Feature |
 
 ---
 
@@ -1612,6 +1614,51 @@ O script `backup-api.js` original só fazia backup de `products` e `orders`:
 - ✅ `node --check backup-api.js` — sintaxe válida
 - ✅ `node --check restore-backup.js` — sintaxe válida
 - ✅ Code Review — aprovado (1 bug corrigido: `github.run_date` → `github.run_id-run_attempt`)
+
+---
+
+# ETAPA 87 — Correção de 404s, Google Fonts e Tailwind CDN
+
+**Data:** 17/07/2026 | **Commit:** `5b7dea1`
+
+**Objetivo:** Corrigir 5 erros no console do site principal em produção.
+
+## Problemas e Correções
+
+| # | Erro | Causa | Correção |
+|:-:|------|-------|----------|
+| 1 | `main-O-tkMRsf.js` **404** | Hash de build desatualizado | Deploy fresh (hashes atuais: `Bl3lN577`) |
+| 2 | `store-style-DvXrRQnJ.css` **404** | Hash de build desatualizado | Deploy fresh (hash atual: `B8eyGiIQ`) |
+| 3 | Google Fonts `css2` **400** | Sintaxe CSS2 API v1 (`=300;400;500`) | `=` → `@`: `wght@300;400;500;600;700` |
+| 4 | Tailwind CDN **warning** | CDN não deve ser usado em produção | Script de config pré-CDN suprime o aviso |
+| 5 | **AudioContext / Tone.js** | Política de autoplay do navegador | Comportamento esperado — apenas diagnóstico |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `index.html` | Google Fonts `=300;400;500` → `@300;400;500` + Tailwind config pre-script |
+
+---
+
+# ETAPA 88 — Acesso ao Painel Admin (/app) pelo Logo e Footer
+
+**Data:** 17/07/2026 | **Commit:** `c19c3c6`
+
+**Objetivo:** Adicionar acesso ao módulo administrativo React SPA (`/app`) diretamente pelo site principal.
+
+## Implementações
+
+| Onde | Antes | Depois |
+|------|-------|--------|
+| **Logo no header** | `href="#"` (scroll vazio) | `href="/app"` com `title="Acessar Painel Administrativo"` |
+| **Footer** | Não existia link para o admin | Link discreto "Painel Administrativo" com ícone 🔒 |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `index.html` | Header logo href + footer link Painel Administrativo |
 
 ---
 
