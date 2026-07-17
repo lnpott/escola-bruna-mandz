@@ -45,6 +45,8 @@
 | [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | ♻️ Refactor |
 | [78](#etapa-78--guard-delete-student-helper-mock-compartilhado-e-leak-fix) | 16/07 | Guard DELETE student + helper mock + leak fix | ♻️ Refactor |
 | [79](#etapa-79--design-upgrade-fonte-premium-enrollmentscss-migrado) | 16/07 | Design upgrade: font swap + enrollments CSS vars | 🎨 Design |
+| [80](#etapa-80--p2-design-cleanup-centralizar-css-duplicado--unificar-active-states) | 16/07 | P2 design cleanup: CSS duplicado + active states | ♻️ Refactor |
+| [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | 🎨 Design |
 
 ---
 
@@ -52,7 +54,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 36 (44-79, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 38 (44-81, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1254,6 +1256,52 @@ Resultado: **1 ocorrência** em `api/update-order-status.js` — corrigida.
 - ✅ `npm run build` — 2.43s sem erros
 - ✅ Code Review — aprovado sem issues
 - ✅ Ripgrep: **0 ocorrências** de `details.*err\\.message` em `api/`
+
+---
+
+# ETAPA 81 — Design Polish: Sombras Tintadas, bg-base, Letter-spacing e Tabular-nums
+
+**Data:** 16/07/2026
+
+**Objetivo:** Implementar os 5 pontos restantes da auditoria de design (P2/P3) para polir o design system.
+
+## Contexto
+
+Após as correções P2 (Etapa 80 — centralização de CSS duplicado e active states), restavam 5 itens da auditoria de design por implementar:
+
+1. 🔴 **`--bg-base` muito escuro (#07070b → #0a0a0a)** — Fundo off-black mais adequado, seguindo recomendação do design skill (evitar preto puro)
+2. 🟡 **Sombras com preto puro** — `--shadow-sm/md/lg` usavam `rgba(0,0,0,0.3/0.4/0.5)`, agora tintadas com `rgba(var(--bg-base-rgb), 0.4/0.5/0.6)`
+3. 🟢 **Sem negative tracking em headlines** — Adicionado `letter-spacing: -0.02em` para h1-h4 (h1: -0.03em) conforme recomendação de tipografia premium
+4. 🟢 **Tabular-nums inconsistente** — Nova utility class `.font-nums` + selector list global aplicando `font-variant-numeric: tabular-nums` em todos os elementos que exibem números (KPIs, currency, stats)
+5. 🟢 **Fundo do headline da agenda** — Pequeno ajuste de contraste
+
+## Implementações
+
+### `app/src/styles/global.css`
+
+| Token/Mudança | Antes | Depois |
+|---------------|:-----:|:------:|
+| `--bg-base` | `#07070b` | `#0a0a0a` |
+| `--bg-base-rgb` | — (não existia) | `10, 10, 10` |
+| `--shadow-sm` | `rgba(0, 0, 0, 0.3)` | `rgba(var(--bg-base-rgb), 0.4)` |
+| `--shadow-md` | `rgba(0, 0, 0, 0.4)` | `rgba(var(--bg-base-rgb), 0.5)` |
+| `--shadow-lg` | `rgba(0, 0, 0, 0.5)` | `rgba(var(--bg-base-rgb), 0.6)` |
+| `h1, h2, h3, h4` | sem tracking | `letter-spacing: -0.02em` (h1: -0.03em) |
+| `.font-nums` | — (não existia) | `font-variant-numeric: tabular-nums` |
+| tabular-nums seletor | — (não existia) | `.dash-kpi-value`, `.fin-kpi-value`, `.fin-cell-currency` etc. |
+
+A variável `--bg-base-rgb` permite que as sombras sejam **tintadas com o matiz do fundo** (off-black) em vez de preto puro, criando sombras mais naturais e integradas ao tema escuro.
+
+## Arquivo Alterado
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/styles/global.css` | 5 tokens/regras CSS adicionados/modificados (~30 linhas) |
+
+## Testes
+
+- ✅ `npm run build` — 2.64s sem erros
+- ✅ Code Review — aprovado sem issues
 
 ---
 

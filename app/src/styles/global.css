@@ -5,7 +5,8 @@
 /* ── Design Tokens ────────────────────────────────────────────── */
 :root {
     /* Background */
-    --bg-base: #07070b;
+    --bg-base: #0a0a0a;
+    --bg-base-rgb: 10, 10, 10;
     --bg-surface: #111115;
     --bg-elevated: #1a1a20;
     --bg-hover: #22222a;
@@ -39,9 +40,9 @@
     --color-info-text: #93c5fd;
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 2px rgba(var(--bg-base-rgb), 0.4);
+    --shadow-md: 0 4px 12px rgba(var(--bg-base-rgb), 0.5);
+    --shadow-lg: 0 12px 32px rgba(var(--bg-base-rgb), 0.6);
     --shadow-glow-red: 0 0 20px rgba(220, 38, 38, 0.15);
     --shadow-glow-green: 0 0 20px rgba(34, 197, 94, 0.15);
 
@@ -119,6 +120,35 @@ a {
 :focus-visible {
     outline: 2px solid var(--border-accent);
     outline-offset: 2px;
+}
+
+/* ── Headline Typography ─────────────────────────────────── */
+h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    letter-spacing: -0.03em;
+}
+
+/* ── Tabular Numbers ──────────────────────────────────────── */
+.font-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-kpi-value,
+.dash-order-total,
+.dash-stock-count,
+.dash-class-time,
+.fin-kpi-value,
+.fin-report-trend-label,
+.fin-report-kpi-value,
+.fin-report-card-value,
+.fin-report-breakdown-row > span:last-child,
+.fin-cell-currency,
+.stat-number,
+.enrollments-table .td-currency {
+    font-variant-numeric: tabular-nums;
 }
 
 /* ── App Container ──────────────────────────────────────────── */
