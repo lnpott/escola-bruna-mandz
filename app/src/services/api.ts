@@ -563,6 +563,7 @@ export async function fetchPaymentsByStudent(studentId: string): Promise<Payment
 // ── Store / Products ────────────────────────────────────────────────
 
 const ADMIN_PRODUCTS_BASE = '/api/admin-products';
+const UPLOAD_IMAGE_BASE = '/api/upload-image';
 const ADMIN_ORDERS_BASE = '/api/admin-orders';
 const UPDATE_ORDER_STATUS_BASE = '/api/update-order-status';
 
@@ -598,6 +599,36 @@ export async function createAdminProduct(
         body: JSON.stringify(product),
     });
     return data.product;
+}
+
+/**
+ * Faz upload de uma imagem de produto para o Supabase Storage.
+ * Retorna a URL pública da imagem.
+ */
+export async function uploadProductImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = {};
+    if (password) headers['x-admin-password'] = password;
+
+    const response = await fetch(UPLOAD_IMAGE_BASE, {
+        method: 'POST',
+        headers,
+        body: formData,
+    });
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            sessionStorage.removeItem('admin_password');
+        }
+        const err = await response.json().catch(() => ({ error: 'Erro ao fazer upload.' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.url;
 }
 
 export async function updateAdminProduct(

@@ -7,6 +7,13 @@ import '@/styles/teachers.css';
 
 const WEEKDAYS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'] as const;
 
+const SPECIALTY_OPTIONS = [
+    'Piano', 'Teclado', 'Violão', 'Guitarra', 'Baixo', 'Bateria',
+    'Canto', 'Violino', 'Viola', 'Violoncelo', 'Saxofone', 'Flauta',
+    'Ukulele', 'Cavaquinho', 'Acordeon', 'Musicalização Infantil', 'Teoria Musical',
+    'Outro',
+];
+
 interface TeacherForm {
     name: string;
     cpf: string;
@@ -154,6 +161,27 @@ export default function Teachers() {
         return arr.map((d: string) => DAY_LABELS[d] || d).join(', ') || '—';
     }
 
+    // ── Input masks ────────────────────────────────────────────
+    const maskCPF = (value: string): string => {
+        const digits = value.replace(/\D/g, '').slice(0, 11);
+        return digits
+            .replace(/^(\d{3})(\d)/, '$1.$2')
+            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+    };
+
+    const maskPhone = (value: string): string => {
+        const digits = value.replace(/\D/g, '').slice(0, 11);
+        if (digits.length <= 10) {
+            return digits
+                .replace(/^(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        }
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2');
+    };
+
     // ── Render ───────────────────────────────────────────────
     if (loading && !teachers.length) {
         return <div className="teachers-page"><div className="loading">Carregando professores...</div></div>;
@@ -243,7 +271,8 @@ export default function Teachers() {
                                         type="text"
                                         placeholder="000.000.000-00"
                                         value={form.cpf}
-                                        onChange={(e) => updateField('cpf', e.target.value)}
+                                        onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
+                                        maxLength={14}
                                     />
                                 </div>
 
@@ -253,18 +282,22 @@ export default function Teachers() {
                                         type="text"
                                         placeholder="(XX) XXXXX-XXXX"
                                         value={form.phone}
-                                        onChange={(e) => updateField('phone', e.target.value)}
+                                        onChange={(e) => updateField('phone', maskPhone(e.target.value))}
+                                        maxLength={15}
                                     />
                                 </div>
 
                                 <div className="form-field">
                                     <label>Especialidade</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: Piano, Violão, Canto..."
+                                    <select
                                         value={form.specialty}
                                         onChange={(e) => updateField('specialty', e.target.value)}
-                                    />
+                                    >
+                                        <option value="">— Selecione —</option>
+                                        {SPECIALTY_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div className="form-field">

@@ -131,6 +131,27 @@ export default function Students() {
     const [saving, setSaving] = useState(false);
     const [wizardStep, setWizardStep] = useState<WizardStep>(1);
 
+    // ── Input masks ────────────────────────────────────────────
+    const maskCPF = (value: string): string => {
+        const digits = value.replace(/\D/g, '').slice(0, 11);
+        return digits
+            .replace(/^(\d{3})(\d)/, '$1.$2')
+            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+    };
+
+    const maskPhone = (value: string): string => {
+        const digits = value.replace(/\D/g, '').slice(0, 11);
+        if (digits.length <= 10) {
+            return digits
+                .replace(/^(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        }
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2');
+    };
+
     // ── Wizard helpers ─────────────────────────────────────────
     const WIZARD_STEPS: { step: WizardStep; label: string }[] = [
         { step: 1, label: 'Dados do Aluno' },
@@ -499,7 +520,7 @@ export default function Students() {
                                         <div className="form-field">
                                             <label>CPF</label>
                                             <input type="text" placeholder="000.000.000-00" value={form.cpf}
-                                                onChange={(e) => updateField('cpf', e.target.value)} />
+                                                onChange={(e) => updateField('cpf', maskCPF(e.target.value))} maxLength={14} />
                                         </div>
                                         <div className="form-field">
                                             <label>E-mail</label>
@@ -509,7 +530,7 @@ export default function Students() {
                                         <div className="form-field">
                                             <label>Telefone</label>
                                             <input type="text" placeholder="(XX) XXXXX-XXXX" value={form.phone}
-                                                onChange={(e) => updateField('phone', e.target.value)} />
+                                                onChange={(e) => updateField('phone', maskPhone(e.target.value))} maxLength={15} />
                                         </div>
                                         <div className="form-field">
                                             <label>Endereço</label>
@@ -560,12 +581,12 @@ export default function Students() {
                                             <div className="form-field">
                                                 <label>CPF</label>
                                                 <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
-                                                    onChange={(e) => updateField('guardian_cpf', e.target.value)} />
+                                                    onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))} maxLength={14} />
                                             </div>
                                             <div className="form-field">
                                                 <label>Telefone</label>
                                                 <input type="text" placeholder="(XX) XXXXX-XXXX" value={form.guardian_phone}
-                                                    onChange={(e) => updateField('guardian_phone', e.target.value)} />
+                                                    onChange={(e) => updateField('guardian_phone', maskPhone(e.target.value))} maxLength={15} />
                                             </div>
                                         </div>
                                     </div>
@@ -593,7 +614,8 @@ export default function Students() {
                                                 <div className="form-field">
                                                     <label>CPF</label>
                                                     <input type="text" placeholder="000.000.000-00" value={form.cpf}
-                                                        onChange={(e) => updateField('cpf', e.target.value)} />
+                                                        onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
+                                                        maxLength={14} />
                                                 </div>
                                                 <div className="form-field">
                                                     <label>E-mail</label>
@@ -603,7 +625,8 @@ export default function Students() {
                                                 <div className="form-field">
                                                     <label>Telefone</label>
                                                     <input type="text" placeholder="(XX) XXXXX-XXXX" value={form.phone}
-                                                        onChange={(e) => updateField('phone', e.target.value)} />
+                                                        onChange={(e) => updateField('phone', maskPhone(e.target.value))}
+                                                        maxLength={15} />
                                                 </div>
                                                 <div className="form-field">
                                                     <label>Endereço</label>
@@ -628,13 +651,15 @@ export default function Students() {
                                                     </div>
                                                     <div className="form-field">
                                                         <label>CPF</label>
-                                                        <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
-                                                            onChange={(e) => updateField('guardian_cpf', e.target.value)} />
+                                                    <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
+                                                        onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))}
+                                                        maxLength={14} />
                                                     </div>
                                                     <div className="form-field">
                                                         <label>Telefone</label>
-                                                        <input type="text" placeholder="(XX) XXXXX-XXXX" value={form.guardian_phone}
-                                                            onChange={(e) => updateField('guardian_phone', e.target.value)} />
+                                                    <input type="text" placeholder="(XX) XXXXX-XXXX" value={form.guardian_phone}
+                                                        onChange={(e) => updateField('guardian_phone', maskPhone(e.target.value))}
+                                                        maxLength={15} />
                                                     </div>
                                                 </div>
                                             </div>

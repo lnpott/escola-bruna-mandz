@@ -441,14 +441,17 @@ export default function Enrollments() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Valor Mensal (R$)</label>
+                                    <label>Valor Mensal (R$) *</label>
                                     <input
                                         type="number"
-                                        min={0}
-                                        step={0.01}
+                                        min={1}
+                                        step={1}
                                         value={form.monthly_fee}
                                         onChange={e => setForm(f => ({ ...f, monthly_fee: Number(e.target.value) }))}
+                                        placeholder="250"
+                                        required
                                     />
+                                    <span className="form-help" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Valor mínimo: R$ 1,00</span>
                                 </div>
                                 <div className="form-group">
                                     <label>Tipo de Cobrança</label>

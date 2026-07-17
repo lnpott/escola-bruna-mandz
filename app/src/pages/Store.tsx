@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '@/App';
 import {
     fetchAdminProducts,
@@ -6,6 +6,7 @@ import {
     updateAdminProduct,
     fetchOrders,
     updateOrderStatus,
+    uploadProductImage,
 } from '@/services/api';
 import type { Product, Order } from '@/types';
 import '@/styles/store.css';
@@ -130,6 +131,43 @@ export default function Store() {
             active: p.active,
         });
         setShowProductModal(true);
+    };
+
+    // ── Image upload state ────────────────────────────────────
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showToast('Formato não permitido. Use JPEG, PNG ou WebP.', 'error');
+            return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Imagem muito grande. Máximo 2MB.', 'error');
+            return;
+        }
+
+        setUploadingImage(true);
+        try {
+            const url = await uploadProductImage(file);
+            setProdForm(f => ({ ...f, image: url }));
+            showToast('Imagem enviada com sucesso!');
+        } catch (err: unknown) {
+            showToast(err instanceof Error ? err.message : 'Erro ao enviar imagem.', 'error');
+        } finally {
+            setUploadingImage(false);
+            // Reset file input so the same file can be re-selected
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
 
     // ── Save product ───────────────────────────────────────────
@@ -497,10 +535,42 @@ export default function Store() {
                                 </div>
                             </div>
                             <div className="store-form-group">
-                                <label>URL da Imagem</label>
-                                <input type="text" value={prodForm.image}
-                                    onChange={e => setProdForm(f => ({ ...f, image: e.target.value }))}
-                                    placeholder="/merch/Produto.png ou https://..." />
+                                <label>Imagem do Produto</label>
+                                <div className="store-image-upload">
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onChange={handleImageUpload}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <div className="store-image-preview-row">
+                                        {prodForm.image ? (
+                                            <div className="store-image-preview">
+                                                <img src={prodForm.image} alt="Preview" className="store-image-thumb" />
+                                                <button
+                                                    type="button"
+                                                    className="store-btn-sm store-btn-remove"
+                                                    onClick={() => setProdForm(f => ({ ...f, image: '' }))}
+                                                    title="Remover imagem"
+                                                >✕</button>
+                                            </div>
+                                        ) : (
+                                            <div className="store-image-placeholder" onClick={() => fileInputRef.current?.click()}>
+                                                🖼️ Clique para selecionar
+                                            </div>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className="store-btn-secondary"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={uploadingImage}
+                                        >
+                                            {uploadingImage ? '📤 Enviando...' : prodForm.image ? '🔄 Trocar' : '📤 Selecionar Imagem'}
+                                        </button>
+                                    </div>
+                                    <span className="store-form-hint">Formatos: JPEG, PNG, WebP. Máximo 2MB.</span>
+                                </div>
                             </div>
                             {editingProduct && (
                                 <label className="store-checkbox-label">

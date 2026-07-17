@@ -47,6 +47,7 @@
 | [79](#etapa-79--design-upgrade-fonte-premium-enrollmentscss-migrado) | 16/07 | Design upgrade: font swap + enrollments CSS vars | 🎨 Design |
 | [80](#etapa-80--p2-design-cleanup-centralizar-css-duplicado--unificar-active-states) | 16/07 | P2 design cleanup: CSS duplicado + active states | ♻️ Refactor |
 | [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | 🎨 Design |
+| [82](#etapa-82--correções-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | Correções: CPF/phone masks, specialty select, fee validation, image upload | 🐛 Fix |
 
 ---
 
@@ -54,7 +55,7 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 38 (44-81, com lacunas 49, 52, 58, 59) |
+| **Etapas** | 39 (44-82, com lacunas 49, 52, 58, 59) |
 | **Commits** | 25+ |
 | **Período** | 12/07/2026 — 16/07/2026 (5 dias) |
 | **Total de linhas do documento original** | 2121 |
@@ -1301,6 +1302,39 @@ A variável `--bg-base-rgb` permite que as sombras sejam **tintadas com o matiz 
 ## Testes
 
 - ✅ `npm run build` — 2.64s sem erros
+- ✅ Code Review — aprovado sem issues
+
+---
+
+# ETAPA 82 — Correções de Campos: CPF, Telefone, Especialidade, Mensalidade e Upload de Imagem
+
+**Data:** 16/07/2026
+
+**Objetivo:** Corrigir 4 problemas reportados no formulário de cadastro: validação/máscara de CPF e telefone, especialidade do professor como dropdown, verificação de valor mínimo na mensalidade e substituição de URL de imagem por upload de arquivo.
+
+## Problemas e Correções
+
+| # | Problema | Correção |
+|:-:|----------|----------|
+| 1 | CPF e telefone sem validação de tamanho | Máscara `maskCPF()` (000.000.000-00) e `maskPhone()` ((XX) XXXXX-XXXX) aplicadas em TODOS os campos de aluno (wizard + edição) e professor, incluindo campos de responsável |
+| 2 | Especialidade do professor como texto livre | Substituído `<input type="text">` por `<select>` com as 17 opções predefinidas de instrumentos + "Outro" |
+| 3 | Mensalidade sem validação mínima | `min=0` → `min=1`, `step=0.01` → `step=1`, adicionado `required`, placeholder e hint "Valor mínimo: R$ 1,00" |
+| 4 | URL da imagem no produto (campo texto) | Substituído por upload de arquivo com validação de tipo (JPEG/PNG/WebP), tamanho (máx 2MB), preview com thumbnail, botão de remover e estado de loading |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Students.tsx` | `maskCPF()` + `maskPhone()` aplicados em 8 campos (CPF, phone, guardian_cpf, guardian_phone no wizard e edição) |
+| `app/src/pages/Teachers.tsx` | Mesmas máscaras + `SPECIALTY_OPTIONS` + `<select>` no lugar de `<input>` |
+| `app/src/pages/Enrollments.tsx` | `monthly_fee`: min=1, step=1, required, placeholder, help hint |
+| `app/src/pages/Store.tsx` | `useRef` + `uploadProductImage` + `handleImageUpload` + file input + preview |
+| `app/src/services/api.ts` | `uploadProductImage(file)` — POST FormData para `/api/upload-image` |
+| `app/src/styles/store.css` | Estilos para `.store-image-upload`, preview, placeholder, remove button |
+
+## Testes
+
+- ✅ `npm run build` — 6.31s sem erros
 - ✅ Code Review — aprovado sem issues
 
 ---
