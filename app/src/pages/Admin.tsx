@@ -216,12 +216,14 @@ export default function Admin() {
                     {/* ── Overview Cards ────────────────────────────── */}
                     <div className="admin-overview-grid">
                         {quickCards.map(card => (
-                            <Link to={card.to} key={card.title} className="admin-card" style={{ '--card-accent': card.color } as React.CSSProperties}>
-                                <div className="admin-card-icon">{card.icon}</div>
-                                <div className="admin-card-body">
-                                    <div className="admin-card-label">{card.title}</div>
-                                    <div className="admin-card-value">{card.value}</div>
-                                    <div className="admin-card-subtitle">{card.subtitle}</div>
+                            <Link to={card.to} key={card.title} className="admin-card bezel-shell" style={{ '--card-accent': card.color } as React.CSSProperties}>
+                                <div className="bezel-core" style={{ display: 'flex', gap: 'var(--space-4)', width: '100%', alignItems: 'center' }}>
+                                    <div className="admin-card-icon">{card.icon}</div>
+                                    <div className="admin-card-body">
+                                        <div className="admin-card-label">{card.title}</div>
+                                        <div className="admin-card-value">{card.value}</div>
+                                        <div className="admin-card-subtitle">{card.subtitle}</div>
+                                    </div>
                                 </div>
                             </Link>
                         ))}

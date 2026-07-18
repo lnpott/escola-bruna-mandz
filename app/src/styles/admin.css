@@ -75,20 +75,14 @@
 }
 
 .admin-card {
-    background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
     text-decoration: none;
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-4);
     transition: border-color var(--duration-normal) var(--ease-out),
                 transform var(--duration-normal) var(--ease-out),
                 box-shadow var(--duration-normal) var(--ease-out);
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    display: flex;
 }
 
 .admin-card::before {
@@ -502,11 +496,11 @@
 }
 
 .trend-dot.revenue {
-    background: #22c55e;
+    background: var(--color-success);
 }
 
 .trend-dot.outgoings {
-    background: #ef4444;
+    background: var(--color-error);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

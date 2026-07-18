@@ -35,13 +35,14 @@ export default function Login() {
 
     return (
         <div className="login-page">
-            <div className="login-card">
-                <div className="login-logo">🎵</div>
-                <h1 className="login-title">ERP Educacional</h1>
-                <p className="login-subtitle">Escola Bruna Mandz</p>
-                <p className="login-hint">Acesso restrito — informe a senha de administrador.</p>
+            <div className="login-card bezel-shell">
+                <div className="bezel-core">
+                    <div className="login-logo">🎵</div>
+                    <h1 className="login-title">ERP Educacional</h1>
+                    <p className="login-subtitle">Escola Bruna Mandz</p>
+                    <p className="login-hint">Acesso restrito — informe a senha de administrador.</p>
 
-                <form onSubmit={handleSubmit} className="login-form">
+                    <form onSubmit={handleSubmit} className="login-form">
                     <div className="login-input-group">
                         <input
                             type="password"
@@ -60,16 +61,16 @@ export default function Login() {
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        className="login-btn"
-                        disabled={loading}
-                    >
-                        {loading ? 'Verificando...' : 'Entrar'}
-                    </button>
-                </form>
-
-
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            style={{ width: '100%' }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Verificando...' : 'Entrar'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

@@ -142,10 +142,6 @@
     animation: fadeInUp 0.5s var(--ease-out);
 }
 .fin-kpi-card {
-    background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-5);
     transition: border-color var(--duration-normal) var(--ease-out),
                 transform var(--duration-normal) var(--ease-out),
                 box-shadow var(--duration-normal) var(--ease-out);
@@ -808,8 +804,8 @@
     margin-right: 4px;
     vertical-align: middle;
 }
-.legend-dot.revenue { background: #22c55e; }
-.legend-dot.outgoings { background: #ef4444; }
+.legend-dot.revenue { background: var(--color-success); }
+.legend-dot.outgoings { background: var(--color-error); }
 .legend-dot.balance.positive { background: #3b82f6; }
 .legend-dot.balance.negative { background: #a855f7; }
 

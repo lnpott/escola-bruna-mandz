@@ -31,17 +31,27 @@
 .teachers-filters input {
     flex: 1;
     min-width: 200px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #3f3f46;
-    background: #18181b;
-    color: #e4e4e7;
-    font-family: inherit;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
     font-size: 13px;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.teachers-filters input:focus:not(:focus-visible) {
+    outline: none;
+}
+.teachers-filters input:focus {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .teachers-count {
-    color: #71717a;
+    color: var(--text-secondary);
     font-size: 12px;
     font-weight: 600;
     margin-left: auto;
@@ -61,8 +71,8 @@
 .teachers-table th,
 .teachers-table td {
     text-align: left;
-    padding: 10px 12px;
-    border-bottom: 1px solid #27272a;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-default);
     vertical-align: middle;
 }
 
@@ -82,7 +92,7 @@
 }
 
 .teachers-table th {
-    color: #a1a1aa;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     font-size: 11px;
     letter-spacing: 0.05em;
@@ -93,7 +103,7 @@
 .td-currency {
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    color: #86efac;
+    color: var(--color-success);
 }
 
 /* ── Days Grid (Checkboxes) ────────────────────────────────── */
@@ -107,39 +117,39 @@
 .day-checkbox {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1);
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--text-tertiary);
     cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #27272a;
-    background: #09090b;
-    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: var(--bg-base);
+    transition: border-color var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
 }
 
 .day-checkbox:hover {
-    border-color: #3f3f46;
-    background: #18181b;
+    border-color: var(--border-strong);
+    background: var(--bg-hover);
 }
 
 .day-checkbox input[type="checkbox"] {
-    accent-color: #dc2626;
+    accent-color: var(--border-accent);
     width: 14px;
     height: 14px;
     cursor: pointer;
 }
 
 .day-checkbox:has(input:checked) {
-    border-color: #dc2626;
-    background: #1a0a0a;
-    color: #e4e4e7;
+    border-color: var(--border-accent);
+    background: rgba(220, 38, 38, 0.05);
+    color: var(--text-primary);
 }
 
 /* ── Form help text ────────────────────────────────────────── */
 .form-help {
     font-size: 10px;
-    color: #52525b;
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
@@ -167,11 +177,11 @@
 
     .teachers-table tr {
         display: block;
-        background: #18181b;
-        border: 1px solid #27272a;
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 10px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        margin-bottom: var(--space-3);
     }
 
     .teachers-table td {

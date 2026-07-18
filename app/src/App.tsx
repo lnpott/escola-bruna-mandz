@@ -96,22 +96,24 @@ function AppProvider({ children }: { children: React.ReactNode }) {
             {/* ── Global Confirm Modal ── */}
             {confirmState && (
                 <div className="modal-overlay" onClick={() => handleConfirm(false)}>
-                    <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-                        <h3 className="confirm-title">{confirmState.options.title}</h3>
-                        <p className="confirm-message">{confirmState.options.message}</p>
-                        <div className="confirm-actions">
-                            <button
-                                className="btn-secondary"
-                                onClick={() => handleConfirm(false)}
-                            >
-                                {confirmState.options.cancelText || 'Cancelar'}
-                            </button>
-                            <button
-                                className={confirmState.options.danger ? 'btn-danger' : 'btn-primary'}
-                                onClick={() => handleConfirm(true)}
-                            >
-                                {confirmState.options.confirmText || 'Confirmar'}
-                            </button>
+                    <div className="confirm-modal bezel-shell" onClick={e => e.stopPropagation()}>
+                        <div className="bezel-core">
+                            <h3 className="confirm-title">{confirmState.options.title}</h3>
+                            <p className="confirm-message">{confirmState.options.message}</p>
+                            <div className="confirm-actions">
+                                <button
+                                    className="btn-secondary"
+                                    onClick={() => handleConfirm(false)}
+                                >
+                                    {confirmState.options.cancelText || 'Cancelar'}
+                                </button>
+                                <button
+                                    className={confirmState.options.danger ? 'btn-danger' : 'btn-primary'}
+                                    onClick={() => handleConfirm(true)}
+                                >
+                                    {confirmState.options.confirmText || 'Confirmar'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

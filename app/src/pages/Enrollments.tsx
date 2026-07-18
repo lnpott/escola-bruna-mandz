@@ -268,8 +268,9 @@ export default function Enrollments() {
             ) : (
                 <>
                     {/* Desktop table */}
-                    <div className="enrollments-table-wrapper">
-                        <table className="enrollments-table">
+                    <div className="enrollments-table-wrapper bezel-shell">
+                        <div className="bezel-core">
+                            <table className="enrollments-table">
                             <thead>
                                 <tr>
                                     <th>Aluno</th>
@@ -312,27 +313,39 @@ export default function Enrollments() {
                             </tbody>
                         </table>
                     </div>
+                    </div>
 
                     {/* Mobile cards */}
-                    <div className="enrollments-cards">
+                    <div className="enrollments-mobile-list">
                         {filtered.map(enr => (
-                            <div key={enr.id} className="enrollment-card">
-                                <div className="enrollment-card-header">
-                                    <strong>{enr.students?.name || '—'}</strong>
-                                    <span className={`status-pill ${getStatusClass(enr.status)}`}>
-                                        {getStatusLabel(enr.status)}
-                                    </span>
-                                </div>
-                                <div className="enrollment-card-body">
-                                    <div className="card-row"><span>Professor:</span> {enr.teachers?.name || '—'}</div>
-                                    <div className="card-row"><span>Instrumento:</span> {enr.instrument || '—'}</div>
-                                    <div className="card-row"><span>Horário:</span> {renderDay(enr.day_of_week)} {enr.class_time || ''}</div>
-                                    <div className="card-row"><span>Valor:</span> R$ {enr.monthly_fee.toFixed(2)}</div>
-                                    <div className="card-row"><span>Cobrança:</span> {BILLING_TYPE_LABELS[enr.billing_type] || enr.billing_type}</div>
-                                </div>
-                                <div className="enrollment-card-actions">
-                                    <button onClick={() => openEdit(enr)} title="Editar">✏️ Editar</button>
-                                    <button onClick={() => handleDelete(enr.id, enr.students?.name)} title="Excluir">🗑️ Excluir</button>
+                            <div key={enr.id} className="enrollments-mobile-card bezel-shell">
+                                <div className="bezel-core">
+                                    <div className="enrollments-mobile-header">
+                                        <strong>{enr.students?.name || '—'}</strong>
+                                        <span className={`status-pill ${getStatusClass(enr.status)}`}>
+                                            {getStatusLabel(enr.status)}
+                                        </span>
+                                    </div>
+                                    <div className="enrollments-mobile-detail">
+                                        <span>Instrumento:</span> {enr.instrument || '—'}
+                                    </div>
+                                    <div className="enrollments-mobile-detail">
+                                        <span>Professor:</span> {enr.teachers?.name || '—'}
+                                    </div>
+                                    <div className="enrollments-mobile-detail">
+                                        <span>Dia/Horário:</span> {renderDay(enr.day_of_week)} {enr.class_time ? ` ${enr.class_time}` : ''}
+                                    </div>
+                                    <div className="enrollments-mobile-detail">
+                                        <span>Valor:</span> <span className="td-currency">R$ {enr.monthly_fee.toFixed(2)}</span> ({BILLING_TYPE_LABELS[enr.billing_type] || enr.billing_type})
+                                    </div>
+                                    <div className="enrollments-mobile-actions">
+                                        <button className="btn-secondary" onClick={() => openEdit(enr)}>
+                                            ✏️ Editar
+                                        </button>
+                                        <button className="btn-danger" onClick={() => handleDelete(enr.id, enr.students?.name)}>
+                                            🗑️ Excluir
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -343,13 +356,14 @@ export default function Enrollments() {
             {/* Modal */}
             {showModal && (
                 <div className="enrollments-modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="enrollments-modal" onClick={e => e.stopPropagation()}>
-                        <div className="enrollments-modal-header">
-                            <h3>{form.id ? '✏️ Editar Vínculo' : '➕ Novo Vínculo'}</h3>
-                            <button className="enrollments-modal-close" onClick={() => setShowModal(false)}>✕</button>
-                        </div>
-                        <div className="enrollments-modal-body">
-                            <div className="enrollments-form-grid">
+                    <div className="enrollments-modal bezel-shell" onClick={e => e.stopPropagation()}>
+                        <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
+                            <div className="enrollments-modal-header">
+                                <h3>{form.id ? '✏️ Editar Vínculo' : '➕ Novo Vínculo'}</h3>
+                                <button className="enrollments-modal-close" onClick={() => setShowModal(false)}>✕</button>
+                            </div>
+                            <div className="enrollments-modal-body">
+                                <div className="enrollments-form-grid">
                                 <div className="form-group form-group-full">
                                     <label>Aluno *</label>
                                     <select
@@ -522,6 +536,7 @@ export default function Enrollments() {
                                 >
                                     {saving ? 'Salvando...' : form.id ? 'Salvar Alterações' : 'Criar Vínculo'}
                                 </button>
+                                </div>
                             </div>
                         </div>
                     </div>

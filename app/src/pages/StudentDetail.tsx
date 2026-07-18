@@ -142,25 +142,35 @@ export default function StudentDetail() {
 
             {/* ── Stats Cards ───────────────────────────────── */}
             <div className="student-stats-row">
-                <div className="student-stat-card">
-                    <span className="stat-number">{enrollments.filter(e => e.status === 'active').length}</span>
-                    <span className="stat-label">Matrículas Ativas</span>
+                <div className="student-stat-card bezel-shell">
+                    <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', padding: 'var(--space-3)' }}>
+                        <span className="stat-number">{enrollments.filter(e => e.status === 'active').length}</span>
+                        <span className="stat-label">Matrículas Ativas</span>
+                    </div>
                 </div>
-                <div className="student-stat-card">
-                    <span className="stat-number">{lessons.length}</span>
-                    <span className="stat-label">Total de Aulas</span>
+                <div className="student-stat-card bezel-shell">
+                    <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', padding: 'var(--space-3)' }}>
+                        <span className="stat-number">{lessons.length}</span>
+                        <span className="stat-label">Total de Aulas</span>
+                    </div>
                 </div>
-                <div className="student-stat-card">
-                    <span className="stat-number">{attendanceRate}%</span>
-                    <span className="stat-label">Presença</span>
+                <div className="student-stat-card bezel-shell">
+                    <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', padding: 'var(--space-3)' }}>
+                        <span className="stat-number">{attendanceRate}%</span>
+                        <span className="stat-label">Presença</span>
+                    </div>
                 </div>
-                <div className="student-stat-card highlight-green">
-                    <span className="stat-number">{formatBRL(totalPaid)}</span>
-                    <span className="stat-label">Total Pago</span>
+                <div className="student-stat-card highlight-green bezel-shell">
+                    <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', padding: 'var(--space-3)' }}>
+                        <span className="stat-number">{formatBRL(totalPaid)}</span>
+                        <span className="stat-label">Total Pago</span>
+                    </div>
                 </div>
-                <div className="student-stat-card highlight-red">
-                    <span className="stat-number">{formatBRL(totalPending)}</span>
-                    <span className="stat-label">Pendente</span>
+                <div className="student-stat-card highlight-red bezel-shell">
+                    <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', padding: 'var(--space-3)' }}>
+                        <span className="stat-number">{formatBRL(totalPending)}</span>
+                        <span className="stat-label">Pendente</span>
+                    </div>
                 </div>
             </div>
 
@@ -170,18 +180,20 @@ export default function StudentDetail() {
                     <h3 className="section-title">📚 Matrículas ({enrollments.length})</h3>
                     <div className="enrollments-mini-list">
                         {enrollments.map(e => (
-                            <div key={e.id} className="enrollment-mini-card">
-                                <div className="enr-mini-top">
-                                    <strong>{e.instrument || '—'}</strong>
-                                    <span className={`status-pill ${e.status === 'active' ? 'status-approved' : 'status-cancelled'}`}
-                                        style={{ fontSize: 9 }}>
-                                        {e.status === 'active' ? '✅ Ativo' : '❌ Inativo'}
-                                    </span>
-                                </div>
-                                <div className="enr-mini-details">
-                                    <span>👨‍🏫 {e.teachers?.name || '—'}</span>
-                                    <span>💰 {formatBRL(e.monthly_fee)}</span>
-                                    {e.day_of_week && <span>📅 {e.day_of_week} {e.class_time || ''}</span>}
+                            <div key={e.id} className="enrollment-mini-card bezel-shell">
+                                <div className="bezel-core" style={{ padding: 'var(--space-3)' }}>
+                                    <div className="enr-mini-top">
+                                        <strong>{e.instrument || '—'}</strong>
+                                        <span className={`status-pill ${e.status === 'active' ? 'status-approved' : 'status-cancelled'}`}
+                                            style={{ fontSize: 9 }}>
+                                            {e.status === 'active' ? '✅ Ativo' : '❌ Inativo'}
+                                        </span>
+                                    </div>
+                                    <div className="enr-mini-details">
+                                        <span>👨‍🏫 {e.teachers?.name || '—'}</span>
+                                        <span>💰 {formatBRL(e.monthly_fee)}</span>
+                                        {e.day_of_week && <span>📅 {e.day_of_week} {e.class_time || ''}</span>}
+                                    </div>
                                 </div>
                             </div>
                         ))}

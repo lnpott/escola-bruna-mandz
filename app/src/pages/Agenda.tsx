@@ -541,7 +541,8 @@ export default function Agenda() {
             {loading ? (
                 <div className="loading">Carregando agenda...</div>
             ) : (
-                <div className={`agenda-calendar ${viewMode === 'week' ? 'agenda-week' : ''}`}>
+                <div className="agenda-calendar-wrapper bezel-shell">
+                    <div className={`agenda-calendar bezel-core ${viewMode === 'week' ? 'agenda-week' : ''}`} style={{ padding: '2px' }}>
                     {/* Day name headers */}
                     {DAY_NAMES.map((name, i) => (
                         <div key={i} className={`agenda-cal-header ${i === 0 || i === 6 ? 'weekend' : ''}`}>
@@ -585,13 +586,15 @@ export default function Agenda() {
                             </div>
                         );
                     })}
+                    </div>
                 </div>
             )}
 
             {/* ── Day Detail Modal ─────────────────────────────── */}
             {selectedDay && (
                 <div className="agenda-modal-overlay" onClick={() => setSelectedDay(null)}>
-                    <div className="agenda-modal agenda-day-modal" onClick={e => e.stopPropagation()}>
+                    <div className="agenda-modal agenda-day-modal bezel-shell" onClick={e => e.stopPropagation()}>
+                        <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                         <div className="agenda-modal-header">
                             <h3>{formatDayName(selectedDay)}</h3>
                             <button className="agenda-modal-close" onClick={() => setSelectedDay(null)}>✕</button>
@@ -663,6 +666,7 @@ export default function Agenda() {
                                 ➕ Adicionar aula neste dia
                             </button>
                         </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -670,7 +674,8 @@ export default function Agenda() {
             {/* ── Create / Edit Lesson Modal ───────────────────── */}
             {showCreateModal && (
                 <div className="agenda-modal-overlay" onClick={() => setShowCreateModal(false)}>
-                    <div className="agenda-modal agenda-form-modal" onClick={e => e.stopPropagation()}>
+                    <div className="agenda-modal agenda-form-modal bezel-shell" onClick={e => e.stopPropagation()}>
+                        <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                         <div className="agenda-modal-header">
                             <h3>{form.id ? '✏️ Editar Aula' : '➕ Nova Aula'}</h3>
                             <button className="agenda-modal-close" onClick={() => setShowCreateModal(false)}>✕</button>
@@ -752,13 +757,14 @@ export default function Agenda() {
                             </div>
                             <div className="agenda-form-actions">
                                 <button className="btn-cancel" onClick={() => setShowCreateModal(false)}>Cancelar</button>
-                                <button className="btn-save" onClick={handleSaveLesson}>
+                                <button className="btn-save" onClick={handleSaveLesson} disabled={loading}>
                                     {form.id ? 'Salvar Alterações' : 'Criar Aula'}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
             )}
         </div>
     );

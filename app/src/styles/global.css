@@ -43,6 +43,7 @@
     --shadow-sm: 0 1px 2px rgba(var(--bg-base-rgb), 0.4);
     --shadow-md: 0 4px 12px rgba(var(--bg-base-rgb), 0.5);
     --shadow-lg: 0 12px 32px rgba(var(--bg-base-rgb), 0.6);
+    --shadow-xl: 0 24px 48px rgba(var(--bg-base-rgb), 0.8);
     --shadow-glow-red: 0 0 20px rgba(220, 38, 38, 0.15);
     --shadow-glow-green: 0 0 20px rgba(34, 197, 94, 0.15);
     --shadow-inset-core: inset 0 1px 1px rgba(255, 255, 255, 0.15);
@@ -231,7 +232,8 @@ h1 {
     border-radius: var(--radius-bezel-inner);
     box-shadow: var(--shadow-inset-core);
     padding: var(--space-6);
-    height: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 /* ── Module Grid ─────────────────────────────────────────────── */
@@ -745,7 +747,7 @@ h1 {
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
-    transition: color var(--duration-fluid) var(--ease-fluid),
+    transition: color var(--duration-fast) var(--ease-out),
                 background var(--duration-fast) var(--ease-out);
     position: relative;
 }
@@ -930,13 +932,8 @@ h1 {
    ═══════════════════════════════════════════════════════════════════ */
 
 .confirm-modal {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
     max-width: 420px;
     width: 100%;
-    box-shadow: var(--shadow-lg);
     animation: modalContentIn var(--duration-normal) var(--ease-out);
 }
 
