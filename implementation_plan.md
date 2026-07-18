@@ -1,126 +1,192 @@
-# Implementation Plan
+# Plano de Melhoria — Redesign High-End Fase 2
 
-[Overview]
-Instalar e registrar o MCP server de Git no Blackbox (com o nome solicitado) e, em seguida, demonstrar uma tool do servidor e realizar um diagnóstico completo do Supabase/Backend para garantir que a “implantação” (operação do painel e consistência de dados) permanece correta.
+> Análise completa do estado atual do painel `/app` e roadmap priorizado de melhorias.
 
-O repositório já possui MCP configurado em nível de usuário para Supabase e também já possui configuração para o MCP server Git. A tarefa exige explicitamente usar como server name `github.com/modelcontextprotocol/servers/tree/main/src/git` e registrar evidências da demonstração do tool `git_status`.
+---
 
-Além disso, “reparo e implantação completa” exige que a demonstração do Git MCP não seja o único foco: o projeto depende de Vercel Functions com `SUPABASE_SERVICE_ROLE_KEY` (backend bypassa RLS) e a integridade do banco deve ser validada contra:
-- `supabase/schema.sql` (Loja: `orders`, `products`)
-- `supabase/financial-schema.sql` (Financeiro/Pedagógico: `students`, `teachers`, `enrollments`, `tuitions`, etc.)
-- `supabase/migrations/*.sql` (aplicações reais)
-- handlers do backend `api/admin-financial.js`, `api/admin-orders.js`, `api/admin-products.js`
+## Estado Atual: O que foi feito vs. o que resta
 
-Este plano elimina suposições ao alinhar as consultas do backend com os schemas/migrations, e ao registrar evidências (tool calls e respostas) para comprovar o funcionamento.
+### ✅ Concluído (Etapa 92)
+| Componente | Status |
+|---|---|
+| `global.css` — tokens OLED, bezel vars, ease-fluid, botões | ✅ |
+| TopBar → Fluid Island pill | ✅ |
+| `fadeInUp` com blur cinematográfico | ✅ |
+| Dashboard — Bento layout 12 colunas + Double-Bezel | ✅ |
+| Students — Tabela + modal com Double-Bezel + Z-axis cascade | ✅ |
+| Teachers — Tabela + modal com Double-Bezel + Z-axis cascade | ✅ |
 
-[Types]
-Single sentence describing the type system changes.
-Não haverá mudanças em tipos (TS/JS) — apenas ajustes de configuração JSON do MCP e validações observáveis (tool outputs + respostas HTTP).
+### ❌ Pendente / Problemas detectados
+Analisando todos os arquivos CSS e TSX, foram encontrados os seguintes problemas:
 
-Detailed type definitions, interfaces, enums, or data structures with complete specifications. Include field names, types, validation rules, and relationships.
-N/A (sem alterações de tipo nesta etapa).
+---
 
-[Files]
-Single sentence describing file modifications.
-Modificar a configuração do Blackbox MCP (arquivo JSON do usuário) para adicionar o server Git e criar um arquivo de evidências no repositório para registrar a demonstração do tool `git_status`, além de atualizar `implementation_plan.md` para refletir a arquitetura e as regras reais documentadas em `docs/`.
+## Problemas Detectados
 
-Detailed breakdown:
-- New files to be created (with full paths and purpose)
-- `MCP_GIT_VERIFICATION.md`
-  - Registra comando/inputs usados no MCP tool `git_status` e o resumo do output.
-  - Registra também como o backend foi diagnosticado (endpoints e recursos consultados).
-- Existing files to be modified (with specific changes)
-  - `c:/Users/lnpot/AppData/Roaming/Code/User/globalStorage/blackboxapp.blackboxagent/settings/blackbox_mcp_settings.json`
-    - Garantir que `mcpServers` contenha o server name `github.com/modelcontextprotocol/servers/tree/main/src/git` com execução compatível com Windows (preferência: `python -m mcp_server_git`).
-    - Manter o server `supabase` existente intacto.
-  - `implementation_plan.md`
-    - Atualizar o texto para refletir os documentos reais de arquitetura/regras (especialmente `docs/ARCHITECTURE.MD`, `docs/modules.md`, `docs/BUSINESS_RULES.md`, `docs/database.md`, `docs/CONFIGURACAO_ENV.md`, `docs/ROADMAP.MD`, `docs/proxima-etapa-spec.md`).
-- Files to be deleted or moved
-  - Nenhum.
-- Configuration file updates
-  - `blackbox_mcp_settings.json` apenas.
+### 🔴 Crítico — Inconsistências de Sistema de Design
 
-[Functions]
-Single sentence describing function modifications.
-Nenhuma função do projeto será modificada; serão feitas apenas chamadas de tool do MCP (Git) e diagnósticos via leitura de schema/migrations e consistência de código.
+**1. `login.css` — totalmente fora do sistema de design**
+- Usa `#09090b`, `#18181b`, `#27272a`, `#3f3f46` hardcoded (Zinc palette do Tailwind — errado)
+- Não usa nenhuma `var()` do design system
+- Background `#09090b` ao invés de `var(--bg-base)` = OLED black
+- Botão `.login-btn` com `#dc2626` hardcoded, sem transições premium
+- A página de login é a **primeira impressão** do painel — está horrível
 
-Detailed breakdown:
-- New functions
-  - N/A.
-- Modified functions (exact name, current file path, required changes)
-  - N/A.
-- Removed functions (name, file path, reason, migration strategy)
-  - N/A.
+**2. `teachers.css` — cores hardcoded sobreviventes**
+- `background: #18181b` (5 ocorrências) nos day-checkboxes
+- `background: #09090b` no input
+- `background: #1a0a0a` no checked state
+- Mobile responsive usa `background: #18181b` nos cards
 
-[Classes]
-Single sentence describing class modifications.
-Nenhuma.
+**3. `confirm-modal` em `global.css` — sem Double-Bezel**
+- `.confirm-modal` ainda tem `background: var(--bg-surface)` + `border` próprios
+- Deveria usar `bezel-shell + bezel-core` como todos os outros modais
 
-Detailed breakdown:
-- New classes
-  - N/A.
-- Modified classes
-  - N/A.
-- Removed classes
-  - N/A.
+**4. `admin-card` ainda usa estilo antigo**
+- `.admin-card` em `admin.css` usa `background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated))` + `border: 1px solid var(--border-default)` diretamente
+- Deveria migrar para Double-Bezel
 
-[Dependencies]
-Single sentence describing dependency modifications.
-Garantir disponibilidade do MCP Git no runtime do Blackbox (via `mcp-server-git` instalado em Python ou executável equivalente).
+**5. `fin-header` em `financial.css`**
+- Tem `background: var(--bg-surface); border: 1px solid var(--border-default)` mas sem bezel
 
-Details of new packages, version changes, and integration requirements.
-- `mcp-server-git` instalado via pip já foi tentado no ambiente Python do usuário.
-- A integração no Blackbox deve apontar para o método de execução que funcione no Windows:
-  - Preferência: `python -m mcp_server_git`
-  - Alternativa: apontar para o executável `mcp-server-git.exe` localizado em `C:\Users\lnpot\AppData\Roaming\Python\Python314\Scripts\...`
-- Não adicionar dependências em `package.json`.
+**6. `--shadow-xl` faltando em `global.css`**
+- O `students.css` e `teachers.css` referenciam `var(--shadow-xl)` no hover das linhas, mas esse token **não existe** no `:root` — vai falhar silenciosamente
 
-[Testing]
-Single sentence describing testing approach.
-Executar um conjunto mínimo de validações (“critical-path”) para comprovar o Git MCP e a consistência operacional do Supabase/Backend para os endpoints principais do painel admin.
+**7. `--duration-fluid` no `.topbar-link` transition incorreto**
+- `.topbar-link` usa `transition: color var(--duration-fluid) var(--ease-fluid)` = 700ms para mudança de cor ao hover
+- É muito lento — o hover de cor deveria ser `duration-fast`
 
-Test file requirements, existing test modifications, and validation strategies.
-Sem novos testes automatizados.
+---
 
-Critérios de passagem:
-1) Git MCP:
-   - Tool do Git server `git_status` executa com sucesso e retorna status do working tree para `repo_path = c:/Users/lnpot/OneDrive/Documentos/site-escola`.
-2) Supabase/Backend:
-   - Requests ao backend admin (via chamadas que o Blackbox conseguir executar, ou via inspeção de código e validação por parâmetros) retornam sucesso para:
-     - `api/admin-financial.js` com `resource=dashboard`
-     - `api/admin-financial.js` com `resource=summary`
-     - `api/admin-products.js` via GET (lista produtos)
-     - `api/admin-orders.js` via GET (lista pedidos)
-   - Coerência verificada entre:
-     - `api/admin-financial.js` resources e tabelas existentes em `supabase/financial-schema.sql`
-     - `api/admin-orders.js`/`api/admin-products.js` e tabelas em `supabase/schema.sql`
-   - Observação importante para diagnóstico:
-     - Documentação real afirma que o painel usa service role e “bypassa RLS”; portanto, mesmo com RLS/policies inconsistentes, a operação via backend deve funcionar. O plano registra divergências encontradas para possíveis hardening futuros.
+### 🟡 Importante — Páginas sem Double-Bezel
 
-[Implementation Order]
-Single sentence describing the implementation sequence.
-1) Finalizar/configurar o MCP Git no Blackbox; 2) demonstrar com `git_status`; 3) validar endpoints do painel admin por diagnóstico de consistência com schemas/migrations; 4) registrar evidências no arquivo de verificação.
+**8. `Enrollments.tsx` — tabela e modal sem bezel**
+- `enrollments-table-wrapper` sem `bezel-shell`
+- `enrollments-modal` sem `bezel-shell`
 
-Numbered steps showing the logical order of changes to minimize conflicts and ensure successful integration.
-1. Confirmar execução do MCP Git no ambiente:
-   - Confirmar que `python -m mcp_server_git` funciona (ou identificar o `mcp-server-git.exe` instalado no Scripts do usuário).
-   - Garantir que o Blackbox consegue iniciar o server usando o formato esperado em `blackbox_mcp_settings.json`.
-2. Atualizar `c:/Users/lnpot/AppData/Roaming/Code/User/globalStorage/blackboxapp.blackboxagent/settings/blackbox_mcp_settings.json`:
-   - Inserir `mcpServers.git` com o server name requerido: `github.com/modelcontextprotocol/servers/tree/main/src/git`.
-   - Manter `mcpServers.supabase` existente sem alterações.
-3. Demonstrar capacidades com MCP:
-   - Chamar tool `git_status` com `repo_path: "c:/Users/lnpot/OneDrive/Documentos/site-escola"`.
-   - Salvar resumo do output no `MCP_GIT_VERIFICATION.md`.
-4. Diagnóstico de consistência Supabase/Backend:
-   - Checar que `api/admin-financial.js` usa recursos que existem em `supabase/financial-schema.sql`:
-     - `students`, `teachers`, `enrollments`, `tuitions`, `payments`, `expenses`, `investments`, `teacher_payments`, `lessons`, `attendance`, `summary`, `dashboard`
-   - Checar que Loja usa tabelas em `supabase/schema.sql`:
-     - `products`, `orders`
-   - Conferir migrations esperadas existem no diretório `supabase/migrations/`:
-     - 043, 045, 046, 047, 050
-   - Registrar divergências entre documentos “RLS sem policies” vs o que está no schema:
-     - A revisão atual de docs e schemas reais sugere que o comportamento real é “backend bypass RLS” via service role; ainda assim, o plano inclui registrar o que existe de policies no schema para futuras correções/hardening.
-5. Conclusão:
-   - A entrega será considerada completa quando:
-     - Git MCP estiver configurado e `git_status` retornar output.
-     - O diagnóstico de consistência do Supabase/Backend não revelar consultas a tabelas inexistentes.
+**9. `Agenda.tsx` — cards de aula sem bezel**
+- Cards de eventos sem a arquitetura Double-Bezel
+- Células do calendário com background hardcoded
+
+**10. `Financial.tsx` — seção de KPIs sem bento layout**
+- KPIs financeiros (`fin-kpi-grid`) usando grid simples
+- Cards sem Double-Bezel
+
+**11. `Admin.tsx` — overview cards sem Double-Bezel**
+- `admin-card` com background diretamente em vez de bezel-shell
+
+**12. `StudentDetail.tsx` — detail cards sem bezel**
+- Cards de stat (`stat-card`?) sem bezel
+- Usa `students.css` mas sem nenhuma adição própria do bezel
+
+---
+
+### 🟢 Melhoria — Design System Incompleto
+
+**13. `--shadow-xl` não definido**
+- Precisa ser adicionado ao `:root`
+
+**14. Falta `--shadow-glow-white` para botão primário**
+- `.btn-primary` (branco) não tem glow no hover
+- Botão premium deveria ter `box-shadow: 0 0 20px rgba(255,255,255,0.12)` no hover
+
+**15. Login page sem animação cinematográfica**
+- `loginFadeIn` usa `translateY(12px)` simples, sem `filter: blur()`
+- Não carrega `Plus Jakarta Sans` (usa import da Google Fonts diferente do resto do app)
+
+**16. TopBar — active indicator inadequado para pill**
+- `.topbar-link.active::after` cria underline (`height: 2px; bottom: -1px`) mas num pill redondo isso não faz sentido visual
+- Deveria ser um `background` highlight mais intenso ou um dot embaixo do ícone
+
+**17. Toasts — sem glassmorphism**
+- `.toast-success` usa `background: var(--color-success)` (sólido verde)
+- Premium seria `background: rgba(verde, 0.15); backdrop-filter: blur(12px); border: 1px solid verde`
+
+**18. `bezel-core` com `height: 100%` quebra em contextos flex**
+- Em alguns cards, o `height: 100%` do `.bezel-core` pode causar overflow
+- Melhor usar `min-height: 0` + `flex: 1`
+
+---
+
+## Plano de Execução Priorizado
+
+### Sprint 1 — Correções Críticas (bugs que vão "quebrar" visualmente)
+
+| # | Ação | Arquivo | Impacto |
+|---|---|---|---|
+| 1 | Adicionar `--shadow-xl` ao `:root` | `global.css` | Corrige hover das tabelas |
+| 2 | Corrigir `topbar-link` transition de cor (fluid→fast) | `global.css` | UX do hover da nav |
+| 3 | Corrigir `confirm-modal` para Double-Bezel | `global.css` + `App.tsx` | Consistência visual |
+| 4 | Corrigir `bezel-core height: 100%` → `min-height: 0` | `global.css` | Estabilidade de layout |
+
+### Sprint 2 — Login Page (primeira impressão)
+
+| # | Ação | Arquivo | Impacto |
+|---|---|---|---|
+| 5 | Reescrever `login.css` completo com design tokens | `login.css` | Eliminar todos os `#hex` |
+| 6 | Aplicar Double-Bezel no `.login-card` | `login.css` + `Login.tsx` | Look premium |
+| 7 | Adicionar `filter: blur()` na animação de entrada | `login.css` | Cinematográfico |
+| 8 | Botão login → usar `.btn-primary` global ou reestilizar | `login.css` | Consistência |
+
+### Sprint 3 — Limpeza de cores hardcoded
+
+| # | Ação | Arquivo | Impacto |
+|---|---|---|---|
+| 9 | Substituir todos os `#18181b`/`#09090b` em `teachers.css` | `teachers.css` | Consistência tokens |
+| 10 | Verificar e limpar `admin.css`, `financial.css` | ambos | Token purity |
+
+### Sprint 4 — Double-Bezel nas páginas restantes
+
+| # | Ação | Arquivo | Impacto |
+|---|---|---|---|
+| 11 | Enrollments — tabela + modal | `Enrollments.tsx` + `enrollments.css` | Consistência |
+| 12 | Admin — overview cards | `Admin.tsx` + `admin.css` | Consistência |
+| 13 | Financial — header e KPI cards | `Financial.tsx` + `financial.css` | Consistência |
+| 14 | StudentDetail — info cards | `StudentDetail.tsx` | Consistência |
+| 15 | Agenda — event cards e células | `Agenda.tsx` + `agenda.css` | Consistência |
+
+### Sprint 5 — Polimento Final
+
+| # | Ação | Arquivo | Impacto |
+|---|---|---|---|
+| 16 | Toasts com glassmorphism | `global.css` | Visual premium |
+| 17 | Btn-primary: adicionar glow branco no hover | `global.css` | Physical feel |
+| 18 | TopBar active indicator repensado para pill | `global.css` | Coerência visual |
+| 19 | Scroll Observer — entrada staggered por seção | `App.tsx` | Sensação viva |
+
+### Sprint 6 — Verificação e Registro
+
+| # | Ação |
+|---|---|
+| 20 | `npm run build` — verificar 0 erros |
+| 21 | `npm test` — todos os testes passando |
+| 22 | Registrar Etapa 93 em `novo_registro.md` |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Q1 — Agenda:** A Agenda usa um calendário visual complexo (células de dia, semana). Aplicar Double-Bezel nas células individuais pode deixá-la pesada demais visualmente. Prefere:
+> - (a) Bezel apenas no container externo do calendário, mantendo células simples
+> - (b) Bezel em cada célula de evento (mais rico, mais pesado)
+
+> [!IMPORTANT]
+> **Q2 — Escopo do botão Login:** O `.login-btn` pode ser substituído pelo `.btn-primary` global (branco, sem borda). Isso torna o login screen um botão branco num fundo escuro. Preferível visualmente ou quer manter o botão vermelho no login?
+
+> [!NOTE]
+> **Q3 — Toasts:** O glassmorphism nos toasts depende de suporte ao `backdrop-filter`. Em alguns sistemas mais antigos pode não funcionar. Quer um fallback sólido ou aceita o risco?
+
+---
+
+## Estimativa de Esforço
+
+| Sprint | Descrição | Arquivos | Esforço estimado |
+|---|---|---|---|
+| 1 | Correções críticas | `global.css`, `App.tsx` | ~20min |
+| 2 | Login page | `login.css`, `Login.tsx` | ~30min |
+| 3 | Token cleanup | `teachers.css`, `admin.css` | ~15min |
+| 4 | Double-Bezel restantes | 5 TSX + 5 CSS | ~60min |
+| 5 | Polimento | `global.css`, `App.tsx` | ~30min |
+| 6 | Verificação + doc | `novo_registro.md` | ~15min |
+| **Total** | | **~14 arquivos** | **~2h30min** |
