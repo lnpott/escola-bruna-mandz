@@ -57,6 +57,7 @@
 | [89](#etapa-89--limpeza-do-banco-supabase-para-uso-real) | 17/07 | Limpeza do banco Supabase (dados mínimos para produção) | 🛠️ Fix |
 | [90](#etapa-90--auditoria-de-segurança-completa) | 17/07 | Auditoria de segurança: credenciais, headers, XSS, CSRF, err.message | 🔒 Audit |
 | [91](#etapa-91--correção-de-testes-http-mock-server) | 18/07 | Correção de Testes HTTP (Mock Server) | 🧪 Test |
+| [92](#etapa-92--redesign-high-end-painel-administrativo) | 18/07 | Redesign High-End do painel administrativo (/app) | 🎨 Design |
 
 ---
 
@@ -1765,3 +1766,81 @@ O script `backup-api.js` original só fazia backup de `products` e `orders`:
 ---
 
 © 2026 Escola de Música Bruna Mandz — [novo_registro.md](novo_registro.md) é o diário oficial de desenvolvimento.
+
+---
+
+## Etapa 92 — Redesign High-End Painel Administrativo
+
+**Data:** 18/07/2026  
+**Tipo:** 🎨 Design  
+**Status:** ✅ Concluído (build passou: 75 módulos, 0 erros)
+
+### Contexto
+
+O usuário solicitou um redesign completo do painel administrativo React SPA (`/app`), aplicando padrões de design de alto nível (Awwwards-tier) usando a skill `high-end-visual-design`. O objetivo era transformar o painel de uma aparência genérica para um nível premium.
+
+### O que foi implementado
+
+#### Fase 1 — Sistema de Design Global (`app/src/styles/global.css`)
+
+- **OLED Black base:** `--bg-base: #000000` puro, eliminando o `#09090b` genérico
+- **Tokens double-bezel:** Variáveis `--radius-bezel-outer` e `--radius-bezel-inner` para arquitetura de cards aninhados
+- **Curvas de animação cinematográficas:** `--ease-fluid: cubic-bezier(0.32, 0.72, 0, 1)` e `--duration-fluid: 700ms`
+- **Botões Button-in-Button:** `.btn-primary`, `.btn-secondary` e `.btn-danger` refatorados com `::before` absolutamente posicionado para efeito de destaque interno e `transform: scale()` no hover/active
+- **Classes utilitárias `.bezel-shell` / `.bezel-core`:** Implementam o padrão Double-Bezel — shell com `background: rgba(255,255,255,0.02)` + `border`, core com fundo preto puro e `box-shadow: inset`
+
+#### Fase 2 — Navegação (Fluid Island)
+
+- **TopBar convertida para pill flutuante:** `position: fixed; top: var(--space-6); left: 50%; transform: translateX(-50%)` com `border-radius: var(--radius-full)`, `backdrop-filter: blur(24px)` e `box-shadow: var(--shadow-lg)`
+- **Links arredondados:** `border-radius: var(--radius-full)` em `.topbar-link`
+- **Padding do conteúdo ajustado:** `.app-main { padding-top: calc(56px + var(--space-12)) }` para compensar o pill
+
+#### Fase 3 — Animações de Entrada
+
+- **`fadeInUp` renovado:** Agora usa `filter: blur(8px) → blur(0)` + `translateY(32px → 0)` com `duration-fluid` e `ease-fluid both`
+- **Eficiência de GPU:** Todas as animações tocam apenas `transform`, `opacity` e `filter` — nunca `layout properties`
+
+#### Fase 3 — Double-Bezel nos Cards
+
+Aplicado em todas as superfícies de card do painel:
+
+**Dashboard (`Dashboard.tsx` + `dashboard.css`):**
+- Grid KPI migrado para **Bento Layout** de 12 colunas (`grid-template-columns: repeat(12, 1fr)`)
+- Breakpoints: cards 1+2 → span 6, cards 3-5 → span 4
+- Todos os `dash-card` e `dash-kpi-card` agora usam `bezel-shell + bezel-core`
+- `dash-card` sem background próprio (responsabilidade do `bezel-core`)
+
+**Students (`Students.tsx` + `students.css`):**
+- Tabela envolita em `bezel-shell` → `bezel-core` (com `padding: 0` para não quebrar layout)
+- Modal do wizard envolto em `bezel-shell` → `bezel-core`
+- Linhas da tabela: efeito **Z-Axis Cascade** — `transform: scale(1.005) translateZ(0)` + `box-shadow: var(--shadow-xl)` no hover
+- Removido `border/background` hardcoded do `.students-table-wrapper`
+
+**Teachers (`Teachers.tsx` + `teachers.css`):**
+- Mesma arquitetura bezel aplicada na tabela e no modal
+- Z-Axis cascade nas linhas da tabela
+- Limpeza de código hardcoded (cores `#hex` → `var(--*)` nas sombras)
+
+### Arquivos modificados
+
+| Arquivo | Tipo de mudança |
+|---------|----------------|
+| `app/src/styles/global.css` | Tokens, botões, bezel, topbar pill, animações |
+| `app/src/styles/dashboard.css` | Bento grid, remoção de backgrounds, Z-axis |
+| `app/src/styles/students.css` | Z-axis table, remoção de wrapper styles |
+| `app/src/styles/teachers.css` | Z-axis table rows |
+| `app/src/pages/Dashboard.tsx` | bezel-shell/core em todos os cards |
+| `app/src/pages/Students.tsx` | bezel-shell/core em tabela + modal |
+| `app/src/pages/Teachers.tsx` | bezel-shell/core em tabela + modal |
+
+### Verificação
+
+```
+npm run build → ✅ 75 modules transformed, 0 errors, 6.15s
+```
+
+### Próximos passos (Fases 4-5)
+
+- Vínculos/Mensalidades + Agenda + Financeiro (Double-Bezel)
+- Observer de scroll para staggered entry animations
+- `npm test` completo + walkthrough final

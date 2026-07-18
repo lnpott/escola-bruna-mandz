@@ -213,8 +213,9 @@ export default function Teachers() {
                         : 'Nenhum professor cadastrado. Clique em "Novo Professor" para começar.'}
                 </div>
             ) : (
-                <div className="teachers-table-wrapper">
-                    <table className="teachers-table">
+                <div className="teachers-table-wrapper bezel-shell">
+                    <div className="bezel-core" style={{ padding: 0 }}>
+                        <table className="teachers-table">
                         <thead>
                             <tr>
                                 <th>Nome</th>
@@ -244,14 +245,16 @@ export default function Teachers() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 </div>
             )}
 
             {/* ── Modal ──────────────────────────────────── */}
             {showModal && (
                 <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-content bezel-shell" onClick={(e) => e.stopPropagation()}>
+                        <div className="bezel-core">
                         <h2>{editingId ? 'Editar Professor' : 'Novo Professor'}</h2>
                         <form onSubmit={handleSave}>
                             <div className="form-grid">
@@ -338,6 +341,7 @@ export default function Teachers() {
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
                 </div>
             )}

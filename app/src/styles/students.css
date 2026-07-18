@@ -75,9 +75,6 @@
 /* ── Table ─────────────────────────────────────────────────── */
 .students-table-wrapper {
     overflow-x: auto;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-default);
-    background: var(--bg-surface);
 }
 
 .students-table {
@@ -111,11 +108,19 @@
 }
 
 .students-table tbody tr {
-    transition: background var(--duration-fast) var(--ease-out);
+    transition: transform var(--duration-fluid) var(--ease-fluid),
+                background var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fluid) var(--ease-fluid);
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
 }
 
 .students-table tbody tr:hover {
-    background: var(--bg-hover);
+    transform: scale(1.005) translateZ(0);
+    z-index: 2;
+    box-shadow: var(--shadow-xl);
+    background: var(--bg-elevated);
 }
 
 .students-table tbody tr:last-child td {
@@ -168,15 +173,10 @@
 }
 
 .modal-content {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
     max-width: 560px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
     animation: scaleIn var(--duration-normal) var(--ease-out);
 }
 

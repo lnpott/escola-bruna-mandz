@@ -66,6 +66,21 @@
     vertical-align: middle;
 }
 
+.teachers-table tbody tr {
+    transition: transform var(--duration-fluid) var(--ease-fluid),
+                background var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fluid) var(--ease-fluid);
+    position: relative;
+    z-index: 1;
+}
+
+.teachers-table tbody tr:hover {
+    transform: scale(1.005) translateZ(0);
+    z-index: 2;
+    box-shadow: var(--shadow-xl);
+    background: var(--bg-elevated);
+}
+
 .teachers-table th {
     color: #a1a1aa;
     text-transform: uppercase;

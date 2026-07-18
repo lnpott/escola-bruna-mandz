@@ -421,10 +421,11 @@ export default function Students() {
                         : 'Nenhum aluno cadastrado. Clique em "Novo Aluno" para começar.'}
                 </div>
             ) : (
-                <div className="students-table-wrapper">
-                    <table className="students-table">
-                        <thead>
-                            <tr>
+                <div className="students-table-wrapper bezel-shell">
+                    <div className="bezel-core" style={{ padding: 0 }}>
+                        <table className="students-table">
+                            <thead>
+                                <tr>
                                 <th>Nome</th>
                                 <th>CPF</th>
                                 <th>E-mail</th>
@@ -485,14 +486,16 @@ export default function Students() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 </div>
             )}
 
             {/* ── Modal ──────────────────────────────────── */}
             {showModal && (
                 <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content wizard-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-content bezel-shell wizard-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="bezel-core">
                         {/* Wizard Step Indicator (só na criação) */}
                         {!editingId && (
                             <div className="wizard-steps">
@@ -922,6 +925,7 @@ export default function Students() {
                                 </>
                             )}
                         </form>
+                        </div>
                     </div>
                 </div>
             )}

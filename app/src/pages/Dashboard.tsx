@@ -38,15 +38,19 @@ function KpiCard({ icon, label, value, color = 'neutral', subtitle, to }: {
 
     if (to) {
         return (
-            <Link to={to} className="dash-kpi-card dash-kpi-link">
-                {card}
+            <Link to={to} className="dash-kpi-card bezel-shell dash-kpi-link">
+                <div className="bezel-core">
+                    {card}
+                </div>
             </Link>
         );
     }
 
     return (
-        <div className="dash-kpi-card">
-            {card}
+        <div className="dash-kpi-card bezel-shell">
+            <div className="bezel-core">
+                {card}
+            </div>
         </div>
     );
 }
@@ -231,95 +235,103 @@ export default function Dashboard() {
             {/* ── Split Row ──────────────────────────── */}
             <div className="dash-split">
                 {/* Today's Classes */}
-                <div className="dash-card">
-                    <Link to="/agenda" className="dash-card-header dash-card-header-link">
-                        <h3>📅 Aulas de Hoje</h3>
-                        <span className="dash-badge">{school.today_classes_count}</span>
-                    </Link>
-                    <div className="dash-card-body">
-                        {school.today_classes.length === 0 ? (
-                            <div className="dash-empty">Nenhuma aula hoje.</div>
-                        ) : (
-                            school.today_classes.map((lesson) => (
-                                <LessonRow key={lesson.id} lesson={lesson} />
-                            ))
-                        )}
+                <div className="dash-card bezel-shell">
+                    <div className="bezel-core">
+                        <Link to="/agenda" className="dash-card-header dash-card-header-link">
+                            <h3>📅 Aulas de Hoje</h3>
+                            <span className="dash-badge">{school.today_classes_count}</span>
+                        </Link>
+                        <div className="dash-card-body">
+                            {school.today_classes.length === 0 ? (
+                                <div className="dash-empty">Nenhuma aula hoje.</div>
+                            ) : (
+                                school.today_classes.map((lesson) => (
+                                    <LessonRow key={lesson.id} lesson={lesson} />
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Alerts */}
-                <div className="dash-card">
-                    <div className="dash-card-header">
-                        <h3>🔔 Alertas</h3>
-                    </div>
-                    <div className="dash-card-body">
-                        {financial.overdue_students === 0 && store.pending_orders === 0 && store.low_stock_products.length === 0 ? (
-                            <div className="dash-empty">Nenhum alerta no momento.</div>
-                        ) : (
-                            <>
-                                {financial.overdue_students > 0 && (
-                                    <Link to="/financeiro" className="dash-alert-row dash-alert-link">
-                                        <span className="dash-alert-icon">🔴</span>
-                                        <span className="dash-alert-text">
-                                            <strong>{financial.overdue_students} aluno(s)</strong> em atraso
-                                        </span>
-                                        <span className="dash-alert-arrow">→</span>
-                                    </Link>
-                                )}
-                                {store.pending_orders > 0 && (
-                                    <Link to="/admin" className="dash-alert-row dash-alert-link">
-                                        <span className="dash-alert-icon">📦</span>
-                                        <span className="dash-alert-text">
-                                            <strong>{store.pending_orders} pedido(s)</strong> pendente(s)
-                                        </span>
-                                        <span className="dash-alert-arrow">→</span>
-                                    </Link>
-                                )}
-                                {store.low_stock_products.length > 0 && (
-                                    <Link to="/admin" className="dash-alert-row dash-alert-link">
-                                        <span className="dash-alert-icon">⚠️</span>
-                                        <span className="dash-alert-text">
-                                            <strong>{store.low_stock_products.length} produto(s)</strong> com estoque baixo
-                                        </span>
-                                        <span className="dash-alert-arrow">→</span>
-                                    </Link>
-                                )}
-                            </>
-                        )}
+                <div className="dash-card bezel-shell">
+                    <div className="bezel-core">
+                        <div className="dash-card-header">
+                            <h3>🔔 Alertas</h3>
+                        </div>
+                        <div className="dash-card-body">
+                            {financial.overdue_students === 0 && store.pending_orders === 0 && store.low_stock_products.length === 0 ? (
+                                <div className="dash-empty">Nenhum alerta no momento.</div>
+                            ) : (
+                                <>
+                                    {financial.overdue_students > 0 && (
+                                        <Link to="/financeiro" className="dash-alert-row dash-alert-link">
+                                            <span className="dash-alert-icon">🔴</span>
+                                            <span className="dash-alert-text">
+                                                <strong>{financial.overdue_students} aluno(s)</strong> em atraso
+                                            </span>
+                                            <span className="dash-alert-arrow">→</span>
+                                        </Link>
+                                    )}
+                                    {store.pending_orders > 0 && (
+                                        <Link to="/admin" className="dash-alert-row dash-alert-link">
+                                            <span className="dash-alert-icon">📦</span>
+                                            <span className="dash-alert-text">
+                                                <strong>{store.pending_orders} pedido(s)</strong> pendente(s)
+                                            </span>
+                                            <span className="dash-alert-arrow">→</span>
+                                        </Link>
+                                    )}
+                                    {store.low_stock_products.length > 0 && (
+                                        <Link to="/admin" className="dash-alert-row dash-alert-link">
+                                            <span className="dash-alert-icon">⚠️</span>
+                                            <span className="dash-alert-text">
+                                                <strong>{store.low_stock_products.length} produto(s)</strong> com estoque baixo
+                                            </span>
+                                            <span className="dash-alert-arrow">→</span>
+                                        </Link>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* ── Recent Orders ──────────────────────── */}
-            <div className="dash-card">
-                <div className="dash-card-header">
-                    <h3>🧾 Pedidos Recentes</h3>
-                    {store.recent_orders.length > 0 && (
-                        <Link to="/comercial/pedidos" className="dash-view-link">Ver todos →</Link>
-                    )}
-                </div>
-                <div className="dash-card-body">
-                    {store.recent_orders.length === 0 ? (
-                        <div className="dash-empty">Nenhum pedido recente.</div>
-                    ) : (
-                        store.recent_orders.map((order) => (
-                            <OrderRow key={order.id} order={order} />
-                        ))
-                    )}
+            <div className="dash-card bezel-shell">
+                <div className="bezel-core">
+                    <div className="dash-card-header">
+                        <h3>🧾 Pedidos Recentes</h3>
+                        {store.recent_orders.length > 0 && (
+                            <Link to="/comercial/pedidos" className="dash-view-link">Ver todos →</Link>
+                        )}
+                    </div>
+                    <div className="dash-card-body">
+                        {store.recent_orders.length === 0 ? (
+                            <div className="dash-empty">Nenhum pedido recente.</div>
+                        ) : (
+                            store.recent_orders.map((order) => (
+                                <OrderRow key={order.id} order={order} />
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* ── Low Stock ──────────────────────────── */}
             {store.low_stock_products.length > 0 && (
-                <div className="dash-card">
-                    <Link to="/admin" className="dash-card-header dash-card-header-link">
-                        <h3>📦 Produtos com Estoque Baixo</h3>
-                        <span className="dash-view-link">Gerenciar →</span>
-                    </Link>
-                    <div className="dash-card-body">
-                        {store.low_stock_products.map((product) => (
-                            <StockRow key={product.id} product={product} />
-                        ))}
+                <div className="dash-card bezel-shell">
+                    <div className="bezel-core">
+                        <Link to="/admin" className="dash-card-header dash-card-header-link">
+                            <h3>📦 Produtos com Estoque Baixo</h3>
+                            <span className="dash-view-link">Gerenciar →</span>
+                        </Link>
+                        <div className="dash-card-body">
+                            {store.low_stock_products.map((product) => (
+                                <StockRow key={product.id} product={product} />
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

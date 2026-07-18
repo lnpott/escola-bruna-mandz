@@ -43,25 +43,33 @@
     flex-shrink: 0;
 }
 
-/* ── KPI Grid ──────────────────────────────────────────────── */
+/* ── KPI Grid (Bento Layout) ────────────────────────────────── */
 .dash-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: var(--space-3);
-    margin-bottom: var(--space-5);
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
     animation: fadeInUp 0.5s var(--ease-out);
 }
 
 .dash-kpi-card {
-    background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-5);
-    transition: border-color var(--duration-normal) var(--ease-out),
-                transform var(--duration-normal) var(--ease-out),
+    transition: transform var(--duration-normal) var(--ease-out),
                 box-shadow var(--duration-normal) var(--ease-out);
     position: relative;
     overflow: hidden;
+    grid-column: span 12;
+}
+
+@media (min-width: 768px) {
+    .dash-kpi-card:nth-child(1),
+    .dash-kpi-card:nth-child(2) {
+        grid-column: span 6;
+    }
+    .dash-kpi-card:nth-child(3),
+    .dash-kpi-card:nth-child(4),
+    .dash-kpi-card:nth-child(5) {
+        grid-column: span 4;
+    }
 }
 
 .dash-kpi-card::before {
@@ -87,25 +95,21 @@
     opacity: 1;
 }
 
-/* ── KPI Link ──────────────────────────────────────────────── */
 .dash-kpi-link {
     display: block;
     text-decoration: none;
     cursor: pointer;
-    transition: border-color var(--duration-normal) var(--ease-out),
-                transform var(--duration-normal) var(--ease-out),
+    transition: transform var(--duration-normal) var(--ease-out),
                 box-shadow var(--duration-normal) var(--ease-out);
 }
 
 .dash-kpi-link:hover {
-    border-color: var(--border-accent) !important;
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg), var(--shadow-glow-red);
+    box-shadow: var(--shadow-glow-red);
 }
 
 .dash-kpi-link:hover .dash-kpi-icon {
     background: color-mix(in srgb, var(--border-accent) 20%, transparent);
-    border-color: color-mix(in srgb, var(--border-accent) 30%, transparent);
 }
 
 .dash-kpi-link:active {
@@ -238,16 +242,8 @@
 
 /* ── Card ──────────────────────────────────────────────────── */
 .dash-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
     margin-bottom: var(--space-4);
-    transition: border-color var(--duration-normal) var(--ease-out);
-}
-
-.dash-card:hover {
-    border-color: var(--border-strong);
+    transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .dash-card-header {
