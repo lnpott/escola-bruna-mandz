@@ -49,7 +49,7 @@ export default function Teachers() {
             const data = await fetchTeachers();
             setTeachers(data);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         } finally {
             setLoading(false);
         }
@@ -130,7 +130,7 @@ export default function Teachers() {
             closeModal();
             await load();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         } finally {
             setSaving(false);
         }
@@ -149,7 +149,7 @@ export default function Teachers() {
             await deleteTeacher(id);
             await load();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         }
     }
 

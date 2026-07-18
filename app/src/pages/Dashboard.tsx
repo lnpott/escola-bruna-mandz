@@ -117,7 +117,7 @@ export default function Dashboard() {
             setData(result);
             setLastUpdate(new Date().toLocaleTimeString('pt-BR'));
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         } finally {
             setLoading(false);
         }

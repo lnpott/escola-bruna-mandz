@@ -56,7 +56,7 @@ export default function Enrollments() {
             setStudents(studs);
             setTeachers(teachs);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao carregar vínculos.');
+            setError('Erro ao carregar vínculos.');
         } finally {
             setLoading(false);
         }
@@ -154,7 +154,7 @@ export default function Enrollments() {
             setShowModal(false);
             load();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao salvar vínculo.');
+            showToast('Erro ao salvar vínculo.');
         } finally {
             setSaving(false);
         }
@@ -190,7 +190,7 @@ export default function Enrollments() {
             }
             load();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao excluir vínculo.', 'error');
+            showToast('Erro ao excluir vínculo.', 'error');
         }
     };
 
