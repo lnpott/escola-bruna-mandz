@@ -56,6 +56,7 @@
 | [88](#etapa-88--acesso-ao-painel-admin-pelo-logo-e-footer) | 17/07 | Acesso ao /app pelo logo (header) + link no footer | ✨ Feature |
 | [89](#etapa-89--limpeza-do-banco-supabase-para-uso-real) | 17/07 | Limpeza do banco Supabase (dados mínimos para produção) | 🛠️ Fix |
 | [90](#etapa-90--auditoria-de-segurança-completa) | 17/07 | Auditoria de segurança: credenciais, headers, XSS, CSRF, err.message | 🔒 Audit |
+| [91](#etapa-91--correção-de-testes-http-mock-server) | 18/07 | Correção de Testes HTTP (Mock Server) | 🧪 Test |
 
 ---
 
@@ -1734,7 +1735,24 @@ O script `backup-api.js` original só fazia backup de `products` e `orders`:
 | M3 | **backup/painel-x9k2f.html** arquivado mas contém innerHTML com err.message | 🟡 Baixa | 6 ocorrências (arquivo morto) |
 | M4 | **x-admin-password fixo** no `.env`/sessionStorage, sem MFA/rotação | 🟡 Média | Todo o SPA |
 
-## Plano de Correção (Etapa 91+)
+# ETAPA 91 — Correção de Testes HTTP (Mock Server)
+
+**Data:** 18/07/2026 | **Commits:** — (na main)
+
+**Objetivo:** Corrigir os erros 500 na suíte de testes `e2e-http-flow.test.js`.
+
+## Implementações
+
+- Identificado que o mock de servidor HTTP para os testes não passava as variáveis de ambiente (como `ADMIN_PASSWORD`) para o handler `admin-financial.js`.
+- Adicionada a injeção do ambiente via `Object.assign(process.env, env)` no arquivo `tests/e2e-http-flow.test.js` para que a autenticação funcione no ambiente de teste.
+
+## Testes
+
+✅ `npm test` — **103/103 passando** (0 falhas). Os endpoints agora respondem corretamente aos códigos de erro esperados (400, 401).
+
+---
+
+## Plano de Correção (Etapa 92+)
 
 | Prioridade | Ação | Esforço |
 |:----------:|------|:-------:|

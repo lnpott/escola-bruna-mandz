@@ -49,6 +49,7 @@ function loadEnv() {
 }
 
 const env = loadEnv();
+Object.assign(process.env, env); // Inject env into process.env so that api/ handlers can see them
 const hasEnv = !!(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
 const ADMIN_PASSWORD = env.ADMIN_PASSWORD || 'admin';
 
