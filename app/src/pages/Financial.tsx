@@ -162,7 +162,7 @@ export default function Financial() {
             setStudents(st);
             setTeachers(te);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao carregar dados financeiros.');
+            setError('Erro ao carregar dados financeiros.');
         } finally {
             setLoading(false);
         }
@@ -196,7 +196,7 @@ export default function Financial() {
                 }
             }
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao carregar dados.', 'error');
+            showToast('Erro ao carregar dados.', 'error');
         }
     }, [month, year, activeTab, paymentCategory]);
 
@@ -212,7 +212,7 @@ export default function Financial() {
             const data = await fetchFinancialReport(params);
             setReport(data);
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao carregar relatório.', 'error');
+            showToast('Erro ao carregar relatório.', 'error');
         } finally {
             setReportLoading(false);
         }
@@ -251,7 +251,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao registrar receita.', 'error');
+            showToast('Erro ao registrar receita.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -307,7 +307,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao salvar despesa.', 'error');
+            showToast('Erro ao salvar despesa.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -319,7 +319,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao atualizar despesa.', 'error');
+            showToast('Erro ao atualizar despesa.', 'error');
         }
     };
 
@@ -344,7 +344,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao registrar investimento.', 'error');
+            showToast('Erro ao registrar investimento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -371,7 +371,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao registrar pagamento.', 'error');
+            showToast('Erro ao registrar pagamento.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -383,7 +383,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao atualizar pagamento.', 'error');
+            showToast('Erro ao atualizar pagamento.', 'error');
         }
     };
 
@@ -402,7 +402,7 @@ export default function Financial() {
             loadSubList();
             loadSummary();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao excluir.', 'error');
+            showToast('Erro ao excluir.', 'error');
         }
     };
 
@@ -691,7 +691,7 @@ export default function Financial() {
                                     loadSubList();
                                     loadSummary();
                                 } catch (err: unknown) {
-                                    showToast(err instanceof Error ? err.message : 'Erro ao gerar pagamentos.', 'error');
+                                    showToast('Erro ao gerar pagamentos.', 'error');
                                 }
                             }}
                         >

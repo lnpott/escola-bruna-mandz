@@ -71,8 +71,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSessi
 function json(res, status, data) {
   res.writeHead(status, {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': 'http://localhost:5173',
+    'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
   });
   res.end(JSON.stringify(data));
 }
@@ -251,9 +251,9 @@ const server = createServer(async (req, res) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'http://localhost:5173',
       'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
     });
     res.end();
     return;

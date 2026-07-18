@@ -200,7 +200,7 @@ export default function Students() {
             setStudents(data);
             setTeachers(teacherData.map(t => ({ id: t.id, name: t.name })));
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         } finally {
             setLoading(false);
         }
@@ -298,7 +298,7 @@ export default function Students() {
             closeModal();
             await loadStudents();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         } finally {
             setSaving(false);
         }
@@ -317,7 +317,7 @@ export default function Students() {
                 closeModal();
                 await loadStudents();
             } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : 'Erro desconhecido');
+                setError('Erro desconhecido');
             } finally {
                 setSaving(false);
             }
@@ -340,7 +340,7 @@ export default function Students() {
             await deleteStudent(id);
             await loadStudents();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+            setError('Erro desconhecido');
         }
     }
 

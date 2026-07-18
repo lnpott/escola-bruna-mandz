@@ -59,7 +59,7 @@ export default function StudentDetail() {
             setTuitions(tui);
             setPayments(pay);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao carregar dados do aluno.');
+            setError('Erro ao carregar dados do aluno.');
         } finally {
             setLoading(false);
         }

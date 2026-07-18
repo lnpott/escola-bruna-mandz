@@ -164,7 +164,7 @@ export default function Agenda() {
             const lessons = await fetchLessons({ date_from: dateFrom, date_to: dateTo, limit: 500 });
             setAllLessons(lessons);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao carregar agenda.');
+            setError('Erro ao carregar agenda.');
         } finally {
             setLoading(false);
         }
@@ -356,7 +356,7 @@ export default function Agenda() {
             setShowCreateModal(false);
             loadLessons();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao salvar aula.', 'error');
+            showToast('Erro ao salvar aula.', 'error');
         }
     };
 
@@ -366,7 +366,7 @@ export default function Agenda() {
             showToast(`Aula ${LESSON_STATUS_LABELS[newStatus].toLowerCase()}`);
             loadLessons();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao atualizar status.', 'error');
+            showToast('Erro ao atualizar status.', 'error');
         }
     };
 
@@ -383,7 +383,7 @@ export default function Agenda() {
             showToast('Aula excluída.');
             loadLessons();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao excluir aula.', 'error');
+            showToast('Erro ao excluir aula.', 'error');
         }
     };
 
@@ -423,7 +423,7 @@ export default function Agenda() {
             showToast('Aula cancelada.');
             loadLessons();
         } catch (err: unknown) {
-            showToast(err instanceof Error ? err.message : 'Erro ao cancelar aula.', 'error');
+            showToast('Erro ao cancelar aula.', 'error');
         }
     };
 

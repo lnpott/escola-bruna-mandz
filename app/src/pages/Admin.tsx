@@ -87,7 +87,7 @@ export default function Admin() {
 
             setData({ students, teachers, enrollments, dash, trend, currentSummary });
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas.');
+            setError('Erro ao carregar estatísticas.');
         } finally {
             setLoading(false);
         }
