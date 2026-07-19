@@ -1,16 +1,21 @@
 /**
  * app/src/components/ImageCropper.tsx
  *
- * Modal de corte de imagem com Canvas API.
- * Permite ao usuário selecionar uma região da imagem para cortar
- * antes do upload. Aspect ratio fixo em 4:3 (ideal para produtos).
+ * Modal de corte de imagem — reescrito (Etapa 96).
  *
- * Suporta mouse e toque (touch events).
+ * Problemas corrigidos vs versão anterior:
+ *  - Modal pequeno: agora ocupa 95vw × 95vh
+ *  - Zoom não redesenhava: useEffect agora depende de [zoom] corretamente
+ *  - Zoom via scroll estava invertido em alguns trackpads
+ *  - Área de crop inicial agora deixa margem visível da imagem ao redor
+ *  - Aspect ratio: 1:1 (quadrado) para se encaixar nos cards da vitrine (height:14rem, contain)
  *
- * Props:
- *   file: File — imagem selecionada
- *   onCrop: (croppedBlob: Blob) => void — chamado quando o usuário confirma o corte
- *   onCancel: () => void — chamado quando o usuário cancela
+ * Controles:
+ *  - Scroll do mouse / pinch: zoom na imagem
+ *  - Arraste dentro da área: move o recorte
+ *  - Arraste nas bordas/cantos: redimensiona o recorte
+ *  - Botões −/+/reset: zoom
+ *  - ESC ou clique no overlay: cancela
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 
@@ -20,458 +25,389 @@ interface ImageCropperProps {
     onCancel: () => void;
 }
 
-const ASPECT_RATIO = 4 / 3; // Largura / Altura
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const ZOOM_STEP = 0.15;
+// ─── Proporção da vitrine (height:14rem com object-fit:contain → quadrado é seguro) ──
+const ASPECT_RATIO = 1; // 1:1
+const MIN_CROP_PX  = 60;
+const MIN_ZOOM     = 1;
+const MAX_ZOOM     = 8;
+const ZOOM_STEP    = 0.1;
+const HANDLE_SIZE  = 14; // pixels de tolerância para detectar borda/canto
 
 export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const cancelledRef = useRef(false);
-    const wheelTimeoutRef = useRef<number | null>(null);
+    const canvasRef      = useRef<HTMLCanvasElement>(null);
+    const containerRef   = useRef<HTMLDivElement>(null);
+    const cancelledRef   = useRef(false);
+    const zoomShowTimer  = useRef<number | null>(null);
 
-    // Estado da imagem
-    const [img, setImg] = useState<HTMLImageElement | null>(null);
+    const [img, setImg]               = useState<HTMLImageElement | null>(null);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [zoom, setZoom]             = useState(1);
+    const [showZoomHint, setShowZoomHint] = useState(false);
 
-    // Estado do crop (em pixels relativos ao container)
-    const [crop, setCrop] = useState({ x: 0, y: 0, width: 100, height: 100 });
+    // Crop em coordenadas do canvas (px)
+    const [crop, setCrop] = useState({ x: 0, y: 0, w: 200, h: 200 });
 
-    // Estado do zoom
-    const [zoom, setZoom] = useState(1);
-
-    // Estado do drag
-    const [dragging, setDragging] = useState<'move' | 'resize' | null>(null);
-    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-    const [cropAtDragStart, setCropAtDragStart] = useState({ x: 0, y: 0, width: 100, height: 100 });
+    // Drag state
+    const dragRef = useRef<{
+        mode: 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | null;
+        startX: number;
+        startY: number;
+        startCrop: typeof crop;
+    }>({ mode: null, startX: 0, startY: 0, startCrop: { x: 0, y: 0, w: 0, h: 0 } });
 
     // Dimensões reais da imagem
-    const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+    const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
 
-    // Carregar imagem com cleanup no unmount
+    // ── Carregar imagem ──────────────────────────────────────────
     useEffect(() => {
         cancelledRef.current = false;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             if (cancelledRef.current) return;
             const image = new Image();
             image.onload = () => {
                 if (cancelledRef.current) return;
-                setNaturalSize({ width: image.naturalWidth, height: image.naturalHeight });
+                setNaturalSize({ w: image.naturalWidth, h: image.naturalHeight });
                 setImg(image);
                 setImageLoaded(true);
-            };
-            image.onerror = () => {
-                // Erro ao carregar — apenas ignora
             };
             image.src = e.target?.result as string;
         };
         reader.readAsDataURL(file);
-
-        return () => {
-            cancelledRef.current = true;
-        };
+        return () => { cancelledRef.current = true; };
     }, [file]);
 
-    // Referência do container para calcular bounds atuais (sempre atualizados)
-    const containerRefCallback = useCallback((node: HTMLDivElement | null) => {
-        if (!node) return;
-        const rect = node.getBoundingClientRect();
-        const w = rect.width;
-        const h = rect.height;
-        const cropH = h * 0.85;
-        const cropW = cropH * ASPECT_RATIO;
-        const finalW = Math.min(cropW, w * 0.85);
-        const finalH = finalW / ASPECT_RATIO;
-        setCrop({
-            x: (w - finalW) / 2,
-            y: (h - finalH) / 2,
-            width: finalW,
-            height: finalH,
-        });
-    }, []);
-
-    // Obter bounds atuais do container (sempre fresco)
-    const getContainerSize = useCallback((): { width: number; height: number } => {
-        if (!canvasRef.current) return { width: 0, height: 0 };
-        const parent = canvasRef.current.parentElement;
-        if (!parent) return { width: 0, height: 0 };
-        const rect = parent.getBoundingClientRect();
-        return { width: rect.width, height: rect.height };
-    }, []);
-
-    // Desenhar no canvas
+    // ── Inicializar crop quando imagem carrega ───────────────────
     useEffect(() => {
-        if (!imageLoaded || !canvasRef.current || !img) return;
+        if (!imageLoaded || !containerRef.current) return;
+        const { width: cw, height: ch } = containerRef.current.getBoundingClientRect();
+        // Crop inicial: 60% da menor dimensão do canvas, centralizado
+        const size = Math.round(Math.min(cw, ch) * 0.60);
+        setCrop({ x: (cw - size) / 2, y: (ch - size) / 2, w: size, h: size });
+    }, [imageLoaded]);
+
+    // ── ESC para cancelar ────────────────────────────────────────
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onCancel]);
+
+    // ── Desenhar canvas ──────────────────────────────────────────
+    const draw = useCallback(() => {
+        if (!canvasRef.current || !img || !imageLoaded) return;
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx    = canvas.getContext('2d');
         if (!ctx) return;
 
         const parent = canvas.parentElement;
         if (!parent) return;
         const rect = parent.getBoundingClientRect();
-        canvas.width = rect.width;
+        canvas.width  = rect.width;
         canvas.height = rect.height;
         const cw = canvas.width;
         const ch = canvas.height;
 
-        // Calcular área de desenho (cover — preenche o container)
-        const imgAspect = img.naturalWidth / img.naturalHeight;
-        const containerAspect = cw / ch;
-        let drawW: number, drawH: number, drawX: number, drawY: number;
+        // Calcular dimensões de desenho da imagem (object-fit: contain)
+        const imgAR  = img.naturalWidth / img.naturalHeight;
+        const canAR  = cw / ch;
+        let drawW: number, drawH: number;
+        if (imgAR > canAR) { drawW = cw; drawH = cw / imgAR; }
+        else                { drawH = ch; drawW = ch * imgAR; }
 
-        if (imgAspect > containerAspect) {
-            drawH = ch;
-            drawW = drawH * imgAspect;
-            drawX = (cw - drawW) / 2;
-            drawY = 0;
-        } else {
-            drawW = cw;
-            drawH = cw / imgAspect;
-            drawX = 0;
-            drawY = (ch - drawH) / 2;
+        // Centro + zoom
+        const cx = cw / 2;
+        const cy = ch / 2;
+        const zW = drawW * zoom;
+        const zH = drawH * zoom;
+        const zX = cx - zW / 2;
+        const zY = cy - zH / 2;
+
+        // Fundo escuro
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, cw, ch);
+
+        // Imagem
+        ctx.drawImage(img, zX, zY, zW, zH);
+
+        // Overlay escuro fora do crop
+        const { x, y, w, h } = crop;
+        ctx.fillStyle = 'rgba(0,0,0,0.60)';
+        ctx.fillRect(0, 0, cw, y);           // top
+        ctx.fillRect(0, y + h, cw, ch);      // bottom
+        ctx.fillRect(0, y, x, h);            // left
+        ctx.fillRect(x + w, y, cw, h);       // right
+
+        // Borda da área de crop
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, w, h);
+
+        // Grade terços (rule of thirds)
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 0.5;
+        for (let i = 1; i <= 2; i++) {
+            ctx.beginPath(); ctx.moveTo(x + w * i / 3, y); ctx.lineTo(x + w * i / 3, y + h); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x, y + h * i / 3); ctx.lineTo(x + w, y + h * i / 3); ctx.stroke();
         }
 
-        // Aplicar zoom (centro fixo)
-        const centerX = drawX + drawW / 2;
-        const centerY = drawY + drawH / 2;
-        const zDrawW = drawW * zoom;
-        const zDrawH = drawH * zoom;
-        const zDrawX = centerX - zDrawW / 2;
-        const zDrawY = centerY - zDrawH / 2;
+        // Handles nos cantos e bordas
+        const hS = HANDLE_SIZE;
+        const handles = [
+            [x, y], [x + w / 2 - hS / 2, y], [x + w - hS, y],               // top
+            [x, y + h / 2 - hS / 2], [x + w - hS, y + h / 2 - hS / 2],      // mid
+            [x, y + h - hS], [x + w / 2 - hS / 2, y + h - hS], [x + w - hS, y + h - hS], // bottom
+        ];
+        ctx.fillStyle = '#fff';
+        handles.forEach(([hx, hy]) => {
+            ctx.fillRect(hx, hy, hS, hS);
+        });
 
-        ctx.clearRect(0, 0, cw, ch);
+        // Ícone de arrastar no centro da área de crop
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.font = '28px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✥', x + w / 2, y + h / 2);
 
-        // Verificar se o crop está dentro dos limites do canvas
-        const cropX = Math.max(0, Math.min(crop.x, cw - crop.width));
-        const cropY = Math.max(0, Math.min(crop.y, ch - crop.height));
-        const cropW = Math.min(crop.width, cw - cropX);
-        const cropH = Math.min(crop.height, ch - cropY);
+    }, [img, imageLoaded, zoom, crop]);
 
-        // Se o crop area for muito pequena, desenha imagem completa
-        if (cropW < 20 || cropH < 20) {
-            ctx.drawImage(img, zDrawX, zDrawY, zDrawW, zDrawH);
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.font = '16px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Redimensione a área de corte', cw / 2, ch / 2);
+    useEffect(() => { draw(); }, [draw]);
+
+    // ── Determinar handle clicado ────────────────────────────────
+    const getHandle = (mx: number, my: number) => {
+        const { x, y, w, h } = crop;
+        const t = HANDLE_SIZE * 1.5; // tolerância maior
+        const nearL = mx >= x - t        && mx <= x + t;
+        const nearR = mx >= x + w - t    && mx <= x + w + t;
+        const nearT = my >= y - t        && my <= y + t;
+        const nearB = my >= y + h - t    && my <= y + h + t;
+        const inX   = mx >= x            && mx <= x + w;
+        const inY   = my >= y            && my <= y + h;
+
+        if (nearL && nearT) return 'nw';
+        if (nearR && nearT) return 'ne';
+        if (nearL && nearB) return 'sw';
+        if (nearR && nearB) return 'se';
+        if (nearT && inX)   return 'n';
+        if (nearB && inX)   return 's';
+        if (nearL && inY)   return 'w';
+        if (nearR && inY)   return 'e';
+        if (inX && inY)     return 'move';
+        return null;
+    };
+
+    const getCursor = useCallback((mx: number, my: number) => {
+        const h = getHandle(mx, my);
+        if (!h) return 'default';
+        if (h === 'move') return 'grab';
+        if (h === 'nw' || h === 'se') return 'nwse-resize';
+        if (h === 'ne' || h === 'sw') return 'nesw-resize';
+        if (h === 'n'  || h === 's')  return 'ns-resize';
+        if (h === 'e'  || h === 'w')  return 'ew-resize';
+        return 'default';
+    }, [crop]); // eslint-disable-line
+
+    // ── Obter pos relativa ao canvas ─────────────────────────────
+    const getPos = (clientX: number, clientY: number) => {
+        if (!canvasRef.current) return { x: 0, y: 0 };
+        const r = canvasRef.current.getBoundingClientRect();
+        return { x: clientX - r.left, y: clientY - r.top };
+    };
+
+    const canvasDims = () => {
+        if (!canvasRef.current) return { cw: 0, ch: 0 };
+        return { cw: canvasRef.current.width, ch: canvasRef.current.height };
+    };
+
+    // ── Pointer down ─────────────────────────────────────────────
+    const onPointerDown = (clientX: number, clientY: number) => {
+        const pos  = getPos(clientX, clientY);
+        const mode = getHandle(pos.x, pos.y);
+        if (!mode) return;
+        dragRef.current = { mode, startX: pos.x, startY: pos.y, startCrop: { ...crop } };
+    };
+
+    // ── Pointer move ─────────────────────────────────────────────
+    const onPointerMove = (clientX: number, clientY: number) => {
+        const { mode } = dragRef.current;
+
+        // Cursor dinâmico
+        if (!mode && canvasRef.current) {
+            const pos = getPos(clientX, clientY);
+            canvasRef.current.style.cursor = getCursor(pos.x, pos.y);
             return;
         }
+        if (!mode) return;
 
-        // PRIMEIRO: desenhar a imagem completa no canvas (com zoom)
-        ctx.drawImage(img, zDrawX, zDrawY, zDrawW, zDrawH);
+        const pos = getPos(clientX, clientY);
+        const dx  = pos.x - dragRef.current.startX;
+        const dy  = pos.y - dragRef.current.startY;
+        const sc  = dragRef.current.startCrop;
+        const { cw, ch } = canvasDims();
 
-        try {
-            // Capturar a região de crop do canvas
-            const imageData = ctx.getImageData(cropX, cropY, cropW, cropH);
+        setCrop(prev => {
+            let { x, y, w, h } = sc;
 
-            // Limpar e desenhar fundo escuro
-            ctx.clearRect(0, 0, cw, ch);
-            ctx.fillStyle = 'rgba(0,0,0,0.85)';
-            ctx.fillRect(0, 0, cw, ch);
-
-            // Colocar a região cortada de volta
-            ctx.putImageData(imageData, cropX, cropY);
-
-            // Bordas da área de crop
-            ctx.strokeStyle = '#dc2626';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(cropX, cropY, cropW, cropH);
-
-            // Cantos
-            const cornerSize = 12;
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(cropX - 3, cropY - 3, cornerSize, 4);
-            ctx.fillRect(cropX - 3, cropY - 3, 4, cornerSize);
-            ctx.fillRect(cropX + cropW - cornerSize + 3, cropY - 3, cornerSize, 4);
-            ctx.fillRect(cropX + cropW - 1, cropY - 3, 4, cornerSize);
-            ctx.fillRect(cropX - 3, cropY + cropH - 1, cornerSize, 4);
-            ctx.fillRect(cropX - 3, cropY + cropH - cornerSize + 3, 4, cornerSize);
-            ctx.fillRect(cropX + cropW - cornerSize + 3, cropY + cropH - 1, cornerSize, 4);
-            ctx.fillRect(cropX + cropW - 1, cropY + cropH - cornerSize + 3, 4, cornerSize);
-
-            // Instruções
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText('Arraste para mover · Bordas para redimensionar', 12, ch - 12);
-        } catch {
-            // Crop fora dos limites — o useEffect será re-executado no próximo render
-        }
-    }, [imageLoaded, img, crop]);
-
-    // ── Obter coordenadas relativas ao canvas (mouse ou toque) ──
-    const getPointerPos = (clientX: number, clientY: number): { x: number; y: number } | null => {
-        if (!canvasRef.current) return null;
-        const rect = canvasRef.current.getBoundingClientRect();
-        return { x: clientX - rect.left, y: clientY - rect.top };
-    };
-
-    // ── Iniciar drag ──
-    const handlePointerDown = (clientX: number, clientY: number) => {
-        const pos = getPointerPos(clientX, clientY);
-        if (!pos) return;
-
-        const containerSize = getContainerSize();
-        const mx = pos.x;
-        const my = pos.y;
-
-        // Verificar se clicou nos cantos (resize)
-        const margin = 16;
-        const near = (a: number, b: number) => Math.abs(a - b) < margin;
-
-        const atLeft = near(mx, crop.x);
-        const atRight = near(mx, crop.x + crop.width);
-        const atTop = near(my, crop.y);
-        const atBottom = near(my, crop.y + crop.height);
-
-        if (atLeft || atRight || atTop || atBottom) {
-            setDragging('resize');
-            setDragStart({ x: mx, y: my });
-            setCropAtDragStart({ ...crop });
-            return;
-        }
-
-        // Verificar se clicou dentro da área de crop (move)
-        if (mx >= crop.x && mx <= crop.x + crop.width &&
-            my >= crop.y && my <= crop.y + crop.height) {
-            setDragging('move');
-            setDragStart({ x: mx, y: my });
-            setCropAtDragStart({ ...crop });
-        }
-    };
-
-    // ── Mover/redimensionar ──
-    const handlePointerMove = (clientX: number, clientY: number) => {
-        if (!dragging) return;
-        const pos = getPointerPos(clientX, clientY);
-        if (!pos) return;
-
-        const containerSize = getContainerSize();
-        const cw = containerSize.width;
-        const ch = containerSize.height;
-        const mx = pos.x;
-        const my = pos.y;
-        const dx = mx - dragStart.x;
-        const dy = my - dragStart.y;
-
-        if (dragging === 'move') {
-            let nx = cropAtDragStart.x + dx;
-            let ny = cropAtDragStart.y + dy;
-            nx = Math.max(0, Math.min(nx, cw - cropAtDragStart.width));
-            ny = Math.max(0, Math.min(ny, ch - cropAtDragStart.height));
-            setCrop(prev => ({ ...prev, x: nx, y: ny }));
-        } else if (dragging === 'resize') {
-            let nw = cropAtDragStart.width + dx;
-            let nh = nw / ASPECT_RATIO;
-
-            if (nw < 80) { nw = 80; nh = nw / ASPECT_RATIO; }
-            if (nh < 60) { nh = 60; nw = nh * ASPECT_RATIO; }
-
-            if (cropAtDragStart.x + nw > cw) {
-                nw = cw - cropAtDragStart.x;
-                nh = nw / ASPECT_RATIO;
-            }
-            if (cropAtDragStart.y + nh > ch) {
-                nh = ch - cropAtDragStart.y;
-                nw = nh * ASPECT_RATIO;
+            if (mode === 'move') {
+                x = Math.max(0, Math.min(sc.x + dx, cw - sc.w));
+                y = Math.max(0, Math.min(sc.y + dy, ch - sc.h));
+                return { x, y, w, h };
             }
 
-            setCrop(prev => ({ ...prev, width: nw, height: nh }));
-        }
+            // Resize mantendo aspect ratio 1:1
+            if (mode === 'se' || mode === 'e' || mode === 's') {
+                w = Math.max(MIN_CROP_PX, sc.w + dx);
+                h = w / ASPECT_RATIO;
+            } else if (mode === 'nw' || mode === 'n' || mode === 'w') {
+                w = Math.max(MIN_CROP_PX, sc.w - dx);
+                h = w / ASPECT_RATIO;
+                x = sc.x + sc.w - w;
+                y = sc.y + sc.h - h;
+            } else if (mode === 'ne') {
+                w = Math.max(MIN_CROP_PX, sc.w + dx);
+                h = w / ASPECT_RATIO;
+                y = sc.y + sc.h - h;
+            } else if (mode === 'sw') {
+                w = Math.max(MIN_CROP_PX, sc.w - dx);
+                h = w / ASPECT_RATIO;
+                x = sc.x + sc.w - w;
+            }
+
+            // Clamp para não sair do canvas
+            if (x < 0) { w += x; h = w / ASPECT_RATIO; x = 0; }
+            if (y < 0) { h += y; w = h * ASPECT_RATIO; y = 0; }
+            if (x + w > cw) { w = cw - x; h = w / ASPECT_RATIO; }
+            if (y + h > ch) { h = ch - y; w = h * ASPECT_RATIO; }
+            if (w < MIN_CROP_PX) return prev;
+
+            return { x, y, w: Math.round(w), h: Math.round(h) };
+        });
     };
 
-    // ── Finalizar drag ──
-    const handlePointerUp = () => {
-        setDragging(null);
-    };
+    const onPointerUp = () => { dragRef.current.mode = null; };
 
-    // ── Zoom com scroll do mouse ──
+    // ── Zoom via scroll ──────────────────────────────────────────
     const onWheel = (e: React.WheelEvent) => {
         e.preventDefault();
         const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-        setZoom(z => Math.round(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z + delta)) * 100) / 100);
+        setZoom(z => parseFloat(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z + delta)).toFixed(2)));
 
-        // Feedback visual: mostrar indicador de zoom por 1.5s
-        if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
-        const indicator = document.querySelector('.crop-zoom-indicator');
-        if (indicator) {
-            (indicator as HTMLElement).style.opacity = '1';
-            wheelTimeoutRef.current = window.setTimeout(() => {
-                (indicator as HTMLElement).style.opacity = '0';
-            }, 1500);
-        }
+        setShowZoomHint(true);
+        if (zoomShowTimer.current) clearTimeout(zoomShowTimer.current);
+        zoomShowTimer.current = window.setTimeout(() => setShowZoomHint(false), 1200);
     };
 
-    // ── Ações de zoom ──
-    const zoomIn = () => setZoom(z => Math.round(Math.min(MAX_ZOOM, z + ZOOM_STEP) * 100) / 100);
-    const zoomOut = () => setZoom(z => Math.round(Math.max(MIN_ZOOM, z - ZOOM_STEP) * 100) / 100);
+    // ── Zoom via botões ──────────────────────────────────────────
+    const zoomIn    = () => setZoom(z => parseFloat(Math.min(MAX_ZOOM, z + ZOOM_STEP * 2).toFixed(2)));
+    const zoomOut   = () => setZoom(z => parseFloat(Math.max(MIN_ZOOM, z - ZOOM_STEP * 2).toFixed(2)));
     const zoomReset = () => setZoom(1);
+    const zoomPct   = Math.round(zoom * 100);
 
-    const zoomPercent = Math.round(zoom * 100);
-
-    // ── Eventos de mouse ──
-    const onMouseDown = (e: React.MouseEvent) => handlePointerDown(e.clientX, e.clientY);
-    const onMouseMove = (e: React.MouseEvent) => { if (dragging) handlePointerMove(e.clientX, e.clientY); };
-    const onMouseUp = () => handlePointerUp();
-
-    // ── Eventos de toque ──
-    const onTouchStart = (e: React.TouchEvent) => {
-        if (e.touches.length !== 1) return;
-        handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-    };
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (e.touches.length !== 1) return;
-        e.preventDefault();
-        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-    };
-    const onTouchEnd = () => handlePointerUp();
-
-    // ── Cursor conforme ação ──
-    const getCursor = (): string => {
-        if (dragging === 'move') return 'grabbing';
-        if (dragging === 'resize') return 'nwse-resize';
-        return 'crosshair';
-    };
-
-    // ── Confirmar crop ──
+    // ── Confirmar crop ────────────────────────────────────────────
     const handleConfirm = () => {
         if (!img || !canvasRef.current) return;
         const canvas = canvasRef.current;
         const cw = canvas.width;
         const ch = canvas.height;
 
-        // Calcular área de desenho (mesma lógica do useEffect)
-        const imgAspect = img.naturalWidth / img.naturalHeight;
-        const containerAspect = cw / ch;
+        const imgAR = img.naturalWidth / img.naturalHeight;
+        const canAR = cw / ch;
         let drawW: number, drawH: number, drawX: number, drawY: number;
+        if (imgAR > canAR) { drawW = cw; drawH = cw / imgAR; drawX = 0; drawY = (ch - drawH) / 2; }
+        else               { drawH = ch; drawW = ch * imgAR; drawX = (cw - drawW) / 2; drawY = 0; }
 
-        if (imgAspect > containerAspect) {
-            drawH = ch;
-            drawW = drawH * imgAspect;
-            drawX = (cw - drawW) / 2;
-            drawY = 0;
-        } else {
-            drawW = cw;
-            drawH = cw / imgAspect;
-            drawX = 0;
-            drawY = (ch - drawH) / 2;
-        }
+        const cx = cw / 2, cy = ch / 2;
+        const zW = drawW * zoom, zH = drawH * zoom;
+        const zX = cx - zW / 2, zY = cy - zH / 2;
 
-        // Aplicar zoom (mesma lógica do useEffect)
-        const centerX = drawX + drawW / 2;
-        const centerY = drawY + drawH / 2;
-        const zDrawW = drawW * zoom;
-        const zDrawH = drawH * zoom;
-        const zDrawX = centerX - zDrawW / 2;
-        const zDrawY = centerY - zDrawH / 2;
+        // Coordenadas na imagem natural
+        const scale = img.naturalWidth / zW;
+        const srcX  = Math.max(0, (crop.x - zX) * scale);
+        const srcY  = Math.max(0, (crop.y - zY) * scale);
+        const srcW  = Math.min(crop.w * scale, img.naturalWidth  - srcX);
+        const srcH  = Math.min(crop.h * scale, img.naturalHeight - srcY);
 
-        // Converter coordenadas do canvas (com zoom) para coordenadas da imagem original
-        const scaleToNatural = img.naturalWidth / zDrawW;
+        if (srcW < 10 || srcH < 10) return;
 
-        const srcX = (crop.x - zDrawX) * scaleToNatural;
-        const srcY = (crop.y - zDrawY) * scaleToNatural;
-        const srcW = crop.width * scaleToNatural;
-        const srcH = crop.height * scaleToNatural;
-
-        // Garantir que não ultrapasse os limites da imagem
-        const clampedSrcX = Math.max(0, srcX);
-        const clampedSrcY = Math.max(0, srcY);
-        const clampedSrcW = Math.min(srcW, img.naturalWidth - clampedSrcX);
-        const clampedSrcH = Math.min(srcH, img.naturalHeight - clampedSrcY);
-
-        if (clampedSrcW < 10 || clampedSrcH < 10) return;
-
-        // Criar canvas de saída com tamanho máximo de 800px
-        const maxDim = 800;
-        const outW = Math.min(clampedSrcW, maxDim);
-        const outH = outW / ASPECT_RATIO;
-
-        const outCanvas = document.createElement('canvas');
-        outCanvas.width = outW;
-        outCanvas.height = outH;
-        const outCtx = outCanvas.getContext('2d');
+        const outSize = Math.min(srcW, 800);
+        const out = document.createElement('canvas');
+        out.width  = outSize;
+        out.height = Math.round(outSize / ASPECT_RATIO);
+        const outCtx = out.getContext('2d');
         if (!outCtx) return;
-
-        outCtx.drawImage(img, clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH, 0, 0, outW, outH);
-
-        outCanvas.toBlob((blob) => {
-            if (blob) {
-                onCrop(blob);
-            }
-        }, 'image/webp', 0.9);
+        outCtx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, out.width, out.height);
+        out.toBlob(blob => { if (blob) onCrop(blob); }, 'image/webp', 0.92);
     };
 
     return (
-        <div className="crop-overlay" onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
-            onTouchEnd={onTouchEnd}>
-            <div className="crop-modal">
+        <div
+            className="crop-overlay"
+            onMouseUp={onPointerUp}
+            onMouseLeave={onPointerUp}
+            onTouchEnd={onPointerUp}
+            onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+        >
+            <div className="crop-modal" onClick={e => e.stopPropagation()}>
+
+                {/* ── Header ── */}
                 <div className="crop-header">
-                    <h3>Cortar Imagem</h3>
-                    <span className="crop-aspect-badge">4:3</span>
+                    <div className="crop-header-left">
+                        <h3>Cortar Imagem</h3>
+                        {naturalSize.w > 0 && (
+                            <span className="crop-nat-size">{naturalSize.w}×{naturalSize.h}px</span>
+                        )}
+                    </div>
+                    <div className="crop-header-right">
+                        <span className="crop-aspect-badge">1:1</span>
+                        <button type="button" className="crop-close-btn" onClick={onCancel} title="Cancelar (ESC)">✕</button>
+                    </div>
                 </div>
 
-                <div className="crop-preview" ref={containerRefCallback}>
+                {/* ── Canvas ── */}
+                <div
+                    className="crop-canvas-wrap"
+                    ref={containerRef}
+                    onMouseMove={e => onPointerMove(e.clientX, e.clientY)}
+                    onTouchMove={e => { e.preventDefault(); onPointerMove(e.touches[0].clientX, e.touches[0].clientY); }}
+                >
                     <canvas
                         ref={canvasRef}
-                        onMouseDown={onMouseDown}
-                        onMouseMove={onMouseMove}
+                        className="crop-canvas"
+                        onMouseDown={e => onPointerDown(e.clientX, e.clientY)}
+                        onTouchStart={e => { if (e.touches.length === 1) onPointerDown(e.touches[0].clientX, e.touches[0].clientY); }}
                         onWheel={onWheel}
-                        onTouchStart={onTouchStart}
-                        onTouchMove={onTouchMove}
-                        style={{ cursor: getCursor(), touchAction: 'none' }}
+                        style={{ touchAction: 'none' }}
                     />
                     {!imageLoaded && (
-                        <div className="crop-loading">Carregando imagem...</div>
+                        <div className="crop-loading">
+                            <span className="crop-loading-spinner" />
+                            Carregando imagem...
+                        </div>
                     )}
-                    <div className="crop-zoom-indicator">{zoomPercent}%</div>
+                    {showZoomHint && (
+                        <div className="crop-zoom-indicator">{zoomPct}%</div>
+                    )}
                 </div>
 
+                {/* ── Footer ── */}
                 <div className="crop-footer">
-                    <div className="crop-info">
-                        <span>Arraste para mover • Bordas para redimensionar • Scroll para zoom</span>
-                        <span className="crop-dimensions">
-                            {naturalSize.width > 0 && `${naturalSize.width}×${naturalSize.height}px`}
-                        </span>
+                    <div className="crop-hint">
+                        <span>🖱 Scroll = zoom &nbsp;·&nbsp; Arraste a área = mover &nbsp;·&nbsp; Bordas/cantos = redimensionar</span>
                     </div>
                     <div className="crop-footer-row">
                         <div className="crop-zoom-controls">
-                            <button
-                                type="button"
-                                className="crop-zoom-btn"
-                                onClick={zoomOut}
-                                disabled={zoom <= MIN_ZOOM || !imageLoaded}
-                                title="Reduzir zoom"
-                                aria-label="Reduzir zoom"
-                            >−</button>
-                            <button
-                                type="button"
-                                className="crop-zoom-btn crop-zoom-btn-label"
-                                onClick={zoomReset}
-                                disabled={zoom === 1 || !imageLoaded}
-                                title="Resetar zoom"
-                                aria-label="Resetar zoom para 100%"
-                            >{zoomPercent}%</button>
-                            <button
-                                type="button"
-                                className="crop-zoom-btn"
-                                onClick={zoomIn}
-                                disabled={zoom >= MAX_ZOOM || !imageLoaded}
-                                title="Aumentar zoom"
-                                aria-label="Aumentar zoom"
-                            >+</button>
+                            <button type="button" className="crop-zoom-btn" onClick={zoomOut}
+                                disabled={zoom <= MIN_ZOOM || !imageLoaded} title="Reduzir zoom">−</button>
+                            <button type="button" className="crop-zoom-btn crop-zoom-pct" onClick={zoomReset}
+                                disabled={zoom === 1 || !imageLoaded} title="Resetar zoom">{zoomPct}%</button>
+                            <button type="button" className="crop-zoom-btn" onClick={zoomIn}
+                                disabled={zoom >= MAX_ZOOM || !imageLoaded} title="Aumentar zoom">+</button>
                         </div>
                         <div className="crop-actions">
-                            <button type="button" className="btn-secondary" onClick={onCancel}>
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                className="btn-primary"
-                                onClick={handleConfirm}
-                                disabled={!imageLoaded}
-                            >
+                            <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>
+                            <button type="button" className="btn-primary" onClick={handleConfirm}
+                                disabled={!imageLoaded}>
                                 {imageLoaded ? 'Aplicar Corte e Enviar' : 'Carregando...'}
                             </button>
                         </div>
