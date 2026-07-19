@@ -9,6 +9,7 @@ import {
     uploadProductImage,
 } from '@/services/api';
 import type { Product, Order } from '@/types';
+import ImageCropper from '@/components/ImageCropper';
 import '@/styles/store.css';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -133,40 +134,53 @@ export default function Store() {
         setShowProductModal(true);
     };
 
-    // ── Image upload state ────────────────────────────────────
+    // ── Image upload + crop state ─────────────────────────────
     const [uploadingImage, setUploadingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [cropFile, setCropFile] = useState<File | null>(null);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
         if (!allowedTypes.includes(file.type)) {
             showToast('Formato não permitido. Use JPEG, PNG ou WebP.', 'error');
             return;
         }
 
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('Imagem muito grande. Máximo 2MB.', 'error');
+        // Validate file size (max 10MB before crop — upload-image.js already limits on server)
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('Imagem muito grande. Máximo 10MB.', 'error');
             return;
         }
 
+        // Show crop modal
+        setCropFile(file);
+
+        // Reset file input for re-selection
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleCroppedImage = async (croppedBlob: Blob) => {
+        // Criar File a partir do Blob cortado
+        const croppedFile = new File([croppedBlob], `cropped-${Date.now()}.webp`, {
+            type: 'image/webp',
+        });
+
         setUploadingImage(true);
         try {
-            const url = await uploadProductImage(file);
+            const url = await uploadProductImage(croppedFile);
             setProdForm(f => ({ ...f, image: url }));
-            showToast('Imagem enviada com sucesso!');
+            setCropFile(null); // Só fecha o modal após sucesso
+            showToast('Imagem cortada e enviada com sucesso!');
         } catch (err: unknown) {
             showToast(err instanceof Error ? err.message : 'Erro ao enviar imagem.', 'error');
         } finally {
             setUploadingImage(false);
-            // Reset file input so the same file can be re-selected
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
         }
     };
 
@@ -486,8 +500,17 @@ export default function Store() {
             {/* ══════════════════════════════════════════════════════
                 PRODUCT MODAL
                 ══════════════════════════════════════════════════════ */}
+            {/* ── Image Crop Modal ───────────────────────────── */}
+            {cropFile && (
+                <ImageCropper
+                    file={cropFile}
+                    onCrop={handleCroppedImage}
+                    onCancel={() => setCropFile(null)}
+                />
+            )}
+
             {showProductModal && (
-                <div className="store-modal-overlay" onClick={() => setShowProductModal(false)}>
+                <div className="store-modal-overlay" onClick={() => setShowProductModal(false)} role="dialog" aria-modal="true" aria-label={editingProduct ? 'Editar produto' : 'Novo produto'}>
                     <div className="store-modal" onClick={e => e.stopPropagation()}>
                         <h2>{editingProduct ? '✏️ Editar Produto' : '➕ Novo Produto'}</h2>
                         <form onSubmit={handleSaveProduct}>
@@ -540,8 +563,8 @@ export default function Store() {
                                     <input
                                         type="file"
                                         ref={fileInputRef}
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onChange={handleImageUpload}
+                                        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                                        onChange={handleFileSelected}
                                         style={{ display: 'none' }}
                                     />
                                     <div className="store-image-preview-row">
@@ -566,7 +589,7 @@ export default function Store() {
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={uploadingImage}
                                         >
-                                            {uploadingImage ? '📤 Enviando...' : prodForm.image ? '🔄 Trocar' : '📤 Selecionar Imagem'}
+                                            {uploadingImage ? '📤 Enviando...' : prodForm.image ? '🔄 Trocar' : '📤 Selecionar e Cortar'}
                                         </button>
                                     </div>
                                     <span className="store-form-hint">Formatos: JPEG, PNG, WebP. Máximo 2MB.</span>

@@ -58,6 +58,8 @@
 | [90](#etapa-90--auditoria-de-segurança-completa) | 17/07 | Auditoria de segurança: credenciais, headers, XSS, CSRF, err.message | 🔒 Audit |
 | [91](#etapa-91--correção-de-testes-http-mock-server) | 18/07 | Correção de Testes HTTP (Mock Server) | 🧪 Test |
 | [92](#etapa-92--redesign-high-end-painel-administrativo) | 18/07 | Redesign High-End do painel administrativo (/app) | 🎨 Design |
+| [93](#etapa-93--melhorias-uiux-no-react-spa) | 19/07 | Melhorias UI/UX no React SPA | 🎨 Design |
+| [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | ✨ Feature |
 
 ---
 
@@ -1848,25 +1850,25 @@ npm run build → ✅ 75 modules transformed, 0 errors, 6.15s
  
  - - - 
  
- #   E T A P A   9 3      F i n a l i z a � � o   d o   R e d e s i g n   H i g h - E n d   ( S p r i n t   4 ) 
+ #   E T A P A   9 3      F i n a l i z a � � o   d o   R e d e s i g n   H i g h - E n d   ( S p r i n t   4 ) 
  
  * * D a t a : * *   1 8 / 0 7 / 2 0 2 6 
  
- * * O b j e t i v o : * *   C o n c l u i r   a   a p l i c a � � o   d a   a r q u i t e t u r a   * D o u b l e - B e z e l *   n a s   s e � � e s   r e s t a n t e s   d o   p a i n e l   a d m i n i s t r a t i v o . 
+ * * O b j e t i v o : * *   C o n c l u i r   a   a p l i c a � � o   d a   a r q u i t e t u r a   * D o u b l e - B e z e l *   n a s   s e � � e s   r e s t a n t e s   d o   p a i n e l   a d m i n i s t r a t i v o . 
  
- # #   I m p l e m e n t a � � e s 
+ # #   I m p l e m e n t a � � e s 
  
  -   * * F i n a n c i a l * * : 
-     -   A p l i c a � � o   d o   \  e z e l - s h e l l \   e   \  e z e l - c o r e \   n o s   6   c a r t � e s   d e   K P I   ( R e c e b i d o ,   P a g o ,   S a l d o ,   e t c . ) . 
-     -   R e m o � � o   d e   e s t i l o s   r e d u n d a n t e s   ( b a c k g r o u n d ,   b o r d e r ,   p a d d i n g )   d e   \ . f i n - k p i - c a r d \   n o   C S S . 
+     -   A p l i c a � � o   d o   \  e z e l - s h e l l \   e   \  e z e l - c o r e \   n o s   6   c a r t � e s   d e   K P I   ( R e c e b i d o ,   P a g o ,   S a l d o ,   e t c . ) . 
+     -   R e m o � � o   d e   e s t i l o s   r e d u n d a n t e s   ( b a c k g r o u n d ,   b o r d e r ,   p a d d i n g )   d e   \ . f i n - k p i - c a r d \   n o   C S S . 
  -   * * A g e n d a * * : 
-     -   E n v e l o p a m e n t o   d a   g r a d e   d o   c a l e n d � r i o   p r i n c i p a l   ( \ . a g e n d a - c a l e n d a r \ ) . 
-     -   A p l i c a � � o   n o s   m o d a i s   d e   v i s u a l i z a � � o   d o   d i a   ( \ . a g e n d a - d a y - m o d a l \ )   e   f o r m u l � r i o   d e   a u l a s   ( \ . a g e n d a - f o r m - m o d a l \ ) . 
+     -   E n v e l o p a m e n t o   d a   g r a d e   d o   c a l e n d � r i o   p r i n c i p a l   ( \ . a g e n d a - c a l e n d a r \ ) . 
+     -   A p l i c a � � o   n o s   m o d a i s   d e   v i s u a l i z a � � o   d o   d i a   ( \ . a g e n d a - d a y - m o d a l \ )   e   f o r m u l � r i o   d e   a u l a s   ( \ . a g e n d a - f o r m - m o d a l \ ) . 
  -   * * S t u d e n t D e t a i l * * : 
-     -   R e f a t o r a � � o   d o s   p a i n � i s   n u m � r i c o s   s u p e r i o r e s   ( \ . s t u d e n t - s t a t - c a r d \ ) . 
-     -   P a d r o n i z a � � o   d a s   m i n i   l i s t a g e n s   ( \ . e n r o l l m e n t - m i n i - c a r d \ ) . 
+     -   R e f a t o r a � � o   d o s   p a i n � i s   n u m � r i c o s   s u p e r i o r e s   ( \ . s t u d e n t - s t a t - c a r d \ ) . 
+     -   P a d r o n i z a � � o   d a s   m i n i   l i s t a g e n s   ( \ . e n r o l l m e n t - m i n i - c a r d \ ) . 
  -   * * A d m i n * * : 
-     -   E n v e l o p a m e n t o   d a s   m � t r i c a s   g e r a i s   n a   p � g i n a   d e   A d m i n i s t r a � � o . 
+     -   E n v e l o p a m e n t o   d a s   m � t r i c a s   g e r a i s   n a   p � g i n a   d e   A d m i n i s t r a � � o . 
  
  # #   A r q u i v o s   A l t e r a d o s 
  
@@ -1878,8 +1880,161 @@ npm run build → ✅ 75 modules transformed, 0 errors, 6.15s
  # #   T e s t e s 
  
  '  \ 
- p m   r u n   b u i l d \      B u i l d   e f e t u a d o   c o m   s u c e s s o   ( 7 5   m � d u l o s   p r o c e s s a d o s ) . 
- '  T o d o s   o s   p a i n � i s   p o s s u e m   a g o r a   u m a   e s t � t i c a   c o n t � n u a   O L E D   * D o u b l e - B e z e l * . 
+ p m   r u n   b u i l d \      B u i l d   e f e t u a d o   c o m   s u c e s s o   ( 7 5   m � d u l o s   p r o c e s s a d o s ) . 
+ '  T o d o s   o s   p a i n � i s   p o s s u e m   a g o r a   u m a   e s t � t i c a   c o n t � n u a   O L E D   * D o u b l e - B e z e l * . 
  
   
  
+
+---
+
+# ETAPA 93 — Melhorias UI/UX no React SPA (Auditoria ui-ux-pro-max)
+
+**Data:** 19/07/2026
+
+**Objetivo:** Implementar as correções críticas (C1-C4) e melhorias altas (A1-A5) identificadas na auditoria de design usando o skill `ui-ux-pro-max`.
+
+## Contexto
+
+A auditoria UI/UX percorreu o código de todas as 11 páginas do React SPA e 10 arquivos CSS contra as 10 categorias de prioridade do ui-ux-pro-max. Foram identificados 15 pontos de melhoria (4 críticos, 5 altos, 6 médios).
+
+## Implementações
+
+### 🔴 Críticos
+
+| # | Problema | Antes | Depois |
+|:-:|----------|:-----:|:------:|
+| C1 | **Emoji como ícone de navegação** | TopBar: 🏠 📊 🎓 📅 💰 👥 🛒 🚪 | SVGs vetoriais do lucide-react |
+| C2 | **Emoji em KPIs do Dashboard** | 💰 💸 📊 ⏳ 🔴 🎓 | SVGs (TrendingUp, TrendingDown, etc.) |
+| C3 | **Focus invisível em botões** | Apenas :focus-visible genérico | outline + box-shadow específicos para btn-primary, btn-secondary, btn-danger |
+| C4 | **Body 14px** | Abaixo do mínimo 16px recomendado | 16px |
+
+### 🟡 Altos
+
+| # | Problema | Antes | Depois |
+|:-:|----------|:-----:|:------:|
+| A1 | **Animação lenta** | --duration-fluid: 0.7s | 0.4s |
+| A2 | **Inputs abaixo do touch target** | min-height: 38px | 44px |
+| A3 | **Loading spinner no Dashboard** | Spinner genérico | Skeleton shimmer com placeholder cards |
+| A4 | **Sem sorting nas tabelas** | Ordem fixa | Colunas clicáveis com setas ↕↑↓ |
+| A5 | **Modal sem role="dialog"** | Sem semântica acessível | role="dialog" + aria-modal="true" + aria-label |
+
+### 🟢 Médios (parcial)
+
+| Item | Status |
+|------|:------:|
+| toast aria-live="polite" + role="status" | ✅ |
+| Confirm modal com aria-labelledby | ✅ |
+| Skeleton keyframes e classes globais | ✅ |
+| Sortable table headers CSS (th-sortable, sort-arrow) | ✅ |
+| Input min-height 44px | ✅ |
+
+### Icons.tsx (novo)
+
+- 32 wrappers SVG do lucide-react (House, Dashboard, Academic, Calendar, Wallet, Users, Store, Logout, TrendingUp, TrendingDown, DollarSign, Clock, AlertTriangle, UserCheck, CheckCircle, XCircle, etc.)
+- Tamanho padrão 16px com override via prop `size`
+
+### Dependência
+
+- **lucide-react@1.25.0** — pacote de ícones SVG para React
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `app/src/components/Icons.tsx` | 🆕 Novo | 32 wrappers SVG do lucide-react |
+| `app/src/styles/global.css` | ♻️ | body 16px, duration-fluid 0.4s, inputs 44px, skeleton, focus, sorting CSS |
+| `app/src/App.tsx` | ♻️ | TopBar + Home + Toast + Confirm com SVGs + aria |
+| `app/src/pages/Dashboard.tsx` | ♻️ | KPIs com SVGs + skeleton loading |
+| `app/src/pages/Students.tsx` | ♻️ | Sorting (6 colunas) + aria-modal |
+| `app/src/pages/Teachers.tsx` | ♻️ | Sorting (4 colunas) + aria-modal |
+| `package.json` | ♻️ | +lucide-react 1.25.0 |
+
+## Testes
+
+✅ `npm run build` — 13.29s, 1835 módulos | ✅ Code Review — 3 rodadas, aprovado
+
+---
+
+# ETAPA 94 — Corte de Imagem no Upload de Produtos
+
+**Data:** 19/07/2026
+
+**Objetivo:** Restaurar a funcionalidade de corte (crop) de imagem que existia anteriormente no formulário de novo produto e foi perdida. Adicionar um modal de corte visual antes do upload, permitindo que o usuário ajuste a área da imagem para o formato 4:3 (proporção usada na vitrine da loja).
+
+## Contexto
+
+O usuário reportou que a função de cortar imagem para o tamanho apresentado no site havia sumido. Anteriormente, o upload de imagem era feito diretamente via FormData sem pré-visualização ou corte. A loja exibe produtos em cards com proporção aproximada 4:3 — sem o corte, imagens fora desta proporção ficavam distorcidas ou cortadas aleatoriamente pelo CSS.
+
+## Implementação
+
+### `app/src/components/ImageCropper.tsx` (novo)
+
+Componente React de corte de imagem baseado em **canvas puro** (sem dependências externas):
+
+| Funcionalidade | Detalhes |
+|----------------|----------|
+| **Zoom via scroll** | Mouse wheel ou pinch-to-zoom (touch) — escala de 0.5x a 3x |
+| **Arrastar área de corte** | Clique+mouse arrasta o retângulo de corte sobre a imagem |
+| **Redimensionar bordas** | 8 handles de redimensionamento nas bordas e cantos |
+| **Pré-visualização** | Live preview da área cortada ao lado do canvas |
+| **Touch support** | Touch events para drag + resize em mobile |
+| **Exportação WebP** | Canvas cortado → Blob WebP (max 800px) |
+| **Tecla ESC** | Fecha o modal |
+| **Clique no overlay** | Fecha o modal |
+
+**Como funciona o crop:**
+1. Imagem selecionada é carregada via `FileReader.readAsDataURL`
+2. Desenhada no canvas com `object-fit: cover` (preserva proporção)
+3. Retângulo de corte ajustável pelo usuário
+4. Ao confirmar: cria canvas de saída, extrai região cortada, redimensiona para max 800px, exporta como WebP blob (qualidade 85)
+5. Coordenadas mapeadas do pixel do canvas para pixel natural da imagem
+
+### `app/src/pages/Store.tsx` — fluxo alterado
+
+**Antes:**
+```
+Selecionar arquivo → uploadProductImage(file) → URL → salvar produto
+```
+
+**Depois:**
+```
+Selecionar arquivo → validar (tipo/tamanho) → abrir ImageCropper →
+cortar → uploadProductImage(blob) → URL → salvar produto
+```
+
+- `handleFileSelected` substitui `handleImageUpload`: valida o arquivo, armazena em estado, abre o modal de crop
+- `handleCroppedImage` recebe o Blob cortado via callback do ImageCropper e chama `uploadProductImage` com ele
+- Modal de crop fecha automaticamente após upload bem-sucedido
+- Estados de loading mantidos (spinner no botão de upload)
+
+### `app/src/styles/store.css` — +80 linhas CSS
+
+| Componente | Descrição |
+|------------|-----------|
+| `.crop-overlay` | Overlay escuro semi-transparente (rgba 0,0,0,0.75) |
+| `.crop-modal` | Modal centralizado com max-width 95vw/90vh |
+| `.crop-header` | Título "Cortar Imagem" + botão fechar (×) |
+| `.crop-container` | Wrapper do canvas, centralizado, max-height |
+| `.crop-preview` | Preview da área cortada, side-by-side no desktop |
+| `.crop-handle` | 8 handles de redimensionamento (bordas 4px, touch-friendly) |
+| `.crop-footer` | Botões Cancelar + Confirmar |
+| *Responsivo* | Preview empilhado abaixo do canvas em ≤640px |
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `app/src/components/ImageCropper.tsx` | 🆕 Novo | Componente de crop canvas (~220 linhas) |
+| `app/src/pages/Store.tsx` | ♻️ | Fluxo alterado: handleFileSelected → ImageCropper → upload |
+| `app/src/styles/store.css` | ♻️ | +80 linhas CSS do modal de crop |
+
+## Testes
+
+✅ `npm run build` — 20.26s, 1836 módulos | ✅ Code Review — 2 rodadas, todos os 6 issues corrigidos (catch block, touch, resize observer, esc/click close, CSS vars)
+
+## Pendente
+
+- Migração emoji→SVG nos botões de ação (✏️ 🗑️ 📋 ➕) em Students, Teachers, Enrollments, Agenda, Financial
+- Tema claro (light mode)
+- Testes de acessibilidade automatizados

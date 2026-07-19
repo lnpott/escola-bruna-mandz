@@ -12,6 +12,7 @@ import Store from '@/pages/Store';
 import StorageManager from '@/pages/StorageManager';
 import Login from '@/pages/Login';
 import { isAuthenticated, logout } from '@/services/api';
+import { IconHouse, IconDashboard, IconAcademic, IconCalendar, IconWallet, IconUsers, IconStore, IconLogout, IconCheckCircle, IconXCircle } from '@/components/Icons';
 import './styles/global.css';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -50,6 +51,8 @@ export const useApp = () => useContext(AppContext);
 
 function AppProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    const ToastIcon = ({ type }: { type: 'success' | 'error' }) =>
+        type === 'success' ? <IconCheckCircle size={16} /> : <IconXCircle size={16} />;
     const [confirmState, setConfirmState] = useState<{
         options: ConfirmOptions;
         resolve: (value: boolean) => void;
@@ -81,24 +84,24 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         <AppContext.Provider value={{ showToast, confirm }}>
             {children}
             {/* ── Global Toast Container ── */}
-            <div className="toast-container" aria-live="polite">
+            <div className="toast-container" aria-live="polite" role="status">
                 {toasts.map(t => (
                     <div
                         key={t.id}
                         className={`toast ${t.type === 'error' ? 'toast-error' : 'toast-success'}`}
                         onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
                     >
-                        <span className="toast-icon">{t.type === 'error' ? '❌' : '✅'}</span>
+                        <span className="toast-icon"><ToastIcon type={t.type} /></span>
                         <span className="toast-text">{t.text}</span>
                     </div>
                 ))}
             </div>
             {/* ── Global Confirm Modal ── */}
             {confirmState && (
-                <div className="modal-overlay" onClick={() => handleConfirm(false)}>
+                <div className="modal-overlay" onClick={() => handleConfirm(false)} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
                     <div className="confirm-modal bezel-shell" onClick={e => e.stopPropagation()}>
                         <div className="bezel-core">
-                            <h3 className="confirm-title">{confirmState.options.title}</h3>
+                            <h3 id="confirm-title" className="confirm-title">{confirmState.options.title}</h3>
                             <p className="confirm-message">{confirmState.options.message}</p>
                             <div className="confirm-actions">
                                 <button
@@ -149,14 +152,24 @@ function TopBar() {
     };
 
     const tabs = [
-        { path: '/', label: 'Início', icon: '🏠' },
-        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/academico', label: 'Acadêmico', icon: '🎓' },
-        { path: '/agenda', label: 'Agenda', icon: '📅' },
-        { path: '/financeiro', label: 'Financeiro', icon: '💰' },
-        { path: '/admin', label: 'Admin', icon: '👥' },
-        { path: '/loja', label: 'Loja', icon: '🛒' },
+        { path: '/', label: 'Início', icon: 'House' },
+        { path: '/dashboard', label: 'Dashboard', icon: 'Dashboard' },
+        { path: '/academico', label: 'Acadêmico', icon: 'Academic' },
+        { path: '/agenda', label: 'Agenda', icon: 'Calendar' },
+        { path: '/financeiro', label: 'Financeiro', icon: 'Wallet' },
+        { path: '/admin', label: 'Admin', icon: 'Users' },
+        { path: '/loja', label: 'Loja', icon: 'Store' },
     ];
+
+    const iconMap: Record<string, React.ReactNode> = {
+        House: <IconHouse />,
+        Dashboard: <IconDashboard />,
+        Academic: <IconAcademic />,
+        Calendar: <IconCalendar />,
+        Wallet: <IconWallet />,
+        Users: <IconUsers />,
+        Store: <IconStore />,
+    };
 
     const isActive = (path: string) => {
         if (path === '/') return location.pathname === '/';
@@ -177,13 +190,13 @@ function TopBar() {
                             to={tab.path}
                             className={`topbar-link ${isActive(tab.path) ? 'active' : ''}`}
                         >
-                            <span className="topbar-link-icon">{tab.icon}</span>
+                            <span className="topbar-link-icon">{iconMap[tab.icon]}</span>
                             <span className="topbar-link-label">{tab.label}</span>
                         </Link>
                     ))}
                 </nav>
                 <button className="topbar-logout" onClick={handleLogout} title="Sair">
-                    <span className="topbar-link-icon">🚪</span>
+                    <span className="topbar-link-icon"><IconLogout /></span>
                     <span className="topbar-link-label">Sair</span>
                 </button>
             </div>
@@ -270,7 +283,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 //  HOME — Grade de módulos
 // ═══════════════════════════════════════════════════════════════════
 
-function ModuleCard({ icon, title, description, to }: { icon: string; title: string; description: string; to: string }) {
+function ModuleCard({ icon, title, description, to }: { icon: React.ReactNode; title: string; description: string; to: string }) {
     return (
         <Link to={to} className="module-card">
             <div className="module-icon">{icon}</div>
@@ -287,12 +300,12 @@ function Home() {
                 <p className="app-subtitle">Escola Bruna Mandz</p>
             </div>
             <div className="module-grid">
-                <ModuleCard icon="📊" title="Dashboard" description="Indicadores em tempo real da escola" to="/dashboard" />
-                <ModuleCard icon="🎓" title="Acadêmico" description="Alunos, professores e matrículas" to="/academico" />
-                <ModuleCard icon="📅" title="Agenda" description="Aulas, eventos e conflitos de horário" to="/agenda" />
-                <ModuleCard icon="💰" title="Financeiro" description="Contas a receber/pagar, fluxo de caixa" to="/financeiro" />
-                <ModuleCard icon="👥" title="Administração" description="Usuários, perfis e permissões" to="/admin" />
-                <ModuleCard icon="🛒" title="Loja" description="Produtos e pedidos da loja" to="/loja" />
+                <ModuleCard icon={<IconDashboard size={40} />} title="Dashboard" description="Indicadores em tempo real da escola" to="/dashboard" />
+                <ModuleCard icon={<IconAcademic size={40} />} title="Acadêmico" description="Alunos, professores e matrículas" to="/academico" />
+                <ModuleCard icon={<IconCalendar size={40} />} title="Agenda" description="Aulas, eventos e conflitos de horário" to="/agenda" />
+                <ModuleCard icon={<IconWallet size={40} />} title="Financeiro" description="Contas a receber/pagar, fluxo de caixa" to="/financeiro" />
+                <ModuleCard icon={<IconUsers size={40} />} title="Administração" description="Usuários, perfis e permissões" to="/admin" />
+                <ModuleCard icon={<IconStore size={40} />} title="Loja" description="Produtos e pedidos da loja" to="/loja" />
             </div>
         </div>
     );

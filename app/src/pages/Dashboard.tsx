@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '@/services/api';
 import type { DashboardData, LessonBrief, OrderBrief, ProductBrief } from '@/types';
+import { IconTrendingUp, IconTrendingDown, IconDollarSign, IconClock, IconAlertTriangle, IconUserCheck, IconCalendar, IconWallet, IconUsers } from '@/components/Icons';
 import '@/styles/dashboard.css';
 
 function formatCurrency(value: number): string {
@@ -20,7 +21,7 @@ function isNewOrder(createdAt: string): boolean {
 type KpiColor = 'good' | 'warn' | 'bad' | 'neutral';
 
 function KpiCard({ icon, label, value, color = 'neutral', subtitle, to }: {
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     value: string;
     color?: KpiColor;
@@ -147,7 +148,38 @@ export default function Dashboard() {
     if (loading && !data) {
         return (
             <div className="dash-page">
-                <div className="loading">Carregando dashboard...</div>
+                <div className="dash-header">
+                    <div>
+                        <div className="skeleton" style={{ width: 180, height: 28, marginBottom: 8 }} />
+                        <div className="skeleton" style={{ width: 250, height: 16 }} />
+                    </div>
+                </div>
+                <div className="dash-kpi-grid">
+                    {[1,2,3,4,5,6].map(i => (
+                        <div key={i} className="dash-kpi-card bezel-shell">
+                            <div className="bezel-core">
+                                <div className="skeleton skeleton-kpi" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="dash-split">
+                    <div className="dash-card bezel-shell">
+                        <div className="bezel-core">
+                            <div className="skeleton" style={{ height: 200 }} />
+                        </div>
+                    </div>
+                    <div className="dash-card bezel-shell">
+                        <div className="bezel-core">
+                            <div className="skeleton" style={{ height: 200 }} />
+                        </div>
+                    </div>
+                </div>
+                <div className="dash-card bezel-shell">
+                    <div className="bezel-core">
+                        <div className="skeleton" style={{ height: 160 }} />
+                    </div>
+                </div>
             </div>
         );
     }
@@ -189,42 +221,42 @@ export default function Dashboard() {
             {/* ── KPI Grid ───────────────────────────── */}
             <div className="dash-kpi-grid">
                 <KpiCard
-                    icon="💰"
+                    icon={<IconTrendingUp />}
                     label="Receita do Mês"
                     value={formatCurrency(financial.revenue)}
                     color="good"
                     to="/financeiro"
                 />
                 <KpiCard
-                    icon="💸"
+                    icon={<IconTrendingDown />}
                     label="Despesas do Mês"
                     value={formatCurrency(financial.outgoings)}
                     color="warn"
                     to="/financeiro"
                 />
                 <KpiCard
-                    icon="📊"
+                    icon={<IconDollarSign />}
                     label="Saldo do Mês"
                     value={formatCurrency(financial.balance)}
                     color={getBalanceColor(financial.balance)}
                     to="/financeiro"
                 />
                 <KpiCard
-                    icon="⏳"
+                    icon={<IconClock />}
                     label="Pendentes"
                     value={formatCurrency(financial.pending_tuitions)}
                     color="warn"
                     to="/financeiro"
                 />
                 <KpiCard
-                    icon="🔴"
+                    icon={<IconAlertTriangle />}
                     label="Alunos em Atraso"
                     value={String(financial.overdue_students)}
                     color={financial.overdue_students > 0 ? 'bad' : 'good'}
                     to="/financeiro"
                 />
                 <KpiCard
-                    icon="🎓"
+                    icon={<IconUserCheck />}
                     label="Alunos Ativos"
                     value={String(school.active_students)}
                     color="good"

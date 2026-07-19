@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/App';
 import {
@@ -125,6 +125,8 @@ export default function Students() {
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<StudentStatus | ''>('');
+    const [sortKey, setSortKey] = useState<string>('name');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<StudentForm>(emptyForm);
@@ -210,16 +212,52 @@ export default function Students() {
         loadStudents();
     }, [loadStudents]);
 
+    // ── Sort helper ──────────────────────────────────────────
+    function toggleSort(key: string) {
+        if (sortKey === key) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortDir('asc');
+        }
+    }
+
+    function getSortArrow(key: string): string {
+        if (sortKey !== key) return '↕';
+        return sortDir === 'asc' ? '↑' : '↓';
+    }
+
     // ── Filter ───────────────────────────────────────────────
-    const filtered = students.filter((s) => {
-        const matchesSearch =
-            !search ||
-            s.name.toLowerCase().includes(search.toLowerCase()) ||
-            (s.email || '').toLowerCase().includes(search.toLowerCase()) ||
-            (s.phone || '').includes(search);
-        const matchesStatus = !statusFilter || s.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
+    const filtered = useMemo(() => {
+        let list = students.filter((s) => {
+            const matchesSearch =
+                !search ||
+                s.name.toLowerCase().includes(search.toLowerCase()) ||
+                (s.email || '').toLowerCase().includes(search.toLowerCase()) ||
+                (s.phone || '').includes(search);
+            const matchesStatus = !statusFilter || s.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+
+        // Sort
+        list.sort((a, b) => {
+            let aVal: string, bVal: string;
+            switch (sortKey) {
+                case 'name': aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase(); break;
+                case 'cpf': aVal = (a.cpf || '').toLowerCase(); bVal = (b.cpf || '').toLowerCase(); break;
+                case 'email': aVal = (a.email || '').toLowerCase(); bVal = (b.email || '').toLowerCase(); break;
+                case 'phone': aVal = (a.phone || '').toLowerCase(); bVal = (b.phone || '').toLowerCase(); break;
+                case 'instruments': aVal = (a.instruments || '').toLowerCase(); bVal = (b.instruments || '').toLowerCase(); break;
+                case 'status': aVal = a.status; bVal = b.status; break;
+                default: aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase();
+            }
+            if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return list;
+    }, [students, search, statusFilter, sortKey, sortDir]);
 
     // ── Modal ────────────────────────────────────────────────
     function openNew() {
@@ -426,12 +464,24 @@ export default function Students() {
                         <table className="students-table">
                             <thead>
                                 <tr>
-                                <th>Nome</th>
-                                <th>CPF</th>
-                                <th>E-mail</th>
-                                <th>Telefone</th>
-                                <th>Instrumento</th>
-                                <th>Status</th>
+                                <th className="th-sortable" onClick={() => toggleSort('name')}>
+                                    Nome <span className="sort-arrow">{getSortArrow('name')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('cpf')}>
+                                    CPF <span className="sort-arrow">{getSortArrow('cpf')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('email')}>
+                                    E-mail <span className="sort-arrow">{getSortArrow('email')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('phone')}>
+                                    Telefone <span className="sort-arrow">{getSortArrow('phone')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('instruments')}>
+                                    Instrumento <span className="sort-arrow">{getSortArrow('instruments')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('status')}>
+                                    Status <span className="sort-arrow">{getSortArrow('status')}</span>
+                                </th>
                                 <th>Origem</th>
                                 <th>Ações</th>
                             </tr>
@@ -493,7 +543,7 @@ export default function Students() {
 
             {/* ── Modal ──────────────────────────────────── */}
             {showModal && (
-                <div className="modal-overlay" onClick={closeModal}>
+                <div className="modal-overlay" onClick={closeModal} role="dialog" aria-modal="true" aria-label={editingId ? 'Editar aluno' : 'Novo aluno'}>
                     <div className="modal-content bezel-shell wizard-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="bezel-core">
                         {/* Wizard Step Indicator (só na criação) */}

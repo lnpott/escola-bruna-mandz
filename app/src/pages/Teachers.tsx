@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '@/App';
 import type { Teacher } from '@/types';
 import { DAY_LABELS } from '@/types';
 import { fetchTeachers, createTeacher, updateTeacher, deleteTeacher } from '@/services/api';
+
 import '@/styles/teachers.css';
 
 const WEEKDAYS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'] as const;
@@ -38,6 +39,8 @@ export default function Teachers() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
+    const [sortKey, setSortKey] = useState<string>('name');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<TeacherForm>(emptyForm);
@@ -57,13 +60,46 @@ export default function Teachers() {
 
     useEffect(() => { load(); }, [load]);
 
-    // ── Filter ───────────────────────────────────────────────
-    const filtered = teachers.filter((t) =>
-        !search ||
-        t.name.toLowerCase().includes(search.toLowerCase()) ||
-        (t.specialty || '').toLowerCase().includes(search.toLowerCase()) ||
-        (t.phone || '').includes(search)
-    );
+    // ── Sort helper ──────────────────────────────────────────
+    function toggleSort(key: string) {
+        if (sortKey === key) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortDir('asc');
+        }
+    }
+
+    function getSortArrow(key: string): string {
+        if (sortKey !== key) return '↕';
+        return sortDir === 'asc' ? '↑' : '↓';
+    }
+
+    // ── Filter + Sort ────────────────────────────────────────
+    const filtered = useMemo(() => {
+        let list = teachers.filter((t) =>
+            !search ||
+            t.name.toLowerCase().includes(search.toLowerCase()) ||
+            (t.specialty || '').toLowerCase().includes(search.toLowerCase()) ||
+            (t.phone || '').includes(search)
+        );
+
+        list.sort((a, b) => {
+            let aVal: string, bVal: string;
+            switch (sortKey) {
+                case 'name': aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase(); break;
+                case 'specialty': aVal = (a.specialty || '').toLowerCase(); bVal = (b.specialty || '').toLowerCase(); break;
+                case 'phone': aVal = (a.phone || '').toLowerCase(); bVal = (b.phone || '').toLowerCase(); break;
+                case 'rate': return sortDir === 'asc' ? a.rate_per_class - b.rate_per_class : b.rate_per_class - a.rate_per_class;
+                default: aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase();
+            }
+            if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return list;
+    }, [teachers, search, sortKey, sortDir]);
 
     // ── Modal ────────────────────────────────────────────────
     function openNew() {
@@ -218,12 +254,20 @@ export default function Teachers() {
                         <table className="teachers-table">
                         <thead>
                             <tr>
-                                <th>Nome</th>
+                                <th className="th-sortable" onClick={() => toggleSort('name')}>
+                                    Nome <span className="sort-arrow">{getSortArrow('name')}</span>
+                                </th>
                                 <th>CPF</th>
-                                <th>Telefone</th>
-                                <th>Especialidade</th>
+                                <th className="th-sortable" onClick={() => toggleSort('phone')}>
+                                    Telefone <span className="sort-arrow">{getSortArrow('phone')}</span>
+                                </th>
+                                <th className="th-sortable" onClick={() => toggleSort('specialty')}>
+                                    Especialidade <span className="sort-arrow">{getSortArrow('specialty')}</span>
+                                </th>
                                 <th>Dias</th>
-                                <th>Valor/Aula</th>
+                                <th className="th-sortable" onClick={() => toggleSort('rate')}>
+                                    Valor/Aula <span className="sort-arrow">{getSortArrow('rate')}</span>
+                                </th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -252,7 +296,7 @@ export default function Teachers() {
 
             {/* ── Modal ──────────────────────────────────── */}
             {showModal && (
-                <div className="modal-overlay" onClick={closeModal}>
+                <div className="modal-overlay" onClick={closeModal} role="dialog" aria-modal="true" aria-label={editingId ? 'Editar professor' : 'Novo professor'}>
                     <div className="modal-content bezel-shell" onClick={(e) => e.stopPropagation()}>
                         <div className="bezel-core">
                         <h2>{editingId ? 'Editar Professor' : 'Novo Professor'}</h2>
