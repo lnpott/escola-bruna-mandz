@@ -144,6 +144,9 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
             return;
         }
 
+        // PRIMEIRO: desenhar a imagem completa no canvas
+        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
         try {
             // Capturar a região de crop do canvas
             const imageData = ctx.getImageData(cropX, cropY, cropW, cropH);
