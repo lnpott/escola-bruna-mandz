@@ -60,7 +60,7 @@ export async function handleListPublicProducts(req, res, supabase) {
     const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('active', true)
+        .or('active.eq.true,coming_soon.eq.true')
         .order('created_at', { ascending: true });
 
     if (error) {
