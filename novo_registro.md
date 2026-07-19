@@ -60,6 +60,7 @@
 | [92](#etapa-92--redesign-high-end-painel-administrativo) | 18/07 | Redesign High-End do painel administrativo (/app) | 🎨 Design |
 | [93](#etapa-93--melhorias-uiux-no-react-spa) | 19/07 | Melhorias UI/UX no React SPA | 🎨 Design |
 | [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | ✨ Feature |
+| [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botões + reset) | ✨ Feature |
 
 ---
 
@@ -2033,7 +2034,71 @@ cortar → uploadProductImage(blob) → URL → salvar produto
 
 ✅ `npm run build` — 20.26s, 1836 módulos | ✅ Code Review — 2 rodadas, todos os 6 issues corrigidos (catch block, touch, resize observer, esc/click close, CSS vars)
 
+---
+
+# ETAPA 95 — Zoom no ImageCropper
+
+**Data:** 19/07/2026
+
+**Objetivo:** Adicionar controle de zoom ao modal de corte de imagem (ImageCropper) — permitir que o usuário amplie a imagem para fazer cortes mais precisos.
+
+## Contexto
+
+Na Etapa 94, o ImageCropper foi implementado com canvas puro mas sem opção de zoom. O usuário solicitou a funcionalidade para poder ampliar a imagem antes de selecionar a região de corte.
+
+## Implementações
+
+### `app/src/components/ImageCropper.tsx` — zoom completo
+
+**Estado de zoom:**
+- Variável `zoom` com `useState(1)` — range 1.0 a 5.0, step 0.15
+- Constantes `MIN_ZOOM = 1`, `MAX_ZOOM = 5`, `ZOOM_STEP = 0.15`
+
+**Zoom com scroll do mouse:**
+- Handler `onWheel` no canvas — `deltaY < 0` zoom in, `deltaY > 0` zoom out
+- `e.preventDefault()` para não scrollar a página
+- Indicador flutuante `.crop-zoom-indicator` aparece no canto inferior direito com `opacity: 0 → 1`
+- Auto-hide após 1.5s via `setTimeout` + `clearTimeout` (debounce)
+
+**Botões de zoom no rodapé:**
+- `[−]` — diminui zoom (disabled em 1.0x)
+- `[100%]` — reseta para 1.0x (disabled em 1.0x)
+- `[+]` — aumenta zoom (disabled em 5.0x)
+- Botões com 34×34px, hover states, `user-select: none`
+
+**Coordenadas com zoom:**
+- No `useEffect` de desenho: após calcular `drawX/Y/W/H` (cover-fit), aplica: `zDrawW = drawW * zoom`, `zDrawH = drawH * zoom`, `zDrawX/Y` mantendo centro fixo
+- No `handleConfirm`: mesma transformação para mapear crop canvas → coordenadas naturais da imagem
+- `scaleToNatural = img.naturalWidth / zDrawW` — fator de escala correto com zoom
+
+### `app/src/styles/store.css` — CSS para controles de zoom
+
+| Classe | Função |
+|--------|--------|
+| `.crop-footer-row` | Flex row: zoom controls (esquerda) + actions (direita) |
+| `.crop-zoom-controls` | Container flex dos botões de zoom |
+| `.crop-zoom-btn` | 34×34px, border, hover/disabled states |
+| `.crop-zoom-btn-label` | Largura variável, monospace, tabular-nums (ex: `100%`) |
+| `.crop-zoom-indicator` | Overlay flutuante canto inferior direito, fade transition |
+
+Responsivo: `.crop-footer-row` empilha verticalmente em ≤640px; zoom controls centralizados.
+
+## Arquivos Alterados
+
+| Arquivo | Tipo | Mudança |
+|---------|:----:|---------|
+| `app/src/components/ImageCropper.tsx` | ♻️ | +zoom state, +onWheel, +zoom buttons, +coordenadas zoomed (~40 linhas adicionadas) |
+| `app/src/styles/store.css` | ♻️ | +controles zoom CSS (~50 linhas) |
+
+## Testes
+
+✅ `npm run build` — 8.82s, 1836 módulos | ✅ Code Review — aprovado sem issues
+
 ## Pendente
+
+- Migração emoji→SVG nos botões de ação (✏️ 🗑️ 📋 ➕) em Students, Teachers, Enrollments, Agenda, Financial
+- Tema claro (light mode)
+- Testes de acessibilidade automatizados
 
 - Migração emoji→SVG nos botões de ação (✏️ 🗑️ 📋 ➕) em Students, Teachers, Enrollments, Agenda, Financial
 - Tema claro (light mode)

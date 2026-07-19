@@ -21,10 +21,14 @@ interface ImageCropperProps {
 }
 
 const ASPECT_RATIO = 4 / 3; // Largura / Altura
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+const ZOOM_STEP = 0.15;
 
 export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const cancelledRef = useRef(false);
+    const wheelTimeoutRef = useRef<number | null>(null);
 
     // Estado da imagem
     const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -32,6 +36,9 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
 
     // Estado do crop (em pixels relativos ao container)
     const [crop, setCrop] = useState({ x: 0, y: 0, width: 100, height: 100 });
+
+    // Estado do zoom
+    const [zoom, setZoom] = useState(1);
 
     // Estado do drag
     const [dragging, setDragging] = useState<'move' | 'resize' | null>(null);
@@ -126,6 +133,14 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
             drawY = (ch - drawH) / 2;
         }
 
+        // Aplicar zoom (centro fixo)
+        const centerX = drawX + drawW / 2;
+        const centerY = drawY + drawH / 2;
+        const zDrawW = drawW * zoom;
+        const zDrawH = drawH * zoom;
+        const zDrawX = centerX - zDrawW / 2;
+        const zDrawY = centerY - zDrawH / 2;
+
         ctx.clearRect(0, 0, cw, ch);
 
         // Verificar se o crop está dentro dos limites do canvas
@@ -136,7 +151,7 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
 
         // Se o crop area for muito pequena, desenha imagem completa
         if (cropW < 20 || cropH < 20) {
-            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            ctx.drawImage(img, zDrawX, zDrawY, zDrawW, zDrawH);
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'center';
@@ -144,8 +159,8 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
             return;
         }
 
-        // PRIMEIRO: desenhar a imagem completa no canvas
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        // PRIMEIRO: desenhar a imagem completa no canvas (com zoom)
+        ctx.drawImage(img, zDrawX, zDrawY, zDrawW, zDrawH);
 
         try {
             // Capturar a região de crop do canvas
@@ -272,6 +287,30 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
         setDragging(null);
     };
 
+    // ── Zoom com scroll do mouse ──
+    const onWheel = (e: React.WheelEvent) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+        setZoom(z => Math.round(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z + delta)) * 100) / 100);
+
+        // Feedback visual: mostrar indicador de zoom por 1.5s
+        if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+        const indicator = document.querySelector('.crop-zoom-indicator');
+        if (indicator) {
+            (indicator as HTMLElement).style.opacity = '1';
+            wheelTimeoutRef.current = window.setTimeout(() => {
+                (indicator as HTMLElement).style.opacity = '0';
+            }, 1500);
+        }
+    };
+
+    // ── Ações de zoom ──
+    const zoomIn = () => setZoom(z => Math.round(Math.min(MAX_ZOOM, z + ZOOM_STEP) * 100) / 100);
+    const zoomOut = () => setZoom(z => Math.round(Math.max(MIN_ZOOM, z - ZOOM_STEP) * 100) / 100);
+    const zoomReset = () => setZoom(1);
+
+    const zoomPercent = Math.round(zoom * 100);
+
     // ── Eventos de mouse ──
     const onMouseDown = (e: React.MouseEvent) => handlePointerDown(e.clientX, e.clientY);
     const onMouseMove = (e: React.MouseEvent) => { if (dragging) handlePointerMove(e.clientX, e.clientY); };
@@ -320,11 +359,19 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
             drawY = (ch - drawH) / 2;
         }
 
-        // Converter coordenadas do canvas para coordenadas da imagem original
-        const scaleToNatural = img.naturalWidth / drawW;
+        // Aplicar zoom (mesma lógica do useEffect)
+        const centerX = drawX + drawW / 2;
+        const centerY = drawY + drawH / 2;
+        const zDrawW = drawW * zoom;
+        const zDrawH = drawH * zoom;
+        const zDrawX = centerX - zDrawW / 2;
+        const zDrawY = centerY - zDrawH / 2;
 
-        const srcX = (crop.x - drawX) * scaleToNatural;
-        const srcY = (crop.y - drawY) * scaleToNatural;
+        // Converter coordenadas do canvas (com zoom) para coordenadas da imagem original
+        const scaleToNatural = img.naturalWidth / zDrawW;
+
+        const srcX = (crop.x - zDrawX) * scaleToNatural;
+        const srcY = (crop.y - zDrawY) * scaleToNatural;
         const srcW = crop.width * scaleToNatural;
         const srcH = crop.height * scaleToNatural;
 
@@ -370,6 +417,7 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
                         ref={canvasRef}
                         onMouseDown={onMouseDown}
                         onMouseMove={onMouseMove}
+                        onWheel={onWheel}
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         style={{ cursor: getCursor(), touchAction: 'none' }}
@@ -377,27 +425,56 @@ export default function ImageCropper({ file, onCrop, onCancel }: ImageCropperPro
                     {!imageLoaded && (
                         <div className="crop-loading">Carregando imagem...</div>
                     )}
+                    <div className="crop-zoom-indicator">{zoomPercent}%</div>
                 </div>
 
                 <div className="crop-footer">
                     <div className="crop-info">
-                        <span>Arraste para mover • Bordas para redimensionar</span>
+                        <span>Arraste para mover • Bordas para redimensionar • Scroll para zoom</span>
                         <span className="crop-dimensions">
                             {naturalSize.width > 0 && `${naturalSize.width}×${naturalSize.height}px`}
                         </span>
                     </div>
-                    <div className="crop-actions">
-                        <button type="button" className="btn-secondary" onClick={onCancel}>
-                            Cancelar
-                        </button>
-                        <button
-                            type="button"
-                            className="btn-primary"
-                            onClick={handleConfirm}
-                            disabled={!imageLoaded}
-                        >
-                            {imageLoaded ? '✅ Aplicar Corte e Enviar' : 'Carregando...'}
-                        </button>
+                    <div className="crop-footer-row">
+                        <div className="crop-zoom-controls">
+                            <button
+                                type="button"
+                                className="crop-zoom-btn"
+                                onClick={zoomOut}
+                                disabled={zoom <= MIN_ZOOM || !imageLoaded}
+                                title="Reduzir zoom"
+                                aria-label="Reduzir zoom"
+                            >−</button>
+                            <button
+                                type="button"
+                                className="crop-zoom-btn crop-zoom-btn-label"
+                                onClick={zoomReset}
+                                disabled={zoom === 1 || !imageLoaded}
+                                title="Resetar zoom"
+                                aria-label="Resetar zoom para 100%"
+                            >{zoomPercent}%</button>
+                            <button
+                                type="button"
+                                className="crop-zoom-btn"
+                                onClick={zoomIn}
+                                disabled={zoom >= MAX_ZOOM || !imageLoaded}
+                                title="Aumentar zoom"
+                                aria-label="Aumentar zoom"
+                            >+</button>
+                        </div>
+                        <div className="crop-actions">
+                            <button type="button" className="btn-secondary" onClick={onCancel}>
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={handleConfirm}
+                                disabled={!imageLoaded}
+                            >
+                                {imageLoaded ? 'Aplicar Corte e Enviar' : 'Carregando...'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
