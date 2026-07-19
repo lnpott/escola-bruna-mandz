@@ -70,6 +70,7 @@ export default function Store() {
         badge: '',
         image: '',
         active: true,
+        comingSoon: false,
     });
 
     // ── Orders state ───────────────────────────────────────────
@@ -130,6 +131,7 @@ export default function Store() {
             badge: p.badge || '',
             image: p.image || '',
             active: p.active,
+            comingSoon: p.comingSoon ?? false,
         });
         setShowProductModal(true);
     };
@@ -206,6 +208,7 @@ export default function Store() {
                     badge: prodForm.badge.trim() || undefined,
                     image: prodForm.image.trim() || undefined,
                     active: prodForm.active,
+                    coming_soon: prodForm.comingSoon,
                 });
                 showToast('Produto atualizado!');
             } else {
@@ -217,7 +220,8 @@ export default function Store() {
                     category: prodForm.category,
                     badge: prodForm.badge.trim() || undefined,
                     image: prodForm.image.trim() || undefined,
-                    active: true,
+                    active: false,
+                    coming_soon: prodForm.comingSoon,
                 });
                 showToast('Produto criado!');
             }
@@ -358,9 +362,12 @@ export default function Store() {
                                             </td>
                                             <td data-label="Badge">{p.badge || '—'}</td>
                                             <td data-label="Status">
-                                                <span className={`store-status-pill ${p.active ? 'active' : 'inactive'}`}>
-                                                    {p.active ? '✅ Ativo' : '⛔ Inativo'}
-                                                </span>
+                                                {p.comingSoon
+                                                    ? <span className="store-status-pill coming-soon">🕐 Em breve</span>
+                                                    : <span className={`store-status-pill ${p.active ? 'active' : 'inactive'}`}>
+                                                        {p.active ? '✅ Ativo' : '⛔ Inativo'}
+                                                      </span>
+                                                }
                                             </td>
                                             <td data-label="Ações">
                                                 <div className="store-actions">
@@ -369,6 +376,7 @@ export default function Store() {
                                                         className={`store-btn-sm ${p.active ? 'btn-warn' : 'btn-ok'}`}
                                                         onClick={() => handleToggleActive(p)}
                                                         title={p.active ? 'Desativar' : 'Ativar'}
+                                                        disabled={p.comingSoon}
                                                     >{p.active ? '⛔' : '✅'}</button>
                                                 </div>
                                             </td>
@@ -595,13 +603,29 @@ export default function Store() {
                                     <span className="store-form-hint">Formatos: JPEG, PNG, WebP. Máximo 2MB.</span>
                                 </div>
                             </div>
-                            {editingProduct && (
-                                <label className="store-checkbox-label">
-                                    <input type="checkbox" checked={prodForm.active}
-                                        onChange={e => setProdForm(f => ({ ...f, active: e.target.checked }))} />
-                                    Produto ativo (visível na vitrine)
-                                </label>
-                            )}
+                            <div className="store-form-group">
+                                <label>Status do Produto</label>
+                                <select
+                                    value={prodForm.comingSoon ? 'coming_soon' : prodForm.active ? 'active' : 'inactive'}
+                                    onChange={e => {
+                                        const v = e.target.value;
+                                        setProdForm(f => ({
+                                            ...f,
+                                            active: v === 'active',
+                                            comingSoon: v === 'coming_soon',
+                                        }));
+                                    }}
+                                >
+                                    <option value="active">✅ Ativo — visível e disponível para compra</option>
+                                    <option value="coming_soon">🕐 Em breve — visível, mas sem compra (clientes sinalizam interesse)</option>
+                                    <option value="inactive">⛔ Inativo — oculto na vitrine</option>
+                                </select>
+                                {prodForm.comingSoon && (
+                                    <span className="store-form-hint">
+                                        O produto aparece na vitrine com um botão "Tenho Interesse" no lugar de "Adicionar ao Carrinho".
+                                    </span>
+                                )}
+                            </div>
                             <div className="store-form-actions">
                                 <button type="submit" className="store-btn-primary">
                                     {editingProduct ? 'Salvar Alterações' : 'Criar Produto'}

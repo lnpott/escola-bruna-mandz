@@ -38,7 +38,7 @@ function normalizeProduct(product) {
 }
 
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'description', 'price', 'stock', 'active', 'category', 'badge', 'badge_color', 'image', 'variants',
+    'name', 'description', 'price', 'stock', 'active', 'coming_soon', 'category', 'badge', 'badge_color', 'image', 'variants',
 ];
 
 function auth(req, res) {
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
 
     // ── POST: criar novo produto ──────────────────────────────────────────────
     if (req.method === 'POST') {
-        const { name, description, price, stock, category, active, badge, badge_color, image } = req.body || {};
+        const { name, description, price, stock, category, active, coming_soon, badge, badge_color, image } = req.body || {};
 
         // Validações obrigatórias
         if (!name || typeof name !== 'string' || !name.trim()) {
@@ -97,6 +97,7 @@ export default async function handler(req, res) {
                 stock: Number(stock),
                 category: category.trim(),
                 active: active === true || active === 'true',
+                coming_soon: coming_soon === true || coming_soon === 'true',
                 badge: badge ? String(badge).trim() : null,
                 badge_color: badge_color ? String(badge_color).trim() : null,
                 image: normalizeProductImage(image) || '/brand/LOGOPRETO.png',

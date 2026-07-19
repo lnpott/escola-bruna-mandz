@@ -66,6 +66,7 @@ export function normalizeProduct(product) {
         price: Number(product?.price || 0),
         stock: Number(product?.stock || 0),
         active: Boolean(product?.active ?? true),
+        comingSoon: Boolean(product?.coming_soon ?? false),
         category: product?.category || 'acessorios',
         badge: product?.badge || null,
         badgeColor: product?.badge_color || null,

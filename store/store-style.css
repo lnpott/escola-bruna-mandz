@@ -203,6 +203,87 @@
     font-size: 0.6rem;
 }
 
+/* ── Em breve ───────────────────────────────────────────────────────────────── */
+.product-card--coming-soon {
+    opacity: 0.88;
+}
+
+.product-card--coming-soon .product-img-wrap {
+    position: relative;
+}
+
+.product-coming-soon-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(9, 9, 11, 0.35);
+    pointer-events: none;
+}
+
+.product-coming-soon-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+}
+
+.product-price--soon {
+    color: #71717a;
+    text-decoration: line-through;
+    text-decoration-color: #52525b;
+}
+
+.btn-interest {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    border-radius: 0.5rem;
+    border: 1.5px solid #7c3aed;
+    background: rgba(124, 58, 237, 0.10);
+    color: #a78bfa;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-interest:hover {
+    background: rgba(124, 58, 237, 0.22);
+    color: #c4b5fd;
+    border-color: #a78bfa;
+}
+
+.btn-interest--done,
+.btn-interest--done:hover {
+    background: rgba(22, 163, 74, 0.15);
+    color: #4ade80;
+    border-color: #16a34a;
+    cursor: default;
+}
+
+.product-coming-soon-msg {
+    font-size: 0.6rem;
+    color: #6d28d9;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.1rem;
+    opacity: 0.85;
+}
+
 /* ── Carrinho ───────────────────────────────────────────────────────────────── */
 .cart-empty {
     text-align: center;

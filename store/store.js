@@ -119,7 +119,7 @@ export function renderProducts() {
     }
 
     const filtered = PRODUCTS.filter(
-        (p) => p.active && (activeCategory === 'todos' || p.category === activeCategory)
+        (p) => (p.active || p.comingSoon) && (activeCategory === 'todos' || p.category === activeCategory)
     );
 
     if (!filtered.length) {
@@ -131,30 +131,38 @@ export function renderProducts() {
         return;
     }
 
-    area.innerHTML = filtered.map((product) => `
-        <article class="product-card" data-product-id="${product.id}">
+    area.innerHTML = filtered.map((product) => {
+        const isSoon = product.comingSoon;
+        return `
+        <article class="product-card${isSoon ? ' product-card--coming-soon' : ''}" data-product-id="${product.id}">
             <div class="product-img-wrap">
                 <img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" />
-                ${badgeHtml(product)}
+                ${isSoon ? '<span class="product-coming-soon-badge"><i class="fas fa-clock"></i> Em breve</span>' : badgeHtml(product)}
+                ${isSoon ? '<div class="product-coming-soon-overlay"></div>' : ''}
             </div>
             <div class="product-info">
                 <span class="product-category">${esc(categoryLabel(product.category))}</span>
                 <h3 class="product-name">${esc(product.name)}</h3>
                 <p class="product-desc">${esc(product.description || '')}</p>
-                ${variantHtml(product)}
+                ${isSoon ? '' : variantHtml(product)}
                 <div class="product-footer">
-                    <span class="product-price">${money.format(product.price)}</span>
-                    <button type="button" class="btn-add-cart" data-add-product="${product.id}">
-                        <i class="fas fa-cart-plus"></i> Adicionar
-                    </button>
+                    <span class="product-price${isSoon ? ' product-price--soon' : ''}">${money.format(product.price)}</span>
+                    ${isSoon
+                        ? `<button type="button" class="btn-interest" data-interest-product="${product.id}" data-product-name="${esc(product.name)}">
+                               <i class="fas fa-bell"></i> Tenho Interesse
+                           </button>`
+                        : `<button type="button" class="btn-add-cart" data-add-product="${product.id}">
+                               <i class="fas fa-cart-plus"></i> Adicionar
+                           </button>`
+                    }
                 </div>
-                <p class="product-stock">
-                    <i class="fas fa-box text-[10px]"></i> ${product.stock} em estoque
-                    <span class="product-xp">+${product.rewardXp} XP</span>
-                </p>
+                ${isSoon
+                    ? `<p class="product-coming-soon-msg"><i class="fas fa-info-circle"></i> Disponível em breve. Sinalize interesse para ser notificado!</p>`
+                    : `<p class="product-stock"><i class="fas fa-box text-[10px]"></i> ${product.stock} em estoque<span class="product-xp">+${product.rewardXp} XP</span></p>`
+                }
             </div>
-        </article>
-    `).join('');
+        </article>`;
+    }).join('');
 
     // Seleciona o primeiro tamanho por padrão
     area.querySelectorAll('.size-btn').forEach((btn) => {
@@ -272,6 +280,23 @@ document.addEventListener('click', (event) => {
     const clickedImg = event.target.closest('.product-img-wrap img');
     if (clickedImg) {
         openImageZoom(clickedImg.src, clickedImg.alt);
+        return;
+    }
+
+    // "Tenho Interesse" (produto Em breve)
+    const interestBtn = event.target.closest('[data-interest-product]');
+    if (interestBtn) {
+        const productName = interestBtn.dataset.productName || 'este produto';
+        interestBtn.innerHTML = '<i class="fas fa-check"></i> Interesse registrado!';
+        interestBtn.classList.add('btn-interest--done');
+        interestBtn.disabled = true;
+        window.showToast?.(`🔔 Interesse em "${productName}" registrado! Avisaremos quando estiver disponível.`);
+        // Restaura após 4s
+        setTimeout(() => {
+            interestBtn.innerHTML = '<i class="fas fa-bell"></i> Tenho Interesse';
+            interestBtn.classList.remove('btn-interest--done');
+            interestBtn.disabled = false;
+        }, 4000);
         return;
     }
 

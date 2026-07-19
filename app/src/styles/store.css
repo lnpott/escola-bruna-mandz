@@ -289,6 +289,11 @@
     background: var(--bg-hover);
     color: var(--text-tertiary);
 }
+.store-status-pill.coming-soon {
+    background: color-mix(in srgb, #7c3aed 15%, transparent);
+    color: #a78bfa;
+    border: 1px solid color-mix(in srgb, #7c3aed 30%, transparent);
+}
 .store-order-status {
     font-weight: 600;
     font-size: 12px;
