@@ -158,7 +158,7 @@ window.demonstrateSequence = async function () {
     showGameMessage('Ouça o exemplo...', 'demo');
     updateUI();
 
-    // Nível 1: 1000ms, Nível 2: 800ms, Nível 3: 600ms
+    // Nível 1: 1000ms, Nível 2: 800ms, Nível 3: 600ms, Nível 4: 400ms
     const baseDelay = 1200 - gameState.currentLevel * 200;
     const baseDelaySec = baseDelay / 1000;
 
@@ -212,7 +212,7 @@ window.handleKeyClick = function (noteId) {
         gameState.userNoteIndex++;
 
         if (gameState.userNoteIndex >= sequence.length) {
-            if (gameState.currentLevel < 3) {
+            if (gameState.currentLevel < 4) {
                 gameState.currentLevel++;
                 awardGameXp(25, 'Pianista Iniciante');
                 gameState.userNoteIndex = 0;
@@ -269,7 +269,7 @@ function updateUI() {
     const counterEl = document.getElementById('game-counter');
 
     if (levelEl && gameState.isPlaying) {
-        levelEl.textContent = `Nível ${gameState.currentLevel}/3`;
+        levelEl.textContent = `Nível ${gameState.currentLevel}/4`;
         levelEl.classList.remove('hidden');
     }
 
@@ -281,7 +281,7 @@ function updateUI() {
 
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
-        progressBar.style.width = `${(gameState.currentLevel / 3) * 100}%`;
+        progressBar.style.width = `${(gameState.currentLevel / 4) * 100}%`;
         progressBar.classList.remove('hidden');
     }
 

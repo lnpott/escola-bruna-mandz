@@ -61,6 +61,7 @@
 | [93](#etapa-93--melhorias-uiux-no-react-spa) | 19/07 | Melhorias UI/UX no React SPA | 🎨 Design |
 | [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | ✨ Feature |
 | [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botões + reset) | ✨ Feature |
+| [96](#etapa-96--jogo-do-piano-com-4-níveis-completos) | 19/07 | Jogo do Piano: 4 níveis com melodia completa | 🎮 Feature |
 
 ---
 
@@ -2100,6 +2101,120 @@ Responsivo: `.crop-footer-row` empilha verticalmente em ≤640px; zoom controls 
 - Tema claro (light mode)
 - Testes de acessibilidade automatizados
 
+---
+
+# ETAPA 96 — Jogo do Piano com 4 Níveis Completos
+
+**Data:** 19/07/2026
+
+**Objetivo:** Corrigir o jogo do piano que tinha 3 níveis mas deveria ter 4, deixando 3 notas da melodia "Ode à Alegria" (Beethoven) sem nunca serem tocadas.
+
+## Contexto
+
+O jogo "Simon Says" musical no site principal (`index.html`) usa a melodia **Ode à Alegria** com 15 notas. O código em `public/game.js` dividia em 3 níveis de 4 notas cada (`slice(0, 12)`), deixando as últimas 3 notas (índices 12-14: E, D, D) — o fechamento da melodia — **órfãs, nunca tocadas**.
+
+O usuário identificou que deveriam ser 4 partes.
+
+## Mudanças
+
+### `public/game.js` (4 alterações)
+
+| # | O quê | Antes | Depois |
+|:-:|-------|-------|--------|
+| 1 | Limite de avanço | `currentLevel < 3` | `< 4` |
+| 2 | UI do nível | `` Nível ${x}/3 `` | `` /4 `` |
+| 3 | Barra de progresso | `(x / 3) * 100` | `(x / 4) * 100` |
+| 4 | Comentário de velocidade | "Nível 3: 600ms" | "Nível 4: 400ms" |
+
+### `index.html` (1 alteração)
+
+| # | O quê | Antes | Depois |
+|:-:|-------|-------|--------|
+| 5 | Texto estático do nível | `Nível 1/3` | `Nível 1/4` |
+
+## Como o jogo fica
+
+| Nível | Notas | Velocidade | Progresso |
+|:-----:|:-----:|:----------:|:---------:|
+| 1 | 4 (E E F G) | 1000ms | 25% |
+| 2 | 8 (E E F G G F E D) | 800ms | 50% |
+| 3 | 12 (até D E) | 600ms | 75% |
+| **4** | **15 (E D D — MELODIA COMPLETA) 🎉** | **400ms** | **100%** |
+
+### Por que funciona
+
+- `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` — com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
+- Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nível 4
+- Condição `currentLevel < 4` faz níveis 1→2→3→4 avançarem e nível 4 completar o jogo
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentário) |
+| `index.html` | Texto estático `1/3` → `1/4` |
+
+## Testes
+
+✅ `npm run build` — 5.46s, 1836 módulos | ✅ Code Review — aprovado sem issues
+
 - Migração emoji→SVG nos botões de ação (✏️ 🗑️ 📋 ➕) em Students, Teachers, Enrollments, Agenda, Financial
 - Tema claro (light mode)
 - Testes de acessibilidade automatizados
+
+---
+
+# ETAPA 96 — Jogo do Piano com 4 Níveis Completos
+
+**Data:** 19/07/2026
+
+**Objetivo:** Corrigir o jogo do piano que tinha 3 níveis mas deveria ter 4, deixando 3 notas da melodia "Ode à Alegria" (Beethoven) sem nunca serem tocadas.
+
+## Contexto
+
+O jogo "Simon Says" musical no site principal (`index.html`) usa a melodia **Ode à Alegria** com 15 notas. O código em `public/game.js` dividia em 3 níveis de 4 notas cada (`slice(0, 12)`), deixando as últimas 3 notas (índices 12-14: E, D, D) — o fechamento da melodia — **órfãs, nunca tocadas**.
+
+O usuário identificou que deveriam ser 4 partes.
+
+## Mudanças
+
+### `public/game.js` (4 alterações)
+
+| # | O quê | Antes | Depois |
+|:-:|-------|-------|--------|
+| 1 | Limite de avanço | `currentLevel < 3` | `< 4` |
+| 2 | UI do nível | `` Nível ${x}/3 `` | `` /4 `` |
+| 3 | Barra de progresso | `(x / 3) * 100` | `(x / 4) * 100` |
+| 4 | Comentário de velocidade | "Nível 3: 600ms" | "Nível 4: 400ms" |
+
+### `index.html` (1 alteração)
+
+| # | O quê | Antes | Depois |
+|:-:|-------|-------|--------|
+| 5 | Texto estático do nível | `Nível 1/3` | `Nível 1/4` |
+
+## Como o jogo fica
+
+| Nível | Notas | Velocidade | Progresso |
+|:-----:|:-----:|:----------:|:---------:|
+| 1 | 4 (E E F G) | 1000ms | 25% |
+| 2 | 8 (E E F G G F E D) | 800ms | 50% |
+| 3 | 12 (até D E) | 600ms | 75% |
+| **4** | **15 (E D D — MELODIA COMPLETA) 🎉** | **400ms** | **100%** |
+
+### Por que funciona
+
+- `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` — com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
+- Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nível 4
+- Condição `currentLevel < 4` faz níveis 1→2→3→4 avançarem e nível 4 completar o jogo
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentário) |
+| `index.html` | Texto estático `1/3` → `1/4` |
+
+## Testes
+
+✅ `npm run build` — 5.46s, 1836 módulos | ✅ Code Review — aprovado sem issues
