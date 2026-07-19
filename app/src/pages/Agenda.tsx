@@ -3,6 +3,9 @@ import type { Lesson, LessonStatus, LessonType, Enrollment, Student, Teacher } f
 import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS, LESSON_TYPE_LABELS } from '@/types';
 import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments, fetchStudents, fetchTeachers } from '@/services/api';
 import { useApp } from '@/App';
+import {
+    IconPlus, IconEdit, IconTrash, IconClose, IconCalendar, IconDownload, IconCheckCircle, IconRefresh, IconBan,
+} from '@/components/Icons';
 import '@/styles/agenda.css';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -448,14 +451,14 @@ export default function Agenda() {
     // ── Render ─────────────────────────────────────────────────
     return (
         <div className="agenda-page">
-            <h1 className="agenda-title">📅 Agenda</h1>
+            <h1 className="agenda-title"><IconCalendar size={22} /> Agenda</h1>
 
             {/* ── Toolbar ──────────────────────────────────────── */}
             <div className="agenda-toolbar">
                 <button className="agenda-nav-btn" onClick={navigatePrev}>‹</button>
                 <span className="agenda-month-label">{viewLabel}</span>
                 <button className="agenda-nav-btn" onClick={navigateNext}>›</button>
-                <button className="agenda-nav-btn" onClick={navigateToday}>📅 Hoje</button>
+                <button className="agenda-nav-btn" onClick={navigateToday}><IconCalendar size={14} /> Hoje</button>
 
                 <div className="agenda-view-toggle">
                     <button
@@ -468,13 +471,13 @@ export default function Agenda() {
                     >Semana</button>
                 </div>
 
-                <button className="agenda-btn-new" onClick={() => openCreateModal()}>➕ Nova Aula</button>
+                <button className="agenda-btn-new" onClick={() => openCreateModal()}><IconPlus size={14} /> Nova Aula</button>
                 {allLessons.length > 0 && (
                     <button
                         className="agenda-btn-export"
                         onClick={() => exportCSV(allLessons, `aulas-${formatDate(new Date())}.csv`)}
                         title="Exportar CSV"
-                    >⬇ CSV</button>
+                    ><IconDownload size={14} /> CSV</button>
                 )}
             </div>
 
@@ -494,9 +497,9 @@ export default function Agenda() {
                 </select>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
                     <option value="">Todos os status</option>
-                    <option value="scheduled">📅 Agendada</option>
-                    <option value="completed">✅ Realizada</option>
-                    <option value="cancelled">❌ Cancelada</option>
+                    <option value="scheduled">Agendada</option>
+                    <option value="completed">Realizada</option>
+                    <option value="cancelled">Cancelada</option>
                 </select>
                 <select value={filterType} onChange={e => setFilterType(e.target.value)}>
                     <option value="">Todos os tipos</option>
@@ -511,15 +514,15 @@ export default function Agenda() {
                         setFilterTeacher('');
                         setFilterStatus('');
                         setFilterType('');
-                    }}>✕ Limpar filtros</button>
+                    }}><IconClose size={12} /> Limpar filtros</button>
                 ) : null}
             </div>
 
             {/* ── Summary ──────────────────────────────────────── */}
             <div className="agenda-summary">
                 <span>Total: <strong>{summary.total}</strong></span>
-                <span className="scheduled-count">📌 Agendadas: <strong>{summary.scheduled}</strong></span>
-                <span className="completed-count">✅ Realizadas: <strong>{summary.completed}</strong></span>
+                <span className="scheduled-count"><IconCalendar size={12} /> Agendadas: <strong>{summary.scheduled}</strong></span>
+                <span className="completed-count"><IconCheckCircle size={12} /> Realizadas: <strong>{summary.completed}</strong></span>
                 {allLessons.length > 0 && (
                     <span className="filtered-hint">
                         {filteredLessons.length < allLessons.length
@@ -597,7 +600,7 @@ export default function Agenda() {
                         <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                         <div className="agenda-modal-header">
                             <h3>{formatDayName(selectedDay)}</h3>
-                            <button className="agenda-modal-close" onClick={() => setSelectedDay(null)}>✕</button>
+                            <button className="agenda-modal-close" onClick={() => setSelectedDay(null)}><IconClose size={16} /></button>
                         </div>
                         <div className="agenda-modal-body">
                             {selectedDayLessons.length === 0 ? (
@@ -640,30 +643,30 @@ export default function Agenda() {
                                             )}
                                         </div>
                                         <div className="lesson-card-actions">
-                                            <button className="btn-lesson-action btn-edit" onClick={() => { setSelectedDay(null); handleEditLesson(l); }} title="Editar">✏️</button>
+                                            <button className="btn-lesson-action btn-edit" onClick={() => { setSelectedDay(null); handleEditLesson(l); }} title="Editar"><IconEdit size={14} /></button>
                                             {l.status === 'scheduled' && (
-                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar">🔄</button>
+                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar"><IconRefresh size={14} /></button>
                                             )}
                                             {l.status === 'scheduled' && (
-                                                <button className="btn-lesson-action btn-complete" onClick={() => handleStatusChange(l.id, 'completed')} title="Marcar como realizada">✅</button>
+                                                <button className="btn-lesson-action btn-complete" onClick={() => handleStatusChange(l.id, 'completed')} title="Marcar como realizada"><IconCheckCircle size={14} /></button>
                                             )}
                                             {l.status === 'scheduled' && (
-                                                <button className="btn-lesson-action btn-cancel" onClick={() => handleCancelLesson(l)} title="Cancelar aula">🚫</button>
+                                                <button className="btn-lesson-action btn-cancel" onClick={() => handleCancelLesson(l)} title="Cancelar aula"><IconBan size={14} /></button>
                                             )}
                                             {l.status === 'completed' && (
-                                                <button className="btn-lesson-action btn-revert" onClick={() => handleStatusChange(l.id, 'scheduled')} title="Reverter para agendada">↩️</button>
+                                                <button className="btn-lesson-action btn-revert" onClick={() => handleStatusChange(l.id, 'scheduled')} title="Reverter para agendada"><IconRefresh size={14} /></button>
                                             )}
                                             {l.status === 'cancelled' && (
-                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar (criar nova)">🔄</button>
+                                                <button className="btn-lesson-action btn-reschedule" onClick={() => { setSelectedDay(null); handleReschedule(l); }} title="Reagendar (criar nova)"><IconRefresh size={14} /></button>
                                             )}
-                                            <button className="btn-lesson-action btn-delete" onClick={() => handleDeleteLesson(l.id)} title="Excluir">🗑️</button>
+                                            <button className="btn-lesson-action btn-delete" onClick={() => handleDeleteLesson(l.id)} title="Excluir"><IconTrash size={14} /></button>
                                         </div>
                                     </div>
                                 ))
                             )}
                             <button className="agenda-btn-new" style={{ marginTop: 12, width: '100%' }}
                                 onClick={() => openCreateModal(selectedDay)}>
-                                ➕ Adicionar aula neste dia
+                                <IconPlus size={14} /> Adicionar aula neste dia
                             </button>
                         </div>
                         </div>
@@ -677,8 +680,8 @@ export default function Agenda() {
                     <div className="agenda-modal agenda-form-modal bezel-shell" onClick={e => e.stopPropagation()}>
                         <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                         <div className="agenda-modal-header">
-                            <h3>{form.id ? '✏️ Editar Aula' : '➕ Nova Aula'}</h3>
-                            <button className="agenda-modal-close" onClick={() => setShowCreateModal(false)}>✕</button>
+                            <h3>{form.id ? <><IconEdit size={16} /> Editar Aula</> : <><IconPlus size={16} /> Nova Aula</>}</h3>
+                            <button className="agenda-modal-close" onClick={() => setShowCreateModal(false)}><IconClose size={16} /></button>
                         </div>
                         <div className="agenda-modal-body">
                             <div className="agenda-form-grid">
@@ -744,9 +747,9 @@ export default function Agenda() {
                                     <div className="form-group">
                                         <label>Status</label>
                                         <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                                            <option value="scheduled">📅 Agendada</option>
-                                            <option value="completed">✅ Realizada</option>
-                                            <option value="cancelled">❌ Cancelada</option>
+                                            <option value="scheduled">Agendada</option>
+                                            <option value="completed">Realizada</option>
+                                            <option value="cancelled">Cancelada</option>
                                         </select>
                                     </div>
                                 )}

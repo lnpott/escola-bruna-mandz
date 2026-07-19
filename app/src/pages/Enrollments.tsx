@@ -5,6 +5,7 @@ import type { Enrollment } from '@/types';
 import { DAY_LABELS } from '@/types';
 import { fetchEnrollments, createEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchTeachers } from '@/services/api';
 import type { Student, Teacher } from '@/types';
+import { IconPlus, IconEdit, IconTrash, IconClose, IconBookOpen, IconCalendar, IconCheckCircle, IconPauseCircle, IconXCircle, IconLightbulb } from '@/components/Icons';
 import '@/styles/enrollments.css';
 
 const BILLING_TYPE_LABELS: Record<string, string> = {
@@ -205,9 +206,9 @@ export default function Enrollments() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'active': return '✅ Ativo';
-            case 'inactive': return '⏸️ Inativo';
-            case 'cancelled': return '❌ Cancelado';
+            case 'active': return 'Ativo';
+            case 'inactive': return 'Inativo';
+            case 'cancelled': return 'Cancelado';
             default: return status;
         }
     };
@@ -227,7 +228,7 @@ export default function Enrollments() {
 
     return (
         <div className="enrollments-page">
-            <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 20px' }}>📚 Matrículas / Vínculos</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 20px' }}><IconBookOpen size={22} /> Matrículas / Vínculos</h1>
 
             {/* Toolbar */}
             <div className="enrollments-toolbar">
@@ -244,12 +245,12 @@ export default function Enrollments() {
                     className="enrollments-filter"
                 >
                     <option value="">Todos os status</option>
-                    <option value="active">✅ Ativo</option>
-                    <option value="inactive">⏸️ Inativo</option>
-                    <option value="cancelled">❌ Cancelado</option>
+                    <option value="active">Ativo</option>
+                    <option value="inactive">Inativo</option>
+                    <option value="cancelled">Cancelado</option>
                 </select>
                 <button className="enrollments-btn-new" onClick={openNew}>
-                    ➕ Novo Vínculo
+                    <IconPlus size={14} /> Novo Vínculo
                 </button>
             </div>
 
@@ -304,8 +305,8 @@ export default function Enrollments() {
                                         </td>
                                         <td data-label="Ações">
                                             <div className="enrollments-actions">
-                                                <button className="btn-action-small" onClick={() => openEdit(enr)} title="Editar">✏️</button>
-                                                <button className="btn-action-small" onClick={() => handleDelete(enr.id, enr.students?.name)} title="Excluir">🗑️</button>
+                                                <button className="btn-action-small" onClick={() => openEdit(enr)} title="Editar"><IconEdit size={14} /></button>
+                                                <button className="btn-action-small" onClick={() => handleDelete(enr.id, enr.students?.name)} title="Excluir"><IconTrash size={14} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -340,10 +341,10 @@ export default function Enrollments() {
                                     </div>
                                     <div className="enrollments-mobile-actions">
                                         <button className="btn-secondary" onClick={() => openEdit(enr)}>
-                                            ✏️ Editar
+                                            <IconEdit size={14} /> Editar
                                         </button>
                                         <button className="btn-danger" onClick={() => handleDelete(enr.id, enr.students?.name)}>
-                                            🗑️ Excluir
+                                            <IconTrash size={14} /> Excluir
                                         </button>
                                     </div>
                                 </div>
@@ -359,8 +360,8 @@ export default function Enrollments() {
                     <div className="enrollments-modal bezel-shell" onClick={e => e.stopPropagation()}>
                         <div className="bezel-core" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                             <div className="enrollments-modal-header">
-                                <h3>{form.id ? '✏️ Editar Vínculo' : '➕ Novo Vínculo'}</h3>
-                                <button className="enrollments-modal-close" onClick={() => setShowModal(false)}>✕</button>
+                                <h3>{form.id ? <><IconEdit size={18} /> Editar Vínculo</> : <><IconPlus size={18} /> Novo Vínculo</>}</h3>
+                                <button className="enrollments-modal-close" onClick={() => setShowModal(false)}><IconClose size={16} /></button>
                             </div>
                             <div className="enrollments-modal-body">
                                 <div className="enrollments-form-grid">
@@ -473,9 +474,9 @@ export default function Enrollments() {
                                         value={form.billing_type}
                                         onChange={e => setForm(f => ({ ...f, billing_type: e.target.value }))}
                                     >
-                                        <option value="monthly">📆 Mensal</option>
-                                        <option value="weekly">📅 Semanal</option>
-                                        <option value="full">🎯 Completo (curso fechado)</option>
+                                        <option value="monthly">Mensal</option>
+                                        <option value="weekly">Semanal</option>
+                                        <option value="full">Completo (curso fechado)</option>
                                     </select>
                                 </div>
                                 {form.billing_type === 'full' && (
@@ -509,9 +510,9 @@ export default function Enrollments() {
                                             value={form.status}
                                             onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                                         >
-                                            <option value="active">✅ Ativo</option>
-                                            <option value="inactive">⏸️ Inativo</option>
-                                            <option value="cancelled">❌ Cancelado</option>
+                                            <option value="active">Ativo</option>
+                                            <option value="inactive">Inativo</option>
+                                            <option value="cancelled">Cancelado</option>
                                         </select>
                                     </div>
                                 )}
@@ -525,7 +526,7 @@ export default function Enrollments() {
                                 </div>
                             </div>
                             <div className="enrollments-form-info">
-                                💡 Para gerenciar aulas individuais, use o <Link to="/agenda">📅 Agenda</Link>.
+                                <IconLightbulb size={14} /> Para gerenciar aulas individuais, use o <Link to="/agenda"><IconCalendar size={14} /> Agenda</Link>.
                             </div>
                             <div className="enrollments-form-actions">
                                 <button className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>

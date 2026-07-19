@@ -18,6 +18,7 @@ import type {
     Student, Teacher,
 } from '@/types';
 import { MONTH_NAMES } from '@/types';
+import { IconFileText, IconTrendingDown, IconTrendingUp, IconUsers, IconDollarSign, IconCalendar, IconSearch, IconRefresh, IconPlus, IconEdit, IconTrash, IconCheckCircle, IconXCircle, IconPrinter, IconLightbulb } from '@/components/Icons';
 import '@/styles/financial.css';
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -47,12 +48,12 @@ const YEARS = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 2 +
 
 type FinTab = 'payments' | 'expenses' | 'investments' | 'teacher_payments' | 'report';
 
-const TAB_LABELS: Record<FinTab, string> = {
-    payments: '🧾 Receitas Avulsas',
-    expenses: '📉 Custos',
-    investments: '📈 Investimentos',
-    teacher_payments: '👨‍🏫 Pag. Professores',
-    report: '📊 Relatório',
+const TAB_LABELS: Record<FinTab, JSX.Element> = {
+    payments: <><IconDollarSign size={14} /> Receitas Avulsas</>,
+    expenses: <><IconTrendingDown size={14} /> Custos</>,
+    investments: <><IconTrendingUp size={14} /> Investimentos</>,
+    teacher_payments: <><IconUsers size={14} /> Pag. Professores</>,
+    report: <><IconFileText size={14} /> Relatório</>,
 };
 
 function parseCurrencyInput(value: string): number {
@@ -416,7 +417,7 @@ export default function Financial() {
             {/* Header */}
             <div className="fin-header">
                 <div className="fin-header-left">
-                    <h1>💰 Financeiro</h1>
+                    <h1><IconDollarSign size={22} /> Financeiro</h1>
                 </div>
                 <div className="fin-period-filter">
                     <label>Mês/Ano de Referência:</label>
@@ -431,7 +432,7 @@ export default function Financial() {
                         ))}
                     </select>
                     <button className="fin-btn fin-btn-secondary" onClick={handleRefresh}>
-                        ↻ Atualizar
+                        <IconRefresh size={14} /> Atualizar
                     </button>
                 </div>
             </div>
@@ -568,7 +569,7 @@ export default function Financial() {
                             setExpForm(emptyExpenseForm());
                             setShowExpenseModal(true);
                         }}>
-                            ➕ Novo Custo
+                            <IconPlus size={14} /> Novo Custo
                         </button>
                     </div>
 
@@ -598,7 +599,7 @@ export default function Financial() {
                                             <td data-label="Tipo">{e.expense_type === 'fixed' ? 'Fixo' : 'Variável'}</td>
                                             <td data-label="Status">
                                                 <span className={`fin-status-pill ${e.paid ? 'fin-status-paid' : 'fin-status-pending'}`}>
-                                                    {e.paid ? '✅ Pago' : '⏳ Pendente'}
+                                                    {e.paid ? 'Pago' : 'Pendente'}
                                                 </span>
                                             </td>
                                             <td data-label="Ações">
@@ -639,7 +640,7 @@ export default function Financial() {
                             setInvForm(emptyInvestmentForm());
                             setShowInvestmentModal(true);
                         }}>
-                            ➕ Novo Investimento
+                            <IconPlus size={14} /> Novo Investimento
                         </button>
                     </div>
 
@@ -707,7 +708,7 @@ export default function Financial() {
                                 }
                             }}
                         >
-                            ⚡ Gerar Pagamentos
+                            <IconRefresh size={14} /> Gerar Pagamentos
                         </button>
                         <button className="fin-btn fin-btn-primary" onClick={() => {
                             setTpForm(emptyTPForm());
@@ -744,7 +745,7 @@ export default function Financial() {
                                             <td data-label="Valor" className="fin-cell-currency">{formatCurrency(tp.amount)}</td>
                                             <td data-label="Status">
                                                 <span className={`fin-status-pill ${tp.paid ? 'fin-status-paid' : 'fin-status-pending'}`}>
-                                                    {tp.paid ? '✅ Pago' : '⏳ Pendente'}
+                                                    {tp.paid ? 'Pago' : 'Pendente'}
                                                 </span>
                                             </td>
                                             <td data-label="Ações">
@@ -784,13 +785,13 @@ export default function Financial() {
                                 className={`fin-report-mode-btn ${dateRangeMode === 'month' ? 'active' : ''}`}
                                 onClick={() => setDateRangeMode('month')}
                             >
-                                📅 Mês
+                                <IconCalendar size={14} /> Mês
                             </button>
                             <button
                                 className={`fin-report-mode-btn ${dateRangeMode === 'custom' ? 'active' : ''}`}
                                 onClick={() => setDateRangeMode('custom')}
                             >
-                                📆 Período Personalizado
+                                <IconCalendar size={14} /> Período Personalizado
                             </button>
                         </div>
                         <div className="fin-report-controls">
@@ -818,11 +819,11 @@ export default function Financial() {
                                 </>
                             )}
                             <button className="fin-btn fin-btn-secondary" onClick={loadReport}>
-                                🔍 Gerar Relatório
+                                <IconSearch size={14} /> Gerar Relatório
                             </button>
                             {report && (
                                 <button className="fin-btn fin-btn-primary" onClick={() => window.print()}>
-                                    🖨️ Exportar PDF
+                                    <IconPrinter size={14} /> Exportar PDF
                                 </button>
                             )}
                         </div>

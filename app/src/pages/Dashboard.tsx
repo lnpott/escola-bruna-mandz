@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '@/services/api';
 import type { DashboardData, LessonBrief, OrderBrief, ProductBrief } from '@/types';
-import { IconTrendingUp, IconTrendingDown, IconDollarSign, IconClock, IconAlertTriangle, IconUserCheck, IconCalendar, IconWallet, IconUsers } from '@/components/Icons';
+import { IconTrendingUp, IconTrendingDown, IconDollarSign, IconClock, IconAlertTriangle, IconUserCheck, IconCheckCircle, IconXCircle, IconRefresh, IconCalendar, IconWallet, IconUsers } from '@/components/Icons';
 import '@/styles/dashboard.css';
 
 function formatCurrency(value: number): string {
@@ -57,17 +57,17 @@ function KpiCard({ icon, label, value, color = 'neutral', subtitle, to }: {
 }
 
 function LessonRow({ lesson }: { lesson: LessonBrief }) {
-    const statusIcon: Record<string, string> = {
-        scheduled: '🟡',
-        completed: '✅',
-        cancelled: '❌',
+    const statusIcon: Record<string, React.ReactNode> = {
+        scheduled: <IconAlertTriangle size={12} style={{ color: 'var(--yellow, #eab308)' }} />,
+        completed: <IconCheckCircle size={12} style={{ color: 'var(--green, #22c55e)' }} />,
+        cancelled: <IconXCircle size={12} style={{ color: 'var(--red, #ef4444)' }} />,
     };
     return (
         <div className={`dash-class-row ${lesson.status === 'completed' ? 'completed' : ''}`}>
             <span className="dash-class-time">{formatTime(lesson.start_time)}</span>
             <span className="dash-class-student">{lesson.students?.name || '—'}</span>
             <span className="dash-class-teacher">{lesson.teachers?.name || ''}</span>
-            <span className="dash-class-status">{statusIcon[lesson.status] || '🟡'}</span>
+            <span className="dash-class-status">{statusIcon[lesson.status] || <IconAlertTriangle size={12} />}</span>
         </div>
     );
 }
@@ -199,7 +199,7 @@ export default function Dashboard() {
             {/* ── Header ─────────────────────────────── */}
             <div className="dash-header">
                 <div>
-                    <h1>📊 Dashboard</h1>
+                    <h1><IconTrendingUp size={22} /> Dashboard</h1>
                     <p className="dash-header-subtitle">
                         Última atualização: {lastUpdate}
                         {!loading && <span className="dash-countdown"> (próximo em {countdown}s)</span>}
@@ -207,7 +207,7 @@ export default function Dashboard() {
                 </div>
                 <div className="dash-header-actions">
                     <button className="btn-secondary" onClick={load} disabled={loading}>
-                        ↻ {loading ? 'Atualizando...' : 'Atualizar'}
+                        <IconRefresh size={14} /> {loading ? 'Atualizando...' : 'Atualizar'}
                     </button>
                 </div>
             </div>
@@ -270,7 +270,7 @@ export default function Dashboard() {
                 <div className="dash-card bezel-shell">
                     <div className="bezel-core">
                         <Link to="/agenda" className="dash-card-header dash-card-header-link">
-                            <h3>📅 Aulas de Hoje</h3>
+                            <h3><IconCalendar size={18} /> Aulas de Hoje</h3>
                             <span className="dash-badge">{school.today_classes_count}</span>
                         </Link>
                         <div className="dash-card-body">
@@ -289,7 +289,7 @@ export default function Dashboard() {
                 <div className="dash-card bezel-shell">
                     <div className="bezel-core">
                         <div className="dash-card-header">
-                            <h3>🔔 Alertas</h3>
+                            <h3><IconAlertTriangle size={18} /> Alertas</h3>
                         </div>
                         <div className="dash-card-body">
                             {financial.overdue_students === 0 && store.pending_orders === 0 && store.low_stock_products.length === 0 ? (
@@ -298,7 +298,7 @@ export default function Dashboard() {
                                 <>
                                     {financial.overdue_students > 0 && (
                                         <Link to="/financeiro" className="dash-alert-row dash-alert-link">
-                                            <span className="dash-alert-icon">🔴</span>
+                                            <span className="dash-alert-icon"><IconXCircle size={14} style={{ color: '#ef4444' }} /></span>
                                             <span className="dash-alert-text">
                                                 <strong>{financial.overdue_students} aluno(s)</strong> em atraso
                                             </span>
@@ -307,7 +307,7 @@ export default function Dashboard() {
                                     )}
                                     {store.pending_orders > 0 && (
                                         <Link to="/admin" className="dash-alert-row dash-alert-link">
-                                            <span className="dash-alert-icon">📦</span>
+                                            <span className="dash-alert-icon"><IconPackage size={14} /></span>
                                             <span className="dash-alert-text">
                                                 <strong>{store.pending_orders} pedido(s)</strong> pendente(s)
                                             </span>
@@ -316,7 +316,7 @@ export default function Dashboard() {
                                     )}
                                     {store.low_stock_products.length > 0 && (
                                         <Link to="/admin" className="dash-alert-row dash-alert-link">
-                                            <span className="dash-alert-icon">⚠️</span>
+                                            <span className="dash-alert-icon"><IconAlertTriangle size={14} style={{ color: '#eab308' }} /></span>
                                             <span className="dash-alert-text">
                                                 <strong>{store.low_stock_products.length} produto(s)</strong> com estoque baixo
                                             </span>
@@ -334,7 +334,7 @@ export default function Dashboard() {
             <div className="dash-card bezel-shell">
                 <div className="bezel-core">
                     <div className="dash-card-header">
-                        <h3>🧾 Pedidos Recentes</h3>
+                        <h3><IconCalendar size={18} /> Pedidos Recentes</h3>
                         {store.recent_orders.length > 0 && (
                             <Link to="/comercial/pedidos" className="dash-view-link">Ver todos →</Link>
                         )}
@@ -356,7 +356,7 @@ export default function Dashboard() {
                 <div className="dash-card bezel-shell">
                     <div className="bezel-core">
                         <Link to="/admin" className="dash-card-header dash-card-header-link">
-                            <h3>📦 Produtos com Estoque Baixo</h3>
+                            <h3><IconAlertTriangle size={18} /> Produtos com Estoque Baixo</h3>
                             <span className="dash-view-link">Gerenciar →</span>
                         </Link>
                         <div className="dash-card-body">

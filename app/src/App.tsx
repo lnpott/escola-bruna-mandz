@@ -12,7 +12,7 @@ import Store from '@/pages/Store';
 import StorageManager from '@/pages/StorageManager';
 import Login from '@/pages/Login';
 import { isAuthenticated, logout } from '@/services/api';
-import { IconHouse, IconDashboard, IconAcademic, IconCalendar, IconWallet, IconUsers, IconStore, IconLogout, IconCheckCircle, IconXCircle } from '@/components/Icons';
+import { IconHouse, IconDashboard, IconAcademic, IconCalendar, IconWallet, IconUsers, IconStore, IconLogout, IconCheckCircle, IconXCircle, IconBookOpen, IconMusic } from '@/components/Icons';
 import './styles/global.css';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -181,7 +181,7 @@ function TopBar() {
         <header className="topbar">
             <div className="topbar-inner">
                 <Link to="/" className="topbar-brand" title="Início">
-                    🎵 <span>Escola Bruna Mandz</span>
+                    <IconMusic size={20} /> <span>Escola Bruna Mandz</span>
                 </Link>
                 <nav className="topbar-nav">
                     {tabs.map(tab => (
@@ -323,9 +323,9 @@ function AcademicSubNav() {
 
     return (
         <div className="sub-nav">
-            <Link to="/academico" className={`sub-nav-link ${isStudents ? 'active' : ''}`}>📋 Alunos</Link>
-            <Link to="/academico/professores" className={`sub-nav-link ${isTeachers ? 'active' : ''}`}>👨‍🏫 Professores</Link>
-            <Link to="/academico/turmas" className={`sub-nav-link ${isTurmas ? 'active' : ''}`}>📚 Matrículas</Link>
+            <Link to="/academico" className={`sub-nav-link ${isStudents ? 'active' : ''}`}><IconUsers size={14} /> Alunos</Link>
+            <Link to="/academico/professores" className={`sub-nav-link ${isTeachers ? 'active' : ''}`}><IconAcademic size={14} /> Professores</Link>
+            <Link to="/academico/turmas" className={`sub-nav-link ${isTurmas ? 'active' : ''}`}><IconBookOpen size={14} /> Matrículas</Link>
         </div>
     );
 }
