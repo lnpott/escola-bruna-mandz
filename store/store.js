@@ -158,7 +158,7 @@ export function renderProducts() {
                 </div>
                 ${isSoon
                     ? `<p class="product-coming-soon-msg"><i class="fas fa-info-circle"></i> Disponível em breve. Sinalize interesse para ser notificado!</p>`
-                    : `<p class="product-stock"><i class="fas fa-box text-[10px]"></i> ${product.stock} em estoque<span class="product-xp">+${product.rewardXp} XP</span></p>`
+                    : `<p class="product-stock"><i class="fas fa-box text-[10px]"></i> ${product.stock} em estoque</p>`
                 }
             </div>
         </article>`;

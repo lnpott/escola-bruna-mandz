@@ -62,6 +62,7 @@
 | [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | ✨ Feature |
 | [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botões + reset) | ✨ Feature |
 | [96](#etapa-96--jogo-do-piano-com-4-níveis-completos) | 19/07 | Jogo do Piano: 4 níveis com melodia completa | 🎮 Feature |
+| [97](#etapa-97--remoção-de-xp-da-loja) | 19/07 | Remoção de XP da loja (produtos + checkout) | 🧹 Cleanup |
 
 ---
 
@@ -2218,3 +2219,49 @@ O usuário identificou que deveriam ser 4 partes.
 ## Testes
 
 ✅ `npm run build` — 5.46s, 1836 módulos | ✅ Code Review — aprovado sem issues
+
+---
+
+# ETAPA 97 — Remoção de XP da Loja
+
+**Data:** 19/07/2026
+
+**Objetivo:** Remover todas as referências a XP (gamificação) da loja — exibição de "+70 XP" nos cards de produto e "+XP" na tela de sucesso do checkout.
+
+## Contexto
+
+O usuário solicitou: "tirar o +70 XP ou qualquer outra merda" — remover a gamificação da loja. Os cards de produto exibiam `+${product.rewardXp} XP` e a tela de sucesso do checkout mostrava `+X XP` e disparava toast com XP.
+
+## Mudanças
+
+### `store/store.js`
+- Removido `<span class="product-xp">+${product.rewardXp} XP</span>` do template HTML dos cards
+- A linha de estoque agora mostra apenas `<i class="fas fa-box"></i> N em estoque`
+
+### `store/store-style.css`
+- Removida classe `.product-xp` (exibia XP em âmbar)
+- Removida classe `.success-xp` (exibia XP na tela de sucesso)
+
+### `store/checkout-modal.js`
+- `earnedXp` removido da desestruturação de `buildOrder()`
+- `applyStudentXp(earnedXp)` removido — não atualiza mais localStorage
+- `const xpEl` e `xpEl.textContent` removidos
+- Toast sem XP: `"✅ Pedido X recebido!"`
+- Import morto `applyStudentXp` removido
+
+### `index.html`
+- Texto "Cada compra gera XP na sua jornada de aluno" removido
+- `<div class="success-xp">+0 XP</div>` removido da tela de sucesso
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `store/store.js` | XP removido do card de produto |
+| `store/store-style.css` | .product-xp + .success-xp removidos |
+| `store/checkout-modal.js` | earnedXp, applyStudentXp, xpEl removidos |
+| `index.html` | Texto XP + div success-xp removidos |
+
+## Testes
+
+✅ `npm run build` — 8.72s, 1836 módulos | ✅ Code Review — aprovado, 1 dead import corrigido

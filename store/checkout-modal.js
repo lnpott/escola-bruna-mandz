@@ -13,7 +13,7 @@
  */
 
 import { PAYMENT_CONFIG } from './payment-config.js';
-import { buildOrder, clearCart, applyStudentXp, getCart } from './cart.js';
+import { buildOrder, clearCart, getCart } from './cart.js';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -89,9 +89,9 @@ export async function submitCustomerForm() {
     }
     clearError('customer');
 
-    let order, earnedXp;
+    let order;
     try {
-        ({ order, earnedXp } = buildOrder({
+        ({ order } = buildOrder({
             method: 'manual',
             customer: { name, email, phone, isStudent },
         }));
@@ -124,7 +124,7 @@ export async function submitCustomerForm() {
         }
 
         // Pedido registrado com sucesso — vai para tela de sucesso
-        finalizePurchase(earnedXp);
+        finalizePurchase();
 
     } catch (err) {
         showError('customer', 'Falha de conexão. Verifique sua internet e tente novamente.');
@@ -139,20 +139,17 @@ export async function submitCustomerForm() {
 
 // ─── Tela de sucesso ──────────────────────────────────────────────────────────
 
-function finalizePurchase(earnedXp) {
+function finalizePurchase() {
     clearCart();
-    applyStudentXp(earnedXp);
 
     const order = _currentOrder;
 
     const orderIdEl  = document.getElementById('success-order-id');
     const totalEl    = document.getElementById('success-total');
-    const xpEl       = document.getElementById('success-xp');
     const footerNote = document.getElementById('success-footer-note');
 
     if (orderIdEl) orderIdEl.textContent = order?.id || '—';
     if (totalEl)   totalEl.textContent   = money.format(order?.total || 0);
-    if (xpEl)      xpEl.textContent      = `+${earnedXp} XP`;
     if (footerNote) {
         footerNote.textContent =
             'Entraremos em contato pelo WhatsApp ou e-mail para combinar o pagamento.';
@@ -163,7 +160,7 @@ function finalizePurchase(earnedXp) {
     if (methodRow) methodRow.classList.add('hidden');
 
     showStep('success');
-    window.showToast?.(`✅ Pedido ${order?.id} recebido! +${earnedXp} XP`);
+    window.showToast?.(`✅ Pedido ${order?.id} recebido!`);
 }
 
 // ─── Utilitários de erro ──────────────────────────────────────────────────────

@@ -196,13 +196,6 @@
     align-items: center;
     gap: 0.4rem;
 }
-.product-xp {
-    margin-left: auto;
-    color: #f59e0b;
-    font-weight: 700;
-    font-size: 0.6rem;
-}
-
 /* ── Em breve ───────────────────────────────────────────────────────────────── */
 .product-card--coming-soon {
     opacity: 0.88;
@@ -668,17 +661,6 @@
     color: #e4e4e7;
     font-weight: 700;
 }
-.success-xp {
-    text-align: center;
-    font-size: 0.85rem;
-    font-weight: 900;
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    CHECKOUT OVERLAY — tela cheia, isolado do resto do site.
    Só fecha pelo botão X (#checkout-close-btn). Nunca fecha clicando fora,
