@@ -63,6 +63,7 @@
 | [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botões + reset) | ✨ Feature |
 | [96](#etapa-96--jogo-do-piano-com-4-níveis-completos) | 19/07 | Jogo do Piano: 4 níveis com melodia completa | 🎮 Feature |
 | [97](#etapa-97--remoção-de-xp-da-loja) | 19/07 | Remoção de XP da loja (produtos + checkout) | 🧹 Cleanup |
+| [98](#etapa-98--remoção-de-código-xp-morto-do-cartjs) | 19/07 | Remoção de código XP morto do cart.js | 🧹 Cleanup |
 
 ---
 
@@ -2265,3 +2266,34 @@ O usuário solicitou: "tirar o +70 XP ou qualquer outra merda" — remover a gam
 ## Testes
 
 ✅ `npm run build` — 8.72s, 1836 módulos | ✅ Code Review — aprovado, 1 dead import corrigido
+
+# ETAPA 98 — Remoção de código XP morto do cart.js
+
+**Data:** 19/07/2026
+
+**Objetivo:** Remover a função `applyStudentXp()`, a constante `PROGRESS_KEY` e o cálculo de `earnedXp` do `buildOrder()` em `store/cart.js` — código morto após a remoção de XP da loja (Etapa 97).
+
+## Contexto
+
+Na Etapa 97, removemos toda exibição de XP dos cards de produto e do checkout. A função `applyStudentXp()` em `cart.js` ficou órfã — ninguém mais a importa, e o `earnedXp` retornado por `buildOrder()` não é mais usado por ninguém.
+
+## Mudanças
+
+### `store/cart.js`
+
+| Removido | Detalhes |
+|----------|----------|
+| `const PROGRESS_KEY` | Constante `'bruna_student_progress'` — só usada por `applyStudentXp` |
+| `earnedXp` do `buildOrder()` | Cálculo `cart.reduce(...)` removido, campo `earnedXp` do objeto order removido, retorno simplificado para `{ order }` |
+| `applyStudentXp()` | Função completa (~12 linhas) que manipulava localStorage de gamificação |
+| JSDoc desatualizado | Comentário que mencionava `applyStudentXp()` atualizado |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `store/cart.js` | PROGRESS_KEY, earnedXp, applyStudentXp removidos (~20 linhas a menos) |
+
+## Testes
+
+✅ `npm run build` — 7.74s, 1836 módulos | ✅ Code Review — aprovado
