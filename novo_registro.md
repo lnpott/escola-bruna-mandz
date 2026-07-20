@@ -66,6 +66,7 @@
 | [98](#etapa-98--remoção-de-código-xp-morto-do-cartjs) | 19/07 | Remoção de código XP morto do cart.js | 🧹 Cleanup |
 | [99](#etapa-99--remoção-do-campo-reward_xp-de-produtos) | 19/07 | Remoção do campo reward_xp de produtos (TS + backend + SQL) | 🧹 Cleanup |
 | [100](#etapa-100--correção-de-runtime-error-iconpackage-não-importado) | 19/07 | Correção: IconPackage não importado no Dashboard | 🐛 Fix |
+| [101](#etapa-101--design-refinado-globalcss-logincss-e-agendacss) | 19/07 | Design refinado: global.css login.css agenda.css | 🎨 Design |
 
 ---
 
@@ -2362,3 +2363,61 @@ A migração emoji→SVG (Etapa 93) substituiu um emoji por `<IconPackage size={
 ## Testes
 
 ✅ `npm run build` — 6.33s | ✅ Code Review — aprovado sem issues
+
+# ETAPA 101 — Design Refinado: global.css, login.css e agenda.css
+
+**Data:** 19/07/2026
+
+**Objetivo:** Refinar o design visual de toda a parte `/app` com base nas recomendações do design system gerado via ui-ux-pro-max, aplicando ambient glow, glassmorphism, micro-interações e consistência visual.
+
+## Contexto
+
+Após gerar um design system completo (Modern Dark / Cinematográfico para escola de música) via ui-ux-pro-max skill, foram aplicadas melhorias visuais progressivas em 3 arquivos CSS para elevar o padrão estético do ERP.
+
+## Implementações
+
+### 🌐 `global.css` — Correção e refinamentos
+
+| Mudança | Detalhes |
+|---------|----------|
+| **`:active` state corrigido** | `.module-card:active` antes `translateY(-3px) scale(0.98)` (movimento conflitante) → agora só `scale(0.97)` — press state limpo e natural |
+
+### 🔐 `login.css` — Refatoração completa
+
+| Mudança | Detalhes |
+|---------|----------|
+| **Ambient glow próprio** | `login-page::before` com gradient radial pulsante (`@keyframes loginPulse`) — glow brand centrado |
+| **Logo estilizado** | `.login-logo` agora é container 72×72px com fundo brand (rgba 220,38,38, 0.1), borda sutil e hover scale |
+| **Título com gradiente** | `-webkit-background-clip: text` com gradient do branco ao secundário |
+| **Input refinado** | Fundo `rgba(0,0,0,0.3)`, focus com `box-shadow: 0 0 0 4px rgba(220,38,38,0.08)` + brand glow |
+| **Error banner suave** | Cores via rgba ao invés de solid, borda menos agressiva (0.25 opacity) |
+| **Responsivo** | Mobile: logo 60px, título 20px |
+
+### 📅 `agenda.css` — Lesson cards refinados
+
+| Mudança | Detalhes |
+|---------|----------|
+| **Gradient border glow** | `::before` pseudo-elemento com gradient horizontal sutil (consistente com module-card) |
+| **Hover slide** | `transform: translateX(4px)` + `box-shadow: var(--shadow-sm)` ao passar o mouse |
+| **Active state** | `scale(0.99)` ao pressionar |
+| **Transições** | `border-color`, `transform`, `box-shadow` com timing suave |
+
+## Design System Aplicado
+
+- ✅ **Ambient glow** — body::before (top center) + body::after (bottom) + login::before | ✅ **Glassmorphism** — topbar com `backdrop-filter: blur(24px) saturate(1.5)`
+- ✅ **Micro-interações** — stagger-row animações de entrada, active states unificados (todos scale(0.98/0.97/0.99))
+- ✅ **Tokens semânticos** — todas as cores via `var(--color-*)`, sem hex hardcoded
+- ✅ **GPU performático** — animações só em `transform` e `opacity`
+- ✅ **Reduced motion** — `prefers-reduced-motion` respeitado
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/styles/global.css` | `:active` corrigido (translateY+scale → só scale) |
+| `app/src/styles/login.css` | Refatoração completa: glow, logo, input, erro, responsivo |
+| `app/src/styles/agenda.css` | Lesson cards: gradient border glow, hover slide, active state |
+
+## Testes
+
+✅ `npm run build` — 6.67s, 1836 módulos | ✅ Code Review — aprovado sem issues críticas

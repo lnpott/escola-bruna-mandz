@@ -428,11 +428,37 @@
     border-radius: var(--radius-md);
     margin-bottom: var(--space-2);
     padding: var(--space-3);
-    transition: border-color var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-fast) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.agenda-lesson-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
 }
 
 .agenda-lesson-card:hover {
     border-color: var(--border-strong);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.agenda-lesson-card:hover::before {
+    opacity: 1;
+}
+
+.agenda-lesson-card:active {
+    transform: scale(0.99);
 }
 
 .agenda-lesson-card.cancelled {
