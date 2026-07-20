@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '@/services/api';
 import type { DashboardData, LessonBrief, OrderBrief, ProductBrief } from '@/types';
-import { IconTrendingUp, IconTrendingDown, IconDollarSign, IconClock, IconAlertTriangle, IconUserCheck, IconCheckCircle, IconXCircle, IconRefresh, IconCalendar, IconWallet, IconUsers } from '@/components/Icons';
+import { IconTrendingUp, IconTrendingDown, IconDollarSign, IconClock, IconAlertTriangle, IconUserCheck, IconCheckCircle, IconXCircle, IconRefresh, IconCalendar, IconWallet, IconUsers, IconPackage } from '@/components/Icons';
 import '@/styles/dashboard.css';
 
 function formatCurrency(value: number): string {

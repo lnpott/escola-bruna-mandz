@@ -65,6 +65,7 @@
 | [97](#etapa-97--remoção-de-xp-da-loja) | 19/07 | Remoção de XP da loja (produtos + checkout) | 🧹 Cleanup |
 | [98](#etapa-98--remoção-de-código-xp-morto-do-cartjs) | 19/07 | Remoção de código XP morto do cart.js | 🧹 Cleanup |
 | [99](#etapa-99--remoção-do-campo-reward_xp-de-produtos) | 19/07 | Remoção do campo reward_xp de produtos (TS + backend + SQL) | 🧹 Cleanup |
+| [100](#etapa-100--correção-de-runtime-error-iconpackage-não-importado) | 19/07 | Correção: IconPackage não importado no Dashboard | 🐛 Fix |
 
 ---
 
@@ -2332,3 +2333,32 @@ Após a remoção de XP da loja (Etapas 97 e 98), o campo `reward_xp` na interfa
 ## Testes
 
 ✅ `npm run build` — 5.68s, 1836 módulos | ✅ Code Review — aprovado sem issues
+
+# ETAPA 100 — Correção de Runtime Error: IconPackage não importado no Dashboard
+
+**Data:** 19/07/2026
+
+**Objetivo:** Corrigir `ReferenceError: IconPackage is not defined` no Dashboard, causado por import ausente.
+
+## Problema
+
+A migração emoji→SVG (Etapa 93) substituiu um emoji por `<IconPackage size={14} />` no Dashboard.tsx, mas não adicionou `IconPackage` à linha de import do `@/components/Icons`. Como o TypeScript não tinha `noUnusedLocals` ativado, o build passou — o erro só aparecia em runtime.
+
+## Correção
+
+**1 arquivo, 1 linha:**
+
+```diff
+- IconRefresh, IconCalendar, IconWallet, IconUsers } from '@/components/Icons';
++ IconRefresh, IconCalendar, IconWallet, IconUsers, IconPackage } from '@/components/Icons';
+```
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `app/src/pages/Dashboard.tsx` | `IconPackage` adicionado ao import |
+
+## Testes
+
+✅ `npm run build` — 6.33s | ✅ Code Review — aprovado sem issues
