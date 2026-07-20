@@ -10,7 +10,6 @@ export const PRODUCTS = [
         badge: 'Novidade',
         badgeColor: 'purple',
         image: '/products/NPOSSO.jpeg',
-        rewardXp: 70,
         variants: {
             sizes: ['P', 'M', 'G', 'GG'],
         },
@@ -26,7 +25,6 @@ export const PRODUCTS = [
         badge: 'Promoção',
         badgeColor: 'green',
         image: '/products/PADRAO.jpeg',
-        rewardXp: 70,
         variants: {
             sizes: ['P', 'M', 'G', 'GG'],
         },
@@ -42,7 +40,6 @@ export const PRODUCTS = [
         badge: 'Limitado',
         badgeColor: 'orange',
         image: '/products/baqueta.png',
-        rewardXp: 50,
         variants: null,
     },
 ];

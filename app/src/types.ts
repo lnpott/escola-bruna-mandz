@@ -380,7 +380,6 @@ export interface Product {
     active: boolean;
     badge?: string;
     badge_color?: string;
-    reward_xp: number;
     variants: any;
     created_at: string;
     updated_at: string;

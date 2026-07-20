@@ -108,7 +108,6 @@ create table if not exists public.products (
     badge text,
     badge_color text,
     image text,
-    reward_xp integer not null default 0,
     variants jsonb not null default '[]'::jsonb
 );
 

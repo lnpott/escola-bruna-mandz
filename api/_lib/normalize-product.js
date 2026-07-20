@@ -71,7 +71,6 @@ export function normalizeProduct(product) {
         badge: product?.badge || null,
         badgeColor: product?.badge_color || null,
         image: normalizeProductImage(product?.image),
-        rewardXp: Number(product?.reward_xp || 0),
         variants: normalizeVariants(product?.variants),
     };
 }

@@ -64,6 +64,7 @@
 | [96](#etapa-96--jogo-do-piano-com-4-níveis-completos) | 19/07 | Jogo do Piano: 4 níveis com melodia completa | 🎮 Feature |
 | [97](#etapa-97--remoção-de-xp-da-loja) | 19/07 | Remoção de XP da loja (produtos + checkout) | 🧹 Cleanup |
 | [98](#etapa-98--remoção-de-código-xp-morto-do-cartjs) | 19/07 | Remoção de código XP morto do cart.js | 🧹 Cleanup |
+| [99](#etapa-99--remoção-do-campo-reward_xp-de-produtos) | 19/07 | Remoção do campo reward_xp de produtos (TS + backend + SQL) | 🧹 Cleanup |
 
 ---
 
@@ -2297,3 +2298,37 @@ Na Etapa 97, removemos toda exibição de XP dos cards de produto e do checkout.
 ## Testes
 
 ✅ `npm run build` — 7.74s, 1836 módulos | ✅ Code Review — aprovado
+
+# ETAPA 99 — Remoção do campo reward_xp de produtos
+
+**Data:** 19/07/2026
+
+**Objetivo:** Remover todas as referências ao campo `reward_xp`/`rewardXp` de produtos — no TypeScript, no backend de normalização, nos produtos estáticos e no schema SQL.
+
+## Contexto
+
+Após a remoção de XP da loja (Etapas 97 e 98), o campo `reward_xp` na interface Product, no schema do banco e nos produtos estáticos ficou sem uso — ninguém mais lê ou exibe esse valor.
+
+## Mudanças (5 arquivos, 8 ocorrências)
+
+| Arquivo | Ocorrências removidas | Detalhes |
+|---------|:---------------------:|----------|
+| `api/_lib/normalize-product.js` | 1 | `rewardXp: Number(product?.reward_xp \|\| 0)` removido |
+| `app/src/types.ts` | 1 | `reward_xp: number;` removido da interface Product |
+| `store/products.js` | 3 | `rewardXp: 70` (×2) e `rewardXp: 50` removidos dos produtos estáticos |
+| `supabase/schema.sql` | 1 | `reward_xp integer not null default 0` removido da tabela products |
+| `supabase/seed-products.sql` | 2 | `reward_xp` removido do INSERT column list + ON CONFLICT DO UPDATE SET |
+
+## Arquivos Alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `api/_lib/normalize-product.js` | rewardXp removido do objeto normalizado |
+| `app/src/types.ts` | reward_xp removido da interface Product |
+| `store/products.js` | rewardXp removido dos 3 produtos estáticos |
+| `supabase/schema.sql` | Coluna reward_xp removida da tabela products |
+| `supabase/seed-products.sql` | reward_xp removido do INSERT + ON CONFLICT |
+
+## Testes
+
+✅ `npm run build` — 5.68s, 1836 módulos | ✅ Code Review — aprovado sem issues
