@@ -145,6 +145,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function TopBar() {
     const location = useLocation();
     const navigate = useNavigate();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -178,29 +179,60 @@ function TopBar() {
     };
 
     return (
-        <header className="topbar">
-            <div className="topbar-inner">
-                <Link to="/" className="topbar-brand" title="Início">
-                    <IconMusic size={20} /> <span>Escola Bruna Mandz</span>
-                </Link>
-                <nav className="topbar-nav">
-                    {tabs.map(tab => (
-                        <Link
-                            key={tab.path}
-                            to={tab.path}
-                            className={`topbar-link ${isActive(tab.path) ? 'active' : ''}`}
-                        >
-                            <span className="topbar-link-icon">{iconMap[tab.icon]}</span>
-                            <span className="topbar-link-label">{tab.label}</span>
-                        </Link>
-                    ))}
-                </nav>
+        <>
+            <header className="topbar">
+                <div className="topbar-inner">
+                    <Link to="/" className="topbar-brand" title="Início" onClick={() => setMobileMenuOpen(false)}>
+                        <IconMusic size={20} /> <span>Escola Bruna Mandz</span>
+                    </Link>
+                    
+                    <nav className="topbar-nav">
+                        {tabs.map(tab => (
+                            <Link
+                                key={tab.path}
+                                to={tab.path}
+                                className={`topbar-link ${isActive(tab.path) ? 'active' : ''}`}
+                            >
+                                <span className="topbar-link-icon">{iconMap[tab.icon]}</span>
+                                <span className="topbar-link-label">{tab.label}</span>
+                            </Link>
+                        ))}
+                    </nav>
+                    
+                    <button className="topbar-logout" onClick={handleLogout} title="Sair">
+                        <span className="topbar-link-icon"><IconLogout /></span>
+                        <span className="topbar-link-label">Sair</span>
+                    </button>
+
+                    <button 
+                        className={`topbar-hamburger ${mobileMenuOpen ? 'is-open' : ''}`} 
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Menu Principal"
+                    >
+                        <span className="hamburger-line"></span>
+                        <span className="hamburger-line"></span>
+                    </button>
+                </div>
+            </header>
+
+            <div className={`mobile-nav-modal ${mobileMenuOpen ? 'is-open' : ''}`}>
+                {tabs.map(tab => (
+                    <Link
+                        key={tab.path}
+                        to={tab.path}
+                        className={`topbar-link ${isActive(tab.path) ? 'active' : ''}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        <span className="topbar-link-icon">{iconMap[tab.icon]}</span>
+                        <span className="topbar-link-label">{tab.label}</span>
+                    </Link>
+                ))}
                 <button className="topbar-logout" onClick={handleLogout} title="Sair">
                     <span className="topbar-link-icon"><IconLogout /></span>
                     <span className="topbar-link-label">Sair</span>
                 </button>
             </div>
-        </header>
+        </>
     );
 }
 

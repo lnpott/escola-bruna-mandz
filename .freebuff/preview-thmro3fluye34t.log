@@ -1,0 +1,2 @@
+✅ API Server rodando em http://localhost:3001
+   Endpoints: /api/admin-financial, /api/admin-orders, /api/admin-products, etc.

@@ -7,10 +7,10 @@
     /* Background */
     --bg-base: #050505;
     --bg-base-rgb: 5, 5, 5;
-    --bg-surface: rgba(255, 255, 255, 0.02);
-    --bg-elevated: rgba(255, 255, 255, 0.04);
-    --bg-hover: rgba(255, 255, 255, 0.06);
-    --bg-active: rgba(255, 255, 255, 0.08);
+    --bg-surface: rgba(255, 255, 255, 0.03);
+    --bg-elevated: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.08);
+    --bg-active: rgba(255, 255, 255, 0.12);
 
     /* Brand Ambient Glow */
     --brand-glow-color: 220, 38, 38;
@@ -58,10 +58,10 @@
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
     /* Radii */
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-xl: 18px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
     --radius-full: 9999px;
     --radius-bezel-outer: 2rem;
     --radius-bezel-inner: calc(2rem - 0.375rem);
@@ -286,17 +286,17 @@ h1 {
 
 /* ── Double-Bezel Architecture ───────────────────────────────── */
 .bezel-shell {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-default);
-    padding: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--space-2);
     border-radius: var(--radius-bezel-outer);
 }
 
 .bezel-core {
-    background: #000000;
+    background: var(--bg-base);
     border-radius: var(--radius-bezel-inner);
     box-shadow: var(--shadow-inset-core);
-    padding: var(--space-6);
+    padding: var(--space-8);
     flex: 1;
     min-height: 0;
 }
@@ -323,18 +323,18 @@ h1 {
 .module-card {
     background: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
     border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
-    padding: var(--space-8) var(--space-5);
-    transition: border-color var(--duration-normal) var(--ease-out),
-                transform var(--duration-normal) var(--ease-out),
-                box-shadow var(--duration-normal) var(--ease-out),
-                background var(--duration-normal) var(--ease-out);
+    border-radius: var(--radius-bezel-outer);
+    padding: var(--space-10) var(--space-6);
+    transition: border-color var(--duration-fluid) var(--ease-fluid),
+                transform var(--duration-fluid) var(--ease-fluid),
+                box-shadow var(--duration-fluid) var(--ease-fluid),
+                background var(--duration-fluid) var(--ease-fluid);
     cursor: pointer;
     text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-4);
     position: relative;
     overflow: hidden;
 }
@@ -364,10 +364,10 @@ h1 {
 }
 
 .module-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-lg), var(--shadow-glow-red);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.06));
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.08));
 }
 
 .module-card:hover::before {
@@ -379,7 +379,7 @@ h1 {
 }
 
 .module-card:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
 }
 
 .module-icon {
@@ -550,6 +550,17 @@ h1 {
 }
 
 /* ── Global Form Action Buttons ───────────────────────────── */
+.btn-primary, .btn-secondary, .btn-danger, .btn-cancel, .btn-save {
+    transition: transform var(--duration-fluid) var(--ease-fluid),
+                background var(--duration-fluid) var(--ease-fluid),
+                border-color var(--duration-fluid) var(--ease-fluid),
+                box-shadow var(--duration-fluid) var(--ease-fluid);
+}
+
+.btn-primary:active, .btn-secondary:active, .btn-danger:active, .btn-cancel:active, .btn-save:active {
+    transform: scale(0.98);
+}
+
 .btn-cancel {
     border: 1px solid var(--border-strong);
     background: none;
@@ -964,6 +975,104 @@ h1 {
     color: var(--color-error-text);
     border-color: rgba(220, 38, 38, 0.3);
     background: rgba(220, 38, 38, 0.08);
+}
+
+/* ── Mobile Hamburger & Modal Nav ──────────────────────────── */
+.topbar-hamburger {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 502;
+}
+
+.hamburger-line {
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    transition: transform var(--duration-fluid) var(--ease-fluid), opacity var(--duration-fluid) var(--ease-fluid);
+    border-radius: 2px;
+}
+.hamburger-line:nth-child(1) { transform: translateY(-6px); }
+.hamburger-line:nth-child(2) { transform: translateY(6px); }
+
+.topbar-hamburger.is-open .hamburger-line:nth-child(1) { transform: rotate(45deg); }
+.topbar-hamburger.is-open .hamburger-line:nth-child(2) { transform: rotate(-45deg); }
+
+.mobile-nav-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 501;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(32px) saturate(150%);
+    -webkit-backdrop-filter: blur(32px) saturate(150%);
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--space-24) + 56px) var(--space-6) var(--space-6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fluid) var(--ease-fluid);
+}
+
+.mobile-nav-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mobile-nav-modal .topbar-link {
+    font-size: 24px;
+    padding: var(--space-4) 0;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    opacity: 0;
+    transform: translateY(24px);
+    transition: transform 0.6s var(--ease-fluid), opacity 0.6s var(--ease-fluid);
+}
+.mobile-nav-modal .topbar-link.active {
+    background: transparent;
+}
+.mobile-nav-modal .topbar-link.active::after {
+    display: none;
+}
+.mobile-nav-modal.is-open .topbar-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+.mobile-nav-modal.is-open .topbar-link:nth-child(1) { transition-delay: 0.1s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(2) { transition-delay: 0.15s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(3) { transition-delay: 0.2s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(4) { transition-delay: 0.25s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(5) { transition-delay: 0.3s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(6) { transition-delay: 0.35s; }
+.mobile-nav-modal.is-open .topbar-link:nth-child(7) { transition-delay: 0.4s; }
+
+.mobile-nav-modal .topbar-logout {
+    margin-top: auto;
+    font-size: 18px;
+    justify-content: center;
+    padding: var(--space-4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transform: translateY(24px);
+    transition: transform 0.6s var(--ease-fluid) 0.5s, opacity 0.6s var(--ease-fluid) 0.5s;
+}
+.mobile-nav-modal.is-open .topbar-logout {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .topbar-nav { display: none; }
+    .topbar-logout { display: none; }
+    .topbar-hamburger { display: flex; }
 }
 
 /* ── App Layout ──────────────────────────────────────────── */

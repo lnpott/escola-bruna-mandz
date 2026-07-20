@@ -6,8 +6,8 @@
 .dash-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--space-8) var(--space-5);
-    animation: fadeInUp var(--duration-slow) var(--ease-out);
+    padding: var(--space-12) var(--space-6) var(--space-24);
+    animation: fadeInUp var(--duration-fluid) var(--ease-fluid);
 }
 
 .dash-page h1 {
@@ -47,9 +47,10 @@
 .dash-kpi-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: var(--space-4);
-    margin-bottom: var(--space-8);
-    animation: fadeInUp 0.5s var(--ease-out);
+    grid-auto-rows: minmax(150px, auto);
+    gap: var(--space-5);
+    margin-bottom: var(--space-12);
+    animation: fadeInUp 0.7s var(--ease-fluid);
 }
 
 .dash-kpi-card {
@@ -61,15 +62,12 @@
 }
 
 @media (min-width: 768px) {
-    .dash-kpi-card:nth-child(1),
-    .dash-kpi-card:nth-child(2) {
-        grid-column: span 6;
-    }
-    .dash-kpi-card:nth-child(3),
-    .dash-kpi-card:nth-child(4),
-    .dash-kpi-card:nth-child(5) {
-        grid-column: span 4;
-    }
+    .dash-kpi-card:nth-child(1) { grid-column: span 8; grid-row: span 2; }
+    .dash-kpi-card:nth-child(2) { grid-column: span 4; grid-row: span 1; }
+    .dash-kpi-card:nth-child(3) { grid-column: span 4; grid-row: span 1; }
+    .dash-kpi-card:nth-child(4) { grid-column: span 4; grid-row: span 1; }
+    .dash-kpi-card:nth-child(5) { grid-column: span 4; grid-row: span 1; }
+    .dash-kpi-card:nth-child(6) { grid-column: span 4; grid-row: span 1; }
 }
 
 .dash-kpi-card::before {
