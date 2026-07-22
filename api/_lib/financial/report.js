@@ -45,7 +45,7 @@ export async function handleFinancialReport(req, res, supabase) {
         supabase.from('expenses').select('amount,category,expense_type,paid,paid_at')
             .gte('paid_at', `${dateStart}T00:00:00.000Z`).lte('paid_at', `${dateEnd}T23:59:59.999Z`),
         supabase.from('teacher_payments')
-            .select('amount,paid,paid_at,teachers(name)')
+            .select('amount,paid,paid_at,teacher_id,teachers(name)')   // Bug #1 fix: teacher_id estava ausente → todos agrupados como 'Desconhecido'
             .gte('paid_at', `${dateStart}T00:00:00.000Z`).lte('paid_at', `${dateEnd}T23:59:59.999Z`),
     ]);
 

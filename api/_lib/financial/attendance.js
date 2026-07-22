@@ -36,8 +36,19 @@ export async function handleAttendance(req, res, supabase) {
             return res.status(400).json({ error: 'lesson_id e student_id são obrigatórios.' });
         }
 
-        const payload = {
-            id: genId('AT'),
+        // Upsert: se já existe registro para esta lesson + student, atualiza.
+        // Bug #4 fix: (a) sem espaço no onConflict — Supabase JS espera 'col1,col2'
+        //             (b) id separado do payload: se for UPDATE via upsert, o Postgres
+        //                 não permite alterar a PK — só incluímos id no INSERT.
+        const existingRecord = await supabase
+            .from('attendance')
+            .select('id')
+            .eq('lesson_id', lesson_id)
+            .eq('student_id', student_id)
+            .maybeSingle();
+
+        const upsertPayload = {
+            ...(existingRecord.data ? { id: existingRecord.data.id } : { id: genId('AT') }),
             lesson_id,
             student_id,
             status: attStatus || 'present',
@@ -45,12 +56,11 @@ export async function handleAttendance(req, res, supabase) {
             notes,
             recorded_at: new Date().toISOString(),
         };
-        normalizeOptionalFields(payload, ['notes']);
+        normalizeOptionalFields(upsertPayload, ['notes']);
 
-        // Upsert: se já existe registro para esta lesson + student, atualiza
         const { data, error } = await supabase
             .from('attendance')
-            .upsert(payload, { onConflict: 'lesson_id, student_id', ignoreDuplicates: false })
+            .upsert(upsertPayload, { onConflict: 'lesson_id,student_id', ignoreDuplicates: false })
             .select(ATTENDANCE_SELECT)
             .single();
 
