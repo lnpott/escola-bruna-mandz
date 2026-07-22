@@ -1,121 +1,129 @@
-# ğŸ“‹ Registro de Desenvolvimento â€” Escola de MÃºsica Bruna Mandz
+# ?? Registro de Desenvolvimento — Escola de Música Bruna Mandz
 
-> **Documento condensado** a partir de `painel_registro.md` (2121 linhas â†’ ~300).
-> Criado em 15/07/2026 para substituir o arquivo original como fonte de verdade Ãºnica.
-> Etapas aqui documentadas: **44 a 72** (12/07/2026 â€” 16/07/2026).
+> **Documento condensado** a partir de `painel_registro.md` (2121 linhas ? ~300).
+> Criado em 15/07/2026 para substituir o arquivo original como fonte de verdade única.
+> Etapas aqui documentadas: **44 a 72** (12/07/2026 — 16/07/2026).
 >
 > **Etapas 1-43** permanecem preservadas em `painel_registro.md` (arquivado na raiz
-> como referÃªncia histÃ³rica). Novas etapas devem ser adicionadas **apenas** neste arquivo.
+> como referência histórica). Novas etapas devem ser adicionadas **apenas** neste arquivo.
 
 ---
 
-## Ãndice
+## Índice
 
 | Etapa | Data | Foco | Tipo |
 |:-----:|:----:|------|:----:|
-| [44](#etapa-44--correÃ§Ãµes-pÃ³s-auditoria-de-banco) | 12/07 | CorreÃ§Ãµes pÃ³s-auditoria de banco | ğŸ› ï¸ Fix |
-| [45](#etapa-45--correÃ§Ãµes-de-bugs-do-react-spa-fase-4) | 12/07 | CorreÃ§Ãµes de bugs React SPA | ğŸ› Fix |
-| [46](#etapa-46--navegaÃ§Ã£o-global-ux-e-links-rÃ¡pidos-fase-5) | 12/07 | NavegaÃ§Ã£o global, TopBar, Toast | âœ¨ Feature |
-| [47](#etapa-47--loading-states-e-empty-states-padronizados-fase-52) | 12/07 | Loading/Empty/Error states globais | â™»ï¸ Refactor |
-| [48](#etapa-48--arquivamento-do-painel-clÃ¡ssico-fase-6) | 12/07 | Arquivamento do painel clÃ¡ssico | ğŸ§¹ Cleanup |
-| [50](#etapa-50--responsividade-mobile-fase-53) | 15/07 | Responsividade mobile | ğŸ“± Feature |
-| [51](#etapa-51--correÃ§Ãµes-de-code-review-fase-8-pÃ³s-fixes) | 15/07 | CorreÃ§Ãµes de code review | ğŸ› Fix |
-| [53](#etapa-53--fase-9-alunos-expandido) | 15/07 | Alunos Expandido + StudentDetail | âœ¨ Feature |
-| [54](#etapa-54--correÃ§Ã£o-dos-3-crÃ­ticos-code-review) | 15/07 | RemoÃ§Ã£o dead code + bugs crÃ­ticos | ğŸ› Fix |
-| [55](#etapa-55--type-safety-remoÃ§Ã£o-de-30-as-any-e-catch-err-any) | 15/07 | Type safety (30+ as any removidos) | â™»ï¸ Refactor |
-| [56](#etapa-56--correÃ§Ã£o-de-issues-menores-css-xss-log) | 15/07 | CSS global, XSS sanitization | ğŸ› Fix |
-| [57](#etapa-57--relatÃ³rio-financeiro-fechamento-mensal--exportaÃ§Ã£o-pdf) | 15/07 | RelatÃ³rio Financeiro + PDF | âœ¨ Feature |
-| [60](#etapa-60--alinhamento-de-tipos-typescript-product--order) | 15/07 | Alinhamento tipos TS c/ Supabase | â™»ï¸ Refactor |
-| [61](#etapa-61--wizard-de-cadastro-de-aluno) | 15/07 | Wizard de cadastro de aluno | âœ¨ Feature |
-| [62](#etapa-62--correÃ§Ã£o-dos-bugs-em-produÃ§Ã£o) | 15/07 | CorreÃ§Ã£o de bugs produÃ§Ã£o | ğŸ› Fix |
-| [63](#etapa-63--correÃ§Ã£o-do-eslint) | 15/07 | CorreÃ§Ã£o ESLint | ğŸ› ï¸ Fix |
-| [64](#etapa-64--pagamento-automÃ¡tico-a-professor) | 15/07 | Pagamento automÃ¡tico a professor | âœ¨ Feature |
-| [65](#etapa-65--confirmaÃ§Ã£o-ao-excluir-vÃ­nculo) | 15/07 | ConfirmaÃ§Ã£o ao excluir vÃ­nculo | âœ¨ Feature |
-| [66](#etapa-66--testes-para-pagamento-a-professor-e-exclusÃ£o-de-vÃ­nculo) | 16/07 | Testes p/ teacher_payments + delete enrollment | ğŸ§ª Test |
-| [67](#etapa-67--auditoria-de-design-web-48-regras) | 16/07 | Web Interface Guidelines audit | â™»ï¸ Refactor |
-| [68](#etapa-68--acessibilidade-outline-none--focus-visible) | 16/07 | Acessibilidade: outline â†’ :focus-visible | â™»ï¸ Refactor |
-| [69](#etapa-69--performance-css-transition-all--propriedades-explÃ­citas) | 16/07 | transition: all â†’ props explÃ­citas | â™»ï¸ Refactor |
-| [70](#etapa-70--arquivamento-fÃ­sico-do-painel-x9k2fhtml) | 16/07 | painel-x9k2f.html â†’ backup/ | ğŸ§¹ Cleanup |
-| [71](#etapa-71--auditoria-de-referÃªncias-obsoletas-commercialindexhtml) | 16/07 | Auditoria commercial/index.html | ğŸ§¹ Cleanup |
-| [72](#etapa-72--limpeza-de-dados-acadÃªmicosfinanceiros) | 16/07 | Limpeza de dados (1 aluno, 1 prof) | ğŸ§¹ Cleanup |
-| [73](#etapa-73--correÃ§Ã£o-de-seguranÃ§a-e-refatoraÃ§Ã£o-do-server-devjs) | 16/07 | SeguranÃ§a + refatoraÃ§Ã£o server-dev.js | ğŸ› ï¸ Fix |
-| [74](#etapa-74--correÃ§Ã£o-de-vazamento-e-fallback-da-loja-em-produÃ§Ã£o) | 16/07 | Fix loja: leak API + fallback produtos | ğŸ› Fix |
-| [75](#etapa-75--extraÃ§Ã£o-de-handlers-da-loja-para-api_libstorehandlersjs) | 16/07 | ExtraÃ§Ã£o handlers loja p/ api/_lib/store/ | â™»ï¸ Refactor |
-| [76](#etapa-76--instalaÃ§Ã£o-do-ripgrep) | 16/07 | InstalaÃ§Ã£o do ripgrep (code-searcher) | ğŸ› ï¸ Tooling |
-| [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | â™»ï¸ Refactor |
-| [78](#etapa-78--guard-delete-student-helper-mock-compartilhado-e-leak-fix) | 16/07 | Guard DELETE student + helper mock + leak fix | â™»ï¸ Refactor |
-| [79](#etapa-79--design-upgrade-fonte-premium-enrollmentscss-migrado) | 16/07 | Design upgrade: font swap + enrollments CSS vars | ğŸ¨ Design |
-| [80](#etapa-80--p2-design-cleanup-centralizar-css-duplicado--unificar-active-states) | 16/07 | P2 design cleanup: CSS duplicado + active states | â™»ï¸ Refactor |
-| [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | ğŸ¨ Design |
-| [82](#etapa-82--correÃ§Ãµes-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | CorreÃ§Ãµes: CPF/phone masks, specialty select, fee validation, image upload | ğŸ› Fix |
-| [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar Ã³rfÃ£s, excluir imagens | âœ¨ Feature |
-| [84](#etapa-84--compressÃ£o-automÃ¡tica-de-imagens-com-sharp-webp-800px) | 16/07 | CompressÃ£o de imagens com Sharp (WebP + resize 800px) | âœ¨ Feature |
-| [85](#etapa-85--consolidar-funÃ§Ãµes-serverless-para-limite-de-12-do-vercel-hobby) | 16/07 | Consolidar funÃ§Ãµes Serverless (limite Hobby 12) + Deploy manual | ğŸ› ï¸ Fix |
-| [86](#etapa-86--backup-completo-do-supabase-12-tabelas-storage--paginaÃ§Ã£o) | 17/07 | Backup completo: 12 tabelas, Storage, gzip, paginaÃ§Ã£o, restauraÃ§Ã£o | ğŸ› ï¸ Fix |
-| [87](#etapa-87--correÃ§Ã£o-de-404s-google-fonts-e-tailwind-cdn) | 17/07 | CorreÃ§Ã£o: 404s chunks, Google Fonts 400, Tailwind CDN warning | ğŸ› Fix |
-| [88](#etapa-88--acesso-ao-painel-admin-pelo-logo-e-footer) | 17/07 | Acesso ao /app pelo logo (header) + link no footer | âœ¨ Feature |
-| [89](#etapa-89--limpeza-do-banco-supabase-para-uso-real) | 17/07 | Limpeza do banco Supabase (dados mÃ­nimos para produÃ§Ã£o) | ğŸ› ï¸ Fix |
-| [90](#etapa-90--auditoria-de-seguranÃ§a-completa) | 17/07 | Auditoria de seguranÃ§a: credenciais, headers, XSS, CSRF, err.message | ğŸ”’ Audit |
-| [91](#etapa-91--correÃ§Ã£o-de-testes-http-mock-server) | 18/07 | CorreÃ§Ã£o de Testes HTTP (Mock Server) | ğŸ§ª Test |
-| [92](#etapa-92--redesign-high-end-painel-administrativo) | 18/07 | Redesign High-End do painel administrativo (/app) | ğŸ¨ Design |
-| [93](#etapa-93--melhorias-uiux-no-react-spa) | 19/07 | Melhorias UI/UX no React SPA | ğŸ¨ Design |
-| [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | âœ¨ Feature |
-| [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botÃµes + reset) | âœ¨ Feature |
-| [96](#etapa-96--jogo-do-piano-com-4-nÃ­veis-completos) | 19/07 | Jogo do Piano: 4 nÃ­veis com melodia completa | ğŸ® Feature |
-| [97](#etapa-97--remoÃ§Ã£o-de-xp-da-loja) | 19/07 | RemoÃ§Ã£o de XP da loja (produtos + checkout) | ğŸ§¹ Cleanup |
-| [98](#etapa-98--remoÃ§Ã£o-de-cÃ³digo-xp-morto-do-cartjs) | 19/07 | RemoÃ§Ã£o de cÃ³digo XP morto do cart.js | ğŸ§¹ Cleanup |
-| [99](#etapa-99--remoÃ§Ã£o-do-campo-reward_xp-de-produtos) | 19/07 | RemoÃ§Ã£o do campo reward_xp de produtos (TS + backend + SQL) | ğŸ§¹ Cleanup |
-| [100](#etapa-100--correÃ§Ã£o-de-runtime-error-iconpackage-nÃ£o-importado) | 19/07 | CorreÃ§Ã£o: IconPackage nÃ£o importado no Dashboard | ğŸ› Fix |
-| [101](#etapa-101--design-refinado-globalcss-logincss-e-agendacss) | 19/07 | Design refinado: global.css login.css agenda.css | ğŸ¨ Design |
+| [44](#etapa-44--correções-pós-auditoria-de-banco) | 12/07 | Correções pós-auditoria de banco | ??? Fix |
+| [45](#etapa-45--correções-de-bugs-do-react-spa-fase-4) | 12/07 | Correções de bugs React SPA | ?? Fix |
+| [46](#etapa-46--navegação-global-ux-e-links-rápidos-fase-5) | 12/07 | Navegação global, TopBar, Toast | ? Feature |
+| [47](#etapa-47--loading-states-e-empty-states-padronizados-fase-52) | 12/07 | Loading/Empty/Error states globais | ?? Refactor |
+| [48](#etapa-48--arquivamento-do-painel-clássico-fase-6) | 12/07 | Arquivamento do painel clássico | ?? Cleanup |
+| [50](#etapa-50--responsividade-mobile-fase-53) | 15/07 | Responsividade mobile | ?? Feature |
+| [51](#etapa-51--correções-de-code-review-fase-8-pós-fixes) | 15/07 | Correções de code review | ?? Fix |
+| [53](#etapa-53--fase-9-alunos-expandido) | 15/07 | Alunos Expandido + StudentDetail | ? Feature |
+| [54](#etapa-54--correção-dos-3-críticos-code-review) | 15/07 | Remoção dead code + bugs críticos | ?? Fix |
+| [55](#etapa-55--type-safety-remoção-de-30-as-any-e-catch-err-any) | 15/07 | Type safety (30+ as any removidos) | ?? Refactor |
+| [56](#etapa-56--correção-de-issues-menores-css-xss-log) | 15/07 | CSS global, XSS sanitization | ?? Fix |
+| [57](#etapa-57--relatório-financeiro-fechamento-mensal--exportação-pdf) | 15/07 | Relatório Financeiro + PDF | ? Feature |
+| [60](#etapa-60--alinhamento-de-tipos-typescript-product--order) | 15/07 | Alinhamento tipos TS c/ Supabase | ?? Refactor |
+| [61](#etapa-61--wizard-de-cadastro-de-aluno) | 15/07 | Wizard de cadastro de aluno | ? Feature |
+| [62](#etapa-62--correção-dos-bugs-em-produção) | 15/07 | Correção de bugs produção | ?? Fix |
+| [63](#etapa-63--correção-do-eslint) | 15/07 | Correção ESLint | ??? Fix |
+| [64](#etapa-64--pagamento-automático-a-professor) | 15/07 | Pagamento automático a professor | ? Feature |
+| [65](#etapa-65--confirmação-ao-excluir-vínculo) | 15/07 | Confirmação ao excluir vínculo | ? Feature |
+| [66](#etapa-66--testes-para-pagamento-a-professor-e-exclusão-de-vínculo) | 16/07 | Testes p/ teacher_payments + delete enrollment | ?? Test |
+| [67](#etapa-67--auditoria-de-design-web-48-regras) | 16/07 | Web Interface Guidelines audit | ?? Refactor |
+| [68](#etapa-68--acessibilidade-outline-none--focus-visible) | 16/07 | Acessibilidade: outline ? :focus-visible | ?? Refactor |
+| [69](#etapa-69--performance-css-transition-all--propriedades-explícitas) | 16/07 | transition: all ? props explícitas | ?? Refactor |
+| [70](#etapa-70--arquivamento-físico-do-painel-x9k2fhtml) | 16/07 | painel-x9k2f.html ? backup/ | ?? Cleanup |
+| [71](#etapa-71--auditoria-de-referências-obsoletas-commercialindexhtml) | 16/07 | Auditoria commercial/index.html | ?? Cleanup |
+| [72](#etapa-72--limpeza-de-dados-acadêmicosfinanceiros) | 16/07 | Limpeza de dados (1 aluno, 1 prof) | ?? Cleanup |
+| [73](#etapa-73--correção-de-segurança-e-refatoração-do-server-devjs) | 16/07 | Segurança + refatoração server-dev.js | ??? Fix |
+| [74](#etapa-74--correção-de-vazamento-e-fallback-da-loja-em-produção) | 16/07 | Fix loja: leak API + fallback produtos | ?? Fix |
+| [75](#etapa-75--extração-de-handlers-da-loja-para-api_libstorehandlersjs) | 16/07 | Extração handlers loja p/ api/_lib/store/ | ?? Refactor |
+| [76](#etapa-76--instalação-do-ripgrep) | 16/07 | Instalação do ripgrep (code-searcher) | ??? Tooling |
+| [77](#etapa-77--guard-delete-teacher-crud-completo-server-dev-e-testes) | 16/07 | Guard DELETE teacher + CRUD dev server + testes | ?? Refactor |
+| [78](#etapa-78--guard-delete-student-helper-mock-compartilhado-e-leak-fix) | 16/07 | Guard DELETE student + helper mock + leak fix | ?? Refactor |
+| [79](#etapa-79--design-upgrade-fonte-premium-enrollmentscss-migrado) | 16/07 | Design upgrade: font swap + enrollments CSS vars | ?? Design |
+| [80](#etapa-80--p2-design-cleanup-centralizar-css-duplicado--unificar-active-states) | 16/07 | P2 design cleanup: CSS duplicado + active states | ?? Refactor |
+| [81](#etapa-81--design-polish-sombras-tintadas-bg-base-letter-spacing--tabular-nums) | 16/07 | Design polish: shadows, bg, letter-spacing, tabular-nums | ?? Design |
+| [82](#etapa-82--correções-de-campos-cpf-telefone-especialidade-mensalidade-e-upload-de-imagem) | 16/07 | Correções: CPF/phone masks, specialty select, fee validation, image upload | ?? Fix |
+| [83](#etapa-83--painel-de-gerenciamento-de-imagens-supabase-storage) | 16/07 | Storage Manager: listar, detectar órfãs, excluir imagens | ? Feature |
+| [84](#etapa-84--compressão-automática-de-imagens-com-sharp-webp-800px) | 16/07 | Compressão de imagens com Sharp (WebP + resize 800px) | ? Feature |
+| [85](#etapa-85--consolidar-funções-serverless-para-limite-de-12-do-vercel-hobby) | 16/07 | Consolidar funções Serverless (limite Hobby 12) + Deploy manual | ??? Fix |
+| [86](#etapa-86--backup-completo-do-supabase-12-tabelas-storage--paginação) | 17/07 | Backup completo: 12 tabelas, Storage, gzip, paginação, restauração | ??? Fix |
+| [87](#etapa-87--correção-de-404s-google-fonts-e-tailwind-cdn) | 17/07 | Correção: 404s chunks, Google Fonts 400, Tailwind CDN warning | ?? Fix |
+| [88](#etapa-88--acesso-ao-painel-admin-pelo-logo-e-footer) | 17/07 | Acesso ao /app pelo logo (header) + link no footer | ? Feature |
+| [89](#etapa-89--limpeza-do-banco-supabase-para-uso-real) | 17/07 | Limpeza do banco Supabase (dados mínimos para produção) | ??? Fix |
+| [90](#etapa-90--auditoria-de-segurança-completa) | 17/07 | Auditoria de segurança: credenciais, headers, XSS, CSRF, err.message | ?? Audit |
+| [91](#etapa-91--correção-de-testes-http-mock-server) | 18/07 | Correção de Testes HTTP (Mock Server) | ?? Test |
+| [92](#etapa-92--redesign-high-end-painel-administrativo) | 18/07 | Redesign High-End do painel administrativo (/app) | ?? Design |
+| [92-B](#etapa-92-b--finalização-do-redesign-high-end-sprint-4) | 18/07 | Finalização do Redesign High-End (Sprint 4) — reconstruída, ver Etapa 103 | ?? Design |
+| [93](#etapa-93--melhorias-uiux-no-react-spa) | 19/07 | Melhorias UI/UX no React SPA | ?? Design |
+| [94](#etapa-94--corte-de-imagem-no-upload-de-produtos) | 19/07 | Crop de imagem no upload de produtos | ? Feature |
+| [95](#etapa-95--zoom-no-imagecropper) | 19/07 | Zoom no ImageCropper (scroll + botões + reset) | ? Feature |
+| [96](#etapa-96--jogo-do-piano-com-4-níveis-completos) | 19/07 | Jogo do Piano: 4 níveis com melodia completa | ?? Feature |
+| [97](#etapa-97--remoção-de-xp-da-loja) | 19/07 | Remoção de XP da loja (produtos + checkout) | ?? Cleanup |
+| [98](#etapa-98--remoção-de-código-xp-morto-do-cartjs) | 19/07 | Remoção de código XP morto do cart.js | ?? Cleanup |
+| [99](#etapa-99--remoção-do-campo-reward_xp-de-produtos) | 19/07 | Remoção do campo reward_xp de produtos (TS + backend + SQL) | ?? Cleanup |
+| [100](#etapa-100--correção-de-runtime-error-iconpackage-não-importado) | 19/07 | Correção: IconPackage não importado no Dashboard | ?? Fix |
+| [101](#etapa-101--design-refinado-globalcss-logincss-e-agendacss) | 19/07 | Design refinado: global.css login.css agenda.css | ?? Design |
+| [102](#etapa-102--menu-mobile-hambúrguer--refinamento-de-tokens-visuais-gravity) | 20/07 | Menu mobile hambúrguer + refinamento de tokens visuais (Gravity) | ? Feature |
+| [103](#etapa-103--correção-do-arquivo-de-registro-novo_registromd) | 20/07 | Correção do arquivo novo_registro.md (encoding + etapas faltantes) | ??? Fix |
 
 ---
 
-## EstatÃ­sticas do PerÃ­odo
+## Estatísticas do Período
 
-| MÃ©trica | Valor |
+| Métrica | Valor |
 |---------|-------|
-| **Etapas** | 42 (44-85, com lacunas 49, 52, 58, 59) |
-| **Commits** | 25+ |
-| **PerÃ­odo** | 12/07/2026 â€” 16/07/2026 (5 dias) |
+| **Etapas** | 59 (44-102, com lacunas 49, 52, 58, 59) |
+| **Commits** | 27+ |
+| **Período** | 12/07/2026 — 20/07/2026 (9 dias) |
 | **Total de linhas do documento original** | 2121 |
-| **DecisÃµes do usuÃ¡rio respondidas** | 4 (pag. professor, relatÃ³rio, exclusÃ£o vÃ­nculo, turmas) |
+| **Decisões do usuário respondidas** | 4 (pag. professor, relatório, exclusão vínculo, turmas) |
+
+> ?? Nota de correção (20/07/2026): esta tabela havia ficado desatualizada — chegava a listar
+> "42 etapas (44-85)" e período de 5 dias mesmo com o índice acima já contendo etapas até
+> 101 (19/07). Corrigida nesta revisão para refletir o estado real do documento. Ver Etapa 102
+> para o commit em produção que também não havia sido documentado antes desta correção.
 
 ---
 
-# ETAPA 44 â€” CorreÃ§Ãµes PÃ³s-Auditoria de Banco
+# ETAPA 44 — Correções Pós-Auditoria de Banco
 
 **Data:** 12/07/2026 | **Commit:** `802224f`
 
 **Objetivo:** Corrigir problemas identificados na auditoria do banco de dados e schema.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **SQL de correÃ§Ã£o** (`supabase/fix-auditoria.sql`):
-  - `students.active` dropada â€” `status` Ã© Ãºnica fonte de verdade
+- **SQL de correção** (`supabase/fix-auditoria.sql`):
+  - `students.active` dropada — `status` é única fonte de verdade
   - `enrollments.class_time` e `lessons.start_time/end_time` normalizados como `text` (sem segundos)
   - `tuitions.reference_month` migrado de `text` para `date`
   - `expenses.expense_type` CHECK expandido p/ aceitar `'variable'`
-  - RLS policies deny para anon nas 10 tabelas do domÃ­nio acadÃªmico/financeiro
-- **Schema** (`supabase/financial-schema.sql`): `reference_month: text â†’ date`
+  - RLS policies deny para anon nas 10 tabelas do domínio acadêmico/financeiro
+- **Schema** (`supabase/financial-schema.sql`): `reference_month: text ? date`
 - **API** (`api/_lib/financial/tuitions.js`): reusa `normalizeMonthDate()` de helpers
 
 ## Testes
 
-âœ… `npm test` â€” passando | âœ… `node --check` â€” sintaxe vÃ¡lida
+? `npm test` — passando | ? `node --check` — sintaxe válida
 
 ---
 
-# ETAPA 45 â€” CorreÃ§Ãµes de Bugs do React SPA (Fase 4)
+# ETAPA 45 — Correções de Bugs do React SPA (Fase 4)
 
 **Data:** 12/07/2026 | **Commit:** `5a3664c`
 
 **Objetivo:** Corrigir bugs que causavam erros 500 e quebras de funcionalidade.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **Bug #3 â€” `students.active` removida**: `Enrollments.tsx` e `Admin.tsx` usavam `s.active` (coluna dropada). SubstituÃ­do por `s.status === 'active'`
-- **Bug #2 â€” Error handling na API**: `classifyError()` mapeia cÃ³digos de erro do Supabase p/ HTTP status (409, 400, 500)
-- **Bug #5 â€” ValidaÃ§Ã£o de `req.body`**: ValidaÃ§Ã£o centralizada antes do switch de resources
+- **Bug #3 — `students.active` removida**: `Enrollments.tsx` e `Admin.tsx` usavam `s.active` (coluna dropada). Substituído por `s.status === 'active'`
+- **Bug #2 — Error handling na API**: `classifyError()` mapeia códigos de erro do Supabase p/ HTTP status (409, 400, 500)
+- **Bug #5 — Validação de `req.body`**: Validação centralizada antes do switch de resources
 
 ## Arquivos Alterados
 
@@ -123,24 +131,24 @@
 
 ## Testes
 
-âœ… `npm test` â€” 29/29 | âœ… `npm run build` â€” OK
+? `npm test` — 29/29 | ? `npm run build` — OK
 
 ---
 
-# ETAPA 46 â€” NavegaÃ§Ã£o Global, UX e Links RÃ¡pidos (Fase 5)
+# ETAPA 46 — Navegação Global, UX e Links Rápidos (Fase 5)
 
 **Data:** 12/07/2026 | **Commit:** `3c6e010`
 
-**Objetivo:** Substituir navegaÃ§Ã£o descentralizada por layout global padronizado.
+**Objetivo:** Substituir navegação descentralizada por layout global padronizado.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **TopBar**: Header fixo 56px com backdrop-filter, abas de navegaÃ§Ã£o, botÃ£o Sair unificado
-- **Breadcrumbs**: NavegaÃ§Ã£o hierÃ¡rquica com links clicÃ¡veis
-- **Toast Global**: Sistema de notificaÃ§Ãµes via React Context (`AppContext`), auto-dismiss 3.5s
-- **ConfirmModal**: SubstituiÃ§Ã£o de `window.confirm()` por modal estilizado via Promise
-- **AppLayout**: UnificaÃ§Ã£o de wrappers em todas as pÃ¡ginas autenticadas
-- **Dashboard**: KPIs e alertas agora sÃ£o links clicÃ¡veis
+- **TopBar**: Header fixo 56px com backdrop-filter, abas de navegação, botão Sair unificado
+- **Breadcrumbs**: Navegação hierárquica com links clicáveis
+- **Toast Global**: Sistema de notificações via React Context (`AppContext`), auto-dismiss 3.5s
+- **ConfirmModal**: Substituição de `window.confirm()` por modal estilizado via Promise
+- **AppLayout**: Unificação de wrappers em todas as páginas autenticadas
+- **Dashboard**: KPIs e alertas agora são links clicáveis
 
 ## Arquivos Alterados
 
@@ -148,107 +156,107 @@
 
 ## Testes
 
-âœ… `npm run build` â€” 72 mÃ³dulos | âœ… Code Review â€” sem issues
+? `npm run build` — 72 módulos | ? Code Review — sem issues
 
 ---
 
-# ETAPA 47 â€” Loading States e Empty States Padronizados (Fase 5.2)
+# ETAPA 47 — Loading States e Empty States Padronizados (Fase 5.2)
 
 **Data:** 12/07/2026 | **Commit:** `5361f53`
 
-**Objetivo:** Padronizar estados de loading, empty e erro em todas as pÃ¡ginas.
+**Objetivo:** Padronizar estados de loading, empty e erro em todas as páginas.
 
 ## Problema
 
-Cada pÃ¡gina tinha sua prÃ³pria implementaÃ§Ã£o CSS, resultando em aparÃªncia inconsistente e ~150 linhas duplicadas.
+Cada página tinha sua própria implementação CSS, resultando em aparência inconsistente e ~150 linhas duplicadas.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 - **Classes globais** em `global.css`: `.loading` (com spinner animado), `.empty-state`, `.error-banner`
 - **Variantes**: `.loading-sm`, `.loading-lg`, `.empty-state-sm`, `.error-banner-hiding`
-- **Removido** ~150 linhas de CSS duplicado de 6 arquivos de pÃ¡gina
+- **Removido** ~150 linhas de CSS duplicado de 6 arquivos de página
 
 ## Testes
 
-âœ… `npm run build` â€” 72 mÃ³dulos | âœ… Code Review â€” sem issues crÃ­ticas
+? `npm run build` — 72 módulos | ? Code Review — sem issues críticas
 
 ---
 
-# ETAPA 48 â€” Arquivamento do Painel ClÃ¡ssico (Fase 6)
+# ETAPA 48 — Arquivamento do Painel Clássico (Fase 6)
 
 **Data:** 12/07/2026 | **Commit:** `d738668`
 
-**Objetivo:** Arquivar `painel-x9k2f.html` (HTML/JS puro, ~4400 linhas) como fallback de emergÃªncia.
+**Objetivo:** Arquivar `painel-x9k2f.html` (HTML/JS puro, ~4400 linhas) como fallback de emergência.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 - **Backup**: `backup/painel-x9k2f.backup.html`
 - **Links removidos**: Login.tsx, Admin.tsx, App.tsx (Home), commercial/index.html
 - **Build**: Entrada `painel` removida do `rollupOptions.input` no `vite.config.js`
 - **CSS morto**: `.login-legacy-link` removido
-- **Varredura backend**: 0 referÃªncias a `painel-x9k2f.html`
+- **Varredura backend**: 0 referências a `painel-x9k2f.html`
 
 ## Testes
 
-âœ… `npm run build` â€” 70 mÃ³dulos | âœ… Varredura â€” 0 referÃªncias residuais
+? `npm run build` — 70 módulos | ? Varredura — 0 referências residuais
 
 ---
 
-# ETAPA 50 â€” Responsividade Mobile (Fase 5.3)
+# ETAPA 50 — Responsividade Mobile (Fase 5.3)
 
 **Data:** 15/07/2026 | **Commit:** `d738668`
 
-**Objetivo:** Ajustar layout para telas pequenas (â‰¤640px e â‰¤480px).
+**Objetivo:** Ajustar layout para telas pequenas (=640px e =480px).
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **TopBar colapsada**: Brand vira sÃ³ Ã­cone ğŸµ, abas sÃ³ Ã­cones, Sair sÃ³ ğŸšª
+- **TopBar colapsada**: Brand vira só ícone ??, abas só ícones, Sair só ??
 - **Breadcrumbs scroll**: overflow-x: auto em mobile
 - **Toast full-width**: 100% da tela em mobile
-- **ConfirmModal empilhado**: BotÃµes em coluna no mobile
-- **GrÃ¡ficos Admin**: Grid 1 coluna, barras compactas
+- **ConfirmModal empilhado**: Botões em coluna no mobile
+- **Gráficos Admin**: Grid 1 coluna, barras compactas
 - **Dashboard**: Nome do professor oculto, KPIs compactos
-- **Breakpoint 480px**: EspaÃ§amento mÃ­nimo
+- **Breakpoint 480px**: Espaçamento mínimo
 
 ## Testes
 
-âœ… `npm run build` â€” 71 mÃ³dulos | âœ… Code Review â€” sem issues
+? `npm run build` — 71 módulos | ? Code Review — sem issues
 
 ---
 
-# ETAPA 51 â€” CorreÃ§Ãµes de Code Review (Fase 8 PÃ³s-Fixes)
+# ETAPA 51 — Correções de Code Review (Fase 8 Pós-Fixes)
 
 **Data:** 15/07/2026 | **Commit:** `b7d8b8e`
 
 **Objetivo:** Corrigir 3 pontos do code review da Agenda.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **Fix #1 â€” Double-fetch**: `loadLessons()` removido dos handlers de toggle (useEffect jÃ¡ faz o fetch)
-- **Fix #2 â€” Mapeamento frÃ¡gil**: `DAY_SHORT_TO_LABEL` substitui array indexOf frÃ¡gil
-- **Fix #3 â€” Error banner fadeOut**: TransiÃ§Ã£o opacity 150ms + classe `.error-banner-hiding`
+- **Fix #1 — Double-fetch**: `loadLessons()` removido dos handlers de toggle (useEffect já faz o fetch)
+- **Fix #2 — Mapeamento frágil**: `DAY_SHORT_TO_LABEL` substitui array indexOf frágil
+- **Fix #3 — Error banner fadeOut**: Transição opacity 150ms + classe `.error-banner-hiding`
 
 ## Testes
 
-âœ… `npm run build` â€” 70 mÃ³dulos, 4.77s | âœ… `npm test` â€” 29/29 | âœ… Code Review
+? `npm run build` — 70 módulos, 4.77s | ? `npm test` — 29/29 | ? Code Review
 
 ---
 
-# ETAPA 53 â€” Fase 9: Alunos Expandido
+# ETAPA 53 — Fase 9: Alunos Expandido
 
 **Data:** 15/07/2026 | **Commit:** `a428b14`
 
-**Objetivo:** Expandir pÃ¡gina de Alunos com histÃ³rico, CSV, multi-instrumentos e detalhes.
+**Objetivo:** Expandir página de Alunos com histórico, CSV, multi-instrumentos e detalhes.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **StudentDetail.tsx** (novo): PÃ¡gina `/academico/aluno/:id` com info completa, estatÃ­sticas, abas de Aulas/Mensalidades/Pagamentos
+- **StudentDetail.tsx** (novo): Página `/academico/aluno/:id` com info completa, estatísticas, abas de Aulas/Mensalidades/Pagamentos
 - **API**: `fetchStudentById`, `fetchLessonsByStudent`, `fetchEnrollmentsByStudent`, `fetchTuitionsByStudent`, `fetchPaymentsByStudent`
 - **Backend**: Filtro `?resource=students&id=ST-XXXX` no GET
 - **CSV Export**: 8 colunas com BOM UTF-8 para Excel
 - **Multi-instrumentos**: Checkboxes estilo chips
 - **Coluna Origem**: Badge na tabela
-- **Rota**: `/academico/aluno/:id` â†’ StudentDetail
+- **Rota**: `/academico/aluno/:id` ? StudentDetail
 
 ## Arquivos Alterados
 
@@ -256,44 +264,44 @@ Cada pÃ¡gina tinha sua prÃ³pria implementaÃ§Ã£o CSS, resultando em aparÃªncia in
 
 ## Testes
 
-âœ… `npm run build` â€” 71 mÃ³dulos, 4.42s | âœ… Code Review â€” 6 issues corrigidos
+? `npm run build` — 71 módulos, 4.42s | ? Code Review — 6 issues corrigidos
 
 ---
 
-# ETAPA 54 â€” CorreÃ§Ã£o dos 3 CrÃ­ticos (Code Review)
+# ETAPA 54 — Correção dos 3 Críticos (Code Review)
 
 **Data:** 15/07/2026 | **Commit:** `7f947ae`
 
-**Objetivo:** Remover cÃ³digo morto, corrigir bug silencioso e unificar UX inconsistente.
+**Objetivo:** Remover código morto, corrigir bug silencioso e unificar UX inconsistente.
 
-## Problemas e CorreÃ§Ãµes
+## Problemas e Correções
 
-| # | Severidade | Problema | CorreÃ§Ã£o |
+| # | Severidade | Problema | Correção |
 |:-:|:----------:|----------|----------|
-| 1 | ğŸ”´ CrÃ­tico | `api/_lib/admin/` â€” 9 arquivos mortos (~800 linhas) | Removidos |
-| 2 | ğŸ”´ CrÃ­tico | `fetchPaymentsByStudent` ignorava `student_id` | Adicionado `.eq('student_id', student_id)` |
-| 3 | ğŸ”´ CrÃ­tico | Financial.tsx com toast e confirm prÃ³prios | Unificado com `useApp()` global |
+| 1 | ?? Crítico | `api/_lib/admin/` — 9 arquivos mortos (~800 linhas) | Removidos |
+| 2 | ?? Crítico | `fetchPaymentsByStudent` ignorava `student_id` | Adicionado `.eq('student_id', student_id)` |
+| 3 | ?? Crítico | Financial.tsx com toast e confirm próprios | Unificado com `useApp()` global |
 
 ## Testes
 
-âœ… `npm run build` â€” 71 mÃ³dulos | âœ… `npm test` â€” 29/29 | âœ… Code Review
+? `npm run build` — 71 módulos | ? `npm test` — 29/29 | ? Code Review
 
 ---
 
-# ETAPA 55 â€” Type Safety: RemoÃ§Ã£o de 30+ `as any` e `catch (err: any)`
+# ETAPA 55 — Type Safety: Remoção de 30+ `as any` e `catch (err: any)`
 
 **Data:** 15/07/2026 | **Commit:** `032680b`
 
-**Objetivo:** Eliminar todas as ocorrÃªncias de `as any` e `catch (err: any)` nos .tsx.
+**Objetivo:** Eliminar todas as ocorrências de `as any` e `catch (err: any)` nos .tsx.
 
-## PadrÃµes Corrigidos
+## Padrões Corrigidos
 
-| PadrÃ£o | OcorrÃªncias | CorreÃ§Ã£o |
+| Padrão | Ocorrências | Correção |
 |--------|:-----------:|----------|
 | `catch (err: any) { setError(err.message) }` | 25 | `catch (err: unknown)` + `instanceof Error` |
-| `payload as any` (create/update) | 2 | Removido (payload jÃ¡ compatÃ­vel) |
+| `payload as any` (create/update) | 2 | Removido (payload já compatível) |
 | `form.lesson_type as any` | 2 | `as LessonType` |
-| `const payload: any = { ... }` | 1 | Tipo explÃ­cito `Omit<Enrollment, ...>` |
+| `const payload: any = { ... }` | 1 | Tipo explícito `Omit<Enrollment, ...>` |
 
 ## Arquivos Alterados
 
@@ -301,45 +309,45 @@ Cada pÃ¡gina tinha sua prÃ³pria implementaÃ§Ã£o CSS, resultando em aparÃªncia in
 
 ## Testes
 
-âœ… Ripgrep: 0 ocorrÃªncias de `catch (err: any)` ou `as any` em .tsx
-âœ… `npm run build` â€” 71 mÃ³dulos, 2.85s | âœ… Code Review
+? Ripgrep: 0 ocorrências de `catch (err: any)` ou `as any` em .tsx
+? `npm run build` — 71 módulos, 2.85s | ? Code Review
 
 ---
 
-# ETAPA 56 â€” CorreÃ§Ã£o de Issues Menores (CSS, XSS, Log)
+# ETAPA 56 — Correção de Issues Menores (CSS, XSS, Log)
 
 **Data:** 15/07/2026 | **Commit:** `089df38`
 
-**Objetivo:** Corrigir CSS duplicado, risco XSS na loja e console.error em produÃ§Ã£o.
+**Objetivo:** Corrigir CSS duplicado, risco XSS na loja e console.error em produção.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 - **CSS global**: `.btn-primary`/`.btn-secondary` movidos p/ `global.css` (antes em `students.css`)
-- **XSS sanitization**: FunÃ§Ã£o `esc()` adicionada em `store/store.js`, sanitiza 8+ interpolaÃ§Ãµes
-- **Log**: `console.error` â†’ `console.warn`
+- **XSS sanitization**: Função `esc()` adicionada em `store/store.js`, sanitiza 8+ interpolações
+- **Log**: `console.error` ? `console.warn`
 
 ## Testes
 
-âœ… `npm run build` â€” 71 mÃ³dulos, 2.58s | âœ… Code Review â€” 1 issue corrigido
+? `npm run build` — 71 módulos, 2.58s | ? Code Review — 1 issue corrigido
 
 ---
 
-# ETAPA 57 â€” RelatÃ³rio Financeiro (Fechamento Mensal + ExportaÃ§Ã£o PDF)
+# ETAPA 57 — Relatório Financeiro (Fechamento Mensal + Exportação PDF)
 
 **Data:** 15/07/2026 | **Commit:** `3d7cfc4`
 
-**Objetivo:** Implementar relatÃ³rio financeiro de fechamento mensal com breakdown e exportaÃ§Ã£o PDF.
+**Objetivo:** Implementar relatório financeiro de fechamento mensal com breakdown e exportação PDF.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **Nova aba "ğŸ“Š RelatÃ³rio"**: 5Âª aba no Financeiro, reusa seletor de mÃªs/ano
-- **Seletor de PerÃ­odo**: MÃªs (dropdown) ou PerÃ­odo Personalizado (datas)
-- **Endpoint**: `resource=financial_report` â†’ `api/_lib/financial/report.js` (novo)
+- **Nova aba "?? Relatório"**: 5ª aba no Financeiro, reusa seletor de mês/ano
+- **Seletor de Período**: Mês (dropdown) ou Período Personalizado (datas)
+- **Endpoint**: `resource=financial_report` ? `api/_lib/financial/report.js` (novo)
 - **Breakdown de Receitas**: Mensalidades, receitas avulsas por categoria
-- **Breakdown de Despesas**: Por categoria e por tipo (fixo/variÃ¡vel)
-- **Pagamentos a Professores**: Lista por professor (seÃ§Ã£o condicional)
-- **GrÃ¡fico CSS**: 6 meses, 3 barras/mÃªs (receita/despesa/saldo), tooltip hover
-- **ExportaÃ§Ã£o PDF**: `window.print()` com `@media print` (~60 linhas)
+- **Breakdown de Despesas**: Por categoria e por tipo (fixo/variável)
+- **Pagamentos a Professores**: Lista por professor (seção condicional)
+- **Gráfico CSS**: 6 meses, 3 barras/mês (receita/despesa/saldo), tooltip hover
+- **Exportação PDF**: `window.print()` com `@media print` (~60 linhas)
 
 ## Arquivos Alterados
 
@@ -347,205 +355,205 @@ Cada pÃ¡gina tinha sua prÃ³pria implementaÃ§Ã£o CSS, resultando em aparÃªncia in
 
 ## Testes
 
-âœ… `npm run build` â€” 71 mÃ³dulos, 3.27s | âœ… Code Review â€” 3 issues corrigidos
+? `npm run build` — 71 módulos, 3.27s | ? Code Review — 3 issues corrigidos
 
 ---
 
-# ETAPA 60 â€” Alinhamento de Tipos TypeScript (Product / Order)
+# ETAPA 60 — Alinhamento de Tipos TypeScript (Product / Order)
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
 **Objetivo:** Ajustar interfaces `Product` e `Order` para corresponderem ao schema do Supabase.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 - **Product**: Adicionados `updated_at`, `badge_color`, `reward_xp`, `variants`; removido `sizes`
-- **Order**: Adicionados `updated_at`, `customer_phone`, `mp_payment_id`, `mp_status`, `mp_status_detail`, `earned_xp`, `customer_is_student`; renomeado `payment_method` â†’ `method`; `items` â†’ `any`
+- **Order**: Adicionados `updated_at`, `customer_phone`, `mp_payment_id`, `mp_status`, `mp_status_detail`, `earned_xp`, `customer_is_student`; renomeado `payment_method` ? `method`; `items` ? `any`
 - **Store.tsx**: Atualizado p/ consumir interfaces corrigidas
 
 ---
 
-# ETAPA 61 â€” Wizard de Cadastro de Aluno
+# ETAPA 61 — Wizard de Cadastro de Aluno
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
-**Objetivo:** Substituir formulÃ¡rio plano por wizard de 8 etapas com matrÃ­cula integrada.
+**Objetivo:** Substituir formulário plano por wizard de 8 etapas com matrícula integrada.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **Fluxo**: Dados do Aluno â†’ Check MatrÃ­cula â†’ Instrumento â†’ Professor â†’ Dia/HorÃ¡rio â†’ Valor â†’ Agendar 1Âª Aula â†’ ConfirmaÃ§Ã£o
-- **UI**: `StepIndicator` visual (stepper) + cards de seleÃ§Ã£o
-- **Backend**: `handleWizardSave` integrado p/ criaÃ§Ã£o simultÃ¢nea de aluno + matrÃ­cula
+- **Fluxo**: Dados do Aluno ? Check Matrícula ? Instrumento ? Professor ? Dia/Horário ? Valor ? Agendar 1ª Aula ? Confirmação
+- **UI**: `StepIndicator` visual (stepper) + cards de seleção
+- **Backend**: `handleWizardSave` integrado p/ criação simultânea de aluno + matrícula
 
 ---
 
-# ETAPA 62 â€” CorreÃ§Ã£o dos Bugs em ProduÃ§Ã£o
+# ETAPA 62 — Correção dos Bugs em Produção
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
-**Objetivo:** Corrigir erros crÃ­ticos no Wizard e navegaÃ§Ã£o.
+**Objetivo:** Corrigir erros críticos no Wizard e navegação.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- **Erro 400**: Status `'enrolled'` â†’ `'active'` (CHECK constraint do banco)
+- **Erro 400**: Status `'enrolled'` ? `'active'` (CHECK constraint do banco)
 - **ReferenceError**: `const navigate = useNavigate()` faltando em `Students.tsx`
 - **UI**: `<input type="date">` estilizado no Step 7
 
 ---
 
-# ETAPA 63 â€” CorreÃ§Ã£o do ESLint
+# ETAPA 63 — Correção do ESLint
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
 **Objetivo:** Resolver crash no `npm run lint`.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- Identificada corrupÃ§Ã£o no pacote `eslint@10.6.0` (configs ausentes em `node_modules`)
-- SoluÃ§Ã£o: `rm -rf node_modules && npm install` completo
+- Identificada corrupção no pacote `eslint@10.6.0` (configs ausentes em `node_modules`)
+- Solução: `rm -rf node_modules && npm install` completo
 
 ---
 
-# ETAPA 64 â€” Pagamento AutomÃ¡tico a Professor
+# ETAPA 64 — Pagamento Automático a Professor
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
-**Objetivo:** Implementar cÃ¡lculo automÃ¡tico de pagamento a professor com base em `rate_per_class Ã— aulas completadas no mÃªs`.
+**Objetivo:** Implementar cálculo automático de pagamento a professor com base em `rate_per_class × aulas completadas no mês`.
 
 ## Contexto
 
-O usuÃ¡rio decidiu (sessÃ£o de 15/07/2026) que o pagamento a professor deve ser **automÃ¡tico**, mas **acionado manualmente** (botÃ£o, nÃ£o automÃ¡tico junto com a mensalidade). A razÃ£o: permitir que o usuÃ¡rio revise as aulas dadas antes de gerar os pagamentos.
+O usuário decidiu (sessão de 15/07/2026) que o pagamento a professor deve ser **automático**, mas **acionado manualmente** (botão, não automático junto com a mensalidade). A razão: permitir que o usuário revise as aulas dadas antes de gerar os pagamentos.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### Backend â€” `api/_lib/financial/teacherPayments.js`
-- Nova funÃ§Ã£o `handleGenerateTeacherPayments()` acessÃ­vel via `GET ?resource=teacher_payments&action=generate&month=X&year=Y`
+### Backend — `api/_lib/financial/teacherPayments.js`
+- Nova função `handleGenerateTeacherPayments()` acessível via `GET ?resource=teacher_payments&action=generate&month=X&year=Y`
 - Para cada professor ativo com `rate_per_class > 0`:
-  1. Conta `lessons` com status `'completed'` no mÃªs/ano
-  2. Calcula `amount = rate_per_class Ã— total_aulas_completadas`
-  3. Verifica se jÃ¡ existe pagamento para o mesmo professor+mÃªs (evita duplicaÃ§Ã£o)
+  1. Conta `lessons` com status `'completed'` no mês/ano
+  2. Calcula `amount = rate_per_class × total_aulas_completadas`
+  3. Verifica se já existe pagamento para o mesmo professor+mês (evita duplicação)
   4. Cria registro `teacher_payment` com `paid: false` e `notes` descritiva
 - Retorna resumo completo: `{ generated: [...], skipped: [...], summary: { total_teachers, generated_count, skipped_count, total_amount } }`
-- Cada item ignorado inclui `reason` explicativa ("Nenhuma aula completada no perÃ­odo", "JÃ¡ existe pagamento para este mÃªs", etc.)
+- Cada item ignorado inclui `reason` explicativa ("Nenhuma aula completada no período", "Já existe pagamento para este mês", etc.)
 
-### Frontend â€” `app/src/services/api.ts`
-- Nova funÃ§Ã£o `generateTeacherPayments(month, year)` que chama o backend
+### Frontend — `app/src/services/api.ts`
+- Nova função `generateTeacherPayments(month, year)` que chama o backend
 
-### Frontend â€” `app/src/pages/Financial.tsx`
-- BotÃ£o **âš¡ Gerar Pagamentos** na aba "Pag. Professores"
-- Modal de confirmaÃ§Ã£o: "Calcular rate_per_class Ã— aulas completadas para [mÃªs] de [ano]?"
-- Toast com resultado: `"X pagamento(s) gerado(s) â€” Total: R$ X.XXX,XX"`
-- Toast informativo se nenhum pagamento gerado (sem professores ativos, todos jÃ¡ existentes, ou sem aulas)
-- Recarrega lista e KPIs apÃ³s geraÃ§Ã£o
+### Frontend — `app/src/pages/Financial.tsx`
+- Botão **? Gerar Pagamentos** na aba "Pag. Professores"
+- Modal de confirmação: "Calcular rate_per_class × aulas completadas para [mês] de [ano]?"
+- Toast com resultado: `"X pagamento(s) gerado(s) — Total: R$ X.XXX,XX"`
+- Toast informativo se nenhum pagamento gerado (sem professores ativos, todos já existentes, ou sem aulas)
+- Recarrega lista e KPIs após geração
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `api/_lib/financial/teacherPayments.js` | `handleGenerateTeacherPayments()` â€” ~100 linhas |
-| `app/src/pages/Financial.tsx` | BotÃ£o âš¡ Gerar Pagamentos + confirm + toast |
-| `app/src/services/api.ts` | `generateTeacherPayments()` â€” chamada API |
+| `api/_lib/financial/teacherPayments.js` | `handleGenerateTeacherPayments()` — ~100 linhas |
+| `app/src/pages/Financial.tsx` | Botão ? Gerar Pagamentos + confirm + toast |
+| `app/src/services/api.ts` | `generateTeacherPayments()` — chamada API |
 
-## DecisÃ£o do UsuÃ¡rio
+## Decisão do Usuário
 
-- âœ… **AutomÃ¡tico**: calcular `rate_per_class Ã— aulas completadas no mÃªs`
-- âœ… **Acionado manualmente**: pelo botÃ£o âš¡, nÃ£o automÃ¡tico junto com mensalidade
-- âœ… **Por quÃª?** UsuÃ¡rio pode revisar aulas antes de gerar pagamentos (aula cancelada ainda como completed, aula extra nÃ£o registrada, etc.)
+- ? **Automático**: calcular `rate_per_class × aulas completadas no mês`
+- ? **Acionado manualmente**: pelo botão ?, não automático junto com mensalidade
+- ? **Por quê?** Usuário pode revisar aulas antes de gerar pagamentos (aula cancelada ainda como completed, aula extra não registrada, etc.)
 
 ## Testes
 
-âœ… `npm run build` â€” 73 mÃ³dulos, sem erros | âœ… `npm test` â€” 29/29 | âœ… Code Review â€” sem issues crÃ­ticas
+? `npm run build` — 73 módulos, sem erros | ? `npm test` — 29/29 | ? Code Review — sem issues críticas
 
 ---
 
-# ETAPA 65 â€” ConfirmaÃ§Ã£o ao Excluir VÃ­nculo
+# ETAPA 65 — Confirmação ao Excluir Vínculo
 
-**Data:** 15/07/2026 | **Commit:** â€” (na main)
+**Data:** 15/07/2026 | **Commit:** — (na main)
 
-**Objetivo:** Implementar confirmaÃ§Ã£o em duas etapas ao excluir um vÃ­nculo, perguntando se o usuÃ¡rio deseja cancelar mensalidades pendentes tambÃ©m.
+**Objetivo:** Implementar confirmação em duas etapas ao excluir um vínculo, perguntando se o usuário deseja cancelar mensalidades pendentes também.
 
 ## Contexto
 
-O usuÃ¡rio decidiu (sessÃ£o de 15/07/2026) que ao excluir um vÃ­nculo, o sistema deve **perguntar antes** se deseja cancelar as mensalidades pendentes tambÃ©m. Mensalidades jÃ¡ pagas nunca sÃ£o afetadas.
+O usuário decidiu (sessão de 15/07/2026) que ao excluir um vínculo, o sistema deve **perguntar antes** se deseja cancelar as mensalidades pendentes também. Mensalidades já pagas nunca são afetadas.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### Backend â€” `api/_lib/financial/enrollments.js` (DELETE handler)
+### Backend — `api/_lib/financial/enrollments.js` (DELETE handler)
 - Aceita novo query param `?cancel_tuitions=true`
 - Se `cancel_tuitions=true`:
-  - Busca mensalidades do vÃ­nculo com status `pending` ou `overdue`
-  - Atualiza todas para `status: 'cancelled'` com `notes: 'Cancelada automaticamente ao excluir vÃ­nculo.'`
+  - Busca mensalidades do vínculo com status `pending` ou `overdue`
+  - Atualiza todas para `status: 'cancelled'` com `notes: 'Cancelada automaticamente ao excluir vínculo.'`
   - Retorna `cancelled_tuitions` count
-- Se `cancel_tuitions` nÃ£o enviado ou `false`:
-  - Exclui apenas o vÃ­nculo (mensalidades permanecem, `enrollment_id` vai a `null` via `on delete set null`)
-- MantÃ©m validaÃ§Ã£o existente: bloqueia exclusÃ£o se houver aulas vinculadas (status 409)
+- Se `cancel_tuitions` não enviado ou `false`:
+  - Exclui apenas o vínculo (mensalidades permanecem, `enrollment_id` vai a `null` via `on delete set null`)
+- Mantém validação existente: bloqueia exclusão se houver aulas vinculadas (status 409)
 
-### Frontend â€” `app/src/services/api.ts`
-- `deleteEnrollment(id, cancelTuitions?)` aceita parÃ¢metro opcional
+### Frontend — `app/src/services/api.ts`
+- `deleteEnrollment(id, cancelTuitions?)` aceita parâmetro opcional
 - Retorna objeto `{ success, cancelled_tuitions, message }`
 
-### Frontend â€” `app/src/pages/Enrollments.tsx`
-- **1Âª confirmaÃ§Ã£o**: "Tem certeza que deseja excluir o vÃ­nculo de [nome do aluno]?" (botÃ£o vermelho "Excluir" + "Cancelar")
-- **2Âª confirmaÃ§Ã£o**: "Deseja tambÃ©m cancelar as mensalidades pendentes deste vÃ­nculo?" com opÃ§Ãµes:
-  - âœ… "Sim, cancelar mensalidades"
-  - âŒ "NÃ£o, manter mensalidades" (exclusÃ£o prossegue mesmo assim)
-- Toast informa quantas mensalidades foram canceladas (ou apenas "VÃ­nculo excluÃ­do" se 0)
+### Frontend — `app/src/pages/Enrollments.tsx`
+- **1ª confirmação**: "Tem certeza que deseja excluir o vínculo de [nome do aluno]?" (botão vermelho "Excluir" + "Cancelar")
+- **2ª confirmação**: "Deseja também cancelar as mensalidades pendentes deste vínculo?" com opções:
+  - ? "Sim, cancelar mensalidades"
+  - ? "Não, manter mensalidades" (exclusão prossegue mesmo assim)
+- Toast informa quantas mensalidades foram canceladas (ou apenas "Vínculo excluído" se 0)
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `api/_lib/financial/enrollments.js` | DELETE com `cancel_tuitions` â€” ~30 linhas |
-| `app/src/pages/Enrollments.tsx` | `handleDelete` com 2 confirmaÃ§Ãµes + toast |
+| `api/_lib/financial/enrollments.js` | DELETE com `cancel_tuitions` — ~30 linhas |
+| `app/src/pages/Enrollments.tsx` | `handleDelete` com 2 confirmações + toast |
 | `app/src/services/api.ts` | `deleteEnrollment(id, cancelTuitions?)` assinatura + query param |
 
-## DecisÃ£o do UsuÃ¡rio
+## Decisão do Usuário
 
-- âœ… **Perguntar antes de excluir**: sistema pergunta se quer cancelar mensalidades
-- âœ… **Mensalidades pagas**: NUNCA sÃ£o afetadas (apenas `pending`/`overdue`)
-- âœ… **ExclusÃ£o prossegue** mesmo se usuÃ¡rio optar por nÃ£o cancelar mensalidades
+- ? **Perguntar antes de excluir**: sistema pergunta se quer cancelar mensalidades
+- ? **Mensalidades pagas**: NUNCA são afetadas (apenas `pending`/`overdue`)
+- ? **Exclusão prossegue** mesmo se usuário optar por não cancelar mensalidades
 
 ## Testes
 
-âœ… `npm run build` â€” 73 mÃ³dulos, sem erros | âœ… `npm test` â€” 29/29 | âœ… Code Review â€” sem issues crÃ­ticas
+? `npm run build` — 73 módulos, sem erros | ? `npm test` — 29/29 | ? Code Review — sem issues críticas
 
 ---
 
-# ETAPA 66 â€” Testes para Pagamento a Professor e ExclusÃ£o de VÃ­nculo
+# ETAPA 66 — Testes para Pagamento a Professor e Exclusão de Vínculo
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
-**Objetivo:** Adicionar testes unitÃ¡rios para `handleGenerateTeacherPayments` (Etapa 64) e `deleteEnrollment` com `cancel_tuitions` (Etapa 65).
+**Objetivo:** Adicionar testes unitários para `handleGenerateTeacherPayments` (Etapa 64) e `deleteEnrollment` com `cancel_tuitions` (Etapa 65).
 
 ## Contexto
 
-ApÃ³s implementar as Etapas 64 e 65, o code review recomendou adicionar testes especÃ­ficos para as novas funcionalidades. O projeto jÃ¡ possuÃ­a 29 testes em 3 arquivos.
+Após implementar as Etapas 64 e 65, o code review recomendou adicionar testes específicos para as novas funcionalidades. O projeto já possuía 29 testes em 3 arquivos.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 ### `tests/financial-teacher-payments.test.js` (10 testes)
 
 | Teste | O que valida |
 |-------|-------------|
-| GET sem month | Retorna 400 (parÃ¢metro obrigatÃ³rio) |
+| GET sem month | Retorna 400 (parâmetro obrigatório) |
 | GET sem year | Retorna 400 |
-| month invÃ¡lido | Retorna 400 |
+| month inválido | Retorna 400 |
 | Nenhum professor ativo | 0 pagamentos gerados, summary vazio |
-| Nenhuma aula no mÃªs | 0 pagamentos, professor ignorado com reason |
-| **Professor com aulas gera pagamento** | 5 aulas Ã— R$50 = R$250 |
-| **IdempotÃªncia** | Pagamento jÃ¡ existente â†’ ignorado com reason |
-| MÃºltiplos professores | 1 gera, 1 sem aulas ignora, 1 jÃ¡ pago ignora |
+| Nenhuma aula no mês | 0 pagamentos, professor ignorado com reason |
+| **Professor com aulas gera pagamento** | 5 aulas × R$50 = R$250 |
+| **Idempotência** | Pagamento já existente ? ignorado com reason |
+| Múltiplos professores | 1 gera, 1 sem aulas ignora, 1 já pago ignora |
 | Query assertions | Chama `teachers.select`, `lessons.select`, `teacher_payments` na ordem certa |
-| ConteÃºdo das notes | Notes contÃ©m mÃªs/ano e `completed_lessons` |
+| Conteúdo das notes | Notes contém mês/ano e `completed_lessons` |
 
 ### `tests/financial-enrollments.test.js` (8 testes)
 
 | Teste | O que valida |
 |-------|-------------|
 | DELETE sem id | Retorna 400 |
-| Guarda: aulas vinculadas | Retorna 409 (bloqueia exclusÃ£o) |
+| Guarda: aulas vinculadas | Retorna 409 (bloqueia exclusão) |
 | Guarda: sem aulas | Deleta sem erros |
-| Sem cancel_tuitions | NÃ£o consulta tuitions |
+| Sem cancel_tuitions | Não consulta tuitions |
 | cancel_tuitions=true + pending | Cancela pending/overdue, retorna count |
 | cancel_tuitions=true + sem tuitions | 0 cancelled_tuitions |
 | Ordem das queries no DELETE | Chama `enrollments.delete` DEPOIS de `lessons` e (opcional) `tuitions` |
@@ -560,91 +568,91 @@ ApÃ³s implementar as Etapas 64 e 65, o code review recomendou adicionar testes e
 
 ## Testes
 
-âœ… `npm test` â€” **48/48 passando** (29 originais + 10 + 8) | âœ… `npm run build` â€” 73 mÃ³dulos, 2.44s
+? `npm test` — **48/48 passando** (29 originais + 10 + 8) | ? `npm run build` — 73 módulos, 2.44s
 
 ---
 
-# ETAPA 67 â€” Auditoria de Design Web (48 Regras)
+# ETAPA 67 — Auditoria de Design Web (48 Regras)
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
 **Objetivo:** Revisar toda a UI do React SPA contra as 48 regras das Web Interface Guidelines da Vercel.
 
 ## Escopo da Auditoria
 
-- **9 pÃ¡ginas React**: Dashboard, Students, Teachers, Enrollments, Agenda, Financial, Admin, Login, StudentDetail
-- **11 arquivos CSS**: global.css + 10 especÃ­ficos
+- **9 páginas React**: Dashboard, Students, Teachers, Enrollments, Agenda, Financial, Admin, Login, StudentDetail
+- **11 arquivos CSS**: global.css + 10 específicos
 - **Loja vanila**: store.js, store-style.css
 
 ## Resultados
 
-### âœ… Boas PrÃ¡ticas Encontradas (13 categorias)
+### ? Boas Práticas Encontradas (13 categorias)
 
 | Regra | Exemplos |
 |-------|----------|
-| BotÃµes reais (`<button>`, nÃ£o `<div onClick>`) | Todas as pÃ¡ginas |
-| Labels em formulÃ¡rios (`<label>`) | Students, Teachers, Enrollments, Financial, Agenda |
-| FormataÃ§Ã£o de moeda (`Intl.NumberFormat`) | Dashboard, Admin, Financial, Store, StudentDetail |
-| FormataÃ§Ã£o de datas (`toLocaleDateString`) | Financial, StudentDetail, Dashboard |
-| NÃºmeros monoespaÃ§ados (`tabular-nums`) | 16 ocorrÃªncias em 5 CSS |
-| Toque mobile (`touch-action: manipulation`) | 14 ocorrÃªncias |
-| Movimento reduzido (`prefers-reduced-motion`) | global.css â€” reseta animaÃ§Ãµes |
-| Acessibilidade (`aria-live`, `aria-label`) | Toast (`polite`), breadcrumbs (`NavegaÃ§Ã£o`) |
-| AÃ§Ãµes destrutivas com confirmaÃ§Ã£o | Students, Teachers, Enrollments, Financial |
-| Estados vazios (`.empty-state`) | Todas as pÃ¡ginas |
-| Loading states | Todas as pÃ¡ginas |
-| Error states | Banner dismissÃ­vel |
+| Botões reais (`<button>`, não `<div onClick>`) | Todas as páginas |
+| Labels em formulários (`<label>`) | Students, Teachers, Enrollments, Financial, Agenda |
+| Formatação de moeda (`Intl.NumberFormat`) | Dashboard, Admin, Financial, Store, StudentDetail |
+| Formatação de datas (`toLocaleDateString`) | Financial, StudentDetail, Dashboard |
+| Números monoespaçados (`tabular-nums`) | 16 ocorrências em 5 CSS |
+| Toque mobile (`touch-action: manipulation`) | 14 ocorrências |
+| Movimento reduzido (`prefers-reduced-motion`) | global.css — reseta animações |
+| Acessibilidade (`aria-live`, `aria-label`) | Toast (`polite`), breadcrumbs (`Navegação`) |
+| Ações destrutivas com confirmação | Students, Teachers, Enrollments, Financial |
+| Estados vazios (`.empty-state`) | Todas as páginas |
+| Loading states | Todas as páginas |
+| Error states | Banner dismissível |
 
-### âš ï¸ Issues Encontradas (5 categorias)
+### ?? Issues Encontradas (5 categorias)
 
-| Issue | Severidade | OcorrÃªncias |
+| Issue | Severidade | Ocorrências |
 |-------|:----------:|:-----------:|
-| `outline: none` sem `:focus-visible` | âš ï¸ Moderada | 13 (7 CSS files) |
-| `transition: all` em vez de props explÃ­citas | ğŸŸ¢ Menor | 51 (10 CSS files) |
-| `onClick` em `<tr>` sem `onKeyDown` (Dashboard) | ğŸŸ¢ Menor | 1 |
+| `outline: none` sem `:focus-visible` | ?? Moderada | 13 (7 CSS files) |
+| `transition: all` em vez de props explícitas | ?? Menor | 51 (10 CSS files) |
+| `onClick` em `<tr>` sem `onKeyDown` (Dashboard) | ?? Menor | 1 |
 
-### âœ… Anti-padrÃµes Ausentes (7 categorias)
+### ? Anti-padrões Ausentes (7 categorias)
 
-`autocomplete="off"`, `user-scalable=no`, `transition:all` justificado (jÃ¡ corrigido em Etapa 69), imagens sem `width`/`height`, `color-scheme` quebrado
+`autocomplete="off"`, `user-scalable=no`, `transition:all` justificado (já corrigido em Etapa 69), imagens sem `width`/`height`, `color-scheme` quebrado
 
 ## Arquivos Revisados
 
-20 arquivos (9 pÃ¡ginas + 11 CSS)
+20 arquivos (9 páginas + 11 CSS)
 
 ---
 
-# ETAPA 68 â€” Acessibilidade: `outline: none` â†’ `:focus-visible`
+# ETAPA 68 — Acessibilidade: `outline: none` ? `:focus-visible`
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
-**Objetivo:** Corrigir todas as ocorrÃªncias de `outline: none` removendo o anel de foco visual para usuÃ¡rios de teclado.
+**Objetivo:** Corrigir todas as ocorrências de `outline: none` removendo o anel de foco visual para usuários de teclado.
 
 ## Problema
 
-UsuÃ¡rios que navegam por teclado (Tab) perdiam o indicador visual de foco porque `outline: none` era aplicado diretamente no `:focus`, afetando tanto clique do mouse quanto navegaÃ§Ã£o por teclado.
+Usuários que navegam por teclado (Tab) perdiam o indicador visual de foco porque `outline: none` era aplicado diretamente no `:focus`, afetando tanto clique do mouse quanto navegação por teclado.
 
-## SoluÃ§Ã£o
+## Solução
 
-Para cada `selector:focus { outline: none; }`, substituÃ­do por:
+Para cada `selector:focus { outline: none; }`, substituído por:
 
 ```css
 selector:focus:not(:focus-visible) {
     outline: none;
 }
 selector:focus {
-    border-color: var(--border-accent);  /* mantÃ©m feedback visual para mouse */
+    border-color: var(--border-accent);  /* mantém feedback visual para mouse */
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 ```
 
 Isso:
 - Suprime o outline apenas para clique do mouse (`:focus:not(:focus-visible)`)
-- Preserva o anel vermelho global (`outline: 2px solid var(--border-accent)`) definido no `global.css` para navegaÃ§Ã£o por teclado (`:focus-visible`)
-- MantÃ©m `border-color` e `box-shadow` como feedback visual para mouse
+- Preserva o anel vermelho global (`outline: 2px solid var(--border-accent)`) definido no `global.css` para navegação por teclado (`:focus-visible`)
+- Mantém `border-color` e `box-shadow` como feedback visual para mouse
 
 ## Arquivos Alterados (7)
 
-| Arquivo | OcorrÃªncias |
+| Arquivo | Ocorrências |
 |---------|:-----------:|
 | `app/src/styles/students.css` | 3 |
 | `app/src/styles/financial.css` | 1 |
@@ -656,30 +664,30 @@ Isso:
 
 ## Testes
 
-âœ… `npm run build` â€” 73 mÃ³dulos, 2.49s | âœ… Code Review â€” sem issues
+? `npm run build` — 73 módulos, 2.49s | ? Code Review — sem issues
 
 ---
 
-# ETAPA 69 â€” Performance CSS: `transition: all` â†’ Propriedades ExplÃ­citas
+# ETAPA 69 — Performance CSS: `transition: all` ? Propriedades Explícitas
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
-**Objetivo:** Corrigir todas as 53 ocorrÃªncias de `transition: all` no projeto, substituindo por listas explÃ­citas de propriedades.
+**Objetivo:** Corrigir todas as 53 ocorrências de `transition: all` no projeto, substituindo por listas explícitas de propriedades.
 
 ## Problema
 
-`transition: all` forÃ§a o navegador a monitorar todas as propriedades CSS do elemento para mudanÃ§as, mesmo as que nunca sÃ£o alteradas. Isso:
+`transition: all` força o navegador a monitorar todas as propriedades CSS do elemento para mudanças, mesmo as que nunca são alteradas. Isso:
 - Causa trabalho extra de layout/paint/composite
-- Impede que o navegador otimize animaÃ§Ãµes
-- Pode causar transiÃ§Ãµes indesejadas em propriedades que mudam por outros motivos
+- Impede que o navegador otimize animações
+- Pode causar transições indesejadas em propriedades que mudam por outros motivos
 
 ## Abordagem
 
-Para cada `transition: all`, analisamos os seletores `:hover`, `:active`, `:focus` e classes de estado (`.active`, `.key-pressed`, etc.) para identificar **exatamente** quais propriedades mudam. A transiÃ§Ã£o foi entÃ£o limitada a essas propriedades.
+Para cada `transition: all`, analisamos os seletores `:hover`, `:active`, `:focus` e classes de estado (`.active`, `.key-pressed`, etc.) para identificar **exatamente** quais propriedades mudam. A transição foi então limitada a essas propriedades.
 
 ## Propriedades mais comuns
 
-| Propriedade | FrequÃªncia |
+| Propriedade | Frequência |
 |-------------|:----------:|
 | `background` | ~35 |
 | `border-color` | ~30 |
@@ -691,7 +699,7 @@ Para cada `transition: all`, analisamos os seletores `:hover`, `:active`, `:focu
 
 ## Arquivos Alterados (11)
 
-| Arquivo | OcorrÃªncias |
+| Arquivo | Ocorrências |
 |---------|:-----------:|
 | `app/src/styles/global.css` | 7 |
 | `app/src/styles/dashboard.css` | 4 |
@@ -705,112 +713,112 @@ Para cada `transition: all`, analisamos os seletores `:hover`, `:active`, `:focu
 | `store/store-style.css` | 10 |
 | `index.html` (embedded `<style>`) | 3 |
 
-## CorreÃ§Ã£o apÃ³s Code Review
+## Correção após Code Review
 
-- `admin.css` â€” `.admin-alert-card` precisava de `border-color, background` extra porque os severity variant hovers (`.severity-critical:hover`, etc.) alteram essas propriedades em seletores separados.
+- `admin.css` — `.admin-alert-card` precisava de `border-color, background` extra porque os severity variant hovers (`.severity-critical:hover`, etc.) alteram essas propriedades em seletores separados.
 
 ## Testes
 
-âœ… `npm run build` â€” 2.71s | âœ… Varredura: **0 `transition: all` restantes** em todo o projeto | âœ… Code Review â€” sem issues
+? `npm run build` — 2.71s | ? Varredura: **0 `transition: all` restantes** em todo o projeto | ? Code Review — sem issues
 
 ---
 
-# ETAPA 70 â€” Arquivamento FÃ­sico do `painel-x9k2f.html`
+# ETAPA 70 — Arquivamento Físico do `painel-x9k2f.html`
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
 **Objetivo:** Mover `painel-x9k2f.html` da raiz do projeto para `backup/`, completando o arquivamento iniciado na Etapa 48.
 
 ## Contexto
 
-Na Etapa 48 (12/07), o painel clÃ¡ssico foi removido do build e dos links de navegaÃ§Ã£o, mas o arquivo permaneceu na raiz. Agora, confirmado que o `commercial/index.html` nÃ£o tem mais links para ele, o arquivo fÃ­sico foi movido para o diretÃ³rio de backup.
+Na Etapa 48 (12/07), o painel clássico foi removido do build e dos links de navegação, mas o arquivo permaneceu na raiz. Agora, confirmado que o `commercial/index.html` não tem mais links para ele, o arquivo físico foi movido para o diretório de backup.
 
-## VerificaÃ§Ãµes
+## Verificações
 
-| VerificaÃ§Ã£o | Resultado |
+| Verificação | Resultado |
 |-------------|:---------:|
-| `vite.config.js` | Entry jÃ¡ removido (Etapa 48) âœ… |
-| `vercel.json` | 0 referÃªncias âœ… |
-| React SPA | 0 referÃªncias âœ… |
-| `commercial/index.html` | 0 referÃªncias âœ… |
-| Link de navegaÃ§Ã£o `../` | 1 match: CSS import vÃ¡lido (`../store/store-style.css`) âœ… |
+| `vite.config.js` | Entry já removido (Etapa 48) ? |
+| `vercel.json` | 0 referências ? |
+| React SPA | 0 referências ? |
+| `commercial/index.html` | 0 referências ? |
+| Link de navegação `../` | 1 match: CSS import válido (`../store/store-style.css`) ? |
 
-## AÃ§Ã£o
+## Ação
 
-- `painel-x9k2f.html` (raiz) â†’ `backup/painel-x9k2f.html`
-- Backup anterior (`backup/painel-x9k2f.backup.html`) permanece como referÃªncia histÃ³rica
-- O arquivo no backup Ã© **trackeado pelo git** (nÃ£o estÃ¡ em `.gitignore`)
+- `painel-x9k2f.html` (raiz) ? `backup/painel-x9k2f.html`
+- Backup anterior (`backup/painel-x9k2f.backup.html`) permanece como referência histórica
+- O arquivo no backup é **trackeado pelo git** (não está em `.gitignore`)
 
 ## Testes
 
-âœ… `npm run build` â€” 7.62s (sem regressÃ£o) | âœ… Code Review â€” sem issues
+? `npm run build` — 7.62s (sem regressão) | ? Code Review — sem issues
 
 ---
 
-# ETAPA 71 â€” Auditoria de ReferÃªncias Obsoletas (`commercial/index.html`)
+# ETAPA 71 — Auditoria de Referências Obsoletas (`commercial/index.html`)
 
-**Data:** 16/07/2026 | **Commits:** â€” (na main)
+**Data:** 16/07/2026 | **Commits:** — (na main)
 
-**Objetivo:** Verificar se `commercial/index.html` contÃ©m links, imports ou caminhos obsoletos.
+**Objetivo:** Verificar se `commercial/index.html` contém links, imports ou caminhos obsoletos.
 
 ## Resultado
 
-**Nenhuma referÃªncia obsoleta encontrada.** O arquivo estÃ¡ limpo.
+**Nenhuma referência obsoleta encontrada.** O arquivo está limpo.
 
-| PadrÃ£o | Resultado |
+| Padrão | Resultado |
 |--------|:---------:|
-| `painel-x9k2f` | 0 matches âœ… |
-| `../` (links navegaÃ§Ã£o) | 1 match: `../store/store-style.css` (CSS import vÃ¡lido) âœ… |
-| `window.location` / `location.href` | 0 matches âœ… |
-| Links para `.html` | 0 matches âœ… |
-| API calls (`/api/*`) | 20 matches â€” todos endpoints existentes âœ… |
+| `painel-x9k2f` | 0 matches ? |
+| `../` (links navegação) | 1 match: `../store/store-style.css` (CSS import válido) ? |
+| `window.location` / `location.href` | 0 matches ? |
+| Links para `.html` | 0 matches ? |
+| API calls (`/api/*`) | 20 matches — todos endpoints existentes ? |
 
 ---
 
-# ETAPA 72 â€” Limpeza de Dados AcadÃªmicos/Financeiros
+# ETAPA 72 — Limpeza de Dados Acadêmicos/Financeiros
 
 **Data:** 16/07/2026 | **Commits:** `3ae17dc`
 
-**Objetivo:** Remover dados de teste/academicos do Supabase, mantendo apenas 1 aluno (Sofia Almeida), 1 professor (Bruna Mandz), 1 vÃ­nculo e 1 mensalidade. Store (products, orders) intacta.
+**Objetivo:** Remover dados de teste/academicos do Supabase, mantendo apenas 1 aluno (Sofia Almeida), 1 professor (Bruna Mandz), 1 vínculo e 1 mensalidade. Store (products, orders) intacta.
 
 ## Contexto
 
-O banco de dados de produÃ§Ã£o continha dados de desenvolvimento/seeding com 6 alunos, 3 professores e diversos vÃ­nculos, mensalidades, aulas e pagamentos. O usuÃ¡rio solicitou limpeza para comeÃ§ar a usar o sistema com dados reais, mantendo apenas registros mÃ­nimos de referÃªncia.
+O banco de dados de produção continha dados de desenvolvimento/seeding com 6 alunos, 3 professores e diversos vínculos, mensalidades, aulas e pagamentos. O usuário solicitou limpeza para começar a usar o sistema com dados reais, mantendo apenas registros mínimos de referência.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 ### `supabase/cleanup-minimal.sql` (novo)
 
 Script SQL para ser executado no Supabase (SQL Editor ou via script Node):
 
-| Passo | AÃ§Ã£o |
+| Passo | Ação |
 |:-----:|------|
 | 1-7 | DELETE em attendance, lessons, teacher_payments, tuitions, payments, expenses, investments |
 | 8 | DELETE em enrollments |
-| 9 | DELETE students WHERE id <> 'ST-ABCDEF' (mantÃ©m Sofia) |
-| 10 | DELETE teachers WHERE id <> 'TE-A7B2C3' (mantÃ©m Bruna) |
+| 9 | DELETE students WHERE id <> 'ST-ABCDEF' (mantém Sofia) |
+| 10 | DELETE teachers WHERE id <> 'TE-A7B2C3' (mantém Bruna) |
 | 11 | INSERT 1 enrollment (Piano, Seg 14h, R$300) |
-| 12 | INSERT 1 tuition (paga, mÃªs corrente) |
-| Final | SELECT count(*) em todas as tabelas como verificaÃ§Ã£o |
+| 12 | INSERT 1 tuition (paga, mês corrente) |
+| Final | SELECT count(*) em todas as tabelas como verificação |
 
-- Ordem de deleÃ§Ã£o respeita constraints de FK (filhos antes dos pais)
-- Store (products, orders) **nÃ£o Ã© tocada**
-- `date_trunc('month', CURRENT_DATE)` para datas dinÃ¢micas
+- Ordem de deleção respeita constraints de FK (filhos antes dos pais)
+- Store (products, orders) **não é tocada**
+- `date_trunc('month', CURRENT_DATE)` para datas dinâmicas
 
 ### `supabase/seed-escola.sql` (atualizado)
 
-- SubstituÃ­do seed completo (6 alunos, 3 professores, 8 enrollments, 9 tuitions) por dados mÃ­nimos
+- Substituído seed completo (6 alunos, 3 professores, 8 enrollments, 9 tuitions) por dados mínimos
 - Agora usa `ON CONFLICT (id) DO NOTHING` (idempotente)
-- Datas dinÃ¢micas via `date_trunc('month', CURRENT_DATE)`
-- CabeÃ§alho orienta usar `cleanup-minimal.sql` primeiro
+- Datas dinâmicas via `date_trunc('month', CURRENT_DATE)`
+- Cabeçalho orienta usar `cleanup-minimal.sql` primeiro
 
 ### `scripts/run-cleanup.js` (novo, gitignorado)
 
-Script Node.js que lÃª `.env` manualmente e usa `@supabase/supabase-js` com a `service_role_key` para executar a limpeza programaticamente.
+Script Node.js que lê `.env` manualmente e usa `@supabase/supabase-js` com a `service_role_key` para executar a limpeza programaticamente.
 
-## ExecuÃ§Ã£o
+## Execução
 
-âœ… Script `scripts/run-cleanup.js` executado com sucesso no Supabase de produÃ§Ã£o:
+? Script `scripts/run-cleanup.js` executado com sucesso no Supabase de produção:
 
 | Tabela | Antes | Depois |
 |--------|:-----:|:------:|
@@ -818,8 +826,8 @@ Script Node.js que lÃª `.env` manualmente e usa `@supabase/supabase-js` com a `s
 | teachers | 3 | **1** (Bruna Mandz) |
 | enrollments | 8 | **1** |
 | tuitions | 9 | **1** |
-| lessons | vÃ¡rios | **0** |
-| attendance | vÃ¡rios | **0** |
+| lessons | vários | **0** |
+| attendance | vários | **0** |
 | products | 10 | **10** (intacto) |
 | orders | 18 | **18** (intacto) |
 
@@ -827,37 +835,37 @@ Script Node.js que lÃª `.env` manualmente e usa `@supabase/supabase-js` com a `s
 
 | Arquivo | Tipo |
 |---------|:----:|
-| `supabase/cleanup-minimal.sql` | Novo â€” script SQL de limpeza |
-| `supabase/seed-escola.sql` | Modificado â€” seed mÃ­nimo |
-| `scripts/run-cleanup.js` | Novo (gitignorado) â€” executor programÃ¡tico |
+| `supabase/cleanup-minimal.sql` | Novo — script SQL de limpeza |
+| `supabase/seed-escola.sql` | Modificado — seed mínimo |
+| `scripts/run-cleanup.js` | Novo (gitignorado) — executor programático |
 
-## DecisÃ£o do UsuÃ¡rio
+## Decisão do Usuário
 
-- âœ… Manter 1 aluno (Sofia) + 1 professor (Bruna) + 1 vÃ­nculo
-- âœ… Store intacta (products + orders)
-- âœ… Limpeza jÃ¡ executada na produÃ§Ã£o
+- ? Manter 1 aluno (Sofia) + 1 professor (Bruna) + 1 vínculo
+- ? Store intacta (products + orders)
+- ? Limpeza já executada na produção
 
 ## Testes
 
-âœ… `npm test` â€” 48/48 | âœ… `npm run build` â€” 2.98s | âœ… Code Review â€” sem issues
+? `npm test` — 48/48 | ? `npm run build` — 2.98s | ? Code Review — sem issues
 
 ---
 
-# ETAPA 73 â€” CorreÃ§Ã£o de SeguranÃ§a e RefatoraÃ§Ã£o do server-dev.js
+# ETAPA 73 — Correção de Segurança e Refatoração do server-dev.js
 
 **Data:** 16/07/2026
 
-**Objetivo:** Corrigir vazamento de `err.message` nas respostas 500 do `server-dev.js` (7 pontos) e eliminar ~120 linhas de lÃ³gica duplicada de dashboard/summary reaproveitando os handlers da biblioteca `api/_lib/financial/`.
+**Objetivo:** Corrigir vazamento de `err.message` nas respostas 500 do `server-dev.js` (7 pontos) e eliminar ~120 linhas de lógica duplicada de dashboard/summary reaproveitando os handlers da biblioteca `api/_lib/financial/`.
 
 ## Contexto
 
-A auditoria de cÃ³digo (code review completo do projeto) identificou que o `server-dev.js` tinha **7 pontos de vazamento** de `err.message` em respostas HTTP 500, expondo detalhes internos do servidor ao cliente. AlÃ©m disso, as funÃ§Ãµes `handleDashboard` (~60 linhas) e `handleSummary` (~50 linhas) duplicavam exatamente as mesmas queries jÃ¡ existentes em `api/_lib/financial/dashboard.js` e `api/_lib/financial/summary.js`, criando risco de divergÃªncia futura.
+A auditoria de código (code review completo do projeto) identificou que o `server-dev.js` tinha **7 pontos de vazamento** de `err.message` em respostas HTTP 500, expondo detalhes internos do servidor ao cliente. Além disso, as funções `handleDashboard` (~60 linhas) e `handleSummary` (~50 linhas) duplicavam exatamente as mesmas queries já existentes em `api/_lib/financial/dashboard.js` e `api/_lib/financial/summary.js`, criando risco de divergência futura.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### ğŸ”’ SeguranÃ§a â€” 7 vazamentos de `err.message` fechados
+### ?? Segurança — 7 vazamentos de `err.message` fechados
 
-| Handler | Antes (vazava) | Depois (genÃ©rico) |
+| Handler | Antes (vazava) | Depois (genérico) |
 |---------|----------------|-------------------|
 | **Global catch** | `{ error, details: err.message }` | `{ error: 'Erro interno do servidor.' }` |
 | `handleOrders` | `{ error: error.message }` | `{ error: 'Erro ao carregar pedidos.' }` |
@@ -867,64 +875,64 @@ A auditoria de cÃ³digo (code review completo do projeto) identificou que o `serv
 | `handleFinancial` | `{ error: error.message }` | `{ error: 'Erro ao carregar dados.' }` / `'Erro interno do servidor.'` |
 | `handleOrderStatus` | `{ error: error.message }` | `{ error: 'Erro ao consultar pedido.' }` |
 
-### â™»ï¸ Reuso â€” eliminaÃ§Ã£o de ~120 linhas duplicadas
+### ?? Reuso — eliminação de ~120 linhas duplicadas
 
-**Antes:** `server-dev.js` tinha suas prÃ³prias `handleDashboard` e `handleSummary` com 12+ queries Supabase cada, copiadas manualmente de `api/_lib/financial/`.
+**Antes:** `server-dev.js` tinha suas próprias `handleDashboard` e `handleSummary` com 12+ queries Supabase cada, copiadas manualmente de `api/_lib/financial/`.
 
 **Depois:**
 - Importados `handleDashboard` (de `dashboard.js`) e `handleSummary` (de `summary.js`)
 - Criados adaptadores `toVercelReq()` e `toVercelRes()` que traduzem `req`/`res` do Node `http.createServer` para o formato Vercel-style esperado pelos handlers:
-  - `req.query` â†’ objeto de query params via `Object.fromEntries(url.searchParams)`
-  - `res.status(code).json(data)` â†’ wrapper encadeÃ¡vel sobre a funÃ§Ã£o `json()` local
+  - `req.query` ? objeto de query params via `Object.fromEntries(url.searchParams)`
+  - `res.status(code).json(data)` ? wrapper encadeável sobre a função `json()` local
 - `handleFinancial` agora delega `resource=dashboard` e `resource=summary` para os handlers da biblioteca via adaptador
 
-### ğŸ§¹ Limpeza
+### ?? Limpeza
 
-- `classifyError` removido do import (nÃ£o era usado â€” os handlers da biblioteca tÃªm seu prÃ³prio tratamento de erro)
-- `const url = parseUrl(req)` removido de `handleAdminProducts` (variÃ¡vel nÃ£o usada)
-- Bloco `validResources` envolvido em `try/catch` com mensagens genÃ©ricas
+- `classifyError` removido do import (não era usado — os handlers da biblioteca têm seu próprio tratamento de erro)
+- `const url = parseUrl(req)` removido de `handleAdminProducts` (variável não usada)
+- Bloco `validResources` envolvido em `try/catch` com mensagens genéricas
 
 ## Arquivo Alterado
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `server-dev.js` | Removidas `handleDashboard` + `handleSummary` (~120 linhas); adicionados imports + adaptadores; 7 mensagens de erro genÃ©ricas |
+| `server-dev.js` | Removidas `handleDashboard` + `handleSummary` (~120 linhas); adicionados imports + adaptadores; 7 mensagens de erro genéricas |
 
 ## Testes
 
-- âœ… `node server-dev.js` â€” servidor inicia sem erros de importaÃ§Ã£o
-- âœ… Code Review (deepseek-flash) â€” 1 issue encontrado (import morto de `classifyError`) e corrigido; versÃ£o final aprovada sem issues
-- âœ… Nenhuma regressÃ£o funcional â€” os handlers da biblioteca sÃ£o os mesmos usados em produÃ§Ã£o (Vercel)
+- ? `node server-dev.js` — servidor inicia sem erros de importação
+- ? Code Review (deepseek-flash) — 1 issue encontrado (import morto de `classifyError`) e corrigido; versão final aprovada sem issues
+- ? Nenhuma regressão funcional — os handlers da biblioteca são os mesmos usados em produção (Vercel)
 
 ---
 
-# ETAPA 74 â€” CorreÃ§Ã£o de Vazamento e Fallback da Loja em ProduÃ§Ã£o
+# ETAPA 74 — Correção de Vazamento e Fallback da Loja em Produção
 
 **Data:** 16/07/2026
 
-**Objetivo:** Corrigir problema em produÃ§Ã£o onde itens da loja nÃ£o apareciam â€” causado por chunk JS 404 (hash desatualizado no deploy) + vazamento de `err.message` em `api/products.js` + falta de fallback para produtos estÃ¡ticos.
+**Objetivo:** Corrigir problema em produção onde itens da loja não apareciam — causado por chunk JS 404 (hash desatualizado no deploy) + vazamento de `err.message` em `api/products.js` + falta de fallback para produtos estáticos.
 
-## DiagnÃ³stico
+## Diagnóstico
 
-O console do navegador em produÃ§Ã£o apresentava:
+O console do navegador em produção apresentava:
 
 | Erro | Causa |
 |------|-------|
-| `main-O-tkMRsf.js 404` | Deploy desatualizado â€” o build local gera hash `BgKCwKDo`, mas o servidor ainda serve o HTML com hash antigo |
-| `css2:1 400` | Google Fonts CSS2 API â€” provÃ¡vel rate limiting/bloqueio. CosmÃ©tico, nÃ£o afeta funcionalidade |
-| Loja vazia | ConsequÃªncia do 404: se o JS chunk nÃ£o carrega, `store.js` nunca executa |
+| `main-O-tkMRsf.js 404` | Deploy desatualizado — o build local gera hash `BgKCwKDo`, mas o servidor ainda serve o HTML com hash antigo |
+| `css2:1 400` | Google Fonts CSS2 API — provável rate limiting/bloqueio. Cosmético, não afeta funcionalidade |
+| Loja vazia | Consequência do 404: se o JS chunk não carrega, `store.js` nunca executa |
 
-## CorreÃ§Ãµes
+## Correções
 
-### ğŸ”’ `api/products.js` â€” vazamento de `err.message` corrigido
+### ?? `api/products.js` — vazamento de `err.message` corrigido
 
 **Antes:** `return res.status(500).json({ error: 'Erro ao buscar produtos.', details: err.message })`
 
 **Depois:** `return res.status(500).json({ error: 'Erro ao buscar produtos.' })`
 
-O campo `details` foi removido para nÃ£o expor detalhes internos do servidor.
+O campo `details` foi removido para não expor detalhes internos do servidor.
 
-### â™»ï¸ `store/store.js` â€” fallback para produtos estÃ¡ticos
+### ?? `store/store.js` — fallback para produtos estáticos
 
 Adicionado import de `./products.js` como fallback:
 
@@ -932,140 +940,140 @@ Adicionado import de `./products.js` como fallback:
 import { PRODUCTS as STATIC_PRODUCTS } from './products.js';
 ```
 
-Dois cenÃ¡rios de fallback:
-1. **API retorna erro** (fetch falha, status != 200, ou resposta nÃ£o-JSON): usa `STATIC_PRODUCTS` e marca `productLoadError = false` (fallback ativo, sem tela de erro)
+Dois cenários de fallback:
+1. **API retorna erro** (fetch falha, status != 200, ou resposta não-JSON): usa `STATIC_PRODUCTS` e marca `productLoadError = false` (fallback ativo, sem tela de erro)
 2. **API retorna array vazio** (sem produtos no Supabase): usa `STATIC_PRODUCTS` com log informativo
 
-Isso garante que a loja sempre mostre os 3 produtos estÃ¡ticos (`Camisa "NÃ£o Posso, Tenho Ensaio"`, `Camisa Oficial PadrÃ£o`, `Suporte de Baqueta`) mesmo se a API ou o Supabase estiverem indisponÃ­veis.
+Isso garante que a loja sempre mostre os 3 produtos estáticos (`Camisa "Não Posso, Tenho Ensaio"`, `Camisa Oficial Padrão`, `Suporte de Baqueta`) mesmo se a API ou o Supabase estiverem indisponíveis.
 
-### ğŸš€ RecomendaÃ§Ã£o
+### ?? Recomendação
 
 Fazer deploy do novo build no Vercel (`git push origin main`) para atualizar o HTML com o novo hash do chunk JS (`BgKCwKDo`) e eliminar o erro 404.
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `api/products.js` | `details: err.message` removido da resposta 500 |
 | `store/store.js` | Import de `./products.js` + fallback no `catch` e quando API retorna vazio |
 
 ## Testes
 
-- âœ… `npm run build` â€” 4.86s, sem erros (novo import de `products.js` incluso no bundle)
-- âœ… Code Review â€” aprovado sem issues crÃ­ticos
+- ? `npm run build` — 4.86s, sem erros (novo import de `products.js` incluso no bundle)
+- ? Code Review — aprovado sem issues críticos
 
 ---
 
-# ETAPA 75 â€” ExtraÃ§Ã£o de Handlers da Loja para `api/_lib/store/handlers.js`
+# ETAPA 75 — Extração de Handlers da Loja para `api/_lib/store/handlers.js`
 
 **Data:** 16/07/2026
 
-**Objetivo:** Extrair os handlers da loja (`handleOrders`, `handleProducts`, `handleAdminProducts`, `handleAdminOrders`, `handleOrderStatus`, `handleConfig`) do `server-dev.js` para uma biblioteca compartilhada em `api/_lib/store/handlers.js`, seguindo o mesmo padrÃ£o do mÃ³dulo financeiro (`api/_lib/financial/`).
+**Objetivo:** Extrair os handlers da loja (`handleOrders`, `handleProducts`, `handleAdminProducts`, `handleAdminOrders`, `handleOrderStatus`, `handleConfig`) do `server-dev.js` para uma biblioteca compartilhada em `api/_lib/store/handlers.js`, seguindo o mesmo padrão do módulo financeiro (`api/_lib/financial/`).
 
 ## Contexto
 
-Na Etapa 73, os handlers financeiros `handleDashboard` e `handleSummary` foram extraÃ­dos para a biblioteca compartilhada. Ficou pendente a mesma extraÃ§Ã£o para os handlers da loja â€” 5 handlers inline no `server-dev.js` com ~80 linhas de lÃ³gica duplicada em relaÃ§Ã£o aos arquivos standalone em `api/` (products.js, admin-products.js, admin-orders.js, order-status.js).
+Na Etapa 73, os handlers financeiros `handleDashboard` e `handleSummary` foram extraídos para a biblioteca compartilhada. Ficou pendente a mesma extração para os handlers da loja — 5 handlers inline no `server-dev.js` com ~80 linhas de lógica duplicada em relação aos arquivos standalone em `api/` (products.js, admin-products.js, admin-orders.js, order-status.js).
 
-AlÃ©m disso, `api/admin-orders.js` e `api/admin-products.js` ainda **vazavam `err.message`** em respostas 500 â€” problemas de seguranÃ§a iguais aos corrigidos no `server-dev.js` na Etapa 73.
+Além disso, `api/admin-orders.js` e `api/admin-products.js` ainda **vazavam `err.message`** em respostas 500 — problemas de segurança iguais aos corrigidos no `server-dev.js` na Etapa 73.
 
 ## Brainstorm de Melhorias (registrado nesta Etapa)
 
 Antes de implementar, foi feito um brainstorm completo de 5 ideias de melhoria estrutural:
 
-| # | Ideia | Impacto | EsforÃ§o | Custo-benefÃ­cio |
+| # | Ideia | Impacto | Esforço | Custo-benefício |
 |:-:|-------|:-------:|:-------:|:----------------:|
-| 1 | **ExtraÃ§Ã£o de handlers da loja para `api/_lib/store/`** | Alto | 1h | â­â­â­â­â­ |
-| 2 | CRUD completo no server-dev.js via delegaÃ§Ã£o total | Alto | 2h | â­â­â­â­ |
-| 3 | Design System CSS unificado + Dark/Light Mode | MÃ©dio-Alto | 3-4h | â­â­â­ |
-| 4 | Playwright E2E para o React SPA | Muito Alto | 4-5h | â­â­â­ |
-| 5 | CI Pipeline + Error Boundaries no React SPA | Alto | 1.5h | â­â­â­â­â­ |
+| 1 | **Extração de handlers da loja para `api/_lib/store/`** | Alto | 1h | ????? |
+| 2 | CRUD completo no server-dev.js via delegação total | Alto | 2h | ???? |
+| 3 | Design System CSS unificado + Dark/Light Mode | Médio-Alto | 3-4h | ??? |
+| 4 | Playwright E2E para o React SPA | Muito Alto | 4-5h | ??? |
+| 5 | CI Pipeline + Error Boundaries no React SPA | Alto | 1.5h | ????? |
 
-**Ideia 1** foi selecionada para implementaÃ§Ã£o imediata.
+**Ideia 1** foi selecionada para implementação imediata.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 ### `api/_lib/store/handlers.js` (novo)
 
 Biblioteca compartilhada com handlers Vercel-style `(req, res, supabase)`:
 
-| Handler | FunÃ§Ã£o | Usado por |
+| Handler | Função | Usado por |
 |---------|--------|-----------|
 | `handleListOrders` | Lista todos os pedidos (SELECT *, limit 200) | server-dev, api/admin-orders |
-| `handleListPublicProducts` | Lista produtos ativos com normalizaÃ§Ã£o | server-dev, api/products |
+| `handleListPublicProducts` | Lista produtos ativos com normalização | server-dev, api/products |
 | `handleListAllProducts` | Lista todos os produtos (ativos e inativos) | server-dev, api/admin-products GET |
-| `handleOrderStatus` | Consulta status de 1 pedido por ID (pÃºblico) | server-dev, api/order-status |
-| `handleConfig` | Retorna chave pÃºblica do Mercado Pago | server-dev, api/config |
+| `handleOrderStatus` | Consulta status de 1 pedido por ID (público) | server-dev, api/order-status |
+| `handleConfig` | Retorna chave pública do Mercado Pago | server-dev, api/config |
 
-- Todos os handlers usam mensagens genÃ©ricas em caso de erro (sem vazamento de `err.message`)
-- Reusa `normalizeProduct()` de `api/_lib/normalize-product.js` (jÃ¡ existente)
-- Segue o padrÃ£o dos handlers financeiros em `api/_lib/financial/`
+- Todos os handlers usam mensagens genéricas em caso de erro (sem vazamento de `err.message`)
+- Reusa `normalizeProduct()` de `api/_lib/normalize-product.js` (já existente)
+- Segue o padrão dos handlers financeiros em `api/_lib/financial/`
 
-### `server-dev.js` â€” refatorado
+### `server-dev.js` — refatorado
 
-- `handleOrders` â†’ `handleListOrders` (da biblioteca, via adapter)
-- `handleProducts` â†’ `handleListAllProducts` (da biblioteca, via adapter) â€” nota: server-dev lista TODOS os produtos, nÃ£o apenas active=true
-- `handleAdminProducts` â†’ `handleListAllProducts` (da biblioteca, via adapter)
-- `handleAdminOrders` â†’ `handleListOrders` (da biblioteca, via adapter)
-- `handleOrderStatus` â†’ `handleOrderStatus` (da biblioteca, via adapter)
-- `handleConfig` â†’ `handleConfig` (da biblioteca, via adapter)
-- ~80 linhas de cÃ³digo inline removidas
-- ComentÃ¡rio NOTA atualizado
+- `handleOrders` ? `handleListOrders` (da biblioteca, via adapter)
+- `handleProducts` ? `handleListAllProducts` (da biblioteca, via adapter) — nota: server-dev lista TODOS os produtos, não apenas active=true
+- `handleAdminProducts` ? `handleListAllProducts` (da biblioteca, via adapter)
+- `handleAdminOrders` ? `handleListOrders` (da biblioteca, via adapter)
+- `handleOrderStatus` ? `handleOrderStatus` (da biblioteca, via adapter)
+- `handleConfig` ? `handleConfig` (da biblioteca, via adapter)
+- ~80 linhas de código inline removidas
+- Comentário NOTA atualizado
 
-### `api/products.js` â€” refatorado
+### `api/products.js` — refatorado
 
 - Importa `handleListPublicProducts` da biblioteca
-- Handler principal delega para a funÃ§Ã£o compartilhada
-- Remove duplicaÃ§Ã£o da query Supabase e normalizaÃ§Ã£o
-- JÃ¡ tinha `err.message` corrigido (Etapa 74) â€” mantido
+- Handler principal delega para a função compartilhada
+- Remove duplicação da query Supabase e normalização
+- Já tinha `err.message` corrigido (Etapa 74) — mantido
 
-### `api/admin-products.js` â€” refatorado
+### `api/admin-products.js` — refatorado
 
 - GET handler delega para `handleListAllProducts` da biblioteca
-- POST e PATCH permanecem no arquivo (sÃ£o prÃ³prios do admin e nÃ£o duplicados)
-- ğŸ”’ **Vazamentos de `err.message` corrigidos** â€” 3 pontos:
-  - `{ error: 'Erro ao buscar produtos.', details: err.message }` â†’ genÃ©rico
-  - `{ error: 'Erro ao criar produto.', details: err.message }` â†’ genÃ©rico
-  - `{ error: 'Erro ao atualizar produto.', details: err.message }` â†’ genÃ©rico
+- POST e PATCH permanecem no arquivo (são próprios do admin e não duplicados)
+- ?? **Vazamentos de `err.message` corrigidos** — 3 pontos:
+  - `{ error: 'Erro ao buscar produtos.', details: err.message }` ? genérico
+  - `{ error: 'Erro ao criar produto.', details: err.message }` ? genérico
+  - `{ error: 'Erro ao atualizar produto.', details: err.message }` ? genérico
 
-### `api/admin-orders.js` â€” refatorado
+### `api/admin-orders.js` — refatorado
 
 - Importa `handleListOrders` da biblioteca
-- Handler principal delega para a funÃ§Ã£o compartilhada
-- ğŸ”’ **Vazamento de `err.message` corrigido** â€” `details: err.message` removido
+- Handler principal delega para a função compartilhada
+- ?? **Vazamento de `err.message` corrigido** — `details: err.message` removido
 
-### `api/order-status.js` â€” refatorado
+### `api/order-status.js` — refatorado
 
 - Importa `handleOrderStatus` da biblioteca
-- Handler principal delega para a funÃ§Ã£o compartilhada
-- JÃ¡ tinha mensagem genÃ©rica â€” mantido
+- Handler principal delega para a função compartilhada
+- Já tinha mensagem genérica — mantido
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `api/_lib/store/handlers.js` | ğŸ†• Novo | Biblioteca compartilhada (~90 linhas) |
-| `server-dev.js` | â™»ï¸ | 6 handlers inline â†’ imports da biblioteca (~80 linhas removidas) |
-| `api/products.js` | ğŸ”’ | Delegado para handleListPublicProducts |
-| `api/admin-products.js` | ğŸ”’ | GET delegado + 3 vazamentos err.message corrigidos |
-| `api/admin-orders.js` | ğŸ”’ | Delegado + vazamento err.message corrigido |
-| `api/order-status.js` | ğŸ”’ | Delegado (jÃ¡ tinha mensagem genÃ©rica) |
+| `api/_lib/store/handlers.js` | ?? Novo | Biblioteca compartilhada (~90 linhas) |
+| `server-dev.js` | ?? | 6 handlers inline ? imports da biblioteca (~80 linhas removidas) |
+| `api/products.js` | ?? | Delegado para handleListPublicProducts |
+| `api/admin-products.js` | ?? | GET delegado + 3 vazamentos err.message corrigidos |
+| `api/admin-orders.js` | ?? | Delegado + vazamento err.message corrigido |
+| `api/order-status.js` | ?? | Delegado (já tinha mensagem genérica) |
 
 ## Testes
 
-- âœ… `npm test` â€” 48/48 passando
-- âœ… `npm run build` â€” sem erros
-- âœ… `node server-dev.js` â€” servidor inicia sem erros
-- âœ… Code Review â€” aprovado sem issues
+- ? `npm test` — 48/48 passando
+- ? `npm run build` — sem erros
+- ? `node server-dev.js` — servidor inicia sem erros
+- ? Code Review — aprovado sem issues
 
 ## Testes
 
-- âœ… `rg --version` â€” ripgrep 14.1.0, pcre2 + simd
-- âœ… `rg "err.message" api/` â€” busca funcional (< 1s)
-- âœ… Nenhuma alteraÃ§Ã£o de cÃ³digo â€” apenas tooling
+- ? `rg --version` — ripgrep 14.1.0, pcre2 + simd
+- ? `rg "err.message" api/` — busca funcional (< 1s)
+- ? Nenhuma alteração de código — apenas tooling
 
 ---
 
-# ETAPA 76 â€” InstalaÃ§Ã£o do ripgrep
+# ETAPA 76 — Instalação do ripgrep
 
 **Data:** 16/07/2026
 
@@ -1073,18 +1081,18 @@ Biblioteca compartilhada com handlers Vercel-style `(req, res, supabase)`:
 
 ## Contexto
 
-Durante todas as Etapas anteriores (73-75), o code-searcher agent (`ripgrep`) nÃ£o funcionava. Sempre que tentÃ¡vamos buscar cÃ³digo, recebÃ­amos:
+Durante todas as Etapas anteriores (73-75), o code-searcher agent (`ripgrep`) não funcionava. Sempre que tentávamos buscar código, recebíamos:
 
 ```
 Ripgrep binary not found for win32-x64
 Please run 'npm run fetch-ripgrep' or set CODEBUFF_RG_PATH environment variable.
 ```
 
-Isso forÃ§ava o uso de ferramentas mais lentas e menos precisas para busca de cÃ³digo. ApÃ³s o brainstorm de melhorias (registrado na Etapa 75), a instalaÃ§Ã£o do ripgrep foi identificada como prioridade para aumentar a eficiÃªncia do desenvolvimento.
+Isso forçava o uso de ferramentas mais lentas e menos precisas para busca de código. Após o brainstorm de melhorias (registrado na Etapa 75), a instalação do ripgrep foi identificada como prioridade para aumentar a eficiência do desenvolvimento.
 
-## ImplementaÃ§Ã£o
+## Implementação
 
-InstalaÃ§Ã£o via Chocolatey com permissÃ£o de administrador:
+Instalação via Chocolatey com permissão de administrador:
 
 ```bash
 choco install ripgrep -y
@@ -1092,62 +1100,62 @@ choco install ripgrep -y
 
 ### Resultado
 
-| MÃ©trica | Valor |
+| Métrica | Valor |
 |---------|-------|
-| **VersÃ£o** | ripgrep 14.1.0 |
-| **BinÃ¡rio** | `C:\ProgramData\chocolatey\bin\rg.exe` |
-| **Features** | simd-accel, pcre2 (JIT disponÃ­vel) |
-| **Busca em `api/`** | âœ… < 1s |
-| **Code-searcher agent** | âœ… Agora funcional |
+| **Versão** | ripgrep 14.1.0 |
+| **Binário** | `C:\ProgramData\chocolatey\bin\rg.exe` |
+| **Features** | simd-accel, pcre2 (JIT disponível) |
+| **Busca em `api/`** | ? < 1s |
+| **Code-searcher agent** | ? Agora funcional |
 
 ## Impacto
 
-- **Code-searcher agent** habilitado â€” pode buscar padrÃµes em todo o cÃ³digo excluindo `node_modules`
-- **Busca 10-100x mais rÃ¡pida** que `grep`/`findstr` do Windows
-- **PadrÃµes PCRE2** disponÃ­veis para buscas complexas (retrovisor, lookahead, etc.)
+- **Code-searcher agent** habilitado — pode buscar padrões em todo o código excluindo `node_modules`
+- **Busca 10-100x mais rápida** que `grep`/`findstr` do Windows
+- **Padrões PCRE2** disponíveis para buscas complexas (retrovisor, lookahead, etc.)
 
 ## Testes
 
-- âœ… `npm test` â€” 68/68 passando (+7 novos testes teachers)
-- âœ… `npm run build` â€” 3.40s
-- âœ… `node server-dev.js` â€” servidor inicia sem erros
-- âœ… Code Review â€” aprovado, 3 correÃ§Ãµes aplicadas (CORS DELETE, empty body null, head:true test)
+- ? `npm test` — 68/68 passando (+7 novos testes teachers)
+- ? `npm run build` — 3.40s
+- ? `node server-dev.js` — servidor inicia sem erros
+- ? Code Review — aprovado, 3 correções aplicadas (CORS DELETE, empty body null, head:true test)
 
 ---
 
-# ETAPA 77 â€” Guard DELETE Teacher + CRUD Completo server-dev.js + Testes
+# ETAPA 77 — Guard DELETE Teacher + CRUD Completo server-dev.js + Testes
 
 **Data:** 16/07/2026
 
-**Objetivo:** Implementar duas melhorias identificadas na auditoria dos 4 fluxos crÃ­ticos (Etapa 75): seguranÃ§a no DELETE de professores (guard de vÃ­nculos ativos) e CRUD completo no server-dev.js via delegaÃ§Ã£o para todos os handlers financeiros. AlÃ©m disso, criar testes unitÃ¡rios para o guard.
+**Objetivo:** Implementar duas melhorias identificadas na auditoria dos 4 fluxos críticos (Etapa 75): segurança no DELETE de professores (guard de vínculos ativos) e CRUD completo no server-dev.js via delegação para todos os handlers financeiros. Além disso, criar testes unitários para o guard.
 
 ## Contexto
 
-Na auditoria de fluxos (realizada nesta mesma sessÃ£o), foram identificadas duas oportunidades de melhoria:
+Na auditoria de fluxos (realizada nesta mesma sessão), foram identificadas duas oportunidades de melhoria:
 
-1. **DELETE de professor sem verificaÃ§Ã£o**: O handler `handleTeachers` permitia excluir um professor mesmo se ele tivesse vÃ­nculos ativos (enrollments), criando dados Ã³rfÃ£os.
-2. **server-dev.js GET-only**: O server-dev.js sÃ³ suportava GET para resources financeiros. POST/PATCH/DELETE sÃ³ funcionavam na Vercel, impossibilitando testes locais de CRUD completo.
+1. **DELETE de professor sem verificação**: O handler `handleTeachers` permitia excluir um professor mesmo se ele tivesse vínculos ativos (enrollments), criando dados órfãos.
+2. **server-dev.js GET-only**: O server-dev.js só suportava GET para resources financeiros. POST/PATCH/DELETE só funcionavam na Vercel, impossibilitando testes locais de CRUD completo.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### 1. ğŸ”’ `api/_lib/financial/teachers.js` â€” Guard no DELETE
+### 1. ?? `api/_lib/financial/teachers.js` — Guard no DELETE
 
-**Antes:** ExcluÃ­a o professor diretamente, sem verificar vÃ­nculos ativos.
+**Antes:** Excluía o professor diretamente, sem verificar vínculos ativos.
 
-**Depois:** Antes de excluir, consulta `enrollments` com `teacher_id + status='active'`. Se houver vÃ­nculos ativos, retorna **409 Conflict**:
+**Depois:** Antes de excluir, consulta `enrollments` com `teacher_id + status='active'`. Se houver vínculos ativos, retorna **409 Conflict**:
 
 ```
-"NÃ£o Ã© possÃ­vel excluir este professor: existem N vÃ­nculo(s) ativo(s)
-vinculado(s) a ele. Remova ou inative os vÃ­nculos primeiro."
+"Não é possível excluir este professor: existem N vínculo(s) ativo(s)
+vinculado(s) a ele. Remova ou inative os vínculos primeiro."
 ```
 
-Segue o mesmo padrÃ£o do guard jÃ¡ existente em `enrollments.js` (que verifica aulas vinculadas antes de excluir um vÃ­nculo).
+Segue o mesmo padrão do guard já existente em `enrollments.js` (que verifica aulas vinculadas antes de excluir um vínculo).
 
-### 2. â™»ï¸ `server-dev.js` â€” CRUD Completo via DelegaÃ§Ã£o
+### 2. ?? `server-dev.js` — CRUD Completo via Delegação
 
-**Antes:** O `handleFinancial` tinha um bloco `validResources` que sÃ³ fazia SELECT simples (GET-only). Para POST/PATCH/DELETE, o desenvolvedor precisava testar na Vercel.
+**Antes:** O `handleFinancial` tinha um bloco `validResources` que só fazia SELECT simples (GET-only). Para POST/PATCH/DELETE, o desenvolvedor precisava testar na Vercel.
 
-**Depois:** O `handleFinancial` agora importa **todos os 10 handlers financeiros** e delega para eles com base no parÃ¢metro `?resource=`:
+**Depois:** O `handleFinancial` agora importa **todos os 10 handlers financeiros** e delega para eles com base no parâmetro `?resource=`:
 
 | Handler | Resource |
 |---------|----------|
@@ -1164,122 +1172,122 @@ Segue o mesmo padrÃ£o do guard jÃ¡ existente em `enrollments.js` (que verifica a
 | `handleDashboard` | dashboard |
 | `handleSummary` | summary |
 
-**MudanÃ§as tÃ©cnicas:**
-- `parseRequestBody()` â€” nova funÃ§Ã£o que lÃª o stream HTTP e faz parse do JSON body para POST/PATCH
-- `toVercelReq()` agora inclui `body: req.body` (necessÃ¡rio para POST/PATCH)
+**Mudanças técnicas:**
+- `parseRequestBody()` — nova função que lê o stream HTTP e faz parse do JSON body para POST/PATCH
+- `toVercelReq()` agora inclui `body: req.body` (necessário para POST/PATCH)
 - CORS `Access-Control-Allow-Methods` atualizado para incluir `DELETE`
 - `req.body` explicitamente setado como `null` quando body vazio (evita TypeError nos handlers)
 
-### 3. ğŸ§ª `tests/financial-teachers.test.js` â€” 7 Testes UnitÃ¡rios
+### 3. ?? `tests/financial-teachers.test.js` — 7 Testes Unitários
 
 | Teste | O que valida |
 |-------|-------------|
 | DELETE sem id | Retorna 400 |
-| Com vÃ­nculos ativos | Retorna 409 (bloqueia exclusÃ£o) |
-| Sem vÃ­nculos ativos | Retorna 200 (permite exclusÃ£o) |
-| SÃ³ vÃ­nculos inativos | Retorna 200 (filtro por `status=active` funciona) |
-| Ordem das queries | `enrollments` â†’ `teachers` |
+| Com vínculos ativos | Retorna 409 (bloqueia exclusão) |
+| Sem vínculos ativos | Retorna 200 (permite exclusão) |
+| Só vínculos inativos | Retorna 200 (filtro por `status=active` funciona) |
+| Ordem das queries | `enrollments` ? `teachers` |
 | Filtros corretos | `teacher_id` e `status=active` |
-| `head:true` | Usa `{ count: 'exact', head: true }` para nÃ£o trazer linhas |
+| `head:true` | Usa `{ count: 'exact', head: true }` para não trazer linhas |
 
-Segue o padrÃ£o de mock (`makeSupabaseMock`/`makeRes`) jÃ¡ estabelecido em `financial-enrollments.test.js` e `financial-teacher-payments.test.js`.
+Segue o padrão de mock (`makeSupabaseMock`/`makeRes`) já estabelecido em `financial-enrollments.test.js` e `financial-teacher-payments.test.js`.
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `api/_lib/financial/teachers.js` | ğŸ”’ | Guard DELETE: verifica vÃ­nculos ativos antes de excluir |
-| `server-dev.js` | â™»ï¸ | CRUD completo: imports + parseRequestBody + resourceHandlers map + CORS DELETE |
-| `tests/financial-teachers.test.js` | ğŸ†• | 7 testes unitÃ¡rios para o guard DELETE |
+| `api/_lib/financial/teachers.js` | ?? | Guard DELETE: verifica vínculos ativos antes de excluir |
+| `server-dev.js` | ?? | CRUD completo: imports + parseRequestBody + resourceHandlers map + CORS DELETE |
+| `tests/financial-teachers.test.js` | ?? | 7 testes unitários para o guard DELETE |
 
 ## Testes
 
-- âœ… `npm test` â€” **68/68 passando** (61 anteriores + 7 novos)
-- âœ… `npm run build` â€” 3.40s sem erros
-- âœ… `node server-dev.js` â€” servidor inicia sem erros
-- âœ… Code Review â€” aprovado; 3 correÃ§Ãµes aplicadas: CORS DELETE, empty body null, head:true test fix
+- ? `npm test` — **68/68 passando** (61 anteriores + 7 novos)
+- ? `npm run build` — 3.40s sem erros
+- ? `node server-dev.js` — servidor inicia sem erros
+- ? Code Review — aprovado; 3 correções aplicadas: CORS DELETE, empty body null, head:true test fix
 
 ---
 
-# ETAPA 78 â€” Guard DELETE Student + Helper Mock Compartilhado + Leak Fix
+# ETAPA 78 — Guard DELETE Student + Helper Mock Compartilhado + Leak Fix
 
 **Data:** 16/07/2026
 
-**Objetivo:** Completar a auditoria de fluxos com 3 melhorias: guard de vÃ­nculos ativos no DELETE de alunos, extraÃ§Ã£o do mock Supabase para helper compartilhado, e varredura de vazamentos `err.message` residuais.
+**Objetivo:** Completar a auditoria de fluxos com 3 melhorias: guard de vínculos ativos no DELETE de alunos, extração do mock Supabase para helper compartilhado, e varredura de vazamentos `err.message` residuais.
 
 ## Contexto
 
-ApÃ³s implementar o guard no DELETE de professores (Etapa 77) e instalar o ripgrep (Etapa 76), ficaram pendentes:
+Após implementar o guard no DELETE de professores (Etapa 77) e instalar o ripgrep (Etapa 76), ficaram pendentes:
 
-1. **DELETE de aluno sem verificaÃ§Ã£o**: O handler `handleStudents` permitia excluir um aluno mesmo se ele tivesse vÃ­nculos ativos, criando dados Ã³rfÃ£os â€” mesmo problema do teacher.
+1. **DELETE de aluno sem verificação**: O handler `handleStudents` permitia excluir um aluno mesmo se ele tivesse vínculos ativos, criando dados órfãos — mesmo problema do teacher.
 2. **Mock duplicado**: Os 3 arquivos de teste (`financial-enrollments`, `financial-teacher-payments`, `financial-teachers`) tinham ~100 linhas de `makeSupabaseMock`/`makeRes` copiadas.
-3. **Leaks residuais**: Varredura com ripgrep em `api/` poderia encontrar vazamentos de `err.message` ainda nÃ£o corrigidos.
+3. **Leaks residuais**: Varredura com ripgrep em `api/` poderia encontrar vazamentos de `err.message` ainda não corrigidos.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### 1. ğŸ”’ `api/_lib/financial/students.js` â€” Guard no DELETE
+### 1. ?? `api/_lib/financial/students.js` — Guard no DELETE
 
-**Antes:** ExcluÃ­a o aluno diretamente, sem verificar vÃ­nculos ativos.
+**Antes:** Excluía o aluno diretamente, sem verificar vínculos ativos.
 
-**Depois:** Antes de excluir, consulta `enrollments` com `student_id + status='active'`. Se houver vÃ­nculos ativos, retorna **409 Conflict**:
+**Depois:** Antes de excluir, consulta `enrollments` com `student_id + status='active'`. Se houver vínculos ativos, retorna **409 Conflict**:
 
 ```
-"NÃ£o Ã© possÃ­vel excluir este aluno: existem N vÃ­nculo(s) ativo(s) vinculado(s) a ele. Remova ou inative os vÃ­nculos primeiro."
+"Não é possível excluir este aluno: existem N vínculo(s) ativo(s) vinculado(s) a ele. Remova ou inative os vínculos primeiro."
 ```
 
-Segue o mesmo padrÃ£o do guard em `teachers.js` (Etapa 77) e `enrollments.js` (Etapa 65).
+Segue o mesmo padrão do guard em `teachers.js` (Etapa 77) e `enrollments.js` (Etapa 65).
 
-### 2. â™»ï¸ `tests/_helpers/supabase-mock.js` â€” Helper Compartilhado
+### 2. ?? `tests/_helpers/supabase-mock.js` — Helper Compartilhado
 
-Criado arquivo compartilhado com `makeSupabaseMock()` e `makeRes()`, extraÃ­dos dos 3 arquivos de teste:
+Criado arquivo compartilhado com `makeSupabaseMock()` e `makeRes()`, extraídos dos 3 arquivos de teste:
 
-- `from(table)` â†’ retorna chain builder com `.select()`, `.eq()`, `.in()`, `.gt()`, `.gte()`, `.lte()`, `.order()`, `.range()`, `.insert()`, `.update()`, `.delete()`, `.single()`, `.maybeSingle()`, `.then()`
-- `makeRes()` â†’ simula `res.status(code).json(data)` com captura de status e body
+- `from(table)` ? retorna chain builder com `.select()`, `.eq()`, `.in()`, `.gt()`, `.gte()`, `.lte()`, `.order()`, `.range()`, `.insert()`, `.update()`, `.delete()`, `.single()`, `.maybeSingle()`, `.then()`
+- `makeRes()` ? simula `res.status(code).json(data)` com captura de status e body
 - `head: true` suportado na chamada `.select()`, passado como segundo argumento
 
-**3 arquivos de teste atualizados** (sem mudanÃ§a de lÃ³gica):
+**3 arquivos de teste atualizados** (sem mudança de lógica):
 
 | Arquivo | Linhas removidas |
 |---------|:----------------:|
-| `tests/financial-enrollments.test.js` | ~35 (definiÃ§Ãµes inline) |
-| `tests/financial-teacher-payments.test.js` | ~35 (definiÃ§Ãµes inline) |
-| `tests/financial-teachers.test.js` | ~30 (definiÃ§Ãµes inline) |
+| `tests/financial-enrollments.test.js` | ~35 (definições inline) |
+| `tests/financial-teacher-payments.test.js` | ~35 (definições inline) |
+| `tests/financial-teachers.test.js` | ~30 (definições inline) |
 
-### 3. ğŸ”’ `api/update-order-status.js` â€” Leak Fix
+### 3. ?? `api/update-order-status.js` — Leak Fix
 
 **Antes:** `return res.status(500).json({ error: 'Erro ao atualizar status do pedido.', details: err.message })`
 
 **Depois:** `return res.status(500).json({ error: 'Erro ao atualizar status do pedido.' })`
 
-Ãšltimo vazamento encontrado pela varredura com ripgrep:
+Último vazamento encontrado pela varredura com ripgrep:
 
 ```bash
 rg 'details.*err\.message' --glob 'api/**/*.js'
 ```
 
-Resultado: **1 ocorrÃªncia** em `api/update-order-status.js` â€” corrigida.
+Resultado: **1 ocorrência** em `api/update-order-status.js` — corrigida.
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `api/_lib/financial/students.js` | ğŸ”’ | Guard DELETE: verifica vÃ­nculos ativos antes de excluir |
-| `tests/_helpers/supabase-mock.js` | ğŸ†• | Helper compartilhado (~60 linhas) |
-| `tests/financial-enrollments.test.js` | â™»ï¸ | Importa de helper (sem lÃ³gica alterada) |
-| `tests/financial-teacher-payments.test.js` | â™»ï¸ | Importa de helper (sem lÃ³gica alterada) |
-| `tests/financial-teachers.test.js` | â™»ï¸ | Importa de helper (sem lÃ³gica alterada) |
-| `api/update-order-status.js` | ğŸ”’ | `details: err.message` removido |
+| `api/_lib/financial/students.js` | ?? | Guard DELETE: verifica vínculos ativos antes de excluir |
+| `tests/_helpers/supabase-mock.js` | ?? | Helper compartilhado (~60 linhas) |
+| `tests/financial-enrollments.test.js` | ?? | Importa de helper (sem lógica alterada) |
+| `tests/financial-teacher-payments.test.js` | ?? | Importa de helper (sem lógica alterada) |
+| `tests/financial-teachers.test.js` | ?? | Importa de helper (sem lógica alterada) |
+| `api/update-order-status.js` | ?? | `details: err.message` removido |
 
 ## Testes
 
-- âœ… `npm test` â€” **68/68 passando** (nenhuma regressÃ£o)
-- âœ… `npm run build` â€” 2.43s sem erros
-- âœ… Code Review â€” aprovado sem issues
-- âœ… Ripgrep: **0 ocorrÃªncias** de `details.*err\\.message` em `api/`
+- ? `npm test` — **68/68 passando** (nenhuma regressão)
+- ? `npm run build` — 2.43s sem erros
+- ? Code Review — aprovado sem issues
+- ? Ripgrep: **0 ocorrências** de `details.*err\\.message` em `api/`
 
 ---
 
-# ETAPA 81 â€” Design Polish: Sombras Tintadas, bg-base, Letter-spacing e Tabular-nums
+# ETAPA 81 — Design Polish: Sombras Tintadas, bg-base, Letter-spacing e Tabular-nums
 
 **Data:** 16/07/2026
 
@@ -1287,114 +1295,114 @@ Resultado: **1 ocorrÃªncia** em `api/update-order-status.js` â€” corrigida.
 
 ## Contexto
 
-ApÃ³s as correÃ§Ãµes P2 (Etapa 80 â€” centralizaÃ§Ã£o de CSS duplicado e active states), restavam 5 itens da auditoria de design por implementar:
+Após as correções P2 (Etapa 80 — centralização de CSS duplicado e active states), restavam 5 itens da auditoria de design por implementar:
 
-1. ğŸ”´ **`--bg-base` muito escuro (#07070b â†’ #0a0a0a)** â€” Fundo off-black mais adequado, seguindo recomendaÃ§Ã£o do design skill (evitar preto puro)
-2. ğŸŸ¡ **Sombras com preto puro** â€” `--shadow-sm/md/lg` usavam `rgba(0,0,0,0.3/0.4/0.5)`, agora tintadas com `rgba(var(--bg-base-rgb), 0.4/0.5/0.6)`
-3. ğŸŸ¢ **Sem negative tracking em headlines** â€” Adicionado `letter-spacing: -0.02em` para h1-h4 (h1: -0.03em) conforme recomendaÃ§Ã£o de tipografia premium
-4. ğŸŸ¢ **Tabular-nums inconsistente** â€” Nova utility class `.font-nums` + selector list global aplicando `font-variant-numeric: tabular-nums` em todos os elementos que exibem nÃºmeros (KPIs, currency, stats)
-5. ğŸŸ¢ **Fundo do headline da agenda** â€” Pequeno ajuste de contraste
+1. ?? **`--bg-base` muito escuro (#07070b ? #0a0a0a)** — Fundo off-black mais adequado, seguindo recomendação do design skill (evitar preto puro)
+2. ?? **Sombras com preto puro** — `--shadow-sm/md/lg` usavam `rgba(0,0,0,0.3/0.4/0.5)`, agora tintadas com `rgba(var(--bg-base-rgb), 0.4/0.5/0.6)`
+3. ?? **Sem negative tracking em headlines** — Adicionado `letter-spacing: -0.02em` para h1-h4 (h1: -0.03em) conforme recomendação de tipografia premium
+4. ?? **Tabular-nums inconsistente** — Nova utility class `.font-nums` + selector list global aplicando `font-variant-numeric: tabular-nums` em todos os elementos que exibem números (KPIs, currency, stats)
+5. ?? **Fundo do headline da agenda** — Pequeno ajuste de contraste
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 ### `app/src/styles/global.css`
 
-| Token/MudanÃ§a | Antes | Depois |
+| Token/Mudança | Antes | Depois |
 |---------------|:-----:|:------:|
 | `--bg-base` | `#07070b` | `#0a0a0a` |
-| `--bg-base-rgb` | â€” (nÃ£o existia) | `10, 10, 10` |
+| `--bg-base-rgb` | — (não existia) | `10, 10, 10` |
 | `--shadow-sm` | `rgba(0, 0, 0, 0.3)` | `rgba(var(--bg-base-rgb), 0.4)` |
 | `--shadow-md` | `rgba(0, 0, 0, 0.4)` | `rgba(var(--bg-base-rgb), 0.5)` |
 | `--shadow-lg` | `rgba(0, 0, 0, 0.5)` | `rgba(var(--bg-base-rgb), 0.6)` |
 | `h1, h2, h3, h4` | sem tracking | `letter-spacing: -0.02em` (h1: -0.03em) |
-| `.font-nums` | â€” (nÃ£o existia) | `font-variant-numeric: tabular-nums` |
-| tabular-nums seletor | â€” (nÃ£o existia) | `.dash-kpi-value`, `.fin-kpi-value`, `.fin-cell-currency` etc. |
+| `.font-nums` | — (não existia) | `font-variant-numeric: tabular-nums` |
+| tabular-nums seletor | — (não existia) | `.dash-kpi-value`, `.fin-kpi-value`, `.fin-cell-currency` etc. |
 
-A variÃ¡vel `--bg-base-rgb` permite que as sombras sejam **tintadas com o matiz do fundo** (off-black) em vez de preto puro, criando sombras mais naturais e integradas ao tema escuro.
+A variável `--bg-base-rgb` permite que as sombras sejam **tintadas com o matiz do fundo** (off-black) em vez de preto puro, criando sombras mais naturais e integradas ao tema escuro.
 
 ## Arquivo Alterado
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `app/src/styles/global.css` | 5 tokens/regras CSS adicionados/modificados (~30 linhas) |
 
 ## Testes
 
-- âœ… `npm run build` â€” 2.64s sem erros
-- âœ… Code Review â€” aprovado sem issues
+- ? `npm run build` — 2.64s sem erros
+- ? Code Review — aprovado sem issues
 
 ---
 
-# ETAPA 82 â€” CorreÃ§Ãµes de Campos: CPF, Telefone, Especialidade, Mensalidade e Upload de Imagem
+# ETAPA 82 — Correções de Campos: CPF, Telefone, Especialidade, Mensalidade e Upload de Imagem
 
 **Data:** 16/07/2026
 
-**Objetivo:** Corrigir 4 problemas reportados no formulÃ¡rio de cadastro: validaÃ§Ã£o/mÃ¡scara de CPF e telefone, especialidade do professor como dropdown, verificaÃ§Ã£o de valor mÃ­nimo na mensalidade e substituiÃ§Ã£o de URL de imagem por upload de arquivo.
+**Objetivo:** Corrigir 4 problemas reportados no formulário de cadastro: validação/máscara de CPF e telefone, especialidade do professor como dropdown, verificação de valor mínimo na mensalidade e substituição de URL de imagem por upload de arquivo.
 
-## Problemas e CorreÃ§Ãµes
+## Problemas e Correções
 
-| # | Problema | CorreÃ§Ã£o |
+| # | Problema | Correção |
 |:-:|----------|----------|
-| 1 | CPF e telefone sem validaÃ§Ã£o de tamanho | MÃ¡scara `maskCPF()` (000.000.000-00) e `maskPhone()` ((XX) XXXXX-XXXX) aplicadas em TODOS os campos de aluno (wizard + ediÃ§Ã£o) e professor, incluindo campos de responsÃ¡vel |
-| 2 | Especialidade do professor como texto livre | SubstituÃ­do `<input type="text">` por `<select>` com as 17 opÃ§Ãµes predefinidas de instrumentos + "Outro" |
-| 3 | Mensalidade sem validaÃ§Ã£o mÃ­nima | `min=0` â†’ `min=1`, `step=0.01` â†’ `step=1`, adicionado `required`, placeholder e hint "Valor mÃ­nimo: R$ 1,00" |
-| 4 | URL da imagem no produto (campo texto) | SubstituÃ­do por upload de arquivo com validaÃ§Ã£o de tipo (JPEG/PNG/WebP), tamanho (mÃ¡x 2MB), preview com thumbnail, botÃ£o de remover e estado de loading |
+| 1 | CPF e telefone sem validação de tamanho | Máscara `maskCPF()` (000.000.000-00) e `maskPhone()` ((XX) XXXXX-XXXX) aplicadas em TODOS os campos de aluno (wizard + edição) e professor, incluindo campos de responsável |
+| 2 | Especialidade do professor como texto livre | Substituído `<input type="text">` por `<select>` com as 17 opções predefinidas de instrumentos + "Outro" |
+| 3 | Mensalidade sem validação mínima | `min=0` ? `min=1`, `step=0.01` ? `step=1`, adicionado `required`, placeholder e hint "Valor mínimo: R$ 1,00" |
+| 4 | URL da imagem no produto (campo texto) | Substituído por upload de arquivo com validação de tipo (JPEG/PNG/WebP), tamanho (máx 2MB), preview com thumbnail, botão de remover e estado de loading |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `app/src/pages/Students.tsx` | `maskCPF()` + `maskPhone()` aplicados em 8 campos (CPF, phone, guardian_cpf, guardian_phone no wizard e ediÃ§Ã£o) |
-| `app/src/pages/Teachers.tsx` | Mesmas mÃ¡scaras + `SPECIALTY_OPTIONS` + `<select>` no lugar de `<input>` |
+| `app/src/pages/Students.tsx` | `maskCPF()` + `maskPhone()` aplicados em 8 campos (CPF, phone, guardian_cpf, guardian_phone no wizard e edição) |
+| `app/src/pages/Teachers.tsx` | Mesmas máscaras + `SPECIALTY_OPTIONS` + `<select>` no lugar de `<input>` |
 | `app/src/pages/Enrollments.tsx` | `monthly_fee`: min=1, step=1, required, placeholder, help hint |
 | `app/src/pages/Store.tsx` | `useRef` + `uploadProductImage` + `handleImageUpload` + file input + preview |
-| `app/src/services/api.ts` | `uploadProductImage(file)` â€” POST FormData para `/api/upload-image` |
+| `app/src/services/api.ts` | `uploadProductImage(file)` — POST FormData para `/api/upload-image` |
 | `app/src/styles/store.css` | Estilos para `.store-image-upload`, preview, placeholder, remove button |
 
 ## Testes
 
-- âœ… `npm run build` â€” 6.31s sem erros
-- âœ… Code Review â€” aprovado sem issues
+- ? `npm run build` — 6.31s sem erros
+- ? Code Review — aprovado sem issues
 
 ---
 
-# ETAPA 83 â€” Painel de Gerenciamento de Imagens (Supabase Storage)
+# ETAPA 83 — Painel de Gerenciamento de Imagens (Supabase Storage)
 
 **Data:** 16/07/2026
 
-**Objetivo:** Criar painel de visualizaÃ§Ã£o de uploads no Supabase Storage: listar todas as imagens enviadas, detectar e excluir imagens Ã³rfÃ£s (sem produto vinculado), e mostrar uso de armazenamento.
+**Objetivo:** Criar painel de visualização de uploads no Supabase Storage: listar todas as imagens enviadas, detectar e excluir imagens órfãs (sem produto vinculado), e mostrar uso de armazenamento.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 ### `api/storage-manager.js` (novo)
 
 Endpoint Vercel Function protegido pela mesma senha do admin:
-| MÃ©todo | ParÃ¢metros | O que faz |
+| Método | Parâmetros | O que faz |
 |--------|-------------|-----------|
-| GET | â€” | Lista arquivos do bucket `product-images`, cruza com produtos para detectar Ã³rfÃ£s, calcula estatÃ­sticas de uso |
+| GET | — | Lista arquivos do bucket `product-images`, cruza com produtos para detectar órfãs, calcula estatísticas de uso |
 | DELETE | `filePath` | Exclui uma imagem do Storage |
 
-- `extractFilePathFromUrl()` â€” extrai o caminho do arquivo da URL pÃºblica do Supabase
-- `calculateTotalSize()` + `formatBytes()` â€” cÃ¡lculo e formataÃ§Ã£o de tamanho
-- Mensagens de erro genÃ©ricas (seguranÃ§a)
+- `extractFilePathFromUrl()` — extrai o caminho do arquivo da URL pública do Supabase
+- `calculateTotalSize()` + `formatBytes()` — cálculo e formatação de tamanho
+- Mensagens de erro genéricas (segurança)
 
 ### `app/src/pages/StorageManager.tsx` (novo)
 
-PÃ¡gina React acessÃ­vel em `/admin/storage`:
-- **Cards de estatÃ­sticas**: Total de imagens (com tamanho formatado), vinculadas, Ã³rfÃ£s (com destaque vermelho se > 0)
-- **Filtros**: "ğŸ“‹ Todas", "ğŸ—‘ï¸ Ã“rfÃ£s", "âœ… Vinculadas"
-- **Grid de imagens**: Thumbnail 1:1 com lazy loading, badge "Ã“rfÃ£" em vermelho, nome, tamanho, data de upload, links para produtos vinculados
-- **AÃ§Ãµes por imagem**: ğŸ”— Abrir em nova aba, ğŸ—‘ï¸ Excluir (com confirmaÃ§Ã£o que alerta se a imagem estÃ¡ vinculada)
-- **ğŸ§¹ Limpar Ã“rfÃ£s**: BotÃ£o de aÃ§Ã£o em massa para excluir todas as imagens Ã³rfÃ£s de uma vez
+Página React acessível em `/admin/storage`:
+- **Cards de estatísticas**: Total de imagens (com tamanho formatado), vinculadas, órfãs (com destaque vermelho se > 0)
+- **Filtros**: "?? Todas", "??? Órfãs", "? Vinculadas"
+- **Grid de imagens**: Thumbnail 1:1 com lazy loading, badge "Órfã" em vermelho, nome, tamanho, data de upload, links para produtos vinculados
+- **Ações por imagem**: ?? Abrir em nova aba, ??? Excluir (com confirmação que alerta se a imagem está vinculada)
+- **?? Limpar Órfãs**: Botão de ação em massa para excluir todas as imagens órfãs de uma vez
 - Estados de loading, empty e error
 
 ### `app/src/services/api.ts`
 
-| FunÃ§Ã£o | DescriÃ§Ã£o |
+| Função | Descrição |
 |--------|-----------|
-| `fetchStorageFiles()` | GET /api/storage-manager â†’ `{ stats, images }` |
+| `fetchStorageFiles()` | GET /api/storage-manager ? `{ stats, images }` |
 | `deleteStorageFile(filePath)` | DELETE /api/storage-manager?filePath=... |
-| `cleanOrphanedFiles(filePaths)` | Exclui mÃºltiplas Ã³rfÃ£s sequencialmente |
+| `cleanOrphanedFiles(filePaths)` | Exclui múltiplas órfãs sequencialmente |
 
 Interfaces `StorageFile`, `StorageStats`, `StorageManagerResponse` exportadas.
 
@@ -1402,64 +1410,64 @@ Interfaces `StorageFile`, `StorageStats`, `StorageManagerResponse` exportadas.
 
 - Import `StorageManager`
 - Rota `/admin/storage` com `AuthGuard` + `AppLayout`
-- Breadcrumbs: Admin â†’ Gerenciador de Imagens
+- Breadcrumbs: Admin ? Gerenciador de Imagens
 
 ### `app/src/styles/admin.css` (+250 linhas)
 
 Estilos para todo o Storage Manager:
-- `.admin-storage-grid` â€” grid responsivo auto-fill 200px
-- `.admin-storage-card` â€” card com thumbnail, hover com scale(1.05)
-- `.admin-storage-badge.orphan` â€” badge vermelho "Ã“rfÃ£"
-- `.admin-storage-deleting-overlay` â€” overlay escuro durante exclusÃ£o
-- `.admin-storage-product-link` â€” link para produto vinculado
-- `.admin-storage-btn.danger` â€” botÃ£o vermelho
-- `.admin-storage-toolbar` + `.admin-storage-filter-btn` â€” filtros
-- Responsivo mobile (2 colunas em â‰¤720px)
+- `.admin-storage-grid` — grid responsivo auto-fill 200px
+- `.admin-storage-card` — card com thumbnail, hover com scale(1.05)
+- `.admin-storage-badge.orphan` — badge vermelho "Órfã"
+- `.admin-storage-deleting-overlay` — overlay escuro durante exclusão
+- `.admin-storage-product-link` — link para produto vinculado
+- `.admin-storage-btn.danger` — botão vermelho
+- `.admin-storage-toolbar` + `.admin-storage-filter-btn` — filtros
+- Responsivo mobile (2 colunas em =720px)
 
 ## Arquivos Criados/Modificados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `api/storage-manager.js` | ğŸ†• Novo | Endpoint GET + DELETE para gerenciar Storage |
-| `app/src/pages/StorageManager.tsx` | ğŸ†• Novo | PÃ¡gina completa com grid, stats e aÃ§Ãµes |
-| `app/src/services/api.ts` | âœ¨ | 3 funÃ§Ãµes + interfaces de Storage |
-| `app/src/App.tsx` | â™»ï¸ | Rota `/admin/storage` + breadcrumbs |
-| `app/src/styles/admin.css` | âœ¨ | ~250 linhas de estilos do Storage Manager |
+| `api/storage-manager.js` | ?? Novo | Endpoint GET + DELETE para gerenciar Storage |
+| `app/src/pages/StorageManager.tsx` | ?? Novo | Página completa com grid, stats e ações |
+| `app/src/services/api.ts` | ? | 3 funções + interfaces de Storage |
+| `app/src/App.tsx` | ?? | Rota `/admin/storage` + breadcrumbs |
+| `app/src/styles/admin.css` | ? | ~250 linhas de estilos do Storage Manager |
 
 ## Testes
 
-- âœ… `npm run build` â€” 5.42s sem erros (805 inserÃ§Ãµes, 74 mÃ³dulos)
-- âœ… Code Review â€” aprovado sem issues
+- ? `npm run build` — 5.42s sem erros (805 inserções, 74 módulos)
+- ? Code Review — aprovado sem issues
 
 ---
 
-# ETAPA 84 â€” CompressÃ£o AutomÃ¡tica de Imagens com Sharp (WebP + Resize 800px)
+# ETAPA 84 — Compressão Automática de Imagens com Sharp (WebP + Resize 800px)
 
 **Data:** 16/07/2026
 
-**Objetivo:** Implementar compressÃ£o automÃ¡tica de imagens no upload, redimensionando para no mÃ¡ximo 800px de largura e convertendo para WebP com qualidade 80, reduzindo drasticamente o tamanho dos arquivos e economizando armazenamento no Supabase Storage.
+**Objetivo:** Implementar compressão automática de imagens no upload, redimensionando para no máximo 800px de largura e convertendo para WebP com qualidade 80, reduzindo drasticamente o tamanho dos arquivos e economizando armazenamento no Supabase Storage.
 
 ## Contexto
 
-O upload de imagens (`api/upload-image.js`) fazia upload do arquivo original sem qualquer processamento, ocupando espaÃ§o desnecessÃ¡rio no Storage. Imagens de celular (12MP+) podiam ter vÃ¡rios MB cada.
+O upload de imagens (`api/upload-image.js`) fazia upload do arquivo original sem qualquer processamento, ocupando espaço desnecessário no Storage. Imagens de celular (12MP+) podiam ter vários MB cada.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### `api/upload-image.js` â€” refatorado com Sharp
+### `api/upload-image.js` — refatorado com Sharp
 
 1. **Sharp integrado**: `import sharp from 'sharp'` para processamento de imagens
-2. **Redimensionamento automÃ¡tico**: Largura mÃ¡xima de **800px** (mantendo proporÃ§Ã£o). Imagens menores nÃ£o sÃ£o ampliadas (`withoutEnlargement: true`)
-3. **ConversÃ£o para WebP**: Qualidade **80** com esforÃ§o `4` (balanced), resultando em arquivos muito menores com qualidade visual similar
+2. **Redimensionamento automático**: Largura máxima de **800px** (mantendo proporção). Imagens menores não são ampliadas (`withoutEnlargement: true`)
+3. **Conversão para WebP**: Qualidade **80** com esforço `4` (balanced), resultando em arquivos muito menores com qualidade visual similar
 4. **Sempre .webp**: O nome do arquivo sanitizado agora sempre termina em `.webp`
-5. **Limite de upload aumentado**: De **2MB â†’ 10MB** (o arquivo original pode ser maior porque serÃ¡ comprimido)
-6. **Formatos aceitos**: Agora aceita JPEG, PNG, WebP, GIF e AVIF (todos convertidos para WebP na saÃ­da)
-7. **EstatÃ­sticas de compressÃ£o**: Resposta inclui `originalSize`, `compressedSize` e `savingsPercent`
+5. **Limite de upload aumentado**: De **2MB ? 10MB** (o arquivo original pode ser maior porque será comprimido)
+6. **Formatos aceitos**: Agora aceita JPEG, PNG, WebP, GIF e AVIF (todos convertidos para WebP na saída)
+7. **Estatísticas de compressão**: Resposta inclui `originalSize`, `compressedSize` e `savingsPercent`
 
 ### `npm install sharp`
 
-Sharp adicionado como dependÃªncia de produÃ§Ã£o no `package.json`.
+Sharp adicionado como dependência de produção no `package.json`.
 
-### Pipeline de compressÃ£o
+### Pipeline de compressão
 
 ```javascript
 async function compressImage(buffer) {
@@ -1471,35 +1479,35 @@ async function compressImage(buffer) {
 ```
 
 - **withoutEnlargement**: Evita ampliar imagens menores que 800px
-- **effort 4**: NÃ­vel de compressÃ£o balanced (0 = rÃ¡pido/maior, 6 = lento/menor)
+- **effort 4**: Nível de compressão balanced (0 = rápido/maior, 6 = lento/menor)
 - **quality 80**: Boa qualidade visual com economia significativa
 
 ## Impacto Esperado
 
-| MÃ©trica | Antes | Depois | Economia |
+| Métrica | Antes | Depois | Economia |
 |---------|:-----:|:------:|:--------:|
-| Tamanho mÃ©dio por imagem (JPEG 12MP) | ~3-5MB | ~100-300KB | **~90-95%** |
-| Tamanho mÃ©dio por imagem (PNG) | ~2MB | ~150-400KB | **~80-90%** |
-| Limite de upload | 2MB | 10MB | â€” |
+| Tamanho médio por imagem (JPEG 12MP) | ~3-5MB | ~100-300KB | **~90-95%** |
+| Tamanho médio por imagem (PNG) | ~2MB | ~150-400KB | **~80-90%** |
+| Limite de upload | 2MB | 10MB | — |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `api/upload-image.js` | Sharp: resize 800px + WebP quality 80 + +5 formatos aceitos + limites atualizados |
-| `package.json` | `"sharp": "^..."` adicionado Ã s dependÃªncias |
+| `package.json` | `"sharp": "^..."` adicionado às dependências |
 | `package-lock.json` | Atualizado automaticamente |
 
 ## Testes
 
-- âœ… `node -e "import('sharp')"` â€” Sharp ESM carregado corretamente
-- âœ… `node --check api/upload-image.js` â€” sintaxe vÃ¡lida
-- âœ… `npm run build` â€” 3.65s sem erros
-- âœ… Code Review â€” aprovado (1 sugestÃ£o aplicada: simplificar metadata check)
+- ? `node -e "import('sharp')"` — Sharp ESM carregado corretamente
+- ? `node --check api/upload-image.js` — sintaxe válida
+- ? `npm run build` — 3.65s sem erros
+- ? Code Review — aprovado (1 sugestão aplicada: simplificar metadata check)
 
 ---
 
-# ETAPA 85 â€” Consolidar FunÃ§Ãµes Serverless para Limite de 12 do Vercel Hobby + Deploy Manual
+# ETAPA 85 — Consolidar Funções Serverless para Limite de 12 do Vercel Hobby + Deploy Manual
 
 **Data:** 16/07/2026
 
@@ -1513,21 +1521,21 @@ O deploy manual falhou com:
 Error: No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.
 ```
 
-Havia **13 arquivos** em `api/` com `export default`, porÃ©m o plano Hobby da Vercel permite no mÃ¡ximo **12 Serverless Functions** por deploy.
+Havia **13 arquivos** em `api/` com `export default`, porém o plano Hobby da Vercel permite no máximo **12 Serverless Functions** por deploy.
 
-## SoluÃ§Ã£o
+## Solução
 
 | Antes | Depois |
 |:-----:|:------:|
-| `api/storage-manager.js` (standalone) | âŒ Removido como funÃ§Ã£o autÃ´noma |
-| `api/_lib/financial/storage.js` (handler compartilhado) | âœ… Novo â€” segue padrÃ£o dos handlers financeiros |
-| `api/admin-financial.js` | âœ… Importa `handleStorageManager` + case `storage_manager` no switch |
-| `app/src/services/api.ts` | âœ… URLs atualizadas para `?resource=storage_manager` |
+| `api/storage-manager.js` (standalone) | ? Removido como função autônoma |
+| `api/_lib/financial/storage.js` (handler compartilhado) | ? Novo — segue padrão dos handlers financeiros |
+| `api/admin-financial.js` | ? Importa `handleStorageManager` + case `storage_manager` no switch |
+| `app/src/services/api.ts` | ? URLs atualizadas para `?resource=storage_manager` |
 
 ### Resultado
-- **13 â†’ 12 funÃ§Ãµes Serverless** (dentro do limite do Hobby plan)
+- **13 ? 12 funções Serverless** (dentro do limite do Hobby plan)
 - Storage Manager continua funcionando via `?resource=storage_manager` no mesmo endpoint
-- CÃ³digo mais consistente: todos os recursos administrativos passam pelo mesmo roteador
+- Código mais consistente: todos os recursos administrativos passam pelo mesmo roteador
 
 ## Deploy Manual
 
@@ -1537,720 +1545,673 @@ npx vercel deploy --prod
 
 | Etapa | URL | Status |
 |:-----:|:---:|:------:|
-| Build | Vercel (2.97s) | âœ… 75 mÃ³dulos |
-| Deploy | `escola-bruna-mandz.vercel.app` | âœ… Aliased |
-| Endpoint storage_manager | `GET /api/admin-financial?resource=storage_manager` | âœ… 200 (com auth) |
+| Build | Vercel (2.97s) | ? 75 módulos |
+| Deploy | `escola-bruna-mandz.vercel.app` | ? Aliased |
+| Endpoint storage_manager | `GET /api/admin-financial?resource=storage_manager` | ? 200 (com auth) |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `api/_lib/financial/storage.js` | ğŸ†• Handler compartilhado (antes era standalone) |
-| `api/admin-financial.js` | â™»ï¸ Import + switch case `storage_manager` |
-| `api/storage-manager.js` | âŒ Deletado (nÃ£o Ã© mais funÃ§Ã£o autÃ´noma) |
-| `app/src/services/api.ts` | â™»ï¸ URLs de `/api/storage-manager` para `?resource=storage_manager` |
+| `api/_lib/financial/storage.js` | ?? Handler compartilhado (antes era standalone) |
+| `api/admin-financial.js` | ?? Import + switch case `storage_manager` |
+| `api/storage-manager.js` | ? Deletado (não é mais função autônoma) |
+| `app/src/services/api.ts` | ?? URLs de `/api/storage-manager` para `?resource=storage_manager` |
 
 ## Testes
 
-- âœ… `npm run build` â€” 2.49s sem erros
-- âœ… `npx vercel deploy --prod` â€” 34s, sem erros
-- âœ… API endpoints respondendo (401 com senha errada = esperado)
-- âœ… Code Review â€” aprovado (3 rodadas)
+- ? `npm run build` — 2.49s sem erros
+- ? `npx vercel deploy --prod` — 34s, sem erros
+- ? API endpoints respondendo (401 com senha errada = esperado)
+- ? Code Review — aprovado (3 rodadas)
 
 ---
 
-# ETAPA 86 â€” Backup Completo do Supabase (12 Tabelas + Storage + PaginaÃ§Ã£o)
+# ETAPA 86 — Backup Completo do Supabase (12 Tabelas + Storage + Paginação)
 
 **Data:** 17/07/2026
 
-**Objetivo:** Corrigir o backup que sÃ³ copiava 2 tabelas (products, orders) e ignorava **10 tabelas crÃ­ticas** do domÃ­nio acadÃªmico/financeiro. Adicionar paginaÃ§Ã£o, compressÃ£o gzip, backup de Storage e script de restauraÃ§Ã£o.
+**Objetivo:** Corrigir o backup que só copiava 2 tabelas (products, orders) e ignorava **10 tabelas críticas** do domínio acadêmico/financeiro. Adicionar paginação, compressão gzip, backup de Storage e script de restauração.
 
 ## Problema
 
-O script `backup-api.js` original sÃ³ fazia backup de `products` e `orders`:
+O script `backup-api.js` original só fazia backup de `products` e `orders`:
 
 | Tabela | Backup antes | Risco |
 |--------|:------------:|-------|
-| `students`, `teachers`, `enrollments`, `tuitions` | âŒ | Perda total de cadastro/financeiro |
-| `payments`, `expenses`, `investments`, `teacher_payments` | âŒ | Perda de histÃ³rico financeiro |
-| `lessons`, `attendance` | âŒ | Perda de agenda e frequÃªncia |
-| `products`, `orders` | âœ… | â€” |
+| `students`, `teachers`, `enrollments`, `tuitions` | ? | Perda total de cadastro/financeiro |
+| `payments`, `expenses`, `investments`, `teacher_payments` | ? | Perda de histórico financeiro |
+| `lessons`, `attendance` | ? | Perda de agenda e frequência |
+| `products`, `orders` | ? | — |
 
 **Total: 2/12 tabelas cobertas (16%).**
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### 1. ğŸ”’ `backup-api.js` â€” Rewrite Completo
+### 1. ?? `backup-api.js` — Rewrite Completo
 
 | Melhoria | Detalhes |
 |----------|----------|
-| **Todas as 12 tabelas** | Ordem FK-safe: students â†’ teachers â†’ enrollments â†’ tuitions â†’ payments â†’ expenses â†’ investments â†’ teacher_payments â†’ lessons â†’ attendance â†’ products â†’ orders |
-| **PaginaÃ§Ã£o** | `fetchAllRows()` com loop `offset += PAGE_SIZE` (1000 registros/pÃ¡gina). Funciona para tabelas com >1000 registros |
-| **Storage** | `listStorageFiles()` lista objetos do bucket `product-images` via API REST `/storage/v1/object/list/` + adiciona URLs pÃºblicas |
-| **CompressÃ£o gzip** | `zlib.gzipSync(json, { level: 9 })` â€” salva `backup_dados.json.gz` com taxa de compressÃ£o reportada |
-| **ValidaÃ§Ã£o pÃ³s-backup** | Decompress + `JSON.parse()` do .gz para verificar integridade |
-| **Resumo detalhado** | Console log com tabelas, registros, erros, tamanhos, taxa de compressÃ£o |
+| **Todas as 12 tabelas** | Ordem FK-safe: students ? teachers ? enrollments ? tuitions ? payments ? expenses ? investments ? teacher_payments ? lessons ? attendance ? products ? orders |
+| **Paginação** | `fetchAllRows()` com loop `offset += PAGE_SIZE` (1000 registros/página). Funciona para tabelas com >1000 registros |
+| **Storage** | `listStorageFiles()` lista objetos do bucket `product-images` via API REST `/storage/v1/object/list/` + adiciona URLs públicas |
+| **Compressão gzip** | `zlib.gzipSync(json, { level: 9 })` — salva `backup_dados.json.gz` com taxa de compressão reportada |
+| **Validação pós-backup** | Decompress + `JSON.parse()` do .gz para verificar integridade |
+| **Resumo detalhado** | Console log com tabelas, registros, erros, tamanhos, taxa de compressão |
 | **Env var** | `BACKUP_STORAGE` (default `true`) para pular Storage se desejado |
 
-### 2. ğŸ†• `restore-backup.js` â€” Script de RestauraÃ§Ã£o
+### 2. ?? `restore-backup.js` — Script de Restauração
 
 | Funcionalidade | Detalhes |
 |----------------|----------|
-| **Formato** | LÃª `.json` ou `.gz` automaticamente |
-| **ConfirmaÃ§Ã£o** | Prompt interativo (digitar `RESTAURAR`) ou flag `--force` |
-| **Dry run** | Flag `--dry-run` â€” apenas simula, nÃ£o modifica dados |
-| **Limpeza ordenada** | `TABELAS_DELETE_ORDER` â€” filhos primeiro (FK-safe) |
-| **InserÃ§Ã£o batch** | 500 registros/lote com `resolution=merge-duplicates` (permite re-executar) |
+| **Formato** | Lê `.json` ou `.gz` automaticamente |
+| **Confirmação** | Prompt interativo (digitar `RESTAURAR`) ou flag `--force` |
+| **Dry run** | Flag `--dry-run` — apenas simula, não modifica dados |
+| **Limpeza ordenada** | `TABELAS_DELETE_ORDER` — filhos primeiro (FK-safe) |
+| **Inserção batch** | 500 registros/lote com `resolution=merge-duplicates` (permite re-executar) |
 | **DELETE batch** | 100 IDs/lote via `id=in.(...)` |
-| **Notas Storage** | Avisa que arquivos do Storage nÃ£o sÃ£o restaurados automaticamente |
+| **Notas Storage** | Avisa que arquivos do Storage não são restaurados automaticamente |
 
-### 3. â™»ï¸ `.github/workflows/supabase-backup.yml` â€” Workflow Atualizado
+### 3. ?? `.github/workflows/supabase-backup.yml` — Workflow Atualizado
 
 | Melhoria | Detalhes |
 |----------|----------|
 | **Node 22** | Atualizado de 20 para 22 |
-| **ValidaÃ§Ã£o** | Step dedicado: verifica existÃªncia de ambos arquivos, decompress + parse do .gz |
-| **Upload duplo** | `path: backup_dados.json*` â€” envia .json e .gz como artifact |
+| **Validação** | Step dedicado: verifica existência de ambos arquivos, decompress + parse do .gz |
+| **Upload duplo** | `path: backup_dados.json*` — envia .json e .gz como artifact |
 | **Timeout** | `timeout-minutes: 10` para backups grandes |
-| **CompressÃ£o 0** | `compression-level: 0` no upload (jÃ¡ comprimido internamente) |
+| **Compressão 0** | `compression-level: 0` no upload (já comprimido internamente) |
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `backup-api.js` | ğŸ”’ Rewrite | De 2 para 12 tabelas + paginaÃ§Ã£o + Storage + gzip + validaÃ§Ã£o |
-| `restore-backup.js` | ğŸ†• Novo | Script de restauraÃ§Ã£o com confirmaÃ§Ã£o, dry-run, batch FK-safe |
-| `.github/workflows/supabase-backup.yml` | â™»ï¸ | Node 22, validaÃ§Ã£o, upload duplo, timeout 10min |
+| `backup-api.js` | ?? Rewrite | De 2 para 12 tabelas + paginação + Storage + gzip + validação |
+| `restore-backup.js` | ?? Novo | Script de restauração com confirmação, dry-run, batch FK-safe |
+| `.github/workflows/supabase-backup.yml` | ?? | Node 22, validação, upload duplo, timeout 10min |
 
 ## Testes
 
-- âœ… `node --check backup-api.js` â€” sintaxe vÃ¡lida
-- âœ… `node --check restore-backup.js` â€” sintaxe vÃ¡lida
-- âœ… Code Review â€” aprovado (1 bug corrigido: `github.run_date` â†’ `github.run_id-run_attempt`)
+- ? `node --check backup-api.js` — sintaxe válida
+- ? `node --check restore-backup.js` — sintaxe válida
+- ? Code Review — aprovado (1 bug corrigido: `github.run_date` ? `github.run_id-run_attempt`)
 
 ---
 
-# ETAPA 87 â€” CorreÃ§Ã£o de 404s, Google Fonts e Tailwind CDN
+# ETAPA 87 — Correção de 404s, Google Fonts e Tailwind CDN
 
 **Data:** 17/07/2026 | **Commit:** `5b7dea1`
 
-**Objetivo:** Corrigir 5 erros no console do site principal em produÃ§Ã£o.
+**Objetivo:** Corrigir 5 erros no console do site principal em produção.
 
-## Problemas e CorreÃ§Ãµes
+## Problemas e Correções
 
-| # | Erro | Causa | CorreÃ§Ã£o |
+| # | Erro | Causa | Correção |
 |:-:|------|-------|----------|
 | 1 | `main-O-tkMRsf.js` **404** | Hash de build desatualizado | Deploy fresh (hashes atuais: `Bl3lN577`) |
 | 2 | `store-style-DvXrRQnJ.css` **404** | Hash de build desatualizado | Deploy fresh (hash atual: `B8eyGiIQ`) |
-| 3 | Google Fonts `css2` **400** | Sintaxe CSS2 API v1 (`=300;400;500`) | `=` â†’ `@`: `wght@300;400;500;600;700` |
-| 4 | Tailwind CDN **warning** | CDN nÃ£o deve ser usado em produÃ§Ã£o | Script de config prÃ©-CDN suprime o aviso |
-| 5 | **AudioContext / Tone.js** | PolÃ­tica de autoplay do navegador | Comportamento esperado â€” apenas diagnÃ³stico |
+| 3 | Google Fonts `css2` **400** | Sintaxe CSS2 API v1 (`=300;400;500`) | `=` ? `@`: `wght@300;400;500;600;700` |
+| 4 | Tailwind CDN **warning** | CDN não deve ser usado em produção | Script de config pré-CDN suprime o aviso |
+| 5 | **AudioContext / Tone.js** | Política de autoplay do navegador | Comportamento esperado — apenas diagnóstico |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `index.html` | Google Fonts `=300;400;500` â†’ `@300;400;500` + Tailwind config pre-script |
+| `index.html` | Google Fonts `=300;400;500` ? `@300;400;500` + Tailwind config pre-script |
 
 ---
 
-# ETAPA 88 â€” Acesso ao Painel Admin (/app) pelo Logo e Footer
+# ETAPA 88 — Acesso ao Painel Admin (/app) pelo Logo e Footer
 
 **Data:** 17/07/2026 | **Commit:** `c19c3c6`
 
-**Objetivo:** Adicionar acesso ao mÃ³dulo administrativo React SPA (`/app`) diretamente pelo site principal.
+**Objetivo:** Adicionar acesso ao módulo administrativo React SPA (`/app`) diretamente pelo site principal.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
 | Onde | Antes | Depois |
 |------|-------|--------|
 | **Logo no header** | `href="#"` (scroll vazio) | `href="/app"` com `title="Acessar Painel Administrativo"` |
-| **Footer** | NÃ£o existia link para o admin | Link discreto "Painel Administrativo" com Ã­cone ğŸ”’ |
+| **Footer** | Não existia link para o admin | Link discreto "Painel Administrativo" com ícone ?? |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `index.html` | Header logo href + footer link Painel Administrativo |
 
 ---
 
-# ETAPA 89 â€” Limpeza do Banco Supabase para Uso Real
+# ETAPA 89 — Limpeza do Banco Supabase para Uso Real
 
 **Data:** 17/07/2026 | **Commit:** `f2ab2f8`
 
-**Objetivo:** Limpar dados de teste do Supabase de produÃ§Ã£o, mantendo apenas o mÃ­nimo para comeÃ§ar a usar o sistema com dados reais.
+**Objetivo:** Limpar dados de teste do Supabase de produção, mantendo apenas o mínimo para começar a usar o sistema com dados reais.
 
-## AÃ§Ãµes
+## Ações
 
 | Tabela | Antes | Depois |
 |--------|:-----:|:------:|
-| `attendance`, `lessons`, `teacher_payments` | diversos | **0** ğŸ§¹ |
-| `payments`, `expenses`, `investments` | 1 cada | **0** ğŸ§¹ |
-| `tuitions` | 1 | **1** (recriado) âœ… |
-| `enrollments` | 2 | **1** (Sofia + Bruna) âœ… |
-| `students` | 2 | **1** (Sofia Almeida) âœ… |
-| `teachers` | 2 | **1** (Bruna Mandz) âœ… |
-| `products` ğŸ›ï¸ | 10 | **10** (intacto) âœ… |
-| `orders` ğŸ›ï¸ | 19 | **19** (intacto) âœ… |
+| `attendance`, `lessons`, `teacher_payments` | diversos | **0** ?? |
+| `payments`, `expenses`, `investments` | 1 cada | **0** ?? |
+| `tuitions` | 1 | **1** (recriado) ? |
+| `enrollments` | 2 | **1** (Sofia + Bruna) ? |
+| `students` | 2 | **1** (Sofia Almeida) ? |
+| `teachers` | 2 | **1** (Bruna Mandz) ? |
+| `products` ??? | 10 | **10** (intacto) ? |
+| `orders` ??? | 19 | **19** (intacto) ? |
 
 ## Arquivos
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `scripts/run-cleanup.js` | Novo â€” script Node com `supabase-js` que executa a limpeza programaticamente |
+| `scripts/run-cleanup.js` | Novo — script Node com `supabase-js` que executa a limpeza programaticamente |
 
 ---
 
-# ETAPA 90 â€” Auditoria de SeguranÃ§a Completa
+# ETAPA 90 — Auditoria de Segurança Completa
 
 **Data:** 17/07/2026
 
-**Objetivo:** Auditoria completa de seguranÃ§a do projeto: vazamento de credenciais, headers HTTP, proteÃ§Ã£o XSS/CSRF, vazamento de `err.message`, e CORS.
+**Objetivo:** Auditoria completa de segurança do projeto: vazamento de credenciais, headers HTTP, proteção XSS/CSRF, vazamento de `err.message`, e CORS.
 
 ## Metodologia
 
 - Varredura do git history completo em busca de credenciais commitadas
-- AnÃ¡lise de `vercel.json`, `api/*.js`, `server-dev.js` e frontend (.tsx, .js, .html)
-- VerificaÃ§Ã£o de sanitizaÃ§Ã£o XSS no frontend (innerHTML + escape functions)
-- VerificaÃ§Ã£o de headers de seguranÃ§a HTTP
-- VerificaÃ§Ã£o de CORS, CSRF e tratamento de erros
+- Análise de `vercel.json`, `api/*.js`, `server-dev.js` e frontend (.tsx, .js, .html)
+- Verificação de sanitização XSS no frontend (innerHTML + escape functions)
+- Verificação de headers de segurança HTTP
+- Verificação de CORS, CSRF e tratamento de erros
 
 ## Resultados
 
-### âœ… Itens OK (sem aÃ§Ã£o necessÃ¡ria)
+### ? Itens OK (sem ação necessária)
 
 | Item | Status | Detalhes |
 |------|:------:|----------|
-| **Credenciais no git** | âœ… | `.env` no `.gitignore`. Nenhuma credencial real commitada |
-| **XSS na Loja (store.js)** | âœ… | Uso de `innerHTML` com funÃ§Ã£o `esc()` que sanitiza saÃ­da |
-| **XSS no React SPA** | âœ… | React protege contra XSS por padrÃ£o (sem `dangerouslySetInnerHTML`) |
-| **Service Worker** | âœ… | NÃ£o cacheia `/api/*` |
+| **Credenciais no git** | ? | `.env` no `.gitignore`. Nenhuma credencial real commitada |
+| **XSS na Loja (store.js)** | ? | Uso de `innerHTML` com função `esc()` que sanitiza saída |
+| **XSS no React SPA** | ? | React protege contra XSS por padrão (sem `dangerouslySetInnerHTML`) |
+| **Service Worker** | ? | Não cacheia `/api/*` |
 
-### ğŸ”´ 4 CrÃ­ticos â€” Corrigir
+### ?? 4 Críticos — Corrigir
 
-| # | Problema | Severidade | OcorrÃªncias |
+| # | Problema | Severidade | Ocorrências |
 |:-:|----------|:----------:|:-----------:|
-| C1 | **err.message exibido para o usuÃ¡rio** em toasts (`showToast(err.message)`) | ğŸ”´ Alta | Agenda.tsx, Enrollments.tsx, Financial.tsx, checkout-modal.js |
-| C2 | **Nenhum header de seguranÃ§a no Vercel** â€” CSP, HSTS, X-Frame-Options, X-Content-Type-Options | ğŸ”´ Alta | `vercel.json` (sÃ³ rewrites) |
-| C3 | **Sem proteÃ§Ã£o CSRF** â€” nenhuma validaÃ§Ã£o de origem/referrer nos endpoints da API | ğŸ”´ Alta | Todos os endpoints |
-| C4 | **CORS permissivo** â€” `Access-Control-Allow-Origin: *` | ğŸ”´ MÃ©dia | server-dev.js |
+| C1 | **err.message exibido para o usuário** em toasts (`showToast(err.message)`) | ?? Alta | Agenda.tsx, Enrollments.tsx, Financial.tsx, checkout-modal.js |
+| C2 | **Nenhum header de segurança no Vercel** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options | ?? Alta | `vercel.json` (só rewrites) |
+| C3 | **Sem proteção CSRF** — nenhuma validação de origem/referrer nos endpoints da API | ?? Alta | Todos os endpoints |
+| C4 | **CORS permissivo** — `Access-Control-Allow-Origin: *` | ?? Média | server-dev.js |
 
-### ğŸŸ¡ 4 Moderados â€” Corrigir quando possÃ­vel
+### ?? 4 Moderados — Corrigir quando possível
 
-| # | Problema | Severidade | OcorrÃªncias |
+| # | Problema | Severidade | Ocorrências |
 |:-:|----------|:----------:|:-----------:|
-| M1 | **err.message logado no console do servidor** (pode vazar em logs centralizados) | ğŸŸ¡ MÃ©dia | 7 arquivos API |
-| M2 | **Inline `onclick` no index.html** â€” 50+ handlers inline | ğŸŸ¡ Baixa | index.html todo |
-| M3 | **backup/painel-x9k2f.html** arquivado mas contÃ©m innerHTML com err.message | ğŸŸ¡ Baixa | 6 ocorrÃªncias (arquivo morto) |
-| M4 | **x-admin-password fixo** no `.env`/sessionStorage, sem MFA/rotaÃ§Ã£o | ğŸŸ¡ MÃ©dia | Todo o SPA |
+| M1 | **err.message logado no console do servidor** (pode vazar em logs centralizados) | ?? Média | 7 arquivos API |
+| M2 | **Inline `onclick` no index.html** — 50+ handlers inline | ?? Baixa | index.html todo |
+| M3 | **backup/painel-x9k2f.html** arquivado mas contém innerHTML com err.message | ?? Baixa | 6 ocorrências (arquivo morto) |
+| M4 | **x-admin-password fixo** no `.env`/sessionStorage, sem MFA/rotação | ?? Média | Todo o SPA |
 
-# ETAPA 91 â€” CorreÃ§Ã£o de Testes HTTP (Mock Server)
+# ETAPA 91 — Correção de Testes HTTP (Mock Server)
 
-**Data:** 18/07/2026 | **Commits:** â€” (na main)
+**Data:** 18/07/2026 | **Commits:** — (na main)
 
-**Objetivo:** Corrigir os erros 500 na suÃ­te de testes `e2e-http-flow.test.js`.
+**Objetivo:** Corrigir os erros 500 na suíte de testes `e2e-http-flow.test.js`.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-- Identificado que o mock de servidor HTTP para os testes nÃ£o passava as variÃ¡veis de ambiente (como `ADMIN_PASSWORD`) para o handler `admin-financial.js`.
-- Adicionada a injeÃ§Ã£o do ambiente via `Object.assign(process.env, env)` no arquivo `tests/e2e-http-flow.test.js` para que a autenticaÃ§Ã£o funcione no ambiente de teste.
+- Identificado que o mock de servidor HTTP para os testes não passava as variáveis de ambiente (como `ADMIN_PASSWORD`) para o handler `admin-financial.js`.
+- Adicionada a injeção do ambiente via `Object.assign(process.env, env)` no arquivo `tests/e2e-http-flow.test.js` para que a autenticação funcione no ambiente de teste.
 
 ## Testes
 
-âœ… `npm test` â€” **103/103 passando** (0 falhas). Os endpoints agora respondem corretamente aos cÃ³digos de erro esperados (400, 401).
+? `npm test` — **103/103 passando** (0 falhas). Os endpoints agora respondem corretamente aos códigos de erro esperados (400, 401).
 
 ---
 
-## Plano de CorreÃ§Ã£o (Etapa 92+)
+## Plano de Correção (Etapa 92+)
 
-| Prioridade | AÃ§Ã£o | EsforÃ§o |
+| Prioridade | Ação | Esforço |
 |:----------:|------|:-------:|
-| ğŸ”´ C1 | Substituir `err.message` em toasts por mensagens genÃ©ricas | 15min |
-| ğŸ”´ C2 | Adicionar `headers` de seguranÃ§a no `vercel.json` | 10min |
-| ğŸ”´ C3 | Adicionar validaÃ§Ã£o de `Origin`/`Referer` nos handlers da API | 20min |
-| ğŸ”´ C4 | Restringir CORS no `server-dev.js` | 5min |
-| ğŸŸ¡ M1 | Manter logs sÃ³ no servidor, nunca no cliente | 15min |
+| ?? C1 | Substituir `err.message` em toasts por mensagens genéricas | 15min |
+| ?? C2 | Adicionar `headers` de segurança no `vercel.json` | 10min |
+| ?? C3 | Adicionar validação de `Origin`/`Referer` nos handlers da API | 20min |
+| ?? C4 | Restringir CORS no `server-dev.js` | 5min |
+| ?? M1 | Manter logs só no servidor, nunca no cliente | 15min |
 
 ---
 
-Â© 2026 Escola de MÃºsica Bruna Mandz â€” [novo_registro.md](novo_registro.md) Ã© o diÃ¡rio oficial de desenvolvimento.
+© 2026 Escola de Música Bruna Mandz — [novo_registro.md](novo_registro.md) é o diário oficial de desenvolvimento.
 
 ---
 
-## Etapa 92 â€” Redesign High-End Painel Administrativo
+## Etapa 92 — Redesign High-End Painel Administrativo
 
 **Data:** 18/07/2026  
-**Tipo:** ğŸ¨ Design  
-**Status:** âœ… ConcluÃ­do (build passou: 75 mÃ³dulos, 0 erros)
+**Tipo:** ?? Design  
+**Status:** ? Concluído (build passou: 75 módulos, 0 erros)
 
 ### Contexto
 
-O usuÃ¡rio solicitou um redesign completo do painel administrativo React SPA (`/app`), aplicando padrÃµes de design de alto nÃ­vel (Awwwards-tier) usando a skill `high-end-visual-design`. O objetivo era transformar o painel de uma aparÃªncia genÃ©rica para um nÃ­vel premium.
+O usuário solicitou um redesign completo do painel administrativo React SPA (`/app`), aplicando padrões de design de alto nível (Awwwards-tier) usando a skill `high-end-visual-design`. O objetivo era transformar o painel de uma aparência genérica para um nível premium.
 
 ### O que foi implementado
 
-#### Fase 1 â€” Sistema de Design Global (`app/src/styles/global.css`)
+#### Fase 1 — Sistema de Design Global (`app/src/styles/global.css`)
 
-- **OLED Black base:** `--bg-base: #000000` puro, eliminando o `#09090b` genÃ©rico
-- **Tokens double-bezel:** VariÃ¡veis `--radius-bezel-outer` e `--radius-bezel-inner` para arquitetura de cards aninhados
-- **Curvas de animaÃ§Ã£o cinematogrÃ¡ficas:** `--ease-fluid: cubic-bezier(0.32, 0.72, 0, 1)` e `--duration-fluid: 700ms`
-- **BotÃµes Button-in-Button:** `.btn-primary`, `.btn-secondary` e `.btn-danger` refatorados com `::before` absolutamente posicionado para efeito de destaque interno e `transform: scale()` no hover/active
-- **Classes utilitÃ¡rias `.bezel-shell` / `.bezel-core`:** Implementam o padrÃ£o Double-Bezel â€” shell com `background: rgba(255,255,255,0.02)` + `border`, core com fundo preto puro e `box-shadow: inset`
+- **OLED Black base:** `--bg-base: #000000` puro, eliminando o `#09090b` genérico
+- **Tokens double-bezel:** Variáveis `--radius-bezel-outer` e `--radius-bezel-inner` para arquitetura de cards aninhados
+- **Curvas de animação cinematográficas:** `--ease-fluid: cubic-bezier(0.32, 0.72, 0, 1)` e `--duration-fluid: 700ms`
+- **Botões Button-in-Button:** `.btn-primary`, `.btn-secondary` e `.btn-danger` refatorados com `::before` absolutamente posicionado para efeito de destaque interno e `transform: scale()` no hover/active
+- **Classes utilitárias `.bezel-shell` / `.bezel-core`:** Implementam o padrão Double-Bezel — shell com `background: rgba(255,255,255,0.02)` + `border`, core com fundo preto puro e `box-shadow: inset`
 
-#### Fase 2 â€” NavegaÃ§Ã£o (Fluid Island)
+#### Fase 2 — Navegação (Fluid Island)
 
 - **TopBar convertida para pill flutuante:** `position: fixed; top: var(--space-6); left: 50%; transform: translateX(-50%)` com `border-radius: var(--radius-full)`, `backdrop-filter: blur(24px)` e `box-shadow: var(--shadow-lg)`
 - **Links arredondados:** `border-radius: var(--radius-full)` em `.topbar-link`
-- **Padding do conteÃºdo ajustado:** `.app-main { padding-top: calc(56px + var(--space-12)) }` para compensar o pill
+- **Padding do conteúdo ajustado:** `.app-main { padding-top: calc(56px + var(--space-12)) }` para compensar o pill
 
-#### Fase 3 â€” AnimaÃ§Ãµes de Entrada
+#### Fase 3 — Animações de Entrada
 
-- **`fadeInUp` renovado:** Agora usa `filter: blur(8px) â†’ blur(0)` + `translateY(32px â†’ 0)` com `duration-fluid` e `ease-fluid both`
-- **EficiÃªncia de GPU:** Todas as animaÃ§Ãµes tocam apenas `transform`, `opacity` e `filter` â€” nunca `layout properties`
+- **`fadeInUp` renovado:** Agora usa `filter: blur(8px) ? blur(0)` + `translateY(32px ? 0)` com `duration-fluid` e `ease-fluid both`
+- **Eficiência de GPU:** Todas as animações tocam apenas `transform`, `opacity` e `filter` — nunca `layout properties`
 
-#### Fase 3 â€” Double-Bezel nos Cards
+#### Fase 3 — Double-Bezel nos Cards
 
-Aplicado em todas as superfÃ­cies de card do painel:
+Aplicado em todas as superfícies de card do painel:
 
 **Dashboard (`Dashboard.tsx` + `dashboard.css`):**
 - Grid KPI migrado para **Bento Layout** de 12 colunas (`grid-template-columns: repeat(12, 1fr)`)
-- Breakpoints: cards 1+2 â†’ span 6, cards 3-5 â†’ span 4
+- Breakpoints: cards 1+2 ? span 6, cards 3-5 ? span 4
 - Todos os `dash-card` e `dash-kpi-card` agora usam `bezel-shell + bezel-core`
-- `dash-card` sem background prÃ³prio (responsabilidade do `bezel-core`)
+- `dash-card` sem background próprio (responsabilidade do `bezel-core`)
 
 **Students (`Students.tsx` + `students.css`):**
-- Tabela envolita em `bezel-shell` â†’ `bezel-core` (com `padding: 0` para nÃ£o quebrar layout)
-- Modal do wizard envolto em `bezel-shell` â†’ `bezel-core`
-- Linhas da tabela: efeito **Z-Axis Cascade** â€” `transform: scale(1.005) translateZ(0)` + `box-shadow: var(--shadow-xl)` no hover
+- Tabela envolita em `bezel-shell` ? `bezel-core` (com `padding: 0` para não quebrar layout)
+- Modal do wizard envolto em `bezel-shell` ? `bezel-core`
+- Linhas da tabela: efeito **Z-Axis Cascade** — `transform: scale(1.005) translateZ(0)` + `box-shadow: var(--shadow-xl)` no hover
 - Removido `border/background` hardcoded do `.students-table-wrapper`
 
 **Teachers (`Teachers.tsx` + `teachers.css`):**
 - Mesma arquitetura bezel aplicada na tabela e no modal
 - Z-Axis cascade nas linhas da tabela
-- Limpeza de cÃ³digo hardcoded (cores `#hex` â†’ `var(--*)` nas sombras)
+- Limpeza de código hardcoded (cores `#hex` ? `var(--*)` nas sombras)
 
 ### Arquivos modificados
 
-| Arquivo | Tipo de mudanÃ§a |
+| Arquivo | Tipo de mudança |
 |---------|----------------|
-| `app/src/styles/global.css` | Tokens, botÃµes, bezel, topbar pill, animaÃ§Ãµes |
-| `app/src/styles/dashboard.css` | Bento grid, remoÃ§Ã£o de backgrounds, Z-axis |
-| `app/src/styles/students.css` | Z-axis table, remoÃ§Ã£o de wrapper styles |
+| `app/src/styles/global.css` | Tokens, botões, bezel, topbar pill, animações |
+| `app/src/styles/dashboard.css` | Bento grid, remoção de backgrounds, Z-axis |
+| `app/src/styles/students.css` | Z-axis table, remoção de wrapper styles |
 | `app/src/styles/teachers.css` | Z-axis table rows |
 | `app/src/pages/Dashboard.tsx` | bezel-shell/core em todos os cards |
 | `app/src/pages/Students.tsx` | bezel-shell/core em tabela + modal |
 | `app/src/pages/Teachers.tsx` | bezel-shell/core em tabela + modal |
 
-### VerificaÃ§Ã£o
+### Verificação
 
 ```
-npm run build â†’ âœ… 75 modules transformed, 0 errors, 6.15s
+npm run build ? ? 75 modules transformed, 0 errors, 6.15s
 ```
 
-### PrÃ³ximos passos (Fases 4-5)
+### Próximos passos (Fases 4-5)
 
-- VÃ­nculos/Mensalidades + Agenda + Financeiro (Double-Bezel)
+- Vínculos/Mensalidades + Agenda + Financeiro (Double-Bezel)
 - Observer de scroll para staggered entry animations
 - `npm test` completo + walkthrough final
 
- 
- - - - 
- 
- #   E T A P A   9 3      F i n a l i z a ï¿½ ï¿½ o   d o   R e d e s i g n   H i g h - E n d   ( S p r i n t   4 ) 
- 
- * * D a t a : * *   1 8 / 0 7 / 2 0 2 6 
- 
- * * O b j e t i v o : * *   C o n c l u i r   a   a p l i c a ï¿½ ï¿½ o   d a   a r q u i t e t u r a   * D o u b l e - B e z e l *   n a s   s e ï¿½ ï¿½ e s   r e s t a n t e s   d o   p a i n e l   a d m i n i s t r a t i v o . 
- 
- # #   I m p l e m e n t a ï¿½ ï¿½ e s 
- 
- -   * * F i n a n c i a l * * : 
-     -   A p l i c a ï¿½ ï¿½ o   d o   \  e z e l - s h e l l \   e   \  e z e l - c o r e \   n o s   6   c a r t ï¿½ e s   d e   K P I   ( R e c e b i d o ,   P a g o ,   S a l d o ,   e t c . ) . 
-     -   R e m o ï¿½ ï¿½ o   d e   e s t i l o s   r e d u n d a n t e s   ( b a c k g r o u n d ,   b o r d e r ,   p a d d i n g )   d e   \ . f i n - k p i - c a r d \   n o   C S S . 
- -   * * A g e n d a * * : 
-     -   E n v e l o p a m e n t o   d a   g r a d e   d o   c a l e n d ï¿½ r i o   p r i n c i p a l   ( \ . a g e n d a - c a l e n d a r \ ) . 
-     -   A p l i c a ï¿½ ï¿½ o   n o s   m o d a i s   d e   v i s u a l i z a ï¿½ ï¿½ o   d o   d i a   ( \ . a g e n d a - d a y - m o d a l \ )   e   f o r m u l ï¿½ r i o   d e   a u l a s   ( \ . a g e n d a - f o r m - m o d a l \ ) . 
- -   * * S t u d e n t D e t a i l * * : 
-     -   R e f a t o r a ï¿½ ï¿½ o   d o s   p a i n ï¿½ i s   n u m ï¿½ r i c o s   s u p e r i o r e s   ( \ . s t u d e n t - s t a t - c a r d \ ) . 
-     -   P a d r o n i z a ï¿½ ï¿½ o   d a s   m i n i   l i s t a g e n s   ( \ . e n r o l l m e n t - m i n i - c a r d \ ) . 
- -   * * A d m i n * * : 
-     -   E n v e l o p a m e n t o   d a s   m ï¿½ t r i c a s   g e r a i s   n a   p ï¿½ g i n a   d e   A d m i n i s t r a ï¿½ ï¿½ o . 
- 
- # #   A r q u i v o s   A l t e r a d o s 
- 
- -   \  p p / s r c / p a g e s / F i n a n c i a l . t s x \   e   \  p p / s r c / s t y l e s / f i n a n c i a l . c s s \ 
- -   \  p p / s r c / p a g e s / A g e n d a . t s x \   e   \  p p / s r c / s t y l e s / a g e n d a . c s s \ 
- -   \  p p / s r c / p a g e s / S t u d e n t D e t a i l . t s x \   e   \  p p / s r c / s t y l e s / s t u d e n t s . c s s \ 
- -   \  p p / s r c / p a g e s / A d m i n . t s x \ 
- 
- # #   T e s t e s 
- 
- '  \ 
- p m   r u n   b u i l d \      B u i l d   e f e t u a d o   c o m   s u c e s s o   ( 7 5   m ï¿½ d u l o s   p r o c e s s a d o s ) . 
- '  T o d o s   o s   p a i n ï¿½ i s   p o s s u e m   a g o r a   u m a   e s t ï¿½ t i c a   c o n t ï¿½ n u a   O L E D   * D o u b l e - B e z e l * . 
- 
-  
- 
 
 ---
 
-# ETAPA 93 â€” Melhorias UI/UX no React SPA (Auditoria ui-ux-pro-max)
+# ETAPA 92-B — Finalização do Redesign High-End (Sprint 4)
+
+> ?? **Nota de recuperação (20/07/2026):** esta etapa estava gravemente corrompida no arquivo
+> original — bytes nulos intercalados (padrão de arquivo UTF-16 salvo/lido incorretamente como
+> UTF-8) e caracteres acentuados perdidos de forma irrecuperável (`?`). Também colidia em
+> numeração com a Etapa 93 real ("Melhorias UI/UX no React SPA"), que já existia logo em
+> seguida no documento. Renomeada para **92-B** para não quebrar a numeração/âncoras já usadas
+> em outras referências deste documento. Conteúdo abaixo reconstruído a partir do texto
+> recuperável; palavras com caracteres perdidos foram inferidas pelo contexto e podem não ser
+> 100% fiéis ao texto original.
+
+**Data:** 18/07/2026
+
+**Objetivo:** Concluir a aplicação da arquitetura *Double-Bezel* nas seções restantes do painel administrativo.
+
+## Implementações
+
+- **Financial**:
+  - Aplicação do `bezel-shell` e `bezel-core` nos 6 cartões de KPI (Recebido, Pago, Saldo, etc.).
+  - Remoção de estilos redundantes (background, border, padding) de `.fin-kpi-card` no CSS.
+- **Agenda**:
+  - Envelopamento da grade do calendário principal (`.agenda-calendar`).
+  - Aplicação nos modais de visualização do dia (`.agenda-day-modal`) e formulário de aulas (`.agenda-form-modal`).
+- **StudentDetail**:
+  - Refatoração dos painéis numéricos superiores (`.student-stat-card`).
+  - Padronização das mini listagens (`.enrollment-mini-card`).
+- **Admin**:
+  - Envelopamento das métricas gerais na página de Administração.
+
+## Arquivos Alterados
+
+- `app/src/pages/Financial.tsx` e `app/src/styles/financial.css`
+- `app/src/pages/Agenda.tsx` e `app/src/styles/agenda.css`
+- `app/src/pages/StudentDetail.tsx` e `app/src/styles/students.css`
+- `app/src/pages/Admin.tsx`
+
+## Testes
+
+? `npm run build` — Build efetuado com sucesso (75 módulos processados).
+? Todos os painéis possuem agora uma estética contínua OLED *Double-Bezel*.
+
+
+---
+
+# ETAPA 93 — Melhorias UI/UX no React SPA (Auditoria ui-ux-pro-max)
 
 **Data:** 19/07/2026
 
-**Objetivo:** Implementar as correÃ§Ãµes crÃ­ticas (C1-C4) e melhorias altas (A1-A5) identificadas na auditoria de design usando o skill `ui-ux-pro-max`.
+**Objetivo:** Implementar as correções críticas (C1-C4) e melhorias altas (A1-A5) identificadas na auditoria de design usando o skill `ui-ux-pro-max`.
 
 ## Contexto
 
-A auditoria UI/UX percorreu o cÃ³digo de todas as 11 pÃ¡ginas do React SPA e 10 arquivos CSS contra as 10 categorias de prioridade do ui-ux-pro-max. Foram identificados 15 pontos de melhoria (4 crÃ­ticos, 5 altos, 6 mÃ©dios).
+A auditoria UI/UX percorreu o código de todas as 11 páginas do React SPA e 10 arquivos CSS contra as 10 categorias de prioridade do ui-ux-pro-max. Foram identificados 15 pontos de melhoria (4 críticos, 5 altos, 6 médios).
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### ğŸ”´ CrÃ­ticos
-
-| # | Problema | Antes | Depois |
-|:-:|----------|:-----:|:------:|
-| C1 | **Emoji como Ã­cone de navegaÃ§Ã£o** | TopBar: ğŸ  ğŸ“Š ğŸ“ ğŸ“… ğŸ’° ğŸ‘¥ ğŸ›’ ğŸšª | SVGs vetoriais do lucide-react |
-| C2 | **Emoji em KPIs do Dashboard** | ğŸ’° ğŸ’¸ ğŸ“Š â³ ğŸ”´ ğŸ“ | SVGs (TrendingUp, TrendingDown, etc.) |
-| C3 | **Focus invisÃ­vel em botÃµes** | Apenas :focus-visible genÃ©rico | outline + box-shadow especÃ­ficos para btn-primary, btn-secondary, btn-danger |
-| C4 | **Body 14px** | Abaixo do mÃ­nimo 16px recomendado | 16px |
-
-### ğŸŸ¡ Altos
+### ?? Críticos
 
 | # | Problema | Antes | Depois |
 |:-:|----------|:-----:|:------:|
-| A1 | **AnimaÃ§Ã£o lenta** | --duration-fluid: 0.7s | 0.4s |
+| C1 | **Emoji como ícone de navegação** | TopBar: ?? ?? ?? ?? ?? ?? ?? ?? | SVGs vetoriais do lucide-react |
+| C2 | **Emoji em KPIs do Dashboard** | ?? ?? ?? ? ?? ?? | SVGs (TrendingUp, TrendingDown, etc.) |
+| C3 | **Focus invisível em botões** | Apenas :focus-visible genérico | outline + box-shadow específicos para btn-primary, btn-secondary, btn-danger |
+| C4 | **Body 14px** | Abaixo do mínimo 16px recomendado | 16px |
+
+### ?? Altos
+
+| # | Problema | Antes | Depois |
+|:-:|----------|:-----:|:------:|
+| A1 | **Animação lenta** | --duration-fluid: 0.7s | 0.4s |
 | A2 | **Inputs abaixo do touch target** | min-height: 38px | 44px |
-| A3 | **Loading spinner no Dashboard** | Spinner genÃ©rico | Skeleton shimmer com placeholder cards |
-| A4 | **Sem sorting nas tabelas** | Ordem fixa | Colunas clicÃ¡veis com setas â†•â†‘â†“ |
-| A5 | **Modal sem role="dialog"** | Sem semÃ¢ntica acessÃ­vel | role="dialog" + aria-modal="true" + aria-label |
+| A3 | **Loading spinner no Dashboard** | Spinner genérico | Skeleton shimmer com placeholder cards |
+| A4 | **Sem sorting nas tabelas** | Ordem fixa | Colunas clicáveis com setas ??? |
+| A5 | **Modal sem role="dialog"** | Sem semântica acessível | role="dialog" + aria-modal="true" + aria-label |
 
-### ğŸŸ¢ MÃ©dios (parcial)
+### ?? Médios (parcial)
 
 | Item | Status |
 |------|:------:|
-| toast aria-live="polite" + role="status" | âœ… |
-| Confirm modal com aria-labelledby | âœ… |
-| Skeleton keyframes e classes globais | âœ… |
-| Sortable table headers CSS (th-sortable, sort-arrow) | âœ… |
-| Input min-height 44px | âœ… |
+| toast aria-live="polite" + role="status" | ? |
+| Confirm modal com aria-labelledby | ? |
+| Skeleton keyframes e classes globais | ? |
+| Sortable table headers CSS (th-sortable, sort-arrow) | ? |
+| Input min-height 44px | ? |
 
 ### Icons.tsx (novo)
 
 - 32 wrappers SVG do lucide-react (House, Dashboard, Academic, Calendar, Wallet, Users, Store, Logout, TrendingUp, TrendingDown, DollarSign, Clock, AlertTriangle, UserCheck, CheckCircle, XCircle, etc.)
-- Tamanho padrÃ£o 16px com override via prop `size`
+- Tamanho padrão 16px com override via prop `size`
 
-### DependÃªncia
+### Dependência
 
-- **lucide-react@1.25.0** â€” pacote de Ã­cones SVG para React
+- **lucide-react@1.25.0** — pacote de ícones SVG para React
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `app/src/components/Icons.tsx` | ğŸ†• Novo | 32 wrappers SVG do lucide-react |
-| `app/src/styles/global.css` | â™»ï¸ | body 16px, duration-fluid 0.4s, inputs 44px, skeleton, focus, sorting CSS |
-| `app/src/App.tsx` | â™»ï¸ | TopBar + Home + Toast + Confirm com SVGs + aria |
-| `app/src/pages/Dashboard.tsx` | â™»ï¸ | KPIs com SVGs + skeleton loading |
-| `app/src/pages/Students.tsx` | â™»ï¸ | Sorting (6 colunas) + aria-modal |
-| `app/src/pages/Teachers.tsx` | â™»ï¸ | Sorting (4 colunas) + aria-modal |
-| `package.json` | â™»ï¸ | +lucide-react 1.25.0 |
+| `app/src/components/Icons.tsx` | ?? Novo | 32 wrappers SVG do lucide-react |
+| `app/src/styles/global.css` | ?? | body 16px, duration-fluid 0.4s, inputs 44px, skeleton, focus, sorting CSS |
+| `app/src/App.tsx` | ?? | TopBar + Home + Toast + Confirm com SVGs + aria |
+| `app/src/pages/Dashboard.tsx` | ?? | KPIs com SVGs + skeleton loading |
+| `app/src/pages/Students.tsx` | ?? | Sorting (6 colunas) + aria-modal |
+| `app/src/pages/Teachers.tsx` | ?? | Sorting (4 colunas) + aria-modal |
+| `package.json` | ?? | +lucide-react 1.25.0 |
 
 ## Testes
 
-âœ… `npm run build` â€” 13.29s, 1835 mÃ³dulos | âœ… Code Review â€” 3 rodadas, aprovado
+? `npm run build` — 13.29s, 1835 módulos | ? Code Review — 3 rodadas, aprovado
 
 ---
 
-# ETAPA 94 â€” Corte de Imagem no Upload de Produtos
+# ETAPA 94 — Corte de Imagem no Upload de Produtos
 
 **Data:** 19/07/2026
 
-**Objetivo:** Restaurar a funcionalidade de corte (crop) de imagem que existia anteriormente no formulÃ¡rio de novo produto e foi perdida. Adicionar um modal de corte visual antes do upload, permitindo que o usuÃ¡rio ajuste a Ã¡rea da imagem para o formato 4:3 (proporÃ§Ã£o usada na vitrine da loja).
+**Objetivo:** Restaurar a funcionalidade de corte (crop) de imagem que existia anteriormente no formulário de novo produto e foi perdida. Adicionar um modal de corte visual antes do upload, permitindo que o usuário ajuste a área da imagem para o formato 4:3 (proporção usada na vitrine da loja).
 
 ## Contexto
 
-O usuÃ¡rio reportou que a funÃ§Ã£o de cortar imagem para o tamanho apresentado no site havia sumido. Anteriormente, o upload de imagem era feito diretamente via FormData sem prÃ©-visualizaÃ§Ã£o ou corte. A loja exibe produtos em cards com proporÃ§Ã£o aproximada 4:3 â€” sem o corte, imagens fora desta proporÃ§Ã£o ficavam distorcidas ou cortadas aleatoriamente pelo CSS.
+O usuário reportou que a função de cortar imagem para o tamanho apresentado no site havia sumido. Anteriormente, o upload de imagem era feito diretamente via FormData sem pré-visualização ou corte. A loja exibe produtos em cards com proporção aproximada 4:3 — sem o corte, imagens fora desta proporção ficavam distorcidas ou cortadas aleatoriamente pelo CSS.
 
-## ImplementaÃ§Ã£o
+## Implementação
 
 ### `app/src/components/ImageCropper.tsx` (novo)
 
-Componente React de corte de imagem baseado em **canvas puro** (sem dependÃªncias externas):
+Componente React de corte de imagem baseado em **canvas puro** (sem dependências externas):
 
 | Funcionalidade | Detalhes |
 |----------------|----------|
-| **Zoom via scroll** | Mouse wheel ou pinch-to-zoom (touch) â€” escala de 0.5x a 3x |
-| **Arrastar Ã¡rea de corte** | Clique+mouse arrasta o retÃ¢ngulo de corte sobre a imagem |
+| **Zoom via scroll** | Mouse wheel ou pinch-to-zoom (touch) — escala de 0.5x a 3x |
+| **Arrastar área de corte** | Clique+mouse arrasta o retângulo de corte sobre a imagem |
 | **Redimensionar bordas** | 8 handles de redimensionamento nas bordas e cantos |
-| **PrÃ©-visualizaÃ§Ã£o** | Live preview da Ã¡rea cortada ao lado do canvas |
+| **Pré-visualização** | Live preview da área cortada ao lado do canvas |
 | **Touch support** | Touch events para drag + resize em mobile |
-| **ExportaÃ§Ã£o WebP** | Canvas cortado â†’ Blob WebP (max 800px) |
+| **Exportação WebP** | Canvas cortado ? Blob WebP (max 800px) |
 | **Tecla ESC** | Fecha o modal |
 | **Clique no overlay** | Fecha o modal |
 
 **Como funciona o crop:**
-1. Imagem selecionada Ã© carregada via `FileReader.readAsDataURL`
-2. Desenhada no canvas com `object-fit: cover` (preserva proporÃ§Ã£o)
-3. RetÃ¢ngulo de corte ajustÃ¡vel pelo usuÃ¡rio
-4. Ao confirmar: cria canvas de saÃ­da, extrai regiÃ£o cortada, redimensiona para max 800px, exporta como WebP blob (qualidade 85)
+1. Imagem selecionada é carregada via `FileReader.readAsDataURL`
+2. Desenhada no canvas com `object-fit: cover` (preserva proporção)
+3. Retângulo de corte ajustável pelo usuário
+4. Ao confirmar: cria canvas de saída, extrai região cortada, redimensiona para max 800px, exporta como WebP blob (qualidade 85)
 5. Coordenadas mapeadas do pixel do canvas para pixel natural da imagem
 
-### `app/src/pages/Store.tsx` â€” fluxo alterado
+### `app/src/pages/Store.tsx` — fluxo alterado
 
 **Antes:**
 ```
-Selecionar arquivo â†’ uploadProductImage(file) â†’ URL â†’ salvar produto
+Selecionar arquivo ? uploadProductImage(file) ? URL ? salvar produto
 ```
 
 **Depois:**
 ```
-Selecionar arquivo â†’ validar (tipo/tamanho) â†’ abrir ImageCropper â†’
-cortar â†’ uploadProductImage(blob) â†’ URL â†’ salvar produto
+Selecionar arquivo ? validar (tipo/tamanho) ? abrir ImageCropper ?
+cortar ? uploadProductImage(blob) ? URL ? salvar produto
 ```
 
 - `handleFileSelected` substitui `handleImageUpload`: valida o arquivo, armazena em estado, abre o modal de crop
 - `handleCroppedImage` recebe o Blob cortado via callback do ImageCropper e chama `uploadProductImage` com ele
-- Modal de crop fecha automaticamente apÃ³s upload bem-sucedido
-- Estados de loading mantidos (spinner no botÃ£o de upload)
+- Modal de crop fecha automaticamente após upload bem-sucedido
+- Estados de loading mantidos (spinner no botão de upload)
 
-### `app/src/styles/store.css` â€” +80 linhas CSS
+### `app/src/styles/store.css` — +80 linhas CSS
 
-| Componente | DescriÃ§Ã£o |
+| Componente | Descrição |
 |------------|-----------|
 | `.crop-overlay` | Overlay escuro semi-transparente (rgba 0,0,0,0.75) |
 | `.crop-modal` | Modal centralizado com max-width 95vw/90vh |
-| `.crop-header` | TÃ­tulo "Cortar Imagem" + botÃ£o fechar (Ã—) |
+| `.crop-header` | Título "Cortar Imagem" + botão fechar (×) |
 | `.crop-container` | Wrapper do canvas, centralizado, max-height |
-| `.crop-preview` | Preview da Ã¡rea cortada, side-by-side no desktop |
+| `.crop-preview` | Preview da área cortada, side-by-side no desktop |
 | `.crop-handle` | 8 handles de redimensionamento (bordas 4px, touch-friendly) |
-| `.crop-footer` | BotÃµes Cancelar + Confirmar |
-| *Responsivo* | Preview empilhado abaixo do canvas em â‰¤640px |
+| `.crop-footer` | Botões Cancelar + Confirmar |
+| *Responsivo* | Preview empilhado abaixo do canvas em =640px |
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `app/src/components/ImageCropper.tsx` | ğŸ†• Novo | Componente de crop canvas (~220 linhas) |
-| `app/src/pages/Store.tsx` | â™»ï¸ | Fluxo alterado: handleFileSelected â†’ ImageCropper â†’ upload |
-| `app/src/styles/store.css` | â™»ï¸ | +80 linhas CSS do modal de crop |
+| `app/src/components/ImageCropper.tsx` | ?? Novo | Componente de crop canvas (~220 linhas) |
+| `app/src/pages/Store.tsx` | ?? | Fluxo alterado: handleFileSelected ? ImageCropper ? upload |
+| `app/src/styles/store.css` | ?? | +80 linhas CSS do modal de crop |
 
 ## Testes
 
-âœ… `npm run build` â€” 20.26s, 1836 mÃ³dulos | âœ… Code Review â€” 2 rodadas, todos os 6 issues corrigidos (catch block, touch, resize observer, esc/click close, CSS vars)
+? `npm run build` — 20.26s, 1836 módulos | ? Code Review — 2 rodadas, todos os 6 issues corrigidos (catch block, touch, resize observer, esc/click close, CSS vars)
 
 ---
 
-# ETAPA 95 â€” Zoom no ImageCropper
+# ETAPA 95 — Zoom no ImageCropper
 
 **Data:** 19/07/2026
 
-**Objetivo:** Adicionar controle de zoom ao modal de corte de imagem (ImageCropper) â€” permitir que o usuÃ¡rio amplie a imagem para fazer cortes mais precisos.
+**Objetivo:** Adicionar controle de zoom ao modal de corte de imagem (ImageCropper) — permitir que o usuário amplie a imagem para fazer cortes mais precisos.
 
 ## Contexto
 
-Na Etapa 94, o ImageCropper foi implementado com canvas puro mas sem opÃ§Ã£o de zoom. O usuÃ¡rio solicitou a funcionalidade para poder ampliar a imagem antes de selecionar a regiÃ£o de corte.
+Na Etapa 94, o ImageCropper foi implementado com canvas puro mas sem opção de zoom. O usuário solicitou a funcionalidade para poder ampliar a imagem antes de selecionar a região de corte.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### `app/src/components/ImageCropper.tsx` â€” zoom completo
+### `app/src/components/ImageCropper.tsx` — zoom completo
 
 **Estado de zoom:**
-- VariÃ¡vel `zoom` com `useState(1)` â€” range 1.0 a 5.0, step 0.15
+- Variável `zoom` com `useState(1)` — range 1.0 a 5.0, step 0.15
 - Constantes `MIN_ZOOM = 1`, `MAX_ZOOM = 5`, `ZOOM_STEP = 0.15`
 
 **Zoom com scroll do mouse:**
-- Handler `onWheel` no canvas â€” `deltaY < 0` zoom in, `deltaY > 0` zoom out
-- `e.preventDefault()` para nÃ£o scrollar a pÃ¡gina
-- Indicador flutuante `.crop-zoom-indicator` aparece no canto inferior direito com `opacity: 0 â†’ 1`
-- Auto-hide apÃ³s 1.5s via `setTimeout` + `clearTimeout` (debounce)
+- Handler `onWheel` no canvas — `deltaY < 0` zoom in, `deltaY > 0` zoom out
+- `e.preventDefault()` para não scrollar a página
+- Indicador flutuante `.crop-zoom-indicator` aparece no canto inferior direito com `opacity: 0 ? 1`
+- Auto-hide após 1.5s via `setTimeout` + `clearTimeout` (debounce)
 
-**BotÃµes de zoom no rodapÃ©:**
-- `[âˆ’]` â€” diminui zoom (disabled em 1.0x)
-- `[100%]` â€” reseta para 1.0x (disabled em 1.0x)
-- `[+]` â€” aumenta zoom (disabled em 5.0x)
-- BotÃµes com 34Ã—34px, hover states, `user-select: none`
+**Botões de zoom no rodapé:**
+- `[-]` — diminui zoom (disabled em 1.0x)
+- `[100%]` — reseta para 1.0x (disabled em 1.0x)
+- `[+]` — aumenta zoom (disabled em 5.0x)
+- Botões com 34×34px, hover states, `user-select: none`
 
 **Coordenadas com zoom:**
-- No `useEffect` de desenho: apÃ³s calcular `drawX/Y/W/H` (cover-fit), aplica: `zDrawW = drawW * zoom`, `zDrawH = drawH * zoom`, `zDrawX/Y` mantendo centro fixo
-- No `handleConfirm`: mesma transformaÃ§Ã£o para mapear crop canvas â†’ coordenadas naturais da imagem
-- `scaleToNatural = img.naturalWidth / zDrawW` â€” fator de escala correto com zoom
+- No `useEffect` de desenho: após calcular `drawX/Y/W/H` (cover-fit), aplica: `zDrawW = drawW * zoom`, `zDrawH = drawH * zoom`, `zDrawX/Y` mantendo centro fixo
+- No `handleConfirm`: mesma transformação para mapear crop canvas ? coordenadas naturais da imagem
+- `scaleToNatural = img.naturalWidth / zDrawW` — fator de escala correto com zoom
 
-### `app/src/styles/store.css` â€” CSS para controles de zoom
+### `app/src/styles/store.css` — CSS para controles de zoom
 
-| Classe | FunÃ§Ã£o |
+| Classe | Função |
 |--------|--------|
 | `.crop-footer-row` | Flex row: zoom controls (esquerda) + actions (direita) |
-| `.crop-zoom-controls` | Container flex dos botÃµes de zoom |
-| `.crop-zoom-btn` | 34Ã—34px, border, hover/disabled states |
-| `.crop-zoom-btn-label` | Largura variÃ¡vel, monospace, tabular-nums (ex: `100%`) |
+| `.crop-zoom-controls` | Container flex dos botões de zoom |
+| `.crop-zoom-btn` | 34×34px, border, hover/disabled states |
+| `.crop-zoom-btn-label` | Largura variável, monospace, tabular-nums (ex: `100%`) |
 | `.crop-zoom-indicator` | Overlay flutuante canto inferior direito, fade transition |
 
-Responsivo: `.crop-footer-row` empilha verticalmente em â‰¤640px; zoom controls centralizados.
+Responsivo: `.crop-footer-row` empilha verticalmente em =640px; zoom controls centralizados.
 
 ## Arquivos Alterados
 
-| Arquivo | Tipo | MudanÃ§a |
+| Arquivo | Tipo | Mudança |
 |---------|:----:|---------|
-| `app/src/components/ImageCropper.tsx` | â™»ï¸ | +zoom state, +onWheel, +zoom buttons, +coordenadas zoomed (~40 linhas adicionadas) |
-| `app/src/styles/store.css` | â™»ï¸ | +controles zoom CSS (~50 linhas) |
+| `app/src/components/ImageCropper.tsx` | ?? | +zoom state, +onWheel, +zoom buttons, +coordenadas zoomed (~40 linhas adicionadas) |
+| `app/src/styles/store.css` | ?? | +controles zoom CSS (~50 linhas) |
 
 ## Testes
 
-âœ… `npm run build` â€” 8.82s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado sem issues
+? `npm run build` — 8.82s, 1836 módulos | ? Code Review — aprovado sem issues
 
 ## Pendente
 
-- MigraÃ§Ã£o emojiâ†’SVG nos botÃµes de aÃ§Ã£o (âœï¸ ğŸ—‘ï¸ ğŸ“‹ â•) em Students, Teachers, Enrollments, Agenda, Financial
+- Migração emoji?SVG nos botões de ação (?? ??? ?? ?) em Students, Teachers, Enrollments, Agenda, Financial
 - Tema claro (light mode)
 - Testes de acessibilidade automatizados
 
 ---
 
-# ETAPA 96 â€” Jogo do Piano com 4 NÃ­veis Completos
+# ETAPA 96 — Jogo do Piano com 4 Níveis Completos
 
 **Data:** 19/07/2026
 
-**Objetivo:** Corrigir o jogo do piano que tinha 3 nÃ­veis mas deveria ter 4, deixando 3 notas da melodia "Ode Ã  Alegria" (Beethoven) sem nunca serem tocadas.
+**Objetivo:** Corrigir o jogo do piano que tinha 3 níveis mas deveria ter 4, deixando 3 notas da melodia "Ode à Alegria" (Beethoven) sem nunca serem tocadas.
 
 ## Contexto
 
-O jogo "Simon Says" musical no site principal (`index.html`) usa a melodia **Ode Ã  Alegria** com 15 notas. O cÃ³digo em `public/game.js` dividia em 3 nÃ­veis de 4 notas cada (`slice(0, 12)`), deixando as Ãºltimas 3 notas (Ã­ndices 12-14: E, D, D) â€” o fechamento da melodia â€” **Ã³rfÃ£s, nunca tocadas**.
+O jogo "Simon Says" musical no site principal (`index.html`) usa a melodia **Ode à Alegria** com 15 notas. O código em `public/game.js` dividia em 3 níveis de 4 notas cada (`slice(0, 12)`), deixando as últimas 3 notas (índices 12-14: E, D, D) — o fechamento da melodia — **órfãs, nunca tocadas**.
 
-O usuÃ¡rio identificou que deveriam ser 4 partes.
+O usuário identificou que deveriam ser 4 partes.
 
-## MudanÃ§as
+## Mudanças
 
-### `public/game.js` (4 alteraÃ§Ãµes)
+### `public/game.js` (4 alterações)
 
-| # | O quÃª | Antes | Depois |
+| # | O quê | Antes | Depois |
 |:-:|-------|-------|--------|
-| 1 | Limite de avanÃ§o | `currentLevel < 3` | `< 4` |
-| 2 | UI do nÃ­vel | `` NÃ­vel ${x}/3 `` | `` /4 `` |
+| 1 | Limite de avanço | `currentLevel < 3` | `< 4` |
+| 2 | UI do nível | `` Nível ${x}/3 `` | `` /4 `` |
 | 3 | Barra de progresso | `(x / 3) * 100` | `(x / 4) * 100` |
-| 4 | ComentÃ¡rio de velocidade | "NÃ­vel 3: 600ms" | "NÃ­vel 4: 400ms" |
+| 4 | Comentário de velocidade | "Nível 3: 600ms" | "Nível 4: 400ms" |
 
-### `index.html` (1 alteraÃ§Ã£o)
+### `index.html` (1 alteração)
 
-| # | O quÃª | Antes | Depois |
+| # | O quê | Antes | Depois |
 |:-:|-------|-------|--------|
-| 5 | Texto estÃ¡tico do nÃ­vel | `NÃ­vel 1/3` | `NÃ­vel 1/4` |
+| 5 | Texto estático do nível | `Nível 1/3` | `Nível 1/4` |
 
 ## Como o jogo fica
 
-| NÃ­vel | Notas | Velocidade | Progresso |
+| Nível | Notas | Velocidade | Progresso |
 |:-----:|:-----:|:----------:|:---------:|
 | 1 | 4 (E E F G) | 1000ms | 25% |
 | 2 | 8 (E E F G G F E D) | 800ms | 50% |
-| 3 | 12 (atÃ© D E) | 600ms | 75% |
-| **4** | **15 (E D D â€” MELODIA COMPLETA) ğŸ‰** | **400ms** | **100%** |
+| 3 | 12 (até D E) | 600ms | 75% |
+| **4** | **15 (E D D — MELODIA COMPLETA) ??** | **400ms** | **100%** |
 
 ### Por que funciona
 
-- `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` â€” com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
-- Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nÃ­vel 4
-- CondiÃ§Ã£o `currentLevel < 4` faz nÃ­veis 1â†’2â†’3â†’4 avanÃ§arem e nÃ­vel 4 completar o jogo
+- `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` — com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
+- Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nível 4
+- Condição `currentLevel < 4` faz níveis 1?2?3?4 avançarem e nível 4 completar o jogo
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentÃ¡rio) |
-| `index.html` | Texto estÃ¡tico `1/3` â†’ `1/4` |
+| `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentário) |
+| `index.html` | Texto estático `1/3` ? `1/4` |
 
 ## Testes
 
-âœ… `npm run build` â€” 5.46s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado sem issues
+? `npm run build` — 5.46s, 1836 módulos | ? Code Review — aprovado sem issues
 
-- MigraÃ§Ã£o emojiâ†’SVG nos botÃµes de aÃ§Ã£o (âœï¸ ğŸ—‘ï¸ ğŸ“‹ â•) em Students, Teachers, Enrollments, Agenda, Financial
+- Migração emoji?SVG nos botões de ação (?? ??? ?? ?) em Students, Teachers, Enrollments, Agenda, Financial
 - Tema claro (light mode)
 - Testes de acessibilidade automatizados
 
----
-
-# ETAPA 96 â€” Jogo do Piano com 4 NÃ­veis Completos
-
-**Data:** 19/07/2026
-
-**Objetivo:** Corrigir o jogo do piano que tinha 3 nÃ­veis mas deveria ter 4, deixando 3 notas da melodia "Ode Ã  Alegria" (Beethoven) sem nunca serem tocadas.
-
-## Contexto
-
-O jogo "Simon Says" musical no site principal (`index.html`) usa a melodia **Ode Ã  Alegria** com 15 notas. O cÃ³digo em `public/game.js` dividia em 3 nÃ­veis de 4 notas cada (`slice(0, 12)`), deixando as Ãºltimas 3 notas (Ã­ndices 12-14: E, D, D) â€” o fechamento da melodia â€” **Ã³rfÃ£s, nunca tocadas**.
-
-O usuÃ¡rio identificou que deveriam ser 4 partes.
-
-## MudanÃ§as
-
-### `public/game.js` (4 alteraÃ§Ãµes)
-
-| # | O quÃª | Antes | Depois |
-|:-:|-------|-------|--------|
-| 1 | Limite de avanÃ§o | `currentLevel < 3` | `< 4` |
-| 2 | UI do nÃ­vel | `` NÃ­vel ${x}/3 `` | `` /4 `` |
-| 3 | Barra de progresso | `(x / 3) * 100` | `(x / 4) * 100` |
-| 4 | ComentÃ¡rio de velocidade | "NÃ­vel 3: 600ms" | "NÃ­vel 4: 400ms" |
-
-### `index.html` (1 alteraÃ§Ã£o)
-
-| # | O quÃª | Antes | Depois |
-|:-:|-------|-------|--------|
-| 5 | Texto estÃ¡tico do nÃ­vel | `NÃ­vel 1/3` | `NÃ­vel 1/4` |
-
-## Como o jogo fica
-
-| NÃ­vel | Notas | Velocidade | Progresso |
-|:-----:|:-----:|:----------:|:---------:|
-| 1 | 4 (E E F G) | 1000ms | 25% |
-| 2 | 8 (E E F G G F E D) | 800ms | 50% |
-| 3 | 12 (atÃ© D E) | 600ms | 75% |
-| **4** | **15 (E D D â€” MELODIA COMPLETA) ğŸ‰** | **400ms** | **100%** |
-
-### Por que funciona
-
-- `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` â€” com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
-- Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nÃ­vel 4
-- CondiÃ§Ã£o `currentLevel < 4` faz nÃ­veis 1â†’2â†’3â†’4 avanÃ§arem e nÃ­vel 4 completar o jogo
-
-## Arquivos Alterados
-
-| Arquivo | MudanÃ§a |
-|---------|---------|
-| `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentÃ¡rio) |
-| `index.html` | Texto estÃ¡tico `1/3` â†’ `1/4` |
-
-## Testes
-
-âœ… `npm run build` â€” 5.46s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado sem issues
+> ?? **Nota de correção (Etapa 103, 20/07/2026):** esta etapa estava duplicada verbatim logo
+> abaixo (bloco idêntico repetido por engano por um agente anterior). A cópia redundante foi
+> removida; nenhum conteúdo novo foi perdido, pois os dois blocos eram idênticos.
 
 ---
 
-# ETAPA 97 â€” RemoÃ§Ã£o de XP da Loja
+# ETAPA 97 — Remoção de XP da Loja
 
 **Data:** 19/07/2026
 
-**Objetivo:** Remover todas as referÃªncias a XP (gamificaÃ§Ã£o) da loja â€” exibiÃ§Ã£o de "+70 XP" nos cards de produto e "+XP" na tela de sucesso do checkout.
+**Objetivo:** Remover todas as referências a XP (gamificação) da loja — exibição de "+70 XP" nos cards de produto e "+XP" na tela de sucesso do checkout.
 
 ## Contexto
 
-O usuÃ¡rio solicitou: "tirar o +70 XP ou qualquer outra merda" â€” remover a gamificaÃ§Ã£o da loja. Os cards de produto exibiam `+${product.rewardXp} XP` e a tela de sucesso do checkout mostrava `+X XP` e disparava toast com XP.
+O usuário solicitou: "tirar o +70 XP ou qualquer outra merda" — remover a gamificação da loja. Os cards de produto exibiam `+${product.rewardXp} XP` e a tela de sucesso do checkout mostrava `+X XP` e disparava toast com XP.
 
-## MudanÃ§as
+## Mudanças
 
 ### `store/store.js`
 - Removido `<span class="product-xp">+${product.rewardXp} XP</span>` do template HTML dos cards
 - A linha de estoque agora mostra apenas `<i class="fas fa-box"></i> N em estoque`
 
 ### `store/store-style.css`
-- Removida classe `.product-xp` (exibia XP em Ã¢mbar)
+- Removida classe `.product-xp` (exibia XP em âmbar)
 - Removida classe `.success-xp` (exibia XP na tela de sucesso)
 
 ### `store/checkout-modal.js`
-- `earnedXp` removido da desestruturaÃ§Ã£o de `buildOrder()`
-- `applyStudentXp(earnedXp)` removido â€” nÃ£o atualiza mais localStorage
+- `earnedXp` removido da desestruturação de `buildOrder()`
+- `applyStudentXp(earnedXp)` removido — não atualiza mais localStorage
 - `const xpEl` e `xpEl.textContent` removidos
-- Toast sem XP: `"âœ… Pedido X recebido!"`
+- Toast sem XP: `"? Pedido X recebido!"`
 - Import morto `applyStudentXp` removido
 
 ### `index.html`
@@ -2259,7 +2220,7 @@ O usuÃ¡rio solicitou: "tirar o +70 XP ou qualquer outra merda" â€” remover a gam
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `store/store.js` | XP removido do card de produto |
 | `store/store-style.css` | .product-xp + .success-xp removidos |
@@ -2268,74 +2229,74 @@ O usuÃ¡rio solicitou: "tirar o +70 XP ou qualquer outra merda" â€” remover a gam
 
 ## Testes
 
-âœ… `npm run build` â€” 8.72s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado, 1 dead import corrigido
+? `npm run build` — 8.72s, 1836 módulos | ? Code Review — aprovado, 1 dead import corrigido
 
-# ETAPA 98 â€” RemoÃ§Ã£o de cÃ³digo XP morto do cart.js
+# ETAPA 98 — Remoção de código XP morto do cart.js
 
 **Data:** 19/07/2026
 
-**Objetivo:** Remover a funÃ§Ã£o `applyStudentXp()`, a constante `PROGRESS_KEY` e o cÃ¡lculo de `earnedXp` do `buildOrder()` em `store/cart.js` â€” cÃ³digo morto apÃ³s a remoÃ§Ã£o de XP da loja (Etapa 97).
+**Objetivo:** Remover a função `applyStudentXp()`, a constante `PROGRESS_KEY` e o cálculo de `earnedXp` do `buildOrder()` em `store/cart.js` — código morto após a remoção de XP da loja (Etapa 97).
 
 ## Contexto
 
-Na Etapa 97, removemos toda exibiÃ§Ã£o de XP dos cards de produto e do checkout. A funÃ§Ã£o `applyStudentXp()` em `cart.js` ficou Ã³rfÃ£ â€” ninguÃ©m mais a importa, e o `earnedXp` retornado por `buildOrder()` nÃ£o Ã© mais usado por ninguÃ©m.
+Na Etapa 97, removemos toda exibição de XP dos cards de produto e do checkout. A função `applyStudentXp()` em `cart.js` ficou órfã — ninguém mais a importa, e o `earnedXp` retornado por `buildOrder()` não é mais usado por ninguém.
 
-## MudanÃ§as
+## Mudanças
 
 ### `store/cart.js`
 
 | Removido | Detalhes |
 |----------|----------|
-| `const PROGRESS_KEY` | Constante `'bruna_student_progress'` â€” sÃ³ usada por `applyStudentXp` |
-| `earnedXp` do `buildOrder()` | CÃ¡lculo `cart.reduce(...)` removido, campo `earnedXp` do objeto order removido, retorno simplificado para `{ order }` |
-| `applyStudentXp()` | FunÃ§Ã£o completa (~12 linhas) que manipulava localStorage de gamificaÃ§Ã£o |
-| JSDoc desatualizado | ComentÃ¡rio que mencionava `applyStudentXp()` atualizado |
+| `const PROGRESS_KEY` | Constante `'bruna_student_progress'` — só usada por `applyStudentXp` |
+| `earnedXp` do `buildOrder()` | Cálculo `cart.reduce(...)` removido, campo `earnedXp` do objeto order removido, retorno simplificado para `{ order }` |
+| `applyStudentXp()` | Função completa (~12 linhas) que manipulava localStorage de gamificação |
+| JSDoc desatualizado | Comentário que mencionava `applyStudentXp()` atualizado |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `store/cart.js` | PROGRESS_KEY, earnedXp, applyStudentXp removidos (~20 linhas a menos) |
 
 ## Testes
 
-âœ… `npm run build` â€” 7.74s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado
+? `npm run build` — 7.74s, 1836 módulos | ? Code Review — aprovado
 
-# ETAPA 99 â€” RemoÃ§Ã£o do campo reward_xp de produtos
+# ETAPA 99 — Remoção do campo reward_xp de produtos
 
 **Data:** 19/07/2026
 
-**Objetivo:** Remover todas as referÃªncias ao campo `reward_xp`/`rewardXp` de produtos â€” no TypeScript, no backend de normalizaÃ§Ã£o, nos produtos estÃ¡ticos e no schema SQL.
+**Objetivo:** Remover todas as referências ao campo `reward_xp`/`rewardXp` de produtos — no TypeScript, no backend de normalização, nos produtos estáticos e no schema SQL.
 
 ## Contexto
 
-ApÃ³s a remoÃ§Ã£o de XP da loja (Etapas 97 e 98), o campo `reward_xp` na interface Product, no schema do banco e nos produtos estÃ¡ticos ficou sem uso â€” ninguÃ©m mais lÃª ou exibe esse valor.
+Após a remoção de XP da loja (Etapas 97 e 98), o campo `reward_xp` na interface Product, no schema do banco e nos produtos estáticos ficou sem uso — ninguém mais lê ou exibe esse valor.
 
-## MudanÃ§as (5 arquivos, 8 ocorrÃªncias)
+## Mudanças (5 arquivos, 8 ocorrências)
 
-| Arquivo | OcorrÃªncias removidas | Detalhes |
+| Arquivo | Ocorrências removidas | Detalhes |
 |---------|:---------------------:|----------|
 | `api/_lib/normalize-product.js` | 1 | `rewardXp: Number(product?.reward_xp \|\| 0)` removido |
 | `app/src/types.ts` | 1 | `reward_xp: number;` removido da interface Product |
-| `store/products.js` | 3 | `rewardXp: 70` (Ã—2) e `rewardXp: 50` removidos dos produtos estÃ¡ticos |
+| `store/products.js` | 3 | `rewardXp: 70` (×2) e `rewardXp: 50` removidos dos produtos estáticos |
 | `supabase/schema.sql` | 1 | `reward_xp integer not null default 0` removido da tabela products |
 | `supabase/seed-products.sql` | 2 | `reward_xp` removido do INSERT column list + ON CONFLICT DO UPDATE SET |
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `api/_lib/normalize-product.js` | rewardXp removido do objeto normalizado |
 | `app/src/types.ts` | reward_xp removido da interface Product |
-| `store/products.js` | rewardXp removido dos 3 produtos estÃ¡ticos |
+| `store/products.js` | rewardXp removido dos 3 produtos estáticos |
 | `supabase/schema.sql` | Coluna reward_xp removida da tabela products |
 | `supabase/seed-products.sql` | reward_xp removido do INSERT + ON CONFLICT |
 
 ## Testes
 
-âœ… `npm run build` â€” 5.68s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado sem issues
+? `npm run build` — 5.68s, 1836 módulos | ? Code Review — aprovado sem issues
 
-# ETAPA 100 â€” CorreÃ§Ã£o de Runtime Error: IconPackage nÃ£o importado no Dashboard
+# ETAPA 100 — Correção de Runtime Error: IconPackage não importado no Dashboard
 
 **Data:** 19/07/2026
 
@@ -2343,9 +2304,9 @@ ApÃ³s a remoÃ§Ã£o de XP da loja (Etapas 97 e 98), o campo `reward_xp` na interfa
 
 ## Problema
 
-A migraÃ§Ã£o emojiâ†’SVG (Etapa 93) substituiu um emoji por `<IconPackage size={14} />` no Dashboard.tsx, mas nÃ£o adicionou `IconPackage` Ã  linha de import do `@/components/Icons`. Como o TypeScript nÃ£o tinha `noUnusedLocals` ativado, o build passou â€” o erro sÃ³ aparecia em runtime.
+A migração emoji?SVG (Etapa 93) substituiu um emoji por `<IconPackage size={14} />` no Dashboard.tsx, mas não adicionou `IconPackage` à linha de import do `@/components/Icons`. Como o TypeScript não tinha `noUnusedLocals` ativado, o build passou — o erro só aparecia em runtime.
 
-## CorreÃ§Ã£o
+## Correção
 
 **1 arquivo, 1 linha:**
 
@@ -2356,68 +2317,234 @@ A migraÃ§Ã£o emojiâ†’SVG (Etapa 93) substituiu um emoji por `<IconPackage size={
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
 | `app/src/pages/Dashboard.tsx` | `IconPackage` adicionado ao import |
 
 ## Testes
 
-âœ… `npm run build` â€” 6.33s | âœ… Code Review â€” aprovado sem issues
+? `npm run build` — 6.33s | ? Code Review — aprovado sem issues
 
-# ETAPA 101 â€” Design Refinado: global.css, login.css e agenda.css
+# ETAPA 101 — Design Refinado: global.css, login.css e agenda.css
 
 **Data:** 19/07/2026
 
-**Objetivo:** Refinar o design visual de toda a parte `/app` com base nas recomendaÃ§Ãµes do design system gerado via ui-ux-pro-max, aplicando ambient glow, glassmorphism, micro-interaÃ§Ãµes e consistÃªncia visual.
+**Objetivo:** Refinar o design visual de toda a parte `/app` com base nas recomendações do design system gerado via ui-ux-pro-max, aplicando ambient glow, glassmorphism, micro-interações e consistência visual.
 
 ## Contexto
 
-ApÃ³s gerar um design system completo (Modern Dark / CinematogrÃ¡fico para escola de mÃºsica) via ui-ux-pro-max skill, foram aplicadas melhorias visuais progressivas em 3 arquivos CSS para elevar o padrÃ£o estÃ©tico do ERP.
+Após gerar um design system completo (Modern Dark / Cinematográfico para escola de música) via ui-ux-pro-max skill, foram aplicadas melhorias visuais progressivas em 3 arquivos CSS para elevar o padrão estético do ERP.
 
-## ImplementaÃ§Ãµes
+## Implementações
 
-### ğŸŒ `global.css` â€” CorreÃ§Ã£o e refinamentos
+### ?? `global.css` — Correção e refinamentos
 
-| MudanÃ§a | Detalhes |
+| Mudança | Detalhes |
 |---------|----------|
-| **`:active` state corrigido** | `.module-card:active` antes `translateY(-3px) scale(0.98)` (movimento conflitante) â†’ agora sÃ³ `scale(0.97)` â€” press state limpo e natural |
+| **`:active` state corrigido** | `.module-card:active` antes `translateY(-3px) scale(0.98)` (movimento conflitante) ? agora só `scale(0.97)` — press state limpo e natural |
 
-### ğŸ” `login.css` â€” RefatoraÃ§Ã£o completa
+### ?? `login.css` — Refatoração completa
 
-| MudanÃ§a | Detalhes |
+| Mudança | Detalhes |
 |---------|----------|
-| **Ambient glow prÃ³prio** | `login-page::before` com gradient radial pulsante (`@keyframes loginPulse`) â€” glow brand centrado |
-| **Logo estilizado** | `.login-logo` agora Ã© container 72Ã—72px com fundo brand (rgba 220,38,38, 0.1), borda sutil e hover scale |
-| **TÃ­tulo com gradiente** | `-webkit-background-clip: text` com gradient do branco ao secundÃ¡rio |
+| **Ambient glow próprio** | `login-page::before` com gradient radial pulsante (`@keyframes loginPulse`) — glow brand centrado |
+| **Logo estilizado** | `.login-logo` agora é container 72×72px com fundo brand (rgba 220,38,38, 0.1), borda sutil e hover scale |
+| **Título com gradiente** | `-webkit-background-clip: text` com gradient do branco ao secundário |
 | **Input refinado** | Fundo `rgba(0,0,0,0.3)`, focus com `box-shadow: 0 0 0 4px rgba(220,38,38,0.08)` + brand glow |
-| **Error banner suave** | Cores via rgba ao invÃ©s de solid, borda menos agressiva (0.25 opacity) |
-| **Responsivo** | Mobile: logo 60px, tÃ­tulo 20px |
+| **Error banner suave** | Cores via rgba ao invés de solid, borda menos agressiva (0.25 opacity) |
+| **Responsivo** | Mobile: logo 60px, título 20px |
 
-### ğŸ“… `agenda.css` â€” Lesson cards refinados
+### ?? `agenda.css` — Lesson cards refinados
 
-| MudanÃ§a | Detalhes |
+| Mudança | Detalhes |
 |---------|----------|
 | **Gradient border glow** | `::before` pseudo-elemento com gradient horizontal sutil (consistente com module-card) |
 | **Hover slide** | `transform: translateX(4px)` + `box-shadow: var(--shadow-sm)` ao passar o mouse |
 | **Active state** | `scale(0.99)` ao pressionar |
-| **TransiÃ§Ãµes** | `border-color`, `transform`, `box-shadow` com timing suave |
+| **Transições** | `border-color`, `transform`, `box-shadow` com timing suave |
 
 ## Design System Aplicado
 
-- âœ… **Ambient glow** â€” body::before (top center) + body::after (bottom) + login::before | âœ… **Glassmorphism** â€” topbar com `backdrop-filter: blur(24px) saturate(1.5)`
-- âœ… **Micro-interaÃ§Ãµes** â€” stagger-row animaÃ§Ãµes de entrada, active states unificados (todos scale(0.98/0.97/0.99))
-- âœ… **Tokens semÃ¢nticos** â€” todas as cores via `var(--color-*)`, sem hex hardcoded
-- âœ… **GPU performÃ¡tico** â€” animaÃ§Ãµes sÃ³ em `transform` e `opacity`
-- âœ… **Reduced motion** â€” `prefers-reduced-motion` respeitado
+- ? **Ambient glow** — body::before (top center) + body::after (bottom) + login::before | ? **Glassmorphism** — topbar com `backdrop-filter: blur(24px) saturate(1.5)`
+- ? **Micro-interações** — stagger-row animações de entrada, active states unificados (todos scale(0.98/0.97/0.99))
+- ? **Tokens semânticos** — todas as cores via `var(--color-*)`, sem hex hardcoded
+- ? **GPU performático** — animações só em `transform` e `opacity`
+- ? **Reduced motion** — `prefers-reduced-motion` respeitado
 
 ## Arquivos Alterados
 
-| Arquivo | MudanÃ§a |
+| Arquivo | Mudança |
 |---------|---------|
-| `app/src/styles/global.css` | `:active` corrigido (translateY+scale â†’ sÃ³ scale) |
-| `app/src/styles/login.css` | RefatoraÃ§Ã£o completa: glow, logo, input, erro, responsivo |
+| `app/src/styles/global.css` | `:active` corrigido (translateY+scale ? só scale) |
+| `app/src/styles/login.css` | Refatoração completa: glow, logo, input, erro, responsivo |
 | `app/src/styles/agenda.css` | Lesson cards: gradient border glow, hover slide, active state |
 
 ## Testes
 
-âœ… `npm run build` â€” 6.67s, 1836 mÃ³dulos | âœ… Code Review â€” aprovado sem issues crÃ­ticas
+? `npm run build` — 6.67s, 1836 módulos | ? Code Review — aprovado sem issues críticas
+
+---
+
+# ETAPA 102 — Menu Mobile Hambúrguer + Refinamento de Tokens Visuais (Gravity)
+
+**Data:** 20/07/2026 | **Commit:** `bac106b9` (mensagem original do commit: "Gravity")
+
+**Objetivo:** Registrar retroativamente um commit que chegou a produção (deploy `READY` na Vercel,
+confirmado via `Vercel:list_deployments`) sem que a etapa correspondente tivesse sido documentada
+neste arquivo — quebra da regra principal do projeto ("nenhuma implementação é considerada
+concluída sem estar registrada"). Identificado ao comparar o commit em produção mais recente
+(`bac106b9`) contra o último commit então documentado (Etapa 101, `752a0b9`) via diff direto de
+`raw.githubusercontent.com`.
+
+## Contexto
+
+O commit "Gravity" foi deployado em produção após a Etapa 101, mas nenhuma entrada foi criada
+neste documento para ele. Esta etapa fecha essa lacuna com base no diff real entre os dois commits.
+
+## Implementações Identificadas (via diff)
+
+### ?? `App.tsx` — Menu mobile hambúrguer (novo)
+- Novo estado `mobileMenuOpen` (`useState`)
+- Novo botão `.topbar-hamburger` (2 barras, anima para X via `.is-open`)
+- Novo overlay `.mobile-nav-modal` com os mesmos links da `topbar-nav`, cada um fechando o menu
+  ao ser clicado (`onClick={() => setMobileMenuOpen(false)}`)
+- `topbar-brand` também fecha o menu mobile ao ser clicado
+
+### ?? `global.css` — Novos tokens + refinamentos
+- Opacidades de fundo aumentadas: `--bg-surface` 0.02?0.03, `--bg-elevated` 0.04?0.05,
+  `--bg-hover` 0.06?0.08, `--bg-active` 0.08?0.12 (superfícies mais destacadas do fundo)
+- Raios de borda maiores: `--radius-sm` 6?8px, `--radius-md` 10?12px, `--radius-lg` 14?16px,
+  `--radius-xl` 18?24px
+- Novos tokens: `--radius-bezel-outer`, `--duration-fluid`, `--ease-fluid`, `--space-10`
+  (substituem parcialmente `--duration-normal`/`--ease-out` em transições de botões e cards)
+- `.module-card`: padding maior (`--space-8 --space-5` ? `--space-10 --space-6`), fundo do ícone
+  de `#000000` fixo para `var(--bg-base)` (token), hover com `translateY(-4px)` (era -6px) e
+  borda mais visível (`0.15` era `0.12`)
+- Novo bloco de estilos para `.topbar-hamburger`, `.hamburger-line`, `.mobile-nav-modal` e
+  breakpoint `@media (max-width: 768px)` ocultando `.topbar-nav`/`.topbar-logout` e exibindo o
+  hambúrguer — animação de entrada dos links com `transition-delay` escalonado por item
+- Transição unificada de `:active` (`scale(0.98)`) para todos os botões (`.btn-primary`,
+  `.btn-secondary`, `.btn-danger`, `.btn-cancel`, `.btn-save`)
+- Arquivo cresceu de 1470 ? 1579 linhas
+
+### ?? `dashboard.css` — Grid de KPIs reformulado
+- Padding do container de `--space-8 --space-5` para `--space-12 --space-6 --space-24`
+  (mais respiro, especialmente na base da página)
+- Grid de KPIs ganhou `grid-auto-rows: minmax(150px, auto)` e `gap`/`margin-bottom` maiores
+- Layout de destaque: 1º card agora ocupa `span 8` colunas e `span 2` linhas (card grande em
+  destaque), os demais (2º a 6º) em `span 4`/`span 1` — antes eram 2 cards em `span 6` e 3 em
+  `span 4`, todos do mesmo tamanho
+
+## Arquivos Alterados
+
+- `app/src/App.tsx` (+32 linhas — hambúrguer + modal mobile)
+- `app/src/styles/global.css` (+109 linhas — tokens + estilos do menu mobile)
+- `app/src/styles/dashboard.css` (grid de KPIs reformulado)
+
+## Alterações no Banco
+
+Nenhuma.
+
+## Testes
+
+?? Não verificado nesta sessão além do diff de código — não há evidência neste documento de
+`npm run build` ou testes manuais para este commit especificamente. Recomenda-se validar
+manualmente o menu hambúrguer em viewport =768px antes de considerar esta etapa encerrada.
+
+## Pendências
+
+- Confirmar visualmente o comportamento do menu hambúrguer em produção (abrir/fechar, animação
+  escalonada dos links, fechamento ao navegar)
+- Confirmar que o novo layout do grid de KPIs do Dashboard (card em destaque 8/2) não quebra em
+  telas intermediárias (tablet)
+- Consolidar nomenclatura de tokens de transição: hoje coexistem `--duration-normal`/`--ease-out`
+  (mais antigos) e `--duration-fluid`/`--ease-fluid` (introduzidos aqui) — decidir se um substitui
+  o outro ou se ambos têm papéis distintos, e documentar a decisão
+
+## Próxima Etapa
+
+Validação manual do menu mobile e do novo grid do Dashboard; a partir daí, seguir com a revisão
+geral de aparência do sistema (dashboard + demais páginas) solicitada pelo usuário em 20/07/2026.
+
+---
+
+# ETAPA 103 — Correção do Arquivo de Registro (novo_registro.md)
+
+**Data:** 20/07/2026 | **Commit:** Pendente
+
+**Agente Responsável:** Claude (Anthropic)
+
+---
+
+## Objetivo
+
+O usuário reportou que `novo_registro.md` estava "bugado". Investigação completa via
+`raw.githubusercontent.com` (bypass de CDN) e Vercel API para localizar e corrigir os problemas
+reais antes de iniciar qualquer trabalho de UI solicitado (melhoria visual do dashboard/sistema).
+
+## Diagnóstico
+
+Três problemas distintos foram encontrados, apenas um deles um bug real de conteúdo:
+
+1. **Falso positivo:** a exibição inicial via `cat -v` no terminal mostrava sequências como
+   `M-pM-^_M-^SM-K` — isso é só como o `cat -v` representa bytes UTF-8 multi-byte (emojis, acentos),
+   não uma corrupção real. Lido corretamente como UTF-8, o texto sempre esteve íntegro nesse trecho.
+2. **Real, mas menor:** a seção "Estatísticas do Período" (topo do arquivo) estava desatualizada
+   — dizia "42 etapas (44-85)" e "período de 5 dias", mesmo com o índice já contendo etapas até
+   101 (19/07/2026). Corrigida.
+3. **Real e grave:** um bloco inteiro (o que seria uma segunda "Etapa 93", sobre finalização do
+   Redesign High-End) estava corrompido — bytes nulos (`\x00`) intercalados entre caracteres
+   (padrão de arquivo UTF-16 salvo/interpretado incorretamente como UTF-8/Latin-1), com perda
+   irrecuperável de alguns caracteres acentuados. Esse bloco colidia em numeração com a Etapa 93
+   real ("Melhorias UI/UX no React SPA"), que já existia na sequência normal do documento —
+   provavelmente por isso nunca apareceu no Índice: um agente anterior pulou renumerar ao inserir
+   conteúdo no meio do arquivo.
+
+Adicionalmente, identificado (não reportado pelo usuário, achado durante a auditoria) que o
+commit mais recente em produção na Vercel (`bac106b9`, mensagem "Gravity") **não tinha etapa
+correspondente neste documento** — violação da regra principal do projeto. Documentado
+retroativamente como Etapa 102.
+
+Também identificado: a Etapa 96 ("Jogo do Piano com 4 Níveis") estava **duplicada verbatim** —
+o bloco inteiro se repetia duas vezes em sequência, com a primeira cópia carregando 3 linhas de
+pendências (migração emoji?SVG, tema claro, testes de acessibilidade) que na verdade pertenciam
+a uma etapa anterior e ficaram grudadas ali por engano. Cópia redundante removida.
+
+## Implementações Realizadas
+
+- Reconstruído o bloco corrompido, renomeado para **Etapa 92-B** para não colidir com a Etapa 93
+  existente nem invalidar âncoras/links já usados em outras partes do documento
+- Nota de recuperação explícita adicionada no início da Etapa 92-B, sinalizando que o texto foi
+  reconstruído a partir de fragmentos recuperáveis e pode não ser 100% fiel ao original perdido
+- Corrigida a tabela "Estatísticas do Período" com nota explicando a divergência encontrada
+- Adicionada **Etapa 102**, documentando retroativamente o commit `bac106b9` ("Gravity”): menu
+  mobile hambúrguer completo (`App.tsx` + `global.css`) e refinamento do grid de KPIs do Dashboard
+- Índice atualizado com a entrada da Etapa 102
+
+## Arquivos Alterados
+
+- `novo_registro.md` (correção de encoding, estatísticas, e adição de Etapas 92-B e 102)
+
+## Alterações no Banco
+
+Nenhuma.
+
+## Testes
+
+? Validado programaticamente (Python, decodificação UTF-8) que não restam bytes nulos nem
+caracteres de substituição não-intencionais no arquivo após a correção.
+? Confirmado que a numeração de etapas segue sequencial e sem colisões após a correção.
+?? Reconstrução da Etapa 92-B é uma melhor inferência a partir de fragmentos — não há como
+confirmar 100% de fidelidade ao texto original perdido, já que parte dos caracteres foi
+substituída irreversivelmente por `?` antes desta sessão.
+
+## Pendências
+
+- Nenhuma pendência de documentação restante desta correção.
+- Segue pendente da Etapa 102: validação manual do menu mobile e do novo grid do Dashboard.
+
+## Próxima Etapa
+
+Início do trabalho de melhoria visual geral do sistema (dashboard + demais páginas), conforme
+solicitado pelo usuário — a ser conduzido em etapa(s) subsequente(s), com leitura prévia do
+`Dashboard.tsx`/CSS atuais já em andamento nesta sessão.
