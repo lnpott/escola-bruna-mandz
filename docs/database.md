@@ -197,12 +197,15 @@ As migrations em `supabase/migrations/*.sql` e os arquivos `migration-*.sql` na 
 | `052-rls-deny-anon.sql` | Deny policies para role anon em todas as 12 tabelas (defense-in-depth) | ✅ Banco já existente |
 | `053-add-investments-updated-at.sql` | Adiciona `updated_at` + trigger em `investments` (agora suporta PATCH) | ✅ Consolidado em financial-schema.sql |
 | `054-products-low-stock-idx.sql` | Índice parcial `products_low_stock_idx` em `products(stock)` WHERE `active = true` | ✅ Pendente de aplicação no banco |
+| `055-clean-legacy-cpf-phone-masks.sql` | Remove máscaras de CPF/telefone legados (`students`, `teachers`, `orders`) — só dígitos | ⏳ Aplicar após deploy do código frontend |
 
 ---
 
 # Seeds
 
-`supabase/seed-escola.sql` (dados de alunos/professores/vínculos de exemplo) e `supabase/seed-products.sql` (produtos da loja), usados em desenvolvimento local via `server-dev.js`.
+`supabase/seed-escola.sql` (dados mínimos: 1 aluno, 1 professor) e `supabase/seed-completo.sql` (12 alunos, 6 professores, mensalidades, aulas, despesas, etc.) e `supabase/seed-products.sql` (produtos da loja), usados em desenvolvimento local via `server-dev.js`.
+
+> `seed-completo.sql` (jul/2026) — seed robusto para desenvolvimento, com alunos em todos os 7 status do ciclo de vida (lead→cancelled), 6 professores com especialidades distintas, 8 matrículas, 12 mensalidades, 10 aulas na semana corrente, presenças, receitas avulsas, despesas fixas/variáveis, investimentos e pagamentos a professores. Idempotente via `ON CONFLICT DO NOTHING`.
 
 > `seed-escola.sql` foi corrigido em jul/2026: o `INSERT INTO students` usava a coluna `active` (removida) e foi alterado para usar `status = 'active'`.
 

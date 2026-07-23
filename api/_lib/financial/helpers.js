@@ -95,6 +95,39 @@ export function normalizeOptionalFields(obj, fields) {
 }
 
 /**
+ * Valida CPF com base nos dígitos verificadores.
+ * Retorna null se válido, ou uma string de erro se inválido.
+ * Aceita CPF com ou sem máscara (só dígitos são considerados).
+ */
+export function validateCPF(value) {
+    if (!value) return null; // campo opcional, não validar se vazio
+    const digits = value.replace(/\D/g, '');
+    if (digits.length !== 11) {
+        return 'CPF deve ter 11 dígitos.';
+    }
+    if (/^(\d)\1{10}$/.test(digits)) {
+        return 'CPF inválido (dígitos repetidos).';
+    }
+    // Valida 1º dígito verificador
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(digits[i], 10) * (10 - i);
+    let rem = (sum * 10) % 11;
+    if (rem === 10) rem = 0;
+    if (rem !== parseInt(digits[9], 10)) {
+        return 'CPF inválido (dígito verificador incorreto).';
+    }
+    // Valida 2º dígito verificador
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(digits[i], 10) * (11 - i);
+    rem = (sum * 10) % 11;
+    if (rem === 10) rem = 0;
+    if (rem !== parseInt(digits[10], 10)) {
+        return 'CPF inválido (dígito verificador incorreto).';
+    }
+    return null;
+}
+
+/**
  * Classifica um erro lançado (normalmente do Supabase/Postgres) em um código
  * HTTP e um código de erro amigável. O err.message NÃO é incluído na resposta
  * ao cliente para evitar vazamento de informação — apenas no console.error do

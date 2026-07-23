@@ -9,7 +9,7 @@
  * criando risco de os dois campos ficarem inconsistentes entre si.
  * Agora `status` é a única fonte de verdade. "Aluno ativo" = status = 'active'.
  */
-import { genId, parsePagination, normalizeOptionalFields } from './helpers.js';
+import { genId, parsePagination, normalizeOptionalFields, validateCPF } from './helpers.js';
 
 const VALID_STATUS = ['lead', 'interested', 'enrolled', 'active', 'suspended', 'completed', 'cancelled'];
 const VALID_SOURCE = ['website', 'indicacao', 'social', 'presencial', 'outro'];
@@ -43,6 +43,12 @@ export async function handleStudents(req, res, supabase) {
         if (source && !VALID_SOURCE.includes(source)) {
             return res.status(400).json({ error: `source inválido. Use um de: ${VALID_SOURCE.join(', ')}.` });
         }
+
+        // Valida CPFs
+        const cpfErr = validateCPF(cpf);
+        if (cpfErr) return res.status(400).json({ error: `CPF do aluno: ${cpfErr}` });
+        const gcpfErr = validateCPF(guardian_cpf);
+        if (gcpfErr) return res.status(400).json({ error: `CPF do responsável: ${gcpfErr}` });
 
         const instrumentsStr = Array.isArray(instruments) ? instruments.join(', ') : (instruments || '');
 
@@ -81,6 +87,16 @@ export async function handleStudents(req, res, supabase) {
         }
         if (source && !VALID_SOURCE.includes(source)) {
             return res.status(400).json({ error: `source inválido. Use um de: ${VALID_SOURCE.join(', ')}.` });
+        }
+
+        // Valida CPFs
+        if (cpf !== undefined) {
+            const err = validateCPF(cpf);
+            if (err) return res.status(400).json({ error: `CPF do aluno: ${err}` });
+        }
+        if (guardian_cpf !== undefined) {
+            const err = validateCPF(guardian_cpf);
+            if (err) return res.status(400).json({ error: `CPF do responsável: ${err}` });
         }
 
         const upd = {};

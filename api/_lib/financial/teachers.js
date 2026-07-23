@@ -4,7 +4,7 @@
  * ao contrário de students, teachers não tem um ciclo de vida com múltiplos
  * estágios (lead→cancelled), então um boolean simples não é redundante.
  */
-import { genId, normalizeOptionalFields, safeFloat, parsePagination } from './helpers.js';
+import { genId, normalizeOptionalFields, safeFloat, parsePagination, validateCPF } from './helpers.js';
 
 export async function handleTeachers(req, res, supabase) {
     const { method } = req;
@@ -23,6 +23,10 @@ export async function handleTeachers(req, res, supabase) {
     if (method === 'POST') {
         const { name, cpf, email, phone, specialty, days_of_week, rate_per_class } = req.body;
         if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
+
+        // Valida CPF
+        const err = validateCPF(cpf);
+        if (err) return res.status(400).json({ error: `CPF do professor: ${err}` });
 
         const daysCsv = Array.isArray(days_of_week)
             ? days_of_week.map(s => String(s).trim()).filter(Boolean).join(', ')
@@ -48,6 +52,12 @@ export async function handleTeachers(req, res, supabase) {
     if (method === 'PATCH') {
         const { id, name, cpf, email, phone, specialty, days_of_week, rate_per_class, active } = req.body;
         if (!id) return res.status(400).json({ error: 'id do professor é obrigatório.' });
+
+        // Valida CPF
+        if (cpf !== undefined) {
+            const err = validateCPF(cpf);
+            if (err) return res.status(400).json({ error: `CPF do professor: ${err}` });
+        }
 
         const upd = {};
         if (name !== undefined) upd.name = name;

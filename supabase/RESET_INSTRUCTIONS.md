@@ -1,39 +1,49 @@
-# Como recriar o banco (schema limpo pós-refatoração)
+# Como recriar o banco (setup rápido de ambiente dev)
 
-Este projeto autoriza recriar o banco do zero — não há migração incremental
-do schema antigo. Ordem de execução no SQL Editor do Supabase:
+## Primeira vez (criar as tabelas)
+
+Execute em ordem no SQL Editor do Supabase:
 
 1. `supabase/schema.sql` — base da loja (products, orders, função `set_updated_at`)
-2. `supabase/financial-schema.sql` — módulo acadêmico/financeiro (students,
-   teachers, enrollments, tuitions, payments, expenses, investments,
-   teacher_payments, lessons, attendance)
-3. (Opcional) `supabase/seed-products.sql` / `supabase/seed-escola.sql` — dados de exemplo
+2. `supabase/financial-schema.sql` — módulo acadêmico/financeiro
 
-## O que mudou nesta versão do financial-schema.sql
+## Reset de dados (manutenção ou recriação frequente)
 
-- **Removido**: `students.active` (boolean). Era redundante com `students.status`
-  (7 estágios: lead→cancelled) e exigia lógica de sincronização dupla em cada
-  escrita. Agora `status = 'active'` é a única forma de saber se um aluno está ativo.
-- **Removidas**: as policies RLS `"admin manage X" ... to authenticated`. Elas nunca
-  tinham efeito prático — o backend acessa o banco via `SUPABASE_SERVICE_ROLE_KEY`
-  (que ignora RLS) e não existe nenhum login via Supabase Auth neste projeto (a
-  autenticação do painel é por header `x-admin-password`). RLS continua habilitado
-  em todas as tabelas — só não há mais policies mortas dando falsa sensação de
-  controle de acesso por role.
-- Tudo o resto do schema (IDs com prefixo, triggers `set_updated_at`, CHECK
-  constraints, índices) já estava correto e foi mantido como estava.
+**Apenas** `supabase/reset-dev.sql` — um único arquivo que:
 
-## Não precisa rodar as migrations antigas
+1. **Limpa** todos os dados existentes (FK-safe order: filhos antes dos pais)
+2. **Aplica** migrations pendentes: RLS deny anon (052), índice estoque baixo (054),
+   limpeza de máscaras CPF/telefone (055)
+3. **Carrega** seed completo com:
+   - 6 professores (especialidades variadas)
+   - 12 alunos (todos os 7 status do ciclo de vida)
+   - 8 matrículas, 12 mensalidades, 10 aulas na semana corrente
+   - Presenças, receitas avulsas, despesas, investimentos
+   - Pagamentos a professores (mês corrente + anterior)
 
-As migrations em `supabase/migrations/*.sql` (043, 045, 046, 047, 050) e os
-arquivos soltos `migration-*.sql` na raiz de `supabase/` documentam o histórico
-incremental de um banco que já existia. Como o banco será recriado do zero,
-`financial-schema.sql` já nasce com tudo que essas migrations aplicavam —
-não é necessário rodá-las. Mantidas apenas como registro histórico.
+Idempotente — pode rodar múltiplas vezes sem duplicar dados.
 
-## Depois de recriar
+> **Nota**: O schema das tabelas não é recriado no reset (usa `IF NOT EXISTS`).
+> Para zerar o schema, execute `schema.sql` + `financial-schema.sql` novamente
+> antes do reset.
+
+## Seeds avulsos (opcionais)
+
+- `supabase/seed-escola.sql` — dados mínimos (1 aluno, 1 professor)
+- `supabase/seed-products.sql` — produtos da loja
+- `supabase/seed-completo.sql` — seed completo (mesmo conteúdo do reset-dev.sql,
+  sem a limpeza inicial nem as migrations)
+
+## Migrações históricas
+
+As migrations em `supabase/migrations/*.sql` (043–055) documentam o histórico
+incremental de um banco que já existia. Com o schema consolidado em
+`financial-schema.sql`, **não é necessário rodá-las individualmente**.
+Mantidas apenas como registro histórico.
+
+## Pós-setup
 
 - Confirme `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no `.env` (local) e nas
-  env vars do projeto na Vercel.
-- `ADMIN_PASSWORD` também precisa estar setado nos dois lugares — é o que
-  autentica o painel (`x-admin-password` header), não tem relação com Supabase Auth.
+  env vars da Vercel.
+- `ADMIN_PASSWORD` também precisa estar setado nos dois lugares.
+- Bucket `product-images` no Storage (criação manual).

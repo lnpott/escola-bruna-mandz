@@ -3,6 +3,7 @@ import { useApp } from '@/App';
 import type { Teacher } from '@/types';
 import { DAY_LABELS } from '@/types';
 import { fetchTeachers, createTeacher, updateTeacher, deleteTeacher } from '@/services/api';
+import { maskCPF, maskPhone, stripCPF, stripPhone, displayCPF, displayPhone, validateCPF } from '@/utils/formatters';
 
 import '@/styles/teachers.css';
 
@@ -117,8 +118,8 @@ export default function Teachers() {
 
         setForm({
             name: teacher.name,
-            cpf: teacher.cpf || '',
-            phone: teacher.phone || '',
+            cpf: maskCPF(teacher.cpf || ''),
+            phone: maskPhone(teacher.phone || ''),
             specialty: teacher.specialty || '',
             rate_per_class: String(teacher.rate_per_class ?? '0.00'),
             days_of_week: days,
@@ -150,10 +151,19 @@ export default function Teachers() {
         e.preventDefault();
         if (!form.name.trim()) return;
 
+        // Valida CPF antes de salvar
+        const cpfCheck = validateCPF(form.cpf);
+        if (form.cpf && !cpfCheck.valid) {
+            setError(cpfCheck.message);
+            return;
+        }
+
         setSaving(true);
         try {
             const payload = {
                 ...form,
+                cpf: stripCPF(form.cpf),
+                phone: stripPhone(form.phone),
                 rate_per_class: parseFloat(form.rate_per_class || '0'),
                 days_of_week: form.days_of_week,
             };
@@ -196,27 +206,6 @@ export default function Teachers() {
             : [];
         return arr.map((d: string) => DAY_LABELS[d] || d).join(', ') || '—';
     }
-
-    // ── Input masks ────────────────────────────────────────────
-    const maskCPF = (value: string): string => {
-        const digits = value.replace(/\D/g, '').slice(0, 11);
-        return digits
-            .replace(/^(\d{3})(\d)/, '$1.$2')
-            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-            .replace(/\.(\d{3})(\d)/, '.$1-$2');
-    };
-
-    const maskPhone = (value: string): string => {
-        const digits = value.replace(/\D/g, '').slice(0, 11);
-        if (digits.length <= 10) {
-            return digits
-                .replace(/^(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2');
-        }
-        return digits
-            .replace(/^(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2');
-    };
 
     // ── Render ───────────────────────────────────────────────
     if (loading && !teachers.length) {
@@ -275,8 +264,8 @@ export default function Teachers() {
                             {filtered.map((t) => (
                                 <tr key={t.id}>
                                     <td data-label="Nome"><strong>{t.name}</strong></td>
-                                    <td data-label="CPF">{t.cpf || '—'}</td>
-                                    <td data-label="Telefone">{t.phone || '—'}</td>
+                                    <td data-label="CPF">{displayCPF(t.cpf)}</td>
+                                    <td data-label="Telefone">{displayPhone(t.phone)}</td>
                                     <td data-label="Especialidade">{t.specialty || '—'}</td>
                                     <td data-label="Dias">{renderDays(t.days_of_week)}</td>
                                     <td data-label="Valor/Aula">

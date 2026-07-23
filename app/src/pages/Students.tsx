@@ -13,6 +13,7 @@ import {
 import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchTeachers, createEnrollment } from '@/services/api';
 import { exportToCSV } from '@/utils/exportUtils';
 import { StudentFilterBar } from '@/components/students/StudentFilterBar';
+import { maskCPF, maskPhone, stripCPF, stripPhone, displayCPF, displayPhone, validateCPF } from '@/utils/formatters';
 import '@/styles/students.css';
 
 const STATUS_OPTIONS: { value: StudentStatus; label: string }[] = [
@@ -135,27 +136,6 @@ export default function Students() {
     const [saving, setSaving] = useState(false);
     const [wizardStep, setWizardStep] = useState<WizardStep>(1);
 
-    // ── Input masks ────────────────────────────────────────────
-    const maskCPF = (value: string): string => {
-        const digits = value.replace(/\D/g, '').slice(0, 11);
-        return digits
-            .replace(/^(\d{3})(\d)/, '$1.$2')
-            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-            .replace(/\.(\d{3})(\d)/, '.$1-$2');
-    };
-
-    const maskPhone = (value: string): string => {
-        const digits = value.replace(/\D/g, '').slice(0, 11);
-        if (digits.length <= 10) {
-            return digits
-                .replace(/^(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2');
-        }
-        return digits
-            .replace(/^(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2');
-    };
-
     // ── Wizard helpers ─────────────────────────────────────────
     const WIZARD_STEPS: { step: WizardStep; label: string }[] = [
         { step: 1, label: 'Dados do Aluno' },
@@ -272,16 +252,16 @@ export default function Students() {
     function openEdit(student: Student) {
         setForm({
             name: student.name,
-            cpf: student.cpf || '',
+            cpf: maskCPF(student.cpf || ''),
             email: student.email || '',
-            phone: student.phone || '',
+            phone: maskPhone(student.phone || ''),
             address: student.address || '',
             status: student.status,
             source: (student.source as StudentSource) || '',
             instruments: student.instruments || '',
             guardian_name: student.guardian_name || '',
-            guardian_cpf: student.guardian_cpf || '',
-            guardian_phone: student.guardian_phone || '',
+            guardian_cpf: maskCPF(student.guardian_cpf || ''),
+            guardian_phone: maskPhone(student.guardian_phone || ''),
             enroll_teacher_id: '',
             enroll_day_of_week: '',
             enroll_class_time: '',
@@ -305,12 +285,30 @@ export default function Students() {
 
     async function handleWizardSave() {
         if (!form.name.trim()) return;
+
+        // Valida CPFs antes de salvar
+        const cpfCheck = validateCPF(form.cpf);
+        if (form.cpf && !cpfCheck.valid) {
+            setError(cpfCheck.message);
+            return;
+        }
+        const guardianCpfCheck = validateCPF(form.guardian_cpf);
+        if (form.guardian_cpf && !guardianCpfCheck.valid) {
+            setError(guardianCpfCheck.message + ' (Responsável)');
+            return;
+        }
+
         setSaving(true);
         try {
             const wizardKeys = ['wizard_already_enrolled', 'wizard_enroll_instrument', 'wizard_has_teacher', 'wizard_schedule_first', 'wizard_first_lesson_date', 'wizard_first_lesson_time', 'enroll_teacher_id', 'enroll_day_of_week', 'enroll_class_time', 'enroll_duration', 'enroll_monthly_fee', 'enroll_billing_type'] as const;
             const studentPayload = Object.fromEntries(
                 Object.entries(form).filter(([k]) => !wizardKeys.includes(k as any))
             ) as any;
+            // Strip masks before storing
+            if (studentPayload.cpf) studentPayload.cpf = stripCPF(studentPayload.cpf);
+            if (studentPayload.phone) studentPayload.phone = stripPhone(studentPayload.phone);
+            if (studentPayload.guardian_cpf) studentPayload.guardian_cpf = stripCPF(studentPayload.guardian_cpf);
+            if (studentPayload.guardian_phone) studentPayload.guardian_phone = stripPhone(studentPayload.guardian_phone);
             const created = await createStudent(studentPayload);
 
             // Create enrollment if wizard says enrolled and has instrument
@@ -349,9 +347,26 @@ export default function Students() {
         if (!form.name.trim()) return;
         // Editing uses simple save
         if (editingId) {
+            // Valida CPFs antes de salvar
+            const cpfCheck = validateCPF(form.cpf);
+            if (form.cpf && !cpfCheck.valid) {
+                setError(cpfCheck.message);
+                return;
+            }
+            const guardianCpfCheck = validateCPF(form.guardian_cpf);
+            if (form.guardian_cpf && !guardianCpfCheck.valid) {
+                setError(guardianCpfCheck.message + ' (Responsável)');
+                return;
+            }
+
             setSaving(true);
             try {
                 const { wizard_already_enrolled: _, wizard_enroll_instrument: __, wizard_has_teacher: ___, wizard_schedule_first: ____, wizard_first_lesson_date: _____, wizard_first_lesson_time: ______, enroll_teacher_id: a, enroll_day_of_week: b, enroll_class_time: c, enroll_duration: d, enroll_monthly_fee: e, enroll_billing_type: f, ...studentPayload } = form;
+                // Strip masks before storing
+                if (studentPayload.cpf) studentPayload.cpf = stripCPF(studentPayload.cpf);
+                if (studentPayload.phone) studentPayload.phone = stripPhone(studentPayload.phone);
+                if (studentPayload.guardian_cpf) studentPayload.guardian_cpf = stripCPF(studentPayload.guardian_cpf);
+                if (studentPayload.guardian_phone) studentPayload.guardian_phone = stripPhone(studentPayload.guardian_phone);
                 await updateStudent(editingId, studentPayload);
                 showToast('Aluno atualizado!');
                 closeModal();
@@ -474,9 +489,9 @@ export default function Students() {
                                         <strong>{s.name}</strong>
                                         {s.guardian_name && <div className="student-guardian-hint">Resp: {s.guardian_name}</div>}
                                     </td>
-                                    <td data-label="CPF">{s.cpf || '—'}</td>
+                                    <td data-label="CPF">{displayCPF(s.cpf)}</td>
                                     <td data-label="E-mail">{s.email || '—'}</td>
-                                    <td data-label="Telefone">{s.phone || '—'}</td>
+                                    <td data-label="Telefone">{displayPhone(s.phone)}</td>
                                     <td data-label="Instrumento">{s.instruments || '—'}</td>
                                     <td data-label="Status">
                                         <span

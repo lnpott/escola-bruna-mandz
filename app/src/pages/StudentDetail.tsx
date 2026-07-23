@@ -4,6 +4,7 @@ import { useApp } from '@/App';
 import type { Student, Enrollment, Lesson, Payment } from '@/types';
 import { STATUS_LABELS, STATUS_CLASSES, STATUS_ICONS, SOURCE_LABELS } from '@/types';
 import { fetchStudentById, fetchLessonsByStudent, fetchEnrollmentsByStudent, fetchTuitionsByStudent, fetchPaymentsByStudent } from '@/services/api';
+import { displayCPF, displayPhone } from '@/utils/formatters';
 import '@/styles/students.css';
 
 /** Format BRL currency */
@@ -107,11 +108,11 @@ export default function StudentDetail() {
                     </div>
                     <div className="info-item">
                         <span className="info-label">Telefone</span>
-                        <span className="info-value">{student.phone || '—'}</span>
+                        <span className="info-value">{displayPhone(student.phone)}</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">CPF</span>
-                        <span className="info-value">{student.cpf || '—'}</span>
+                        <span className="info-value">{displayCPF(student.cpf)}</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">Instrumento(s)</span>
@@ -132,8 +133,12 @@ export default function StudentDetail() {
                                 <span className="info-value">{student.guardian_name}</span>
                             </div>
                             <div className="info-item">
+                                <span className="info-label">CPF Resp.</span>
+                                <span className="info-value">{displayCPF(student.guardian_cpf)}</span>
+                            </div>
+                            <div className="info-item">
                                 <span className="info-label">Tel. Responsável</span>
-                                <span className="info-value">{student.guardian_phone || '—'}</span>
+                                <span className="info-value">{displayPhone(student.guardian_phone)}</span>
                             </div>
                         </>
                     )}

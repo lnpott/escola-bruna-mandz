@@ -36,16 +36,145 @@
 | [105](#etapa-105--restauração-do-registro-e-arquivamento-do-novo_corrigidomd) | 22/07 | Restauração do registro + arquivamento do NOVO_CORRIGIDO.md | 🛠️ Fix |
 | [106](#etapa-106--modularização-frontend-erp--utilitários-de-exportação) | 22/07 | Modularização frontend ERP + utilitários de exportação CSV/PDF | 🟢 Feature/Refactor |
 | [107](#etapa-107--conclusão-do-plano-de-melhorias-do-erp) | 22/07 | Conclusão do Plano ERP: busca/paginação server-side, CSV e KPI cards | 🟢 Feature/Refactor |
+| [108](#etapa-108--normalização-de-cpftelefone--seed-robusto--script-de-reset) | 23/07 | Normalização CPF/telefone, seed robusto, script de reset | 🟢 Feature |
 
 ---
 
-## Estatísticas do Período (Etapas 96–107)
+## Estatísticas do Período (Etapas 96–108)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 12 (96–107) |
-| **Commits** | 31+ (total do projeto) |
-| **Período** | 19/07/2026 — 22/07/2026 (4 dias) |
+| **Etapas** | 13 (96–108) |
+| **Commits** | 32+ (total do projeto) |
+| **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
+
+---
+
+# ETAPA 108 — Normalização de CPF/Telefone + Seed Robusto + Script de Reset
+
+**Data:** 23/07/2026
+
+---
+
+## Objetivo
+
+Normalizar o armazenamento de CPF e telefone em todo o ERP (somente dígitos no banco, máscara apenas visual), criar um seed robusto para desenvolvimento, e consolidar um script de reset único para setup rápido de ambiente dev.
+
+## Implementações
+
+### 1. Utilitário `formatters.ts` (novo)
+
+`app/src/utils/formatters.ts` — funções centralizadas para normalização e exibição:
+
+| Função | Descrição |
+|--------|-----------|
+| `stripCPF(value)` | Remove não-dígitos, mantém 11 caracteres |
+| `stripPhone(value)` | Remove não-dígitos, mantém 11 caracteres |
+| `formatCPF(value)` | Formata 11 dígitos como `XXX.XXX.XXX-XX` |
+| `formatPhone(value)` | Formata 10/11 dígitos como `(XX) XXXXX-XXXX` |
+| `maskCPF(value)` | Alias para `formatCPF` (input masking) |
+| `maskPhone(value)` | Alias para `formatPhone` (input masking) |
+| `displayCPF(value)` | Auto-detecta dígitos crus vs formatados, exibe com máscara ou `—` |
+| `displayPhone(value)` | Auto-detecta dígitos crus vs formatados, exibe com máscara ou `—` |
+| `validateCPF(value)` | Valida dígitos verificadores do CPF, retorna `{ valid, message }` |
+
+### 2. Frontend — Strip no Save + Display Formatado
+
+| Arquivo | Mudanças |
+|---------|----------|
+| `app/src/pages/Students.tsx` | `maskCPF`/`maskPhone` movidos para formatters; strip no save (wizard + edit); `displayCPF`/`displayPhone` na tabela; `openEdit()` com máscara |
+| `app/src/pages/Teachers.tsx` | `maskCPF`/`maskPhone` movidos para formatters; strip no save; `displayCPF`/`displayPhone` na tabela; `openEdit()` com máscara |
+| `app/src/pages/StudentDetail.tsx` | `displayCPF`/`displayPhone` no info card; campo CPF do responsável adicionado |
+
+### 3. Backend — Validação de CPF
+
+| Arquivo | Mudanças |
+|---------|----------|
+| `api/_lib/financial/helpers.js` | Função `validateCPF()` adicionada — valida dígitos verificadores |
+| `api/_lib/financial/students.js` | Valida CPF do aluno + responsável em POST e PATCH |
+| `api/_lib/financial/teachers.js` | Valida CPF do professor em POST e PATCH |
+
+### 4. Seed Robusto (`supabase/seed-completo.sql`)
+
+| Tabela | Qtd | Destaque |
+|--------|:---:|----------|
+| Professores | 6 | Piano/Canto, Violão/Guitarra, Bateria, Violino, Canto/Teoria, Saxofone/Flauta |
+| Alunos | 12 | Todos os 7 status (lead→cancelled) |
+| Matrículas | 8 | 5 ativas + 1 aguardando + 2 inativas (suspenso + concluído) |
+| Mensalidades | 12 | Mês corrente + anterior; status: pago, pendente, atrasado |
+| Aulas | 10 | Semana corrente com datas dinâmicas (`date_trunc`) |
+| Presenças | 5 | Presente, atrasado, ausente — sem conflito de unique constraint |
+| Receitas | 5 | Matrícula, material, aula extra, venda avulsa |
+| Despesas | 9 | Fixas (aluguel, luz, água) + variáveis |
+| Investimentos | 5 | Equipamento, instrumento, móvel, infraestrutura, marketing |
+| Pagto professores | 8 | Mês corrente (pendentes) + mês anterior (pagos) |
+
+### 5. Script de Reset (`supabase/reset-dev.sql`)
+
+Único arquivo SQL que:
+1. **Limpa** dados em ordem FK-safe (filhos antes dos pais)
+2. **Aplica** migrations pendentes: RLS deny anon (052), índice estoque baixo (054), limpeza de máscaras (055)
+3. **Carrega** seed completo (reutiliza os dados do `seed-completo.sql`)
+
+Workflow:
+```
+# Primeira vez:
+  1. schema.sql
+  2. financial-schema.sql
+  3. reset-dev.sql
+
+# Resets subsequentes:
+  1. reset-dev.sql (apenas)
+```
+
+### 6. Migration 055 — Limpeza de Máscaras Legadas
+
+`supabase/migrations/055-clean-legacy-cpf-phone-masks.sql` — `regexp_replace(col, '\D', '', 'g')` em:
+- `students`: `cpf`, `phone`, `guardian_cpf`, `guardian_phone`
+- `teachers`: `cpf`, `phone`
+- `orders`: `customer_phone`
+
+### 7. Seed Mínimo Atualizado
+
+`supabase/seed-escola.sql` — CPFs e telefones convertidos para só dígitos.
+
+### 8. Documentação
+
+- `docs/database.md` — migration 055 + seed-completo + reset-dev adicionados
+- `supabase/RESET_INSTRUCTIONS.md` — reescrito com novo workflow
+
+### 9. Testes (38/38 passando)
+
+| Arquivo | Testes |
+|---------|:------:|
+| `tests/formatters.test.ts` | 19 (validateCPF, stripCPF, stripPhone, displayCPF, displayPhone) |
+| `tests/FinancialSummaryCards.test.tsx` | 9 (mantidos do commit anterior) |
+| `tests/StudentFilterBar.test.tsx` | 10 (mantidos do commit anterior) |
+
+## Arquivos Alterados/Criados
+
+| Arquivo | Ação |
+|---------|------|
+| `app/src/utils/formatters.ts` | 🔵 Criado — 9 funções utilitárias |
+| `app/src/pages/Students.tsx` | 🔧 Strip no save + display format + openEdit masked |
+| `app/src/pages/Teachers.tsx` | 🔧 Strip no save + display format + openEdit masked |
+| `app/src/pages/StudentDetail.tsx` | 🔧 displayCPF/displayPhone + CPF responsável |
+| `api/_lib/financial/helpers.js` | 🔧 validateCPF() adicionada |
+| `api/_lib/financial/students.js` | 🔧 Validação de CPF no POST/PATCH |
+| `api/_lib/financial/teachers.js` | 🔧 Validação de CPF no POST/PATCH |
+| `supabase/seed-completo.sql` | 🔵 Criado — 10 tabelas, ~400 linhas |
+| `supabase/reset-dev.sql` | 🔵 Criado — script único de reset dev |
+| `supabase/migrations/055-clean-legacy-cpf-phone-masks.sql` | 🔵 Criado — limpeza de máscaras |
+| `supabase/seed-escola.sql` | 🔧 CPF/phone convertidos para só dígitos |
+| `supabase/RESET_INSTRUCTIONS.md` | 🔧 Reescrevido com novo workflow |
+| `docs/database.md` | 🔧 Migration 055 + seeds no histórico |
+| `tests/formatters.test.ts` | 🔵 Criado — 19 testes |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38 testes, 3 arquivos, todos passando
+- ✅ Code review — aprovado sem issues críticas
 
 ---
 
