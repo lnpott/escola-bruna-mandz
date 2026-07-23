@@ -39,10 +39,11 @@
 | [108](#etapa-108--normalização-de-cpftelefone--seed-robusto--script-de-reset) | 23/07 | Normalização CPF/telefone, seed robusto, script de reset | 🟢 Feature |
 | [109](#etapa-109--validação-cpf-inline--script-dbreset--ci-pipeline) | 23/07 | Validação CPF inline + script db:reset + CI pipeline | 🟢 Feature |
 | [110](#etapa-110--correção-do-fluxo-matrícula--agenda--marcação-de-presença) | 23/07 | Correção matrícula→agenda→marcação de presença (4 bugs) | 🐛 Fix |
+| [111](#etapa-111--consolidação-do-schema-sql--rls-no-schema--teacher_payments-updated_at) | 23/07 | Consolidação schemas SQL + RLS + teacher_payments updated_at | 🟢 Feature |
 
 ---
 
-## Estatísticas do Período (Etapas 96–110)
+## Estatísticas do Período (Etapas 96–111)
 
 | Métrica | Valor |
 |---------|-------|
@@ -355,6 +356,80 @@ cria N semanas de aulas no dia da semana correto, pulando conflitos de horário 
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38/38 passando
 - ✅ Code review — aprovado sem issues
+
+---
+
+# ETAPA 111 — Consolidação do Schema SQL + RLS no Schema + teacher_payments updated_at
+
+**Data:** 23/07/2026
+
+---
+
+## Objetivo
+
+Corrigir todos os problemas encontrados na auditoria completa do banco de dados:
+consolidar as RLS deny policies diretamente nos schemas, adicionar `updated_at` + trigger
+na tabela `teacher_payments` (única que estava sem), corrigir comentário de ID incorreto,
+e simplificar o `reset-dev.sql` removendo migrations já incorporadas.
+
+## Correções Aplicadas
+
+### 1. 🔴 `teacher_payments.updated_at` — coluna + trigger
+
+A tabela `teacher_payments` era a única do schema acadêmico/financeiro SEM `updated_at`
+e SEM trigger, mesmo tendo um endpoint PATCH que modifica registros.
+
+- Adicionada coluna `updated_at timestamptz not null default now()` na definição da tabela
+- Adicionado trigger `teacher_payments_set_updated_at`
+- Migration 056 criada para audit trail
+
+### 2. 🔴 RLS Deny Policies consolidadas nos schemas
+
+As migrations 052 (RLS deny anon) e 054 (products low stock index) foram incorporadas
+diretamente nos arquivos de schema, eliminando a dependência de migrations externas
+para a definição completa do banco:
+
+| Schema | Tabelas cobertas |
+|--------|-----------------|
+| `schema.sql` | `orders`, `products` |
+| `financial-schema.sql` | `students`, `teachers`, `enrollments`, `tuitions`, `payments`, `expenses`, `investments`, `teacher_payments`, `lessons`, `attendance` |
+
+Cada policy usa `drop policy if exists` + `create policy .. for all to anon using (false)`
+— defense-in-depth contra exposição acidental da anon key.
+
+### 3. 🟡 Comentário `PR-XXXXXX` corrigido para `TE-XXXXXX`
+
+O comentário na coluna `teachers.id` estava incorreto (`PR-XXXXXX` em vez de `TE-XXXXXX`).
+Corrigido para refletir o padrão real usado pelo `genId('TE')`.
+
+### 4. 🟡 `reset-dev.sql` simplificado
+
+- Migration 052 removida (já consolidada nos schemas)
+- Migration 054 removida (já consolidada no `schema.sql`)
+- Migration 056 adicionada (redundante se schema foi executado, mas serve como audit trail)
+- Migration 055 mantida (data migration — limpeza de máscaras legadas)
+
+### 5. ⚪ `earned_xp` NÃO removido
+
+O campo `orders.earned_xp` não foi removido porque ainda é usado em:
+- `api/create-payment.js` — criação de pedidos
+- `api/notify-new-order.js` — notificação por email
+- `app/src/types.ts` — tipo Order
+
+## Arquivos Alterados/Criados
+
+| Arquivo | Ação |
+|---------|------|
+| `supabase/financial-schema.sql` | 🔧 Comentário `TE-XXXXXX` + `updated_at` + trigger + RLS deny DO block |
+| `supabase/schema.sql` | 🔧 RLS deny DO block (orders, products) |
+| `supabase/migrations/056-add-teacher-payments-updated-at.sql` | 🔵 **Criado** — migration de audit trail |
+| `supabase/reset-dev.sql` | 🔧 052/054 removidos, 056 adicionado, comentário explicativo |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado sem issues críticas (idempotente, sem duplicação de políticas)
 
 ---
 

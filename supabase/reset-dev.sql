@@ -32,32 +32,10 @@ DELETE FROM teachers;
 -- 2. MIGRAÇÕES PENDENTES (idempotentes — podem rodar múltiplas vezes)
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- ── Migration 052: RLS deny policies para anon (defense-in-depth) ────────
-
-do $$
-declare
-    t text;
-begin
-    foreach t in array array[
-        'students','teachers','enrollments','tuitions','payments',
-        'expenses','investments','lessons','attendance','teacher_payments',
-        'orders','products'
-    ] loop
-        execute format('drop policy if exists "deny_anon_%s" on public.%I', t, t);
-        execute format(
-            'create policy "deny_anon_%s" on public.%I for all to anon using (false)',
-            t, t
-        );
-    end loop;
-end $$;
-
--- ── Migration 054: Índice parcial products_low_stock_idx ─────────────────
-
-create index if not exists products_low_stock_idx
-    on public.products (stock)
-    where active = true;
-
 -- ── Migration 055: Limpeza de máscaras CPF/telefone legadas ──────────────
+-- Nota: migrations 052 (RLS deny) e 054 (products_low_stock_idx) foram
+-- consolidadas diretamente nos schemas (schema.sql + financial-schema.sql)
+-- e NÃO precisam mais ser executadas aqui.
 
 update public.students
 set
@@ -76,6 +54,21 @@ where cpf ~ '\D' or phone ~ '\D';
 update public.orders
 set customer_phone = regexp_replace(customer_phone, '\D', '', 'g')
 where customer_phone ~ '\D';
+
+-- ── Migration 056: teacher_payments.updated_at ──────────────────────────
+
+alter table public.teacher_payments
+    add column if not exists updated_at timestamptz not null default now();
+
+update public.teacher_payments
+    set updated_at = created_at
+    where updated_at is null;
+
+drop trigger if exists teacher_payments_set_updated_at on public.teacher_payments;
+create trigger teacher_payments_set_updated_at
+    before update on public.teacher_payments
+    for each row
+    execute function public.set_updated_at();
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 3. SEED COMPLETO — PROFESSORES

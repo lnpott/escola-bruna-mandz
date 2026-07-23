@@ -142,6 +142,26 @@ create trigger products_set_updated_at
 alter table public.products enable row level security;
 
 -- ═══════════════════════════════════════════════════════════════════════════
+-- RLS: Deny policies para role anon (defense-in-depth)
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Abrange orders e products.
+-- Idempotente: pode rodar múltiplas vezes.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+do $$
+declare
+    t text;
+begin
+    foreach t in array array['orders', 'products'] loop
+        execute format('drop policy if exists "deny_anon_%s" on public.%I', t, t);
+        execute format(
+            'create policy "deny_anon_%s" on public.%I for all to anon using (false)',
+            t, t
+        );
+    end loop;
+end $$;
+
+-- ═══════════════════════════════════════════════════════════════════════════
 -- Storage: Bucket de Imagens de Produtos
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Criação manual no painel do Supabase:
