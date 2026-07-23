@@ -86,6 +86,11 @@ create trigger teachers_set_updated_at
     for each row
     execute function public.set_updated_at();
 
+-- Índices para performance (adicionados na migration 057)
+create index if not exists teachers_name_idx on public.teachers (name);
+create index if not exists teachers_active_idx on public.teachers (active)
+    where active = true;
+
 alter table public.teachers enable row level security;
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -101,6 +106,8 @@ create table if not exists public.enrollments (
     teacher_id text references public.teachers(id) on delete set null,
     instrument text,
     day_of_week text,                       -- 'seg' | 'ter' | 'qua' | 'qui' | 'sex' | 'sab' | 'dom'
+        constraint enrollments_day_of_week_check
+        check (day_of_week in ('seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom')),
     class_time text,                        -- formato 'HH:MM'
     duration_minutes integer not null default 60,
     classes_per_week integer not null default 1,
