@@ -135,6 +135,21 @@ export default function Students() {
     const [form, setForm] = useState<StudentForm>(emptyForm);
     const [saving, setSaving] = useState(false);
     const [wizardStep, setWizardStep] = useState<WizardStep>(1);
+    const [cpfErrors, setCpfErrors] = useState<{ cpf?: string; guardian_cpf?: string }>({});
+
+    // ── CPF validation helpers ────────────────────────────────
+    function getCpfError(value: string): string | undefined {
+        if (!value) return undefined; // campo opcional
+        const result = validateCPF(value);
+        return result.valid ? undefined : result.message;
+    }
+
+    function updateCpfErrors(cpf: string, guardianCpf: string) {
+        setCpfErrors({
+            cpf: getCpfError(cpf),
+            guardian_cpf: getCpfError(guardianCpf),
+        });
+    }
 
     // ── Wizard helpers ─────────────────────────────────────────
     const WIZARD_STEPS: { step: WizardStep; label: string }[] = [
@@ -270,6 +285,7 @@ export default function Students() {
             enroll_billing_type: 'monthly',
         });
         setEditingId(student.id);
+        setCpfErrors({});
         setShowModal(true);
     }
 
@@ -277,10 +293,21 @@ export default function Students() {
         setShowModal(false);
         setForm(emptyForm);
         setEditingId(null);
+        setCpfErrors({});
     }
 
     function updateField<K extends keyof StudentForm>(key: K, value: StudentForm[K]) {
-        setForm((prev) => ({ ...prev, [key]: value }));
+        setForm((prev) => {
+            const next = { ...prev, [key]: value } as StudentForm;
+            // Live CPF validation on keystroke
+            if (key === 'cpf' || key === 'guardian_cpf') {
+                setCpfErrors({
+                    cpf: key === 'cpf' ? getCpfError(value as string) : getCpfError(prev.cpf),
+                    guardian_cpf: key === 'guardian_cpf' ? getCpfError(value as string) : getCpfError(prev.guardian_cpf),
+                });
+            }
+            return next;
+        });
     }
 
     async function handleWizardSave() {
@@ -300,6 +327,7 @@ export default function Students() {
 
         setSaving(true);
         try {
+
             const wizardKeys = ['wizard_already_enrolled', 'wizard_enroll_instrument', 'wizard_has_teacher', 'wizard_schedule_first', 'wizard_first_lesson_date', 'wizard_first_lesson_time', 'enroll_teacher_id', 'enroll_day_of_week', 'enroll_class_time', 'enroll_duration', 'enroll_monthly_fee', 'enroll_billing_type'] as const;
             const studentPayload = Object.fromEntries(
                 Object.entries(form).filter(([k]) => !wizardKeys.includes(k as any))
@@ -568,8 +596,14 @@ export default function Students() {
                                         </div>
                                         <div className="form-field">
                                             <label>CPF</label>
-                                            <input type="text" placeholder="000.000.000-00" value={form.cpf}
-                                                onChange={(e) => updateField('cpf', maskCPF(e.target.value))} maxLength={14} />
+                                            <div className="input-with-validation">
+                                                <input type="text" placeholder="000.000.000-00" value={form.cpf}
+                                                    onChange={(e) => updateField('cpf', maskCPF(e.target.value))} maxLength={14}
+                                                    className={form.cpf ? (cpfErrors.cpf ? 'input-error' : 'input-valid') : ''} />
+                                                {form.cpf && cpfErrors.cpf && <span className="validation-icon validation-error" title={cpfErrors.cpf}>❌</span>}
+                                                {form.cpf && !cpfErrors.cpf && <span className="validation-icon validation-ok">✅</span>}
+                                            </div>
+                                            {cpfErrors.cpf && <span className="field-error">{cpfErrors.cpf}</span>}
                                         </div>
                                         <div className="form-field">
                                             <label>E-mail</label>
@@ -629,8 +663,14 @@ export default function Students() {
                                             </div>
                                             <div className="form-field">
                                                 <label>CPF</label>
-                                                <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
-                                                    onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))} maxLength={14} />
+                                                <div className="input-with-validation">
+                                                    <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
+                                                        onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))} maxLength={14}
+                                                        className={form.guardian_cpf ? (cpfErrors.guardian_cpf ? 'input-error' : 'input-valid') : ''} />
+                                                    {form.guardian_cpf && cpfErrors.guardian_cpf && <span className="validation-icon validation-error" title={cpfErrors.guardian_cpf}>❌</span>}
+                                                    {form.guardian_cpf && !cpfErrors.guardian_cpf && <span className="validation-icon validation-ok">✅</span>}
+                                                </div>
+                                                {cpfErrors.guardian_cpf && <span className="field-error">{cpfErrors.guardian_cpf}</span>}
                                             </div>
                                             <div className="form-field">
                                                 <label>Telefone</label>
@@ -662,9 +702,15 @@ export default function Students() {
                                                 </div>
                                                 <div className="form-field">
                                                     <label>CPF</label>
-                                                    <input type="text" placeholder="000.000.000-00" value={form.cpf}
-                                                        onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
-                                                        maxLength={14} />
+                                                    <div className="input-with-validation">
+                                                        <input type="text" placeholder="000.000.000-00" value={form.cpf}
+                                                            onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
+                                                            maxLength={14}
+                                                            className={form.cpf ? (cpfErrors.cpf ? 'input-error' : 'input-valid') : ''} />
+                                                        {form.cpf && cpfErrors.cpf && <span className="validation-icon validation-error" title={cpfErrors.cpf}>❌</span>}
+                                                        {form.cpf && !cpfErrors.cpf && <span className="validation-icon validation-ok">✅</span>}
+                                                    </div>
+                                                    {cpfErrors.cpf && <span className="field-error">{cpfErrors.cpf}</span>}
                                                 </div>
                                                 <div className="form-field">
                                                     <label>E-mail</label>
@@ -700,9 +746,15 @@ export default function Students() {
                                                     </div>
                                                     <div className="form-field">
                                                         <label>CPF</label>
-                                                    <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
-                                                        onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))}
-                                                        maxLength={14} />
+                                                        <div className="input-with-validation">
+                                                        <input type="text" placeholder="000.000.000-00" value={form.guardian_cpf}
+                                                            onChange={(e) => updateField('guardian_cpf', maskCPF(e.target.value))}
+                                                            maxLength={14}
+                                                            className={form.guardian_cpf ? (cpfErrors.guardian_cpf ? 'input-error' : 'input-valid') : ''} />
+                                                        {form.guardian_cpf && cpfErrors.guardian_cpf && <span className="validation-icon validation-error" title={cpfErrors.guardian_cpf}>❌</span>}
+                                                        {form.guardian_cpf && !cpfErrors.guardian_cpf && <span className="validation-icon validation-ok">✅</span>}
+                                                        </div>
+                                                        {cpfErrors.guardian_cpf && <span className="field-error">{cpfErrors.guardian_cpf}</span>}
                                                     </div>
                                                     <div className="form-field">
                                                         <label>Telefone</label>

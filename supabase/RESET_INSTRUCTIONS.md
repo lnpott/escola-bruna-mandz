@@ -9,7 +9,20 @@ Execute em ordem no SQL Editor do Supabase:
 
 ## Reset de dados (manutenção ou recriação frequente)
 
-**Apenas** `supabase/reset-dev.sql` — um único arquivo que:
+### Opção 1: CLI (recomendado)
+
+```bash
+npm run db:reset
+```
+
+Automatiza tudo via Supabase Management API. Lê os SQLs na ordem correta e
+envia ao Supabase em chunks. Pré-requisito:
+- `SUPABASE_ACCESS_TOKEN` no `.env` (gerar em https://app.supabase.com/account/tokens)
+
+### Opção 2: SQL Editor manual
+
+Execute **apenas** `supabase/reset-dev.sql` no SQL Editor do Supabase —
+um único arquivo que:
 
 1. **Limpa** todos os dados existentes (FK-safe order: filhos antes dos pais)
 2. **Aplica** migrations pendentes: RLS deny anon (052), índice estoque baixo (054),

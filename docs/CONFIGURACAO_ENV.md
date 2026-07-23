@@ -6,6 +6,7 @@ Copie este conteúdo para um arquivo chamado `.env` na raiz do projeto:
 ```env
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=service_role_key_do_projeto
+SUPABASE_ACCESS_TOKEN=seu_personal_access_token_do_supabase
 MERCADO_PAGO_ACCESS_TOKEN=seu_access_token_do_mp
 MERCADO_PAGO_PUBLIC_KEY=seu_public_key_do_mp
 ADMIN_PASSWORD=sua_senha_forte
@@ -20,6 +21,8 @@ MP_WEBHOOK_SECRET=<segredo gerado pelo Mercado Pago para validar assinatura do w
 - Crie o projeto no Supabase.
 - Abra o SQL Editor e rode o conteúdo de [supabase/schema.sql](supabase/schema.sql).
 - Copie a URL do projeto e a `service_role` key.
+- Gere um Personal Access Token em **Account > Access Tokens**.
+  Adicione como `SUPABASE_ACCESS_TOKEN` no `.env` (necessário para `npm run db:reset`).
 
 ## 3) Mercado Pago
 - Crie uma integração no Mercado Pago.

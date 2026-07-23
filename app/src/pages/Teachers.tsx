@@ -46,6 +46,13 @@ export default function Teachers() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<TeacherForm>(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [cpfError, setCpfError] = useState<string | undefined>(undefined);
+
+    function getCpfError(value: string): string | undefined {
+        if (!value) return undefined;
+        const result = validateCPF(value);
+        return result.valid ? undefined : result.message;
+    }
 
     const load = useCallback(async () => {
         try {
@@ -125,6 +132,7 @@ export default function Teachers() {
             days_of_week: days,
         });
         setEditingId(teacher.id);
+        setCpfError(undefined);
         setShowModal(true);
     }
 
@@ -132,10 +140,17 @@ export default function Teachers() {
         setShowModal(false);
         setForm(emptyForm);
         setEditingId(null);
+        setCpfError(undefined);
     }
 
     function updateField<K extends keyof TeacherForm>(key: K, value: TeacherForm[K]) {
-        setForm((prev) => ({ ...prev, [key]: value }));
+        setForm((prev) => {
+            const next = { ...prev, [key]: value } as TeacherForm;
+            if (key === 'cpf') {
+                setCpfError(getCpfError(value as string));
+            }
+            return next;
+        });
     }
 
     function toggleDay(day: string) {
@@ -303,13 +318,19 @@ export default function Teachers() {
 
                                 <div className="form-field">
                                     <label>CPF</label>
-                                    <input
-                                        type="text"
-                                        placeholder="000.000.000-00"
-                                        value={form.cpf}
-                                        onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
-                                        maxLength={14}
-                                    />
+                                    <div className="input-with-validation">
+                                        <input
+                                            type="text"
+                                            placeholder="000.000.000-00"
+                                            value={form.cpf}
+                                            onChange={(e) => updateField('cpf', maskCPF(e.target.value))}
+                                            maxLength={14}
+                                            className={form.cpf ? (cpfError ? 'input-error' : 'input-valid') : ''}
+                                        />
+                                        {form.cpf && cpfError && <span className="validation-icon validation-error" title={cpfError}>❌</span>}
+                                        {form.cpf && !cpfError && <span className="validation-icon validation-ok">✅</span>}
+                                    </div>
+                                    {cpfError && <span className="field-error">{cpfError}</span>}
                                 </div>
 
                                 <div className="form-field">

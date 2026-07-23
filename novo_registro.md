@@ -37,15 +37,16 @@
 | [106](#etapa-106--modularização-frontend-erp--utilitários-de-exportação) | 22/07 | Modularização frontend ERP + utilitários de exportação CSV/PDF | 🟢 Feature/Refactor |
 | [107](#etapa-107--conclusão-do-plano-de-melhorias-do-erp) | 22/07 | Conclusão do Plano ERP: busca/paginação server-side, CSV e KPI cards | 🟢 Feature/Refactor |
 | [108](#etapa-108--normalização-de-cpftelefone--seed-robusto--script-de-reset) | 23/07 | Normalização CPF/telefone, seed robusto, script de reset | 🟢 Feature |
+| [109](#etapa-109--validação-cpf-inline--script-dbreset--ci-pipeline) | 23/07 | Validação CPF inline + script db:reset + CI pipeline | 🟢 Feature |
 
 ---
 
-## Estatísticas do Período (Etapas 96–108)
+## Estatísticas do Período (Etapas 96–109)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 13 (96–108) |
-| **Commits** | 32+ (total do projeto) |
+| **Etapas** | 14 (96–109) |
+| **Commits** | 33+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
 ---
@@ -174,6 +175,102 @@ Workflow:
 
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38 testes, 3 arquivos, todos passando
+- ✅ Code review — aprovado sem issues críticas
+
+---
+
+# ETAPA 109 — Validação CPF Inline + Script db:reset + CI Pipeline
+
+**Data:** 23/07/2026
+
+---
+
+## Objetivo
+
+Adicionar validação de CPF inline (✅/❌ em tempo real) nos formulários de Alunos e Professores,
+criar script Node.js para reset automatizado do banco via Supabase Management API, e configurar
+pipeline de CI no GitHub Actions.
+
+## Implementações
+
+### 1. Validação CPF Inline no Frontend
+
+Indicador visual em tempo real nos campos de CPF dos formulários:
+
+| Formulário | Campos validados |
+|-----------|-----------------|
+| Alunos — Edição | CPF do aluno + CPF do responsável |
+| Alunos — Wizard (Novo) | CPF do aluno + CPF do responsável |
+| Professores | CPF do professor |
+
+**Como funciona:**
+1. Cada keystroke valida os dígitos verificadores via `validateCPF()`
+2. Campo vazio (opcional): nenhum indicador — só mostra validação quando há valor
+3. ✅ Válido: borda verde + glow sutil + ícone ✅
+4. ❌ Inválido: borda vermelha + glow + ícone ❌ + mensagem de erro abaixo do campo
+5. Ao salvar: re-valida como garantia extra, bloqueia o submit se inválido
+
+| Arquivo | Mudanças |
+|---------|----------|
+| `app/src/pages/Students.tsx` | Estado `cpfErrors`, helper `getCpfError`, live validation em `updateField`, ✅/❌ nos 4 campos CPF |
+| `app/src/pages/Teachers.tsx` | Estado `cpfError`, helper `getCpfError`, live validation, ✅/❌ no campo CPF |
+| `app/src/styles/global.css` | Classes `.input-with-validation`, `.input-error`, `.input-valid`, `.validation-icon`, `.field-error` |
+
+### 2. Script `npm run db:reset`
+
+`scripts/db-reset.js` — automatiza o reset completo do banco de desenvolvimento:
+
+1. Lê `.env` manualmente (sem dotenv, mesmo padrão do `server-dev.js`)
+2. Extrai o project ref da `SUPABASE_URL`
+3. Lê 4 arquivos SQL na ordem: `schema.sql` → `financial-schema.sql` → `reset-dev.sql` → `seed-products.sql`
+4. Envia para Supabase Management API (`POST /v1/projects/{ref}/database/query`)
+5. Chunks de 400KB (limite da API ~500KB)
+6. Reporta resultados com tratamento de erros detalhado
+
+| Arquivo | Ação |
+|---------|------|
+| `scripts/db-reset.js` | 🔵 Criado — ~200 linhas |
+| `package.json` | 🔧 Adicionado `"db:reset": "node scripts/db-reset.js"` |
+| `docs/CONFIGURACAO_ENV.md` | 🔧 Adicionado `SUPABASE_ACCESS_TOKEN` às env vars |
+| `supabase/RESET_INSTRUCTIONS.md` | 🔧 Adicionada opção CLI com `npm run db:reset` |
+
+**Setup necessário:**
+```env
+SUPABASE_ACCESS_TOKEN=seu_token_aqui
+```
+Gerar em: https://app.supabase.com/account/tokens → "Generate New Token"
+
+### 3. CI Pipeline (GitHub Actions)
+
+`.github/workflows/ci.yml` — dispara em todo push e pull request para `main`:
+
+| Etapa | O que executa | Timeout |
+|------|--------------|---------|
+| `npm ci` | Instala dependências (reprodutível via lockfile) | 5 min |
+| `npx vitest run` | **38 testes**: formatters, FinancialSummaryCards, StudentFilterBar | 5 min |
+| `npm run lint` | ESLint — **bloqueante** (falha se lint falhar) | 3 min |
+
+| Arquivo | Ação |
+|---------|------|
+| `.github/workflows/ci.yml` | 🔵 Criado — 30 linhas |
+
+## Arquivos Alterados/Criados
+
+| Arquivo | Ação |
+|---------|------|
+| `app/src/pages/Students.tsx` | 🔧 Validação CPF inline (✅/❌) nos 4 campos |
+| `app/src/pages/Teachers.tsx` | 🔧 Validação CPF inline (✅/❌) no campo CPF |
+| `app/src/styles/global.css` | 🔧 Classes de validação visual (input-error, input-valid, etc.) |
+| `scripts/db-reset.js` | 🔵 Criado — script db:reset via Management API |
+| `package.json` | 🔧 Adicionado `db:reset` script |
+| `docs/CONFIGURACAO_ENV.md` | 🔧 SUPABASE_ACCESS_TOKEN documentado |
+| `supabase/RESET_INSTRUCTIONS.md` | 🔧 Opção CLI adicionada |
+| `.github/workflows/ci.yml` | 🔵 Criado — CI pipeline |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
 - ✅ Code review — aprovado sem issues críticas
 
 ---

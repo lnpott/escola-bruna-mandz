@@ -10,6 +10,7 @@
         "lint": "eslint .",
         "test": "node --test",
     "test:ui": "vitest run",
+    "db:reset": "node scripts/db-reset.js",
         "format": "prettier --write \"**/*.{js,html,css,json}\""
     },
     "dependencies": {
