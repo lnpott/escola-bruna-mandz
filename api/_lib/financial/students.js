@@ -19,17 +19,18 @@ export async function handleStudents(req, res, supabase) {
 
     if (method === 'GET') {
         const { limit, offset } = parsePagination(req);
-        const { status, id } = req.query;
+        const { status, id, search } = req.query;
         let q = supabase
             .from('students')
-            .select('*')
+            .select('*', { count: 'exact' })
             .order('name', { ascending: true })
             .range(offset, offset + limit - 1);
         if (id) q = q.eq('id', id);
         if (status) q = q.eq('status', status);
-        const { data, error } = await q;
+        if (search) q = q.ilike('name', `%${search}%`);
+        const { data, count, error } = await q;
         if (error) throw error;
-        return res.status(200).json({ students: data });
+        return res.status(200).json({ students: data, count: count ?? (data?.length || 0) });
     }
 
     if (method === 'POST') {

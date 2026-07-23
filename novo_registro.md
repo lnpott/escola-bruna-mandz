@@ -8,6 +8,16 @@
 >
 > Novas etapas devem ser adicionadas **apenas** neste arquivo.
 
+# 🎯 Registro de Desenvolvimento — Escola de Música Bruna Mandz
+
+> **Documento ativo** contendo as **10 últimas modificações** (Etapas 96–105).
+> Criado em 22/07/2026 a partir do registro completo original.
+>
+> **Etapas 44–95** foram movidas para `backup/historico_etapas.md` (referência histórica).
+> **Etapas 1–43** permanecem preservadas em `painel_registro.md` (arquivado na raiz).
+>
+> Novas etapas devem ser adicionadas **apenas** neste arquivo.
+
 ---
 
 ## Índice
@@ -24,18 +34,18 @@
 | [103](#etapa-103--correção-do-arquivo-de-registro-novo_registromd) | 22/07 | Correção do arquivo novo_registro.md (encoding + etapas faltantes) | 🛠️ Fix |
 | [104](#etapa-104--preservação-atômica-de-id-regras-de-documentação--plano-erp) | 22/07 | Preservação atômica de ID, regra de dev log e plano ERP | 🟢 Feature/Fix |
 | [105](#etapa-105--restauração-do-registro-e-arquivamento-do-novo_corrigidomd) | 22/07 | Restauração do registro + arquivamento do NOVO_CORRIGIDO.md | 🛠️ Fix |
+| [106](#etapa-106--modularização-frontend-erp--utilitários-de-exportação) | 22/07 | Modularização frontend ERP + utilitários de exportação CSV/PDF | 🟢 Feature/Refactor |
+| [107](#etapa-107--conclusão-do-plano-de-melhorias-do-erp) | 22/07 | Conclusão do Plano ERP: busca/paginação server-side, CSV e KPI cards | 🟢 Feature/Refactor |
 
 ---
 
-## Estatísticas do Período (Etapas 96–105)
+## Estatísticas do Período (Etapas 96–107)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 10 (96–105) |
+| **Etapas** | 12 (96–107) |
 | **Commits** | 31+ (total do projeto) |
 | **Período** | 19/07/2026 — 22/07/2026 (4 dias) |
-| **Total de linhas do documento** | ~510 |
-| **Decisões do usuário respondidas** | — |
 
 ---
 
@@ -550,3 +560,63 @@ No commit `a6a21a2` (Etapa 104), o `novo_registro.md` foi drasticamente simplifi
 
 - ? `npm run build` — sem regressão
 - ? `npm test` — 103/103 passando
+
+---
+
+# ETAPA 106 — Modularização Frontend ERP & Utilitários de Exportação
+
+**Data:** 22/07/2026 | **Commits:** — (na main)
+
+---
+
+## Objetivo
+
+Iniciar a execução do Plano de Melhoria do ERP (`implementation_plan.md`), focando na Fase 1 (Modularização de Componentes React) e Fase 3 (Utilitários de Exportação CSV/PDF).
+
+## Implementações Realizadas
+
+### 1. Utilitário de Exportação (`app/src/utils/exportUtils.ts`)
+- Criado o módulo [exportUtils.ts](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/app/src/utils/exportUtils.ts) para conversão dinâmica de arrays de objetos em arquivos `.csv` com marcador de codificação UTF-8 BOM (`\uFEFF`), garantindo compatibilidade nativa com Microsoft Excel.
+- Adicionada função `printReport()` acionando a API de impressão do navegador para relatórios.
+
+### 2. Componentes Específicos do Módulo Financeiro (`app/src/components/financial/`)
+- Criado [FinancialSummaryCards.tsx](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/app/src/components/financial/FinancialSummaryCards.tsx) para encapsular a renderização isolada dos cards de receitas, despesas, saldo e mensalidades pendentes.
+
+### 3. Componentes Específicos do Módulo Acadêmico (`app/src/components/students/`)
+- Criado [StudentFilterBar.tsx](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/app/src/components/students/StudentFilterBar.tsx) para encapsular o campo de busca de alunos, seletores de filtro por status e gatilhos de exportação/cadastro.
+
+## Testes & Validação
+
+- 103 testes automatizados executados via `npm test` com **100% de aprovação** (passando testes unitários e testes de integração HTTP).
+- Compilação do projeto verificada via `npm run build` sem erros ou avisos de bundling.
+
+---
+
+# ETAPA 107 — Conclusão do Plano de Melhorias do ERP
+
+**Data:** 22/07/2026 | **Commits:** — (na main)
+
+---
+
+## Objetivo
+
+Finalizar a execução completa do Plano de Melhorias do ERP (`implementation_plan.md`), abrangendo paginação server-side com suporte a busca, exportação CSV com suporte a acentuação e integração de componentes modularizados.
+
+## Implementações Realizadas
+
+### 1. Paginação Server-Side & Busca (`api/_lib/financial/students.js`)
+- Adicionada busca `ilike` por nome de aluno e parâmetro `search` no endpoint `GET /api/admin-financial?resource=students`.
+- Retorno da contagem exata (`count: exact`) para gerenciamento dinamizado de paginação.
+
+### 2. Exportação CSV e Integração de Hooks (`Students.tsx`)
+- Refatorada a função `exportCSV` em `Students.tsx` para consumir a função reutilizável `exportToCSV` com codificação BOM UTF-8 e feedback via `showToast`.
+
+### 3. Integração de Componentes Modularizados (`Financial.tsx`)
+- Integrado o componente [FinancialSummaryCards.tsx](file:///c:/Users/lnpot/OneDrive/Documentos/site-escola/app/src/components/financial/FinancialSummaryCards.tsx) na página `Financial.tsx`, eliminando duplicação de marcação HTML e padronizando a exibição dos indicadores de receita, custos e saldo.
+
+## Testes & Validação
+
+- 103 testes automatizados executados via `npm test` obtendo **100% de aprovação**.
+- Compilação executada via `npm run build` gerando o pacote de produção sem nenhum erro.
+
+

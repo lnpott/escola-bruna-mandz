@@ -11,6 +11,7 @@ import {
     SOURCE_LABELS,
 } from '@/types';
 import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchTeachers, createEnrollment } from '@/services/api';
+import { exportToCSV } from '@/utils/exportUtils';
 import '@/styles/students.css';
 
 const STATUS_OPTIONS: { value: StudentStatus; label: string }[] = [
@@ -382,30 +383,22 @@ export default function Students() {
         }
     }
 
-    // ── CSV Export ─────────────────────────────────────────
     function exportCSV() {
-        const header = 'Nome,CPF,E-mail,Telefone,Instrumento,Status,Origem,Responsável';
-        const rows = filtered.map(s => [
-            s.name,
-            s.cpf || '',
-            s.email || '',
-            s.phone || '',
-            (s.instruments || '').replace(/,/g, ';'),
-            STATUS_LABELS[s.status] || s.status,
-            s.source ? SOURCE_LABELS[s.source] || s.source : '',
-            s.guardian_name || '',
-        ].join(',')).join('\n');
-
-        const bom = '\uFEFF';
-        const blob = new Blob([bom + header + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `alunos-${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (!filtered.length) return;
+        exportToCSV(
+            `alunos_${new Date().toISOString().slice(0, 10)}.csv`,
+            [
+                { key: 'name', label: 'Nome' },
+                { key: 'cpf', label: 'CPF' },
+                { key: 'email', label: 'E-mail' },
+                { key: 'phone', label: 'Telefone' },
+                { key: 'instruments', label: 'Instrumentos' },
+                { key: 'status', label: 'Status' },
+                { key: 'source', label: 'Origem' },
+            ],
+            filtered as unknown as Record<string, unknown>[]
+        );
+        showToast('Lista de alunos exportada com sucesso!');
     }
 
     // ── Render ───────────────────────────────────────────────

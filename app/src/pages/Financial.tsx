@@ -19,6 +19,8 @@ import type {
 } from '@/types';
 import { MONTH_NAMES } from '@/types';
 import { IconFileText, IconTrendingDown, IconTrendingUp, IconUsers, IconDollarSign, IconCalendar, IconSearch, IconRefresh, IconPlus, IconEdit, IconTrash, IconCheckCircle, IconXCircle, IconPrinter, IconLightbulb } from '@/components/Icons';
+import { FinancialSummaryCards } from '@/components/financial/FinancialSummaryCards';
+import { exportToCSV, printReport } from '@/utils/exportUtils';
 import '@/styles/financial.css';
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -441,53 +443,19 @@ export default function Financial() {
             {loading && !summary && (
                 <div className="loading">Carregando indicadores...</div>
             )}
+            {/* ── Summary Cards ───────────────────────────────────── */}
+            {summary && (
+                <FinancialSummaryCards
+                    income={summary.incomings}
+                    expenses={summary.outgoings}
+                    balance={summary.balance}
+                    pendingCount={summary.overdue_students}
+                />
+            )}
             {error && (
                 <div className="error-banner" onClick={() => setError('')}>{error}</div>
             )}
-            {summary && (
-                <div className="fin-kpi-grid">
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">Recebido no Mês</div>
-                            <div className="fin-kpi-value good">{formatCurrency(summary.revenue)}</div>
-                        </div>
-                    </div>
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">Pago no Mês</div>
-                            <div className="fin-kpi-value warn">{formatCurrency(summary.outgoings)}</div>
-                        </div>
-                    </div>
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">Saldo do Mês</div>
-                            <div className={`fin-kpi-value ${summary.balance >= 0 ? 'good' : 'bad'}`}>
-                                {formatCurrency(summary.balance)}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">Pendentes (Mensalidades)</div>
-                            <div className="fin-kpi-value warn">{formatCurrency(summary.pending_tuitions)}</div>
-                        </div>
-                    </div>
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">Alunos em Atraso</div>
-                            <div className={`fin-kpi-value ${summary.overdue_students > 0 ? 'bad' : 'good'}`}>
-                                {summary.overdue_students}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="fin-kpi-card bezel-shell">
-                        <div className="bezel-core">
-                            <div className="fin-kpi-label">A Pagar (Professores)</div>
-                            <div className="fin-kpi-value warn">{formatCurrency(summary.pending_teacher_payments)}</div>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* Sub-tabs */}
             <div className="fin-sub-nav">
