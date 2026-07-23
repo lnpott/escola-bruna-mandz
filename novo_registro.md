@@ -40,15 +40,16 @@
 | [109](#etapa-109--validação-cpf-inline--script-dbreset--ci-pipeline) | 23/07 | Validação CPF inline + script db:reset + CI pipeline | 🟢 Feature |
 | [110](#etapa-110--correção-do-fluxo-matrícula--agenda--marcação-de-presença) | 23/07 | Correção matrícula→agenda→marcação de presença (4 bugs) | 🐛 Fix |
 | [111](#etapa-111--consolidação-do-schema-sql--rls-no-schema--teacher_payments-updated_at) | 23/07 | Consolidação schemas SQL + RLS + teacher_payments updated_at | 🟢 Feature |
+| [112](#etapa-112--índices-em-teachers--check-constraint-day_of_week-harden-not-valid) | 23/07 | Índices em teachers + CHECK constraint day_of_week (NOT VALID) | 🟢 Feature |
 
 ---
 
-## Estatísticas do Período (Etapas 96–111)
+## Estatísticas do Período (Etapas 96–112)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 15 (96–110) |
-| **Commits** | 34+ (total do projeto) |
+| **Etapas** | 16 (96–111) |
+| **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
 ---
@@ -350,6 +351,71 @@ cria N semanas de aulas no dia da semana correto, pulando conflitos de horário 
 | StudentDetail fazia N+1 queries de attendance | 🟡 Médio | Criado `fetchAttendanceByStudent()` (chamada única) |
 | StudentDetail fetchava lessons duas vezes | 🟡 Médio | Reaproveitado `fetchLessonsByStudent` |
 | Variável `lessons = []` morta | ⚪ Menor | Removida |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado sem issues
+
+---
+
+# ETAPA 112 — Índices em teachers + CHECK constraint day_of_week (harden NOT VALID)
+
+**Data:** 23/07/2026
+
+---
+
+## Objetivo
+
+Aplicar as correções recomendadas pela auditoria de boas práticas Postgres:
+adicionar índices na tabela `teachers` (única sem nenhum índice) e CHECK constraint
+em `enrollments.day_of_week` com proteção `NOT VALID` contra dados legados.
+
+## Contexto
+
+A auditoria baseada no skill **Supabase Postgres Best Practices** encontrou:
+
+| Categoria | Achado | Severidade |
+|-----------|--------|:----------:|
+| Query Performance | `teachers` sem nenhum índice — sequential scan em `.order('name')` | 🔴 CRÍTICO |
+| Schema Design | `enrollments.day_of_week` sem CHECK constraint — qualquer texto aceito | 🟡 MÉDIO |
+
+## Correções Aplicadas
+
+### 1. 🔴 Índices em `teachers` (2)
+
+| Índice | Tipo | Query que cobre |
+|--------|------|----------------|
+| `teachers_name_idx` | B-tree em `name` | `.order('name')` no GET /teachers |
+| `teachers_active_idx` | Partial (`WHERE active = true`) | Filtro de professores ativos |
+
+### 2. 🟡 CHECK constraint em `enrollments.day_of_week`
+
+```sql
+constraint enrollments_day_of_week_check
+    check (day_of_week in ('seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'))
+    not valid
+```
+
+Usa `NOT VALID` para:
+- ✅ Não falhar se houver dados legados com valores inválidos
+- ✅ Validar apenas novos inserts/updates
+- ✅ Pode-se validar depois com `ALTER TABLE ... VALIDATE CONSTRAINT`
+
+## Harden aplicado pós-code-review
+
+O revisor apontou que se houvesse dados legados com `day_of_week` inválido, o
+`ALTER TABLE ... ADD CONSTRAINT` falharia. Foi adicionado `NOT VALID` na migration
+057 e no `reset-dev.sql` para proteção.
+
+## Arquivos Alterados/Criados
+
+| Arquivo | Ação |
+|---------|------|
+| `supabase/financial-schema.sql` | 🔧 2 índices + CHECK inline adicionados |
+| `supabase/migrations/057-add-teachers-indexes-and-enrollments-constraint.sql` | 🔧 NOT VALID adicionado |
+| `supabase/reset-dev.sql` | 🔧 NOT VALID adicionado |
 
 ## Testes & Validação
 

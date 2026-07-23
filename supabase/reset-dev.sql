@@ -70,6 +70,27 @@ create trigger teacher_payments_set_updated_at
     for each row
     execute function public.set_updated_at();
 
+-- ── Migration 057: Índices em teachers + CHECK constraint day_of_week ──
+
+create index if not exists teachers_name_idx on public.teachers (name);
+create index if not exists teachers_active_idx on public.teachers (active)
+    where active = true;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_constraint
+        where conname = 'enrollments_day_of_week_check'
+          and conrelid = 'public.enrollments'::regclass
+    ) then
+        -- NOT VALID: não verifica linhas existentes, só novas inserts/updates
+        alter table public.enrollments
+            add constraint enrollments_day_of_week_check
+            check (day_of_week in ('seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'))
+            not valid;
+    end if;
+end $$;
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 3. SEED COMPLETO — PROFESSORES
 -- ═══════════════════════════════════════════════════════════════════════════
