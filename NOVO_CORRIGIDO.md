@@ -69,9 +69,7 @@
 | [100](#etapa-100--correção-de-runtime-error-iconpackage-não-importado) | 19/07 | Correção: IconPackage não importado no Dashboard | ?? Fix |
 | [101](#etapa-101--design-refinado-globalcss-logincss-e-agendacss) | 19/07 | Design refinado: global.css login.css agenda.css | ?? Design |
 | [102](#etapa-102--menu-mobile-hambúrguer--refinamento-de-tokens-visuais-gravity) | 20/07 | Menu mobile hambúrguer + refinamento de tokens visuais (Gravity) | ? Feature |
-| [103](#etapa-103--correção-do-arquivo-de-registro-novo_registromd) | 20/07 | Correção do arquivo novo_registro.md (encoding + etapas faltantes) | 🛠️ Fix |
-| [104](#etapa-104--preservação-atômica-de-id-regras-de-documentação--plano-erp) | 22/07 | Preservação atômica de ID, regra de dev log e plano ERP | 🟢 Feature/Fix |
-
+| [103](#etapa-103--correção-do-arquivo-de-registro-novo_registromd) | 20/07 | Correção do arquivo novo_registro.md (encoding + etapas faltantes) | ??? Fix |
 
 ---
 
@@ -2550,35 +2548,3 @@ substituída irreversivelmente por `?` antes desta sessão.
 Início do trabalho de melhoria visual geral do sistema (dashboard + demais páginas), conforme
 solicitado pelo usuário — a ser conduzido em etapa(s) subsequente(s), com leitura prévia do
 `Dashboard.tsx`/CSS atuais já em andamento nesta sessão.
-
----
-
-# ETAPA 104 — Preservação Atômica de ID, Regras de Documentação & Plano ERP
-
-**Data:** 22/07/2026 | **Commits:** — (na main)
-
----
-
-## Objetivo
-
-Refatorar a atribuição atômica de IDs no módulo de presenças, atualizar as diretivas globais do projeto para exigir registro mandatório no dev log, e definir o plano de implementação de melhorias no ERP.
-
-## Implementações Realizadas
-
-### 1. Backend & Resiliência — `api/_lib/financial/attendance.js`
-- Corrigida condição de corrida onde requisições concorrentes sem registro prévio geravam IDs distintos e sobrescreviam dados no Postgres ao disparar `upsert`.
-- Agora o `id` da payload é mantido ou reutilizado do registro preexistente (`existingRecord?.data?.id || genId('AT')`), tornando a atribuição de ID atômica e consistente sob a restrição `(lesson_id, student_id)`.
-
-### 2. Regras de Projeto — `.agents/AGENTS.md`
-- Atualizada a diretiva para impor o registro obrigatório de todas as alterações efetuadas no código, etapas concluídas e planos de evolução futuros no arquivo `novo_registro.md`.
-
-### 3. Plano de Melhoria do ERP — `implementation_plan.md`
-- Criado plano estruturado em 3 fases:
-  - **Fase 1 (Frontend)**: Modularização dos componentes monolíticos (`Financial.tsx`, `Students.tsx`) em subcomponentes e Custom Hooks (`useFinancialData`, `useStudentsData`).
-  - **Fase 2 (API/Backend)**: Adição de paginação server-side (`page`, `limit`) e busca com debounce nas funções Serverless do Supabase (`api/_lib/financial/`).
-  - **Fase 3 (Relatórios)**: Exportação de relatórios em formato CSV e suporte a impressão PDF formatada.
-
-## Testes & Validação
-
-- 103 testes automatizados executados via `npm test` obtendo **100% de aprovação** (passando unitários, integração HTTP e utilitários).
-
