@@ -601,6 +601,99 @@
 
 /* .btn-cancel / .btn-save now defined in global.css */
 
+/* ── Attendance Section in lesson card ────────────────────────── */
+.lesson-attendance-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: var(--space-1);
+    flex-wrap: wrap;
+}
+
+.lesson-attendance-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 70px;
+}
+
+.lesson-attendance-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-attendance {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+}
+
+.btn-attendance:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-accent);
+    transform: scale(1.1);
+}
+
+.btn-attendance:active {
+    transform: scale(0.95);
+}
+
+.btn-attendance.active {
+    border-width: 2px;
+    transform: scale(1.05);
+}
+
+.btn-attendance.present.active {
+    border-color: var(--color-success);
+    background: var(--color-success-bg);
+}
+
+.btn-attendance.absent.active {
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+
+.btn-attendance.excused.active {
+    border-color: var(--color-warning);
+    background: var(--color-warning-bg);
+}
+
+.btn-attendance.late.active {
+    border-color: var(--color-info);
+    background: var(--color-info-bg);
+}
+
+.btn-attendance.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.attendance-status-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-left: 4px;
+}
+
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .agenda-page {

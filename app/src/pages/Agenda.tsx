@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Lesson, LessonStatus, LessonType, Enrollment, Student, Teacher } from '@/types';
-import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS, LESSON_TYPE_LABELS } from '@/types';
-import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments, fetchStudents, fetchTeachers } from '@/services/api';
+import type { Lesson, LessonStatus, LessonType, Enrollment, Student, Teacher, AttendanceRecord, AttendanceStatus } from '@/types';
+import { DAY_NAMES, MONTH_NAMES, LESSON_STATUS_LABELS, LESSON_TYPE_LABELS, ATTENDANCE_LABELS, ATTENDANCE_SHORT } from '@/types';
+import { fetchLessons, createLesson, updateLesson, deleteLesson, fetchEnrollments, fetchStudents, fetchTeachers, fetchAttendanceByLesson, upsertAttendance } from '@/services/api';
 import { useApp } from '@/App';
 import {
-    IconPlus, IconEdit, IconTrash, IconClose, IconCalendar, IconDownload, IconCheckCircle, IconRefresh, IconBan,
+    IconPlus, IconEdit, IconTrash, IconClose, IconCalendar, IconDownload, IconCheckCircle, IconRefresh, IconBan, IconUserCheck,
 } from '@/components/Icons';
 import '@/styles/agenda.css';
 
@@ -124,6 +124,10 @@ export default function Agenda() {
     const [filterTeacher, setFilterTeacher] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [filterType, setFilterType] = useState('');
+
+    // ── Attendance ──────────────────────────────────────────────
+    const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceRecord>>({});
+    const [savingAttendance, setSavingAttendance] = useState<string | null>(null);
 
     // ── Modals ─────────────────────────────────────────────────
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -254,6 +258,43 @@ export default function Agenda() {
         const parts = dateStr.split('-');
         const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
         return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    };
+
+    // ── Load attendance for selected day ───────────────────────
+    useEffect(() => {
+        if (!selectedDay) return;
+        const loadAttendance = async () => {
+            const map: Record<string, AttendanceRecord> = {};
+            const lessons = byDate[selectedDay] || [];
+            for (const l of lessons) {
+                try {
+                    const records = await fetchAttendanceByLesson(l.id);
+                    if (records.length > 0) {
+                        // Find this student's attendance record (student_id matches lesson.student_id)
+                        const myRecord = records.find(r => r.student_id === l.student_id);
+                        if (myRecord) map[l.id] = myRecord;
+                    }
+                } catch { /* ignore */ }
+            }
+            setAttendanceMap(map);
+        };
+        loadAttendance();
+    }, [selectedDay, byDate]);
+
+    // ── Handle attendance marking ─────────────────────────────
+    const handleAttendance = async (lessonId: string, studentId: string, status: AttendanceStatus) => {
+        setSavingAttendance(lessonId);
+        try {
+            const result = await upsertAttendance(lessonId, studentId, status);
+            if (result) {
+                setAttendanceMap(prev => ({ ...prev, [lessonId]: result }));
+            }
+            showToast(`Presença: ${ATTENDANCE_SHORT[status].toLowerCase()}`);
+        } catch (err: unknown) {
+            showToast('Erro ao registrar presença.', 'error');
+        } finally {
+            setSavingAttendance(null);
+        }
     };
 
     // ── Navigation ─────────────────────────────────────────────
@@ -642,6 +683,40 @@ export default function Agenda() {
                                                 </div>
                                             )}
                                         </div>
+                                        {/* Attendance Section */}
+                                        {(l.status === 'scheduled' || l.status === 'completed') && (
+                                            <div className="lesson-attendance-section">
+                                                <div className="lesson-attendance-label">
+                                                    <IconUserCheck size={13} /> Presença:
+                                                </div>
+                                                <div className="lesson-attendance-buttons">
+                                                    {(['present', 'absent', 'excused', 'late'] as AttendanceStatus[]).map(status => {
+                                                        const current = attendanceMap[l.id];
+                                                        const isActive = current?.status === status;
+                                                        const isLoading = savingAttendance === l.id;
+                                                        return (
+                                                            <button
+                                                                key={status}
+                                                                className={`btn-attendance ${status} ${isActive ? 'active' : ''} ${isLoading ? 'loading' : ''}`}
+                                                                onClick={() => handleAttendance(l.id, l.student_id, status)}
+                                                                disabled={isLoading}
+                                                                title={ATTENDANCE_SHORT[status]}
+                                                            >
+                                                                {status === 'present' && '✅'}
+                                                                {status === 'absent' && '❌'}
+                                                                {status === 'excused' && '📝'}
+                                                                {status === 'late' && '⏰'}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                    {attendanceMap[l.id] && (
+                                                        <span className="attendance-status-text">
+                                                            {ATTENDANCE_LABELS[attendanceMap[l.id].status as AttendanceStatus]}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="lesson-card-actions">
                                             <button className="btn-lesson-action btn-edit" onClick={() => { setSelectedDay(null); handleEditLesson(l); }} title="Editar"><IconEdit size={14} /></button>
                                             {l.status === 'scheduled' && (

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '@/App';
-import type { Student, Enrollment, Lesson, Payment } from '@/types';
-import { STATUS_LABELS, STATUS_CLASSES, STATUS_ICONS, SOURCE_LABELS } from '@/types';
-import { fetchStudentById, fetchLessonsByStudent, fetchEnrollmentsByStudent, fetchTuitionsByStudent, fetchPaymentsByStudent } from '@/services/api';
+import type { Student, Enrollment, Lesson, Payment, AttendanceRecord } from '@/types';
+import { STATUS_LABELS, STATUS_CLASSES, STATUS_ICONS, SOURCE_LABELS, DAY_LABELS, ATTENDANCE_SHORT } from '@/types';
+import { fetchStudentById, fetchLessonsByStudent, fetchEnrollmentsByStudent, fetchTuitionsByStudent, fetchPaymentsByStudent, fetchAttendanceByStudent } from '@/services/api';
 import { displayCPF, displayPhone } from '@/utils/formatters';
 import '@/styles/students.css';
 
@@ -36,6 +36,7 @@ export default function StudentDetail() {
         reference_month?: string;
     }[]>([]);
     const [payments, setPayments] = useState<Payment[]>([]);
+    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState<'lessons' | 'tuitions' | 'payments'>('lessons');
@@ -49,16 +50,18 @@ export default function StudentDetail() {
             if (!found) { setError('Aluno não encontrado.'); setLoading(false); return; }
             setStudent(found);
 
-            const [enr, les, tui, pay] = await Promise.all([
+            const [enr, les, tui, pay, att] = await Promise.all([
                 fetchEnrollmentsByStudent(id).catch(() => []),
                 fetchLessonsByStudent(id).catch(() => []),
                 fetchTuitionsByStudent(id).catch(() => []),
                 fetchPaymentsByStudent(id).catch(() => []),
+                fetchAttendanceByStudent(id).catch(() => []),
             ]);
             setEnrollments(enr);
             setLessons(les);
             setTuitions(tui);
             setPayments(pay);
+            setAttendanceRecords(att);
         } catch (err: unknown) {
             setError('Erro ao carregar dados do aluno.');
         } finally {
@@ -77,9 +80,12 @@ export default function StudentDetail() {
         .filter(t => t.status === 'pending' || t.status === 'overdue')
         .reduce((sum, t) => sum + Number(t.amount), 0);
 
-    const attendanceRate = lessons.length > 0
-        ? Math.round((lessons.filter(l => l.status === 'completed').length / lessons.length) * 100)
-        : 0;
+    // Taxa de presença baseada na tabela attendance (não em lesson.status)
+    const presentCount = attendanceRecords.filter(a => a.status === 'present').length;
+    const totalAttendanceRecords = attendanceRecords.length;
+    const attendanceRate = totalAttendanceRecords > 0
+        ? Math.round((presentCount / totalAttendanceRecords) * 100)
+        : (lessons.length > 0 ? Math.round((lessons.filter(l => l.status === 'completed').length / lessons.length) * 100) : 0);
 
     if (loading) return <div className="students-page"><div className="loading">Carregando dados do aluno...</div></div>;
     if (error) return <div className="students-page"><div className="error-banner" onClick={() => navigate('/academico')}>{error}</div></div>;
@@ -197,7 +203,7 @@ export default function StudentDetail() {
                                     <div className="enr-mini-details">
                                         <span>👨‍🏫 {e.teachers?.name || '—'}</span>
                                         <span>💰 {formatBRL(e.monthly_fee)}</span>
-                                        {e.day_of_week && <span>📅 {e.day_of_week} {e.class_time || ''}</span>}
+                                        {e.day_of_week && <span>📅 {DAY_LABELS[e.day_of_week] || e.day_of_week} {e.class_time || ''}</span>}
                                     </div>
                                 </div>
                             </div>

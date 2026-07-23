@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '@/App';
 import type { Enrollment } from '@/types';
 import { DAY_LABELS } from '@/types';
-import { fetchEnrollments, createEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchTeachers } from '@/services/api';
+import { fetchEnrollments, createEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchTeachers, generateLessonsFromEnrollment } from '@/services/api';
 import type { Student, Teacher } from '@/types';
 import { IconPlus, IconEdit, IconTrash, IconClose, IconBookOpen, IconCalendar, IconCheckCircle, IconPauseCircle, IconXCircle, IconLightbulb } from '@/components/Icons';
 import '@/styles/enrollments.css';
@@ -25,6 +25,7 @@ export default function Enrollments() {
     const [statusFilter, setStatusFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [generatingLessons, setGeneratingLessons] = useState<string | null>(null);
 
     const [form, setForm] = useState({
         id: '',
@@ -514,6 +515,32 @@ export default function Enrollments() {
                                             <option value="inactive">Inativo</option>
                                             <option value="cancelled">Cancelado</option>
                                         </select>
+                                    </div>
+                                )}
+                                {form.id && form.status === 'active' && form.day_of_week && form.class_time && (
+                                    <div className="form-group form-group-full">
+                                        <label>Gerar Aulas</label>
+                                        <button
+                                            className="btn-secondary"
+                                            onClick={async () => {
+                                                setGeneratingLessons(form.id);
+                                                try {
+                                                    const result = await generateLessonsFromEnrollment(form.id, 4);
+                                                    showToast(result.message);
+                                                } catch (err: unknown) {
+                                                    showToast('Erro ao gerar aulas.', 'error');
+                                                } finally {
+                                                    setGeneratingLessons(null);
+                                                }
+                                            }}
+                                            disabled={generatingLessons === form.id}
+                                            style={{ width: '100%' }}
+                                        >
+                                            {generatingLessons === form.id ? 'Gerando...' : '📅 Gerar 4 semanas de aulas'}
+                                        </button>
+                                        <span className="form-help" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                                            Cria aulas automaticamente com base no dia/horário do vínculo.
+                                        </span>
                                     </div>
                                 )}
                                 <div className="form-group form-group-full">

@@ -231,6 +231,33 @@ export const MONTH_NAMES = [
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
+// ── Attendance (Presença) ───────────────────────────────────────
+export type AttendanceStatus = 'present' | 'absent' | 'excused' | 'late';
+
+export interface AttendanceRecord {
+    id: string;
+    lesson_id: string;
+    student_id: string;
+    status: AttendanceStatus;
+    late_minutes: number;
+    notes?: string;
+    recorded_at: string;
+}
+
+export const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
+    present: '✅ Presente',
+    absent: '❌ Ausente',
+    excused: '📝 Justificado',
+    late: '⏰ Atrasado',
+};
+
+export const ATTENDANCE_SHORT: Record<AttendanceStatus, string> = {
+    present: 'Presente',
+    absent: 'Ausente',
+    excused: 'Justificado',
+    late: 'Atrasado',
+};
+
 // ── Financial ────────────────────────────────────────────────────
 export interface Payment {
     id: string;

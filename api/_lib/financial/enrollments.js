@@ -5,6 +5,15 @@
  */
 import { genId, normalizeOptionalFields, safeFloat, safeInt, parsePagination } from './helpers.js';
 
+/** Calcula end_time a partir de start_time + duration_minutes */
+function computeEndTime(startTime, durationMinutes) {
+    const [h, m] = startTime.split(':').map(Number);
+    const totalMin = h * 60 + m + durationMinutes;
+    const eh = Math.floor(totalMin / 60) % 24;
+    const em = totalMin % 60;
+    return `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+}
+
 export async function handleEnrollments(req, res, supabase) {
     const { method } = req;
 
@@ -26,6 +35,102 @@ export async function handleEnrollments(req, res, supabase) {
     }
 
     if (method === 'POST') {
+        // ── Action: generate_lessons ────────────────────────────
+        // Gera N semanas de aulas a partir do enrollment.
+        if (req.body.action === 'generate_lessons') {
+            const { id, weeks } = req.body;
+            if (!id) return res.status(400).json({ error: 'ID do vínculo é obrigatório.' });
+            const numWeeks = safeInt(weeks, 4, 1);
+
+            const { data: enrollment, error: fetchErr } = await supabase
+                .from('enrollments')
+                .select('*, students(name), teachers(name, specialty)')
+                .eq('id', id)
+                .single();
+            if (fetchErr || !enrollment) {
+                return res.status(404).json({ error: 'Vínculo não encontrado.' });
+            }
+            if (enrollment.status !== 'active') {
+                return res.status(400).json({ error: 'Vínculo não está ativo.' });
+            }
+            if (!enrollment.day_of_week || !enrollment.class_time) {
+                return res.status(400).json({ error: 'Vínculo não tem dia da semana ou horário definidos.' });
+            }
+
+            // Mapeia day_of_week para índice (0=Dom, 1=Seg, ..., 6=Sáb)
+            const DAY_MAP = { dom: 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6 };
+            const targetDay = DAY_MAP[enrollment.day_of_week];
+            if (targetDay === undefined) {
+                return res.status(400).json({ error: `Dia da semana inválido: ${enrollment.day_of_week}` });
+            }
+
+            // Calcula a próxima data que cai no dia da semana desejado
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentDay = today.getDay();
+            let daysUntilTarget = (targetDay - currentDay + 7) % 7;
+            if (daysUntilTarget === 0) daysUntilTarget = 7; // próxima semana, não hoje
+
+            const firstDate = new Date(today);
+            firstDate.setDate(firstDate.getDate() + daysUntilTarget);
+
+            // Para o número de semanas, cria aulas em datas que caem no dia certo
+            const endTime = computeEndTime(enrollment.class_time, enrollment.duration_minutes);
+            let created = 0;
+            let skipped = 0;
+
+            for (let w = 0; w < numWeeks; w++) {
+                const lessonDate = new Date(firstDate);
+                lessonDate.setDate(lessonDate.getDate() + (w * 7));
+                const dateStr = lessonDate.toISOString().split('T')[0];
+
+                const lessonId = genId('LS');
+                const lessonPayload = {
+                    id: lessonId,
+                    enrollment_id: enrollment.id,
+                    student_id: enrollment.student_id,
+                    teacher_id: enrollment.teacher_id,
+                    instrument: enrollment.instrument,
+                    date: dateStr,
+                    start_time: enrollment.class_time,
+                    end_time: endTime,
+                    duration_minutes: enrollment.duration_minutes,
+                    lesson_type: 'regular',
+                    status: 'scheduled',
+                    notes: `Gerado automaticamente do vínculo ${enrollment.id}`,
+                };
+
+                try {
+                    const { error: insErr } = await supabase
+                        .from('lessons')
+                        .insert([lessonPayload]);
+                    if (insErr) {
+                        if (insErr.code === '23505') {
+                            skipped++; // Conflito de horário, pula
+                        } else {
+                            throw insErr;
+                        }
+                    } else {
+                        created++;
+                    }
+                } catch (innerErr) {
+                    if (innerErr.code === '23505') {
+                        skipped++;
+                    } else {
+                        throw innerErr;
+                    }
+                }
+            }
+
+            return res.status(201).json({
+                created,
+                skipped,
+                enrollment: enrollment.id,
+                weeks: numWeeks,
+                message: `${created} aula(s) gerada(s)${skipped > 0 ? `, ${skipped} pulada(s) por conflito de horário.` : '.'}`,
+            });
+        }
+
         const {
             student_id, teacher_id, instrument, day_of_week, class_time,
             duration_minutes, classes_per_week, monthly_fee, billing_type,

@@ -1,6 +1,6 @@
 import type { Student, Teacher, StudentsResponse, TeachersResponse, DashboardData, Lesson, Enrollment, LessonsResponse, EnrollmentsResponse, Payment, Expense, Investment, TeacherPayment, FinancialSummary, PaymentsResponse, ExpensesResponse, InvestmentsResponse, TeacherPaymentsResponse } from '@/types';
 
-const API_BASE = '/api/admin-financial';
+export const API_BASE = '/api/admin-financial';
 
 // ── Auth ──────────────────────────────────────────────────────────
 /**
@@ -408,7 +408,87 @@ export async function createInvestment(
     return data.investment;
 }
 
+// ── Attendance (Presença) ──────────────────────────────────────
+
+export async function fetchAttendanceByLesson(lessonId: string): Promise<{
+    id: string;
+    lesson_id: string;
+    student_id: string;
+    status: string;
+    late_minutes: number;
+    notes?: string;
+    recorded_at: string;
+}[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=attendance&lesson_id=${encodeURIComponent(lessonId)}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    return data.attendance || [];
+}
+
+export async function fetchAttendanceByStudent(studentId: string): Promise<{
+    id: string;
+    lesson_id: string;
+    student_id: string;
+    status: string;
+    late_minutes: number;
+    notes?: string;
+    recorded_at: string;
+}[]> {
+    const password = sessionStorage.getItem('admin_password');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (password) headers['x-admin-password'] = password;
+
+    const url = `${API_BASE}?resource=attendance&student_id=${encodeURIComponent(studentId)}&limit=500`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    return data.attendance || [];
+}
+
+export async function upsertAttendance(
+    lesson_id: string,
+    student_id: string,
+    status: string,
+    late_minutes?: number,
+    notes?: string
+): Promise<any> {
+    const data = await request<any>('attendance', {
+        method: 'POST',
+        body: JSON.stringify({ lesson_id, student_id, status, late_minutes: late_minutes || 0, notes }),
+    });
+    return data.attendance;
+}
+
 // ── Teacher Payments (Pagamentos a Professores) ─────────────────────
+
+// ── Generate Lessons from Enrollment ────────────────────────────
+
+export async function generateLessonsFromEnrollment(
+    enrollmentId: string,
+    weeks: number = 4
+): Promise<{
+    created: number;
+    skipped: number;
+    enrollment: string;
+    weeks: number;
+    message: string;
+}> {
+    return request<any>('enrollments', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'generate_lessons', id: enrollmentId, weeks }),
+    });
+}
 
 // ── Financial Report (detailed) ─────────────────────────────────────
 

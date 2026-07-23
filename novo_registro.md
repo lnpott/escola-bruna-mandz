@@ -38,15 +38,16 @@
 | [107](#etapa-107--conclusão-do-plano-de-melhorias-do-erp) | 22/07 | Conclusão do Plano ERP: busca/paginação server-side, CSV e KPI cards | 🟢 Feature/Refactor |
 | [108](#etapa-108--normalização-de-cpftelefone--seed-robusto--script-de-reset) | 23/07 | Normalização CPF/telefone, seed robusto, script de reset | 🟢 Feature |
 | [109](#etapa-109--validação-cpf-inline--script-dbreset--ci-pipeline) | 23/07 | Validação CPF inline + script db:reset + CI pipeline | 🟢 Feature |
+| [110](#etapa-110--correção-do-fluxo-matrícula--agenda--marcação-de-presença) | 23/07 | Correção matrícula→agenda→marcação de presença (4 bugs) | 🐛 Fix |
 
 ---
 
-## Estatísticas do Período (Etapas 96–109)
+## Estatísticas do Período (Etapas 96–110)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 14 (96–109) |
-| **Commits** | 33+ (total do projeto) |
+| **Etapas** | 15 (96–110) |
+| **Commits** | 34+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
 ---
@@ -272,6 +273,88 @@ Gerar em: https://app.supabase.com/account/tokens → "Generate New Token"
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38/38 passando
 - ✅ Code review — aprovado sem issues críticas
+
+---
+
+# ETAPA 110 — Correção do Fluxo Matrícula → Agenda → Marcação de Presença
+
+**Data:** 23/07/2026
+
+---
+
+## Objetivo
+
+Corrigir 4 bugs no fluxo entre matrícula (enrollment), agenda (lessons) e marcação de aula
+(attendance), que estavam quebrados ou incompletos.
+
+## Bugs Corrigidos
+
+### Bug #1 🔴 — Marcação de Presença na Agenda (CRÍTICO)
+
+**Antes**: Não existia UI para marcar presença (presente/ausente/justificado/atrasado) nas aulas.
+A tabela `attendance` e a API existiam, mas eram inacessíveis pelo usuário.
+
+**Depois**: Cada aula no modal do dia da Agenda agora exibe uma seção de presença com 4 botões:
+
+| Botão | Status | Destaque visual |
+|-------|--------|----------------|
+| ✅ | Presente | Borda verde + glow |
+| ❌ | Ausente | Borda vermelha + glow |
+| 📝 | Justificado | Borda amarela + glow |
+| ⏰ | Atrasado | Borda azul + glow |
+
+O status ativo fica destacado com borda dupla. Chamada única via `upsertAttendance()` (POST
+`/api/admin-financial?resource=attendance`).
+
+### Bug #2 🟡 — Taxa de Presença no StudentDetail
+
+**Antes**: Usava `lesson.status === 'completed'` como proxy — errado, pois aula "realizada"
+não significa que o aluno veio.
+
+**Depois**: Consulta a tabela `attendance` diretamente via `fetchAttendanceByStudent()`.
+Calcula `presentes / total registros`. Fallback para o método antigo se não houver registros.
+
+### Bug #3 🟡 — Gerar Aulas do Vínculo
+
+**Antes**: Nenhuma aula era gerada ao criar um vínculo. Usuário criava cada aula manualmente.
+
+**Depois**: Botão **"📅 Gerar 4 semanas de aulas"** no modal de edição do vínculo (aparece
+só quando ativo com dia/horário definidos). Backend `POST` com `action: 'generate_lessons'`
+cria N semanas de aulas no dia da semana correto, pulando conflitos de horário (unique index
+`lessons_no_overlap_active`).
+
+### Bug #4 ⚪ — Exibição do Dia da Semana
+
+**Antes**: Mostrava código cru (`seg`) no StudentDetail.
+
+**Depois**: Usa `DAY_LABELS[e.day_of_week]` para exibir o nome correto (`Seg`).
+
+## Arquivos Alterados (10)
+
+| Arquivo | Ação |
+|---------|------|
+| `app/src/types.ts` | 🔧 Adicionados `AttendanceRecord`, `AttendanceStatus`, `ATTENDANCE_LABELS`, `ATTENDANCE_SHORT` |
+| `app/src/services/api.ts` | 🔧 3 funções novas (`fetchAttendanceByLesson`, `fetchAttendanceByStudent`, `upsertAttendance`) + `generateLessonsFromEnrollment` + `API_BASE` exportado |
+| `app/src/pages/Agenda.tsx` | 🔧 `attendanceMap` state, `useEffect` p/ carregar presença do dia, `handleAttendance()`, 4 botões de presença no card da aula |
+| `app/src/styles/agenda.css` | 🔧 `.lesson-attendance-section`, `.btn-attendance` (4 cores), `.attendance-status-text` |
+| `app/src/pages/StudentDetail.tsx` | 🔧 Taxa de presença via `fetchAttendanceByStudent` + `DAY_LABELS` no dia da semana |
+| `app/src/pages/Enrollments.tsx` | 🔧 Botão "Gerar 4 semanas de aulas" + import `generateLessonsFromEnrollment` |
+| `api/_lib/financial/enrollments.js` | 🔧 `computeEndTime()` + ação `generate_lessons` (cria N semanas com conflito detection) |
+
+## Correções Pós-Revisão de Código
+
+| Issue | Severidade | Correção |
+|-------|:----------:|----------|
+| `action: 'generate_lessons'` na query string, backend lia `req.body` | 🔴 Crítico | Movido `action` para o corpo do POST |
+| StudentDetail fazia N+1 queries de attendance | 🟡 Médio | Criado `fetchAttendanceByStudent()` (chamada única) |
+| StudentDetail fetchava lessons duas vezes | 🟡 Médio | Reaproveitado `fetchLessonsByStudent` |
+| Variável `lessons = []` morta | ⚪ Menor | Removida |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado sem issues
 
 ---
 
