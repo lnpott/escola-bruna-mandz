@@ -8,13 +8,15 @@
 -- ── PROFESSORES ──────────────────────────────────────────────
 
 INSERT INTO teachers (id, name, phone, specialty, days_of_week, rate_per_class) VALUES
-    ('TE-A7B2C3', 'Bruna Mandz',     '(21) 99999-0001', 'Piano, Canto',   '{seg,ter,qua,qui,sex}', 0)
+    ('TE-A7B2C3', 'Bruna Mandz',     '(21) 99999-0001', 'Piano, Canto',   'seg, ter, qua, qui, sex', 0)
 ON CONFLICT (id) DO NOTHING;
 
 -- ── ALUNOS ───────────────────────────────────────────────────
 
-INSERT INTO students (id, name, email, phone, address, instruments, status) VALUES
-    ('ST-ABCDEF', 'Sofia Almeida',     'sofia.almeida@email.com',     '(21) 97001-0001', 'Rua das Flores, 123', 'Piano, Bateria',     'active')
+INSERT INTO students (id, name, email, phone, address, instruments, status, source, enrolled_at, guardian_name, guardian_cpf, guardian_phone) VALUES
+    ('ST-ABCDEF', 'Sofia Almeida', 'sofia.almeida@email.com', '(21) 97001-0001',
+     'Rua das Flores, 123', 'Piano, Bateria', 'active',
+     'website', NOW(), 'Carlos Almeida', '123.456.789-00', '(21) 97001-0002')
 ON CONFLICT (id) DO NOTHING;
 
 -- ── VÍNCULOS (ENROLLMENTS) ──────────────────────────────────

@@ -1,23 +1,4 @@
 node_modules/
-.env
-.env.local
-.vercel
 dist/
-backups/
-/backups
-
-# Backups — nunca commitar dados de clientes
-backup_dados.json
-supabase/backup_dados.json
-
-# Supabase CLI temp files
-supabase/.temp/
-
-# Ignorar arquivos temporários e de sistema
-.agents/
-*.zip
-*.backup.html
-scripts/
-
-.vercel
-.env*
+.env
+.freebuff/

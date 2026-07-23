@@ -446,10 +446,12 @@ export default function Financial() {
             {/* ── Summary Cards ───────────────────────────────────── */}
             {summary && (
                 <FinancialSummaryCards
-                    income={summary.incomings}
+                    income={summary.revenue}
                     expenses={summary.outgoings}
                     balance={summary.balance}
-                    pendingCount={summary.overdue_students}
+                    pendingCount={summary.pending_tuitions}
+                    overdueStudents={summary.overdue_students}
+                    pendingTeacherPayments={summary.pending_teacher_payments}
                 />
             )}
             {error && (

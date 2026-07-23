@@ -193,6 +193,10 @@ As migrations em `supabase/migrations/*.sql` e os arquivos `migration-*.sql` na 
 | `046-add-guardian-fields.sql` | `guardian_name`, `guardian_phone` em students | ✅ Consolidado em financial-schema.sql |
 | `047-make-enrollment-id-nullable.sql` | `enrollment_id` nullable em lessons (FK `on delete set null`) | ✅ Consolidado em financial-schema.sql |
 | `050-student-lifecycle.sql` | `status` (7 estágios), `enrolled_at`, `source` em students; `source_check` constraint | ✅ Consolidado em financial-schema.sql |
+| `051-fix-investments-category.sql` | Adiciona 'infraestrutura' e 'marketing' ao CHECK de `investments.category` | ✅ Banco já existente |
+| `052-rls-deny-anon.sql` | Deny policies para role anon em todas as 12 tabelas (defense-in-depth) | ✅ Banco já existente |
+| `053-add-investments-updated-at.sql` | Adiciona `updated_at` + trigger em `investments` (agora suporta PATCH) | ✅ Consolidado em financial-schema.sql |
+| `054-products-low-stock-idx.sql` | Índice parcial `products_low_stock_idx` em `products(stock)` WHERE `active = true` | ✅ Pendente de aplicação no banco |
 
 ---
 

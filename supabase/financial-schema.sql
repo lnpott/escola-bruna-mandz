@@ -286,13 +286,20 @@ create table if not exists public.investments (
     amount numeric(10,2) not null default 0.00,
     category text not null default 'outro'
         constraint investments_category_check
-        check (category in ('instrumento', 'movel', 'equipamento', 'outro')),
+        check (category in ('instrumento', 'movel', 'equipamento', 'infraestrutura', 'marketing', 'outro')),
     purchased_at date not null,
     notes text,
-    created_at timestamptz not null default now()
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()   -- adicionado na migration 053 (PATCH handler)
 );
 
 create index if not exists investments_purchased_at_idx on public.investments (purchased_at);
+
+drop trigger if exists investments_set_updated_at on public.investments;
+create trigger investments_set_updated_at
+    before update on public.investments
+    for each row
+    execute function public.set_updated_at();
 
 alter table public.investments enable row level security;
 

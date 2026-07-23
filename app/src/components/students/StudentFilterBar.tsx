@@ -5,50 +5,46 @@ interface StudentFilterBarProps {
     onSearchChange: (value: string) => void;
     statusFilter: string;
     onStatusFilterChange: (status: string) => void;
-    onExportCSV?: () => void;
-    onNewStudent?: () => void;
+    studentCount: number;
 }
+
+const STATUS_ITEMS: { value: string; label: string }[] = [
+    { value: '', label: 'Todos os status' },
+    { value: 'lead', label: '📋 Lead (Primeiro Contato)' },
+    { value: 'interested', label: '🔍 Interessado' },
+    { value: 'enrolled', label: '📝 Matriculado' },
+    { value: 'active', label: '✅ Ativo' },
+    { value: 'suspended', label: '⏸️ Trancado' },
+    { value: 'completed', label: '🎓 Concluído' },
+    { value: 'cancelled', label: '❌ Cancelado' },
+];
 
 export const StudentFilterBar: React.FC<StudentFilterBarProps> = ({
     searchQuery,
     onSearchChange,
     statusFilter,
     onStatusFilterChange,
-    onExportCSV,
-    onNewStudent,
+    studentCount,
 }) => {
     return (
-        <div className="student-filter-bar">
-            <div className="search-box">
-                <input
-                    type="text"
-                    placeholder="Buscar aluno por nome, CPF, e-mail..."
-                    value={searchQuery}
-                    onChange={e => onSearchChange(e.target.value)}
-                    className="form-input"
-                />
-            </div>
-            <div className="filter-actions">
-                <select
-                    value={statusFilter}
-                    onChange={e => onStatusFilterChange(e.target.value)}
-                    className="form-select"
-                >
-                    <option value="all">Todos os Status</option>
-                    <option value="active">Ativos</option>
-                    <option value="inactive">Inativos</option>
-                </select>
-                {onExportCSV && (
-                    <button type="button" onClick={onExportCSV} className="btn-secondary">
-                        📥 Exportar CSV
-                    </button>
-                )}
-                {onNewStudent && (
-                    <button type="button" onClick={onNewStudent} className="btn-primary">
-                        + Novo Aluno
-                    </button>
-                )}
-            </div>
+        <div className="students-filters">
+            <input
+                type="text"
+                placeholder="Buscar por nome, e-mail ou telefone..."
+                value={searchQuery}
+                onChange={e => onSearchChange(e.target.value)}
+            />
+            <select
+                value={statusFilter}
+                onChange={e => onStatusFilterChange(e.target.value)}
+            >
+                {STATUS_ITEMS.map(item => (
+                    <option key={item.value} value={item.value}>
+                        {item.label}
+                    </option>
+                ))}
+            </select>
+            <span className="students-count">{studentCount} aluno(s)</span>
         </div>
     );
 };

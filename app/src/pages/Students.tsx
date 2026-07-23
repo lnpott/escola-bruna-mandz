@@ -12,6 +12,7 @@ import {
 } from '@/types';
 import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchTeachers, createEnrollment } from '@/services/api';
 import { exportToCSV } from '@/utils/exportUtils';
+import { StudentFilterBar } from '@/components/students/StudentFilterBar';
 import '@/styles/students.css';
 
 const STATUS_OPTIONS: { value: StudentStatus; label: string }[] = [
@@ -424,26 +425,13 @@ export default function Students() {
 
             {error && <div className="error-banner" onClick={() => setError('')}>{error}</div>}
 
-            <div className="students-filters">
-                <input
-                    type="text"
-                    placeholder="Buscar por nome, e-mail ou telefone..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as StudentStatus | '')}
-                >
-                    <option value="">Todos os status</option>
-                    {STATUS_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                        </option>
-                    ))}
-                </select>
-                <span className="students-count">{filtered.length} aluno(s)</span>
-            </div>
+            <StudentFilterBar
+                searchQuery={search}
+                onSearchChange={setSearch}
+                statusFilter={statusFilter}
+                onStatusFilterChange={(v) => setStatusFilter(v as StudentStatus | '')}
+                studentCount={filtered.length}
+            />
 
             {filtered.length === 0 ? (
                 <div className="empty-state">

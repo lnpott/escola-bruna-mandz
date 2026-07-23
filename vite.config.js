@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
@@ -22,13 +23,22 @@ export default defineConfig({
         },
     },
 
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['./tests/setup.js'],
+        css: false,
+        include: ['tests/**/*.test.tsx'],
+        exclude: ['tests/**/*.test.js'],
+    },
+
     build: {
         outDir: 'dist',
         rollupOptions: {
             input: {
                 main: resolve(__dirname, 'index.html'),
                 app: resolve(__dirname, 'app/index.html'),
-commercial: resolve(__dirname, 'commercial/index.html'),
+                commercial: resolve(__dirname, 'commercial/index.html'),
             },
         },
     },

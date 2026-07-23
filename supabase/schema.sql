@@ -123,6 +123,12 @@ create index if not exists products_active_created_idx
 create index if not exists products_category_active_idx
     on public.products (category, active);
 
+-- Índice parcial para a consulta de estoque baixo no dashboard:
+-- "produtos ativos com stock <= 5". Apenas produtos ativos entram no índice.
+create index if not exists products_low_stock_idx
+    on public.products (stock)
+    where active = true;
+
 -- ── Trigger de updated_at ──────────────────────────────────────────────────────
 
 drop trigger if exists products_set_updated_at on public.products;
