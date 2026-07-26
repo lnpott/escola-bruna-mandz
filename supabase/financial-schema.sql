@@ -54,6 +54,13 @@ create index if not exists students_status_idx on public.students (status);
 create index if not exists students_status_active_idx on public.students (status)
     where status = 'active';  -- consulta mais comum: alunos ativos (dashboard)
 
+-- Extensão pg_trgm para busca textual aproximada (usada pelo GIN index abaixo)
+create extension if not exists pg_trgm with schema extensions;
+
+-- Índice GIN com pg_trgm para busca ilike em nome (busca textual aproximada)
+create index if not exists students_name_gin_trgm_idx
+    on public.students using gin (name gin_trgm_ops);
+
 drop trigger if exists students_set_updated_at on public.students;
 create trigger students_set_updated_at
     before update on public.students

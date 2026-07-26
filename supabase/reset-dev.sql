@@ -91,6 +91,13 @@ begin
     end if;
 end $$;
 
+-- ── Migration 058: Extensão pg_trgm para busca textual aproximada ────────
+-- Permite o uso de gin_trgm_ops no índice GIN students_name_gin_trgm_idx.
+-- Necessário para consultas ILIKE em students.name serem rápidas.
+-- O índice GIN já está definido no financial-schema.sql.
+
+create extension if not exists pg_trgm with schema extensions;
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 3. SEED COMPLETO — PROFESSORES
 -- ═══════════════════════════════════════════════════════════════════════════

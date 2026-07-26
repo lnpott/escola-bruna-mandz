@@ -41,14 +41,15 @@
 | [110](#etapa-110--correção-do-fluxo-matrícula--agenda--marcação-de-presença) | 23/07 | Correção matrícula→agenda→marcação de presença (4 bugs) | 🐛 Fix |
 | [111](#etapa-111--consolidação-do-schema-sql--rls-no-schema--teacher_payments-updated_at) | 23/07 | Consolidação schemas SQL + RLS + teacher_payments updated_at | 🟢 Feature |
 | [112](#etapa-112--índices-em-teachers--check-constraint-day_of_week-harden-not-valid) | 23/07 | Índices em teachers + CHECK constraint day_of_week (NOT VALID) | 🟢 Feature |
+| [113](#etapa-113--extensão-pg_trgm--índice-gin-em-studentsname) | 24/07 | Extensão pg_trgm + índice GIN em students.name | 🟢 Feature |
 
 ---
 
-## Estatísticas do Período (Etapas 96–112)
+## Estatísticas do Período (Etapas 96–113)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 16 (96–111) |
+| **Etapas** | 17 (96–113) |
 | **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
@@ -496,6 +497,72 @@ O campo `orders.earned_xp` não foi removido porque ainda é usado em:
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38/38 passando
 - ✅ Code review — aprovado sem issues críticas (idempotente, sem duplicação de políticas)
+
+---
+
+# ETAPA 113 — Extensão pg_trgm + Índice GIN em students.name
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Adicionar a extensão `pg_trgm` ao banco de dados e garantir que o índice GIN em
+`students.name` (já existente no schema) funcione corretamente — sem a extensão,
+o operador `gin_trgm_ops` não está disponível e o índice não pode ser criado.
+
+## Contexto
+
+O índice GIN `students_name_gin_trgm_idx` já existia no `financial-schema.sql`
+desde a criação da tabela `students`, mas a extensão `pg_trgm` da qual ele depende
+**nunca foi instalada**. Se um banco fosse criado do zero executando apenas os schemas
+(sem um Supabase projeto que já tivesse a extensão), a criação do índice falharia com:
+
+```
+ERROR:  operator class "gin_trgm_ops" does not exist for access method "gin"
+```
+
+## Correções Aplicadas
+
+### 1. `financial-schema.sql` — Extensão adicionada
+
+```sql
+create extension if not exists pg_trgm with schema extensions;
+```
+
+Adicionada **antes** do índice GIN existente, garantindo que a extensão esteja
+disponível quando o índice for criado.
+
+### 2. Migration 058 — Audit trail
+
+`supabase/migrations/058-add-pgtrgm-extension.sql` — arquivo independente para
+registro da mudança.
+
+### 3. `reset-dev.sql` — Bloco da migration 058 adicionado
+
+Colocado após a migration 057, com comentário explicativo.
+
+## Impacto
+
+- **Consultas ILIKE em students.name**: o índice GIN com `gin_trgm_ops` acelera
+  buscas como `WHERE name ILIKE '%pedro%'` usando similaridade trigram.
+- **Supabase padrão**: `extensions` schema está no search_path por default,
+  então `gin_trgm_ops` é encontrado automaticamente.
+
+## Arquivos Alterados/Criados
+
+| Arquivo | Ação |
+|---------|------|
+| `supabase/financial-schema.sql` | 🔧 `create extension if not exists pg_trgm` antes do GIN index |
+| `supabase/migrations/058-add-pgtrgm-extension.sql` | 🔵 **Criado** — migration de audit trail |
+| `supabase/reset-dev.sql` | 🔧 Migration 058 adicionada |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado sem issues
 
 ---
 
