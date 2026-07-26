@@ -12,6 +12,7 @@ import Store from '@/pages/Store';
 import StorageManager from '@/pages/StorageManager';
 import Login from '@/pages/Login';
 import { isAuthenticated, logout } from '@/services/api';
+import { Analytics } from '@vercel/analytics/react';
 import { IconHouse, IconDashboard, IconAcademic, IconCalendar, IconWallet, IconUsers, IconStore, IconLogout, IconCheckCircle, IconXCircle, IconBookOpen, IconMusic } from '@/components/Icons';
 import './styles/global.css';
 
@@ -378,6 +379,7 @@ function AcademicLayout({ children }: { children: React.ReactNode }) {
 export default function App() {
     return (
         <BrowserRouter basename="/app">
+            <Analytics />
             <AppProvider>
                 <Routes>
                     <Route path="/login" element={<Login />} />

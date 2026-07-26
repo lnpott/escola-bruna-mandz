@@ -43,14 +43,15 @@
 | [112](#etapa-112--índices-em-teachers--check-constraint-day_of_week-harden-not-valid) | 23/07 | Índices em teachers + CHECK constraint day_of_week (NOT VALID) | 🟢 Feature |
 | [113](#etapa-113--extensão-pg_trgm--índice-gin-em-studentsname) | 24/07 | Extensão pg_trgm + índice GIN em students.name | 🟢 Feature |
 | [114](#etapa-114--vercel-web-analytics-nos-3-entry-points-do-site) | 24/07 | Vercel Web Analytics nos 3 entry points do site | 📊 Analytics |
+| [115](#etapa-115--pacote-vercel-analytics-npm-no-react-spa) | 24/07 | Pacote @vercel/analytics npm no React SPA | 📊 Analytics |
 
 ---
 
-## Estatísticas do Período (Etapas 96–114)
+## Estatísticas do Período (Etapas 96–115)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 18 (96–114) |
+| **Etapas** | 19 (96–115) |
 | **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
@@ -608,6 +609,76 @@ Adicionado `<script defer src="/_vercel/insights/script.js"></script>` no `<head
 
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ Code review — aprovado sem issues
+
+---
+
+# ETAPA 115 — Pacote @vercel/analytics npm no React SPA
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Instalar o pacote oficial `@vercel/analytics` via npm e integrar o componente
+`<Analytics />` no React SPA para rastrear corretamente as navegações do
+React Router (cliente-side), complementando o script tag que já foi adicionado
+aos entry points HTML na Etapa 114.
+
+## Implementação
+
+### 1. Pacote instalado
+
+```bash
+npm install @vercel/analytics
+```
+
+Adiciona o pacote oficial da Vercel para analytics em aplicações React.
+
+### 2. Componente `<Analytics />` adicionado ao App.tsx
+
+```tsx
+import { Analytics } from '@vercel/analytics/react';
+// ...
+<BrowserRouter basename="/app">
+    <Analytics />
+    <AppProvider>
+        <Routes>...
+```
+
+O componente é colocado **dentro do BrowserRouter** mas **fora do AppProvider** —
+isso permite que ele rastreie todas as mudanças de rota, incluindo a página de login.
+
+### 3. Script tag removido de app/index.html
+
+O script tag `/_vercel/insights/script.js` foi **removido** do `app/index.html`
+porque o pacote npm já faz o tracking. Manter ambos causaria **dupla contagem**
+de page views no React SPA.
+
+Os script tags em `index.html` e `commercial/index.html` **permanecem** porque
+são páginas sem React (multi-page, navegação faz reload completo).
+
+## Cobertura Final do Analytics
+
+| Entry Point | Método | Rastreia SPA? |
+|------------|--------|:-------------:|
+| `index.html` (site principal) | `<script defer>` tag | ✅ (full page loads) |
+| `app/index.html` (React SPA) | `@vercel/analytics` npm | ✅ (React Router) |
+| `commercial/index.html` (painel legado) | `<script defer>` tag | ✅ (full page loads) |
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| `package.json` | 🔧 `@vercel/analytics` adicionado às dependências |
+| `app/src/App.tsx` | 🔧 Import `<Analytics />` + componente no JSX |
+| `app/index.html` | 🔧 Script tag duplicado removido |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado (critical fix: script tag removido para evitar dupla contagem)
 
 ---
 

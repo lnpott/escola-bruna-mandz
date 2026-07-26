@@ -9,12 +9,13 @@
         "preview": "vite preview",
         "lint": "eslint .",
         "test": "node --test",
-    "test:ui": "vitest run",
-    "db:reset": "node scripts/db-reset.js",
+        "test:ui": "vitest run",
+        "db:reset": "node scripts/db-reset.js",
         "format": "prettier --write \"**/*.{js,html,css,json}\""
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.108.0",
+        "@vercel/analytics": "^2.0.1",
         "formidable": "^3.5.4",
         "lucide-react": "^1.25.0",
         "react": "^19.2.7",
