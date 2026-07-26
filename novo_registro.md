@@ -42,14 +42,15 @@
 | [111](#etapa-111--consolidação-do-schema-sql--rls-no-schema--teacher_payments-updated_at) | 23/07 | Consolidação schemas SQL + RLS + teacher_payments updated_at | 🟢 Feature |
 | [112](#etapa-112--índices-em-teachers--check-constraint-day_of_week-harden-not-valid) | 23/07 | Índices em teachers + CHECK constraint day_of_week (NOT VALID) | 🟢 Feature |
 | [113](#etapa-113--extensão-pg_trgm--índice-gin-em-studentsname) | 24/07 | Extensão pg_trgm + índice GIN em students.name | 🟢 Feature |
+| [114](#etapa-114--vercel-web-analytics-nos-3-entry-points-do-site) | 24/07 | Vercel Web Analytics nos 3 entry points do site | 📊 Analytics |
 
 ---
 
-## Estatísticas do Período (Etapas 96–113)
+## Estatísticas do Período (Etapas 96–114)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 17 (96–113) |
+| **Etapas** | 18 (96–114) |
 | **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
 
@@ -562,6 +563,50 @@ Colocado após a migration 057, com comentário explicativo.
 
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado sem issues
+
+---
+
+# ETAPA 114 — Vercel Web Analytics nos 3 Entry Points do Site
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Adicionar o script do **Vercel Web Analytics** nos 3 entry points HTML do site,
+aproveitando que o serviço já foi habilitado no dashboard da Vercel.
+
+## Implementação
+
+Adicionado `<script defer src="/_vercel/insights/script.js"></script>` no `<head>` de:
+
+| Página | Descrição | Entry point Vite |
+|--------|-----------|:----------------:|
+| `index.html` | Site principal (landing, piano, quiz, loja) | `main` |
+| `app/index.html` | React SPA ERP (admin acadêmico/financeiro) | `app` |
+| `commercial/index.html` | Painel de administração legado | `commercial` |
+
+### Detalhes técnicos
+
+- Atributo `defer` — carrega de forma assíncrona, executa após o parsing do HTML
+- Rota `/_vercel/insights/script.js` — servida pela edge network da Vercel
+- **Local dev**: o script não existe em dev local (só na Vercel), então o navegador
+  faz uma requisição silenciosa que resulta em 404 — comportamento esperado,
+  sem impacto no desenvolvimento
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| `index.html` | 🔧 Script analytics adicionado |
+| `app/index.html` | 🔧 Script analytics adicionado |
+| `commercial/index.html` | 🔧 Script analytics adicionado |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ Code review — aprovado sem issues
 
 ---
