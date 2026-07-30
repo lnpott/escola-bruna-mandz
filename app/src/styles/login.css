@@ -33,7 +33,7 @@
     100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
 }
 
-/* ── Card principal ──────────────────────────────────────────── */
+/* ── Card principal — Double-Bezel Architecture ─────────────── */
 .login-card {
     width: 100%;
     max-width: 400px;
@@ -41,6 +41,19 @@
     animation: loginFadeIn 0.6s var(--ease-fluid) both;
     position: relative;
     z-index: 1;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius-bezel-outer);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), transparent 40%, transparent 60%, rgba(220, 38, 38, 0.05));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 @keyframes loginFadeIn {
@@ -56,7 +69,7 @@
     }
 }
 
-/* ── Logo area ───────────────────────────────────────────────── */
+/* ── Logo area — Nested Icon Architecture ────────────────────── */
 .login-logo {
     font-size: 48px;
     margin-bottom: var(--space-4);
@@ -72,22 +85,24 @@
     margin-left: auto;
     margin-right: auto;
     filter: drop-shadow(0 4px 12px rgba(220, 38, 38, 0.2));
-    transition: transform var(--duration-normal) var(--ease-out),
-                box-shadow var(--duration-normal) var(--ease-out);
+    transition: transform var(--duration-normal) var(--ease-fluid),
+                box-shadow var(--duration-normal) var(--ease-fluid),
+                border-color var(--duration-normal) var(--ease-fluid);
 }
 
 .login-card:hover .login-logo {
-    transform: scale(1.02);
-    box-shadow: 0 0 24px rgba(220, 38, 38, 0.15);
+    transform: scale(1.04) rotate(-2deg);
+    box-shadow: 0 0 24px rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.3);
 }
 
 .login-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--text-primary);
     margin: 0 0 var(--space-1);
     letter-spacing: -0.03em;
-    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    background: linear-gradient(135deg, var(--text-primary), rgba(255, 255, 255, 0.6));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

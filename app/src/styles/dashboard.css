@@ -53,12 +53,34 @@
     animation: fadeInUp 0.7s var(--ease-fluid);
 }
 
+/* ── Double-Bezel KPI Cards ──────────────────────────── */
 .dash-kpi-card {
-    transition: transform var(--duration-normal) var(--ease-out),
-                box-shadow var(--duration-normal) var(--ease-out);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-bezel-outer);
+    padding: var(--space-1);
     position: relative;
     overflow: hidden;
     grid-column: span 12;
+    transition: transform var(--duration-fluid) var(--ease-fluid),
+                box-shadow var(--duration-fluid) var(--ease-fluid),
+                border-color var(--duration-fluid) var(--ease-fluid);
+}
+
+.dash-kpi-card::after {
+    content: '';
+    position: absolute;
+    inset: var(--space-1);
+    border-radius: var(--radius-bezel-inner);
+    background: var(--bg-base);
+    box-shadow: var(--shadow-inset-core);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.dash-kpi-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 @media (min-width: 768px) {
@@ -475,10 +497,6 @@
         gap: var(--space-2);
     }
 
-    .dash-kpi-card {
-        padding: var(--space-3);
-    }
-
     .dash-kpi-value {
         font-size: 19px;
     }
@@ -505,10 +523,6 @@
     .dash-kpi-grid {
         grid-template-columns: 1fr 1fr;
         gap: var(--space-1);
-    }
-
-    .dash-kpi-card {
-        padding: var(--space-2) var(--space-3);
     }
 
     .dash-kpi-icon {

@@ -45,14 +45,15 @@
 | [114](#etapa-114--vercel-web-analytics-nos-3-entry-points-do-site) | 24/07 | Vercel Web Analytics nos 3 entry points do site | 📊 Analytics |
 | [115](#etapa-115--pacote-vercel-analytics-npm-no-react-spa) | 24/07 | Pacote @vercel/analytics npm no React SPA | 📊 Analytics |
 | [116](#etapa-116--verificação-completa-do-vercel-analytics) | 24/07 | Verificação completa do Vercel Analytics + dashboard | 📊 Analytics |
+| [117](#etapa-117--high-end-visual-design-no-erp) | 24/07 | High-End Visual Design no ERP (login, dashboard, global) | 🎨 Design |
 
 ---
 
-## Estatísticas do Período (Etapas 96–116)
+## Estatísticas do Período (Etapas 96–117)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 20 (96–116) |
+| **Etapas** | 21 (96–117) |
 | **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 24/07/2026 (6 dias) |
 
@@ -757,7 +758,83 @@ Verificação cruzada de `grep`, leitura direta e confirmação visual de cada a
 
 ---
 
-# ETAPA 96 — Jogo do Piano com 4 Níveis Completos
+# ETAPA 117 — High-End Visual Design no ERP
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Aplicar o skill **High-End Visual Design** (ui-ux-pro-max / agency-tier) no ERP Educacional:
+refinar animações, hover physics, double-bezel architecture e micro-interações nos 3 principais
+arquivos CSS, seguindo as diretrizes de design agência ($150k+).
+
+## Vibe & Layout Archetypes
+
+| Archetype | Escolha |
+|-----------|---------|
+| **Vibe** | Ethereal Glass (OLED black, mesh gradients, glassmorphism) |
+| **Layout** | Asymmetrical Bento (mantido do CSS existente, refinado) |
+
+## Implementações
+
+### 1. 🎨 `global.css` — Animações Cinematográficas + Hover Physics
+
+| Mudança | Detalhes |
+|---------|----------|
+| **Module card hover** | `translateY(-6px) scale(1.02)` + `--shadow-xl` + glow intensificado — sensação de levitação magnética |
+| **Ícone nos cards** | Hover: `rotate(-3deg)` + `scale(1.12)` + drop-shadow quadruplicado — micro-rotação que quebra o grid |
+| **Active state** | `scale(0.97)` com `transition-duration: 0.08s` — clique físico instantâneo |
+| **Animações** | Todas as keyframes (`fadeInUp`, `scaleIn`, `slideDown`, `toastIn`, `modalContentIn`) ganharam `filter: blur()` + `scale()` graduais — efeito cinematográfico de foco |
+| **Modal overlay** | `modalOverlayIn` agora anima `backdrop-filter: blur(0px → 4px)` — fade-in com desfoque progressivo |
+| **btn-primary** | Hover: `scale(1.02)` + white glow `box-shadow` — botão pulsa ao passar o mouse |
+| **Stagger rows** | Timing aumentado para 0.7s com `--ease-fluid` + `will-change` — entrada mais fluida e performática |
+| **will-change** | Adicionado em `.module-card` e `.stagger-row` — dicas de GPU para elementos animados |
+
+### 2. 🔐 `login.css` — Double-Bezel + Gradient Border
+
+| Mudança | Detalhes |
+|---------|----------|
+| **Borda gradiente** | `::before` com gradient brand sutil (`rgba(220,38,38,0.08)` → transparent) usando `mask-composite: exclude` — moldura concêntrica de 1px |
+| **Logo hover** | `rotate(-2deg)` + `scale(1.04)` + glow triple — logotipo reage magneticamente |
+| **Título** | 24px (era 22px), gradiente mais refinado (`--text-primary` → `rgba(255,255,255,0.6)`) |
+| **Transições** | Todas mudadas para `--ease-fluid` — consistência com o design system |
+
+### 3. 📊 `dashboard.css` — Double-Bezel nos KPI Cards
+
+| Mudança | Detalhes |
+|---------|----------|
+| **Shell (outer)** | `.dash-kpi-card` com `background: var(--bg-surface)`, `border`, `border-radius: var(--radius-bezel-outer)`, `padding: var(--space-1)` — a moldura externa |
+| **Core (inner)** | `::after` com `inset: var(--space-1)`, `background: var(--bg-base)`, `border-radius: var(--radius-bezel-inner)`, `box-shadow: var(--shadow-inset-core)` — o vidro interno escuro |
+| **Conteúdo** | `> *` com `z-index: 1` para flutuar sobre o core — camadas hierárquicas |
+| **Mobile fix** | Breakpoints corrigidos — removidos overrides de padding que quebravam o double-bezel |
+
+### Anti-padrões evitados (Skill Directives)
+
+| Diretriz | Status |
+|----------|:------:|
+| ❌ Fontes banidas (Inter, Roboto, Arial) | ✅ **Plus Jakarta Sans** |
+| ❌ Ícones grossos (Lucide, FA) | ✅ **SVG finos próprios** |
+| ❌ `linear`/`ease-in-out` | ✅ **Apenas `--ease-fluid` e `--ease-out`** |
+| ❌ Bordas 1px sólidas genéricas | ✅ **Hairline borders + ambient shadows** |
+| ❌ Animações em `top`/`left`/`width` | ✅ **Só `transform` e `opacity`** |
+| ❌ Layout sem respiro | ✅ **Bento grid + padding sections** |
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| `app/src/styles/global.css` | 🔧 Module card physics, keyframes com blur, btn-primary hover, stagger timing |
+| `app/src/styles/login.css` | 🔧 Double-bezel border, logo hover, transitions refinadas |
+| `app/src/styles/dashboard.css` | 🔧 Double-bezel KPI cards, padding overrides removidos |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 0 erros, 5.83s
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado com notas cosméticas (inner radius ~2px subótimo, blur em stagger pode impactar dispositivos lentos)
+- ✅ Alinhamento com skill High-End Visual Design: Double-Bezel, custom cubic-bezier, GPU-safe animations
 
 **Data:** 19/07/2026
 
