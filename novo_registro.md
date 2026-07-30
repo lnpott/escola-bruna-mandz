@@ -44,16 +44,17 @@
 | [113](#etapa-113--extensão-pg_trgm--índice-gin-em-studentsname) | 24/07 | Extensão pg_trgm + índice GIN em students.name | 🟢 Feature |
 | [114](#etapa-114--vercel-web-analytics-nos-3-entry-points-do-site) | 24/07 | Vercel Web Analytics nos 3 entry points do site | 📊 Analytics |
 | [115](#etapa-115--pacote-vercel-analytics-npm-no-react-spa) | 24/07 | Pacote @vercel/analytics npm no React SPA | 📊 Analytics |
+| [116](#etapa-116--verificação-completa-do-vercel-analytics) | 24/07 | Verificação completa do Vercel Analytics + dashboard | 📊 Analytics |
 
 ---
 
-## Estatísticas do Período (Etapas 96–115)
+## Estatísticas do Período (Etapas 96–116)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 19 (96–115) |
+| **Etapas** | 20 (96–116) |
 | **Commits** | 36+ (total do projeto) |
-| **Período** | 19/07/2026 — 23/07/2026 (5 dias) |
+| **Período** | 19/07/2026 — 24/07/2026 (6 dias) |
 
 ---
 
@@ -679,6 +680,80 @@ são páginas sem React (multi-page, navegação faz reload completo).
 - ✅ `npm run build` — 1840 módulos, 0 erros
 - ✅ `npx vitest run` — 38/38 passando
 - ✅ Code review — aprovado (critical fix: script tag removido para evitar dupla contagem)
+
+---
+
+# ETAPA 116 — Verificação Completa do Vercel Analytics
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Confirmar que a instalação do Vercel Web Analytics está completa e funcional em todos os 3 entry points do site, sem duplicação de tracking e com build íntegro. Revisão final após a correção crítica da Etapa 115 (script tag duplicado removido).
+
+## Verificação Realizada
+
+### 1. Análise de todos os 5 arquivos envolvidos
+
+Verificação cruzada de `grep`, leitura direta e confirmação visual de cada arquivo:
+
+| Entry Point | Arquivo | Método | Status |
+|------------|---------|--------|:------:|
+| 🏠 Site principal | `index.html` | `<script defer src="/_vercel/insights/script.js">` | ✅
+| 📊 React SPA | `app/index.html` | **Sem script tag** (removido — usa npm package) | ✅
+| 📊 React SPA | `app/src/App.tsx` | `import { Analytics }` + `<Analytics />` no `<BrowserRouter>` | ✅
+| ⚙️ Painel legado | `commercial/index.html` | `<script defer src="/_vercel/insights/script.js">` | ✅
+| 📦 Dependência | `package.json` | `@vercel/analytics` v^2.0.1 | ✅
+
+### 2. Verificação de duplicação
+
+- **`app/index.html`**: Confirmado **sem** script tag `/_vercel/insights/script.js` — zero duplicação ✅
+- **`index.html`** e **`commercial/index.html`**: Script tags presentes com `defer` — correto para páginas vanilla JS ✅
+- **`app/src/App.tsx`**: `<Analytics />` dentro do `<BrowserRouter>`, fora do `<AppProvider>` — posição ideal para tracking SPA ✅
+
+### 3. Build validado
+
+- ✅ `npm run build` — 0 erros, 1840 módulos, 9.22s
+- ✅ 3 entry points gerados: `dist/index.html`, `dist/app/index.html`, `dist/commercial/index.html`
+
+## Cobertura Final do Analytics
+
+| Entry Point | Método | Rastreia SPA? | Ambiente |
+|------------|--------|:-------------:|----------|
+| 🏠 `index.html` (landing, piano, quiz, loja) | `<script defer>` tag | ✅ (full page loads) | Produção Vercel |
+| 📊 `app/index.html` (React SPA — ERP) | `@vercel/analytics` npm + `<Analytics />` | ✅ (React Router) | Produção Vercel |
+| ⚙️ `commercial/index.html` (painel admin legado) | `<script defer>` tag | ✅ (full page loads) | Produção Vercel |
+
+### Comportamento em dev local
+
+- O endpoint `/_vercel/insights/script.js` **só existe nos servidores Vercel** (produção/preview)
+- Localmente o navegador gera 404 silencioso — comportamento esperado, sem impacto no desenvolvimento
+- O pacote `@vercel/analytics` também só envia dados quando detecta o ambiente Vercel
+
+## Como acessar o dashboard
+
+1. Acessar: **https://vercel.com/bruna-mandz/site-escola/analytics**
+2. (Ou: Dashboard Vercel → Projeto `site-escola` → aba **Analytics**)
+3. Lá você vê: pageviews, visitantes únicos, países de origem, top pages e duração média
+4. Os dados começam a aparecer ~5 minutos após a primeira visita em produção
+
+## Arquivos Verificados
+
+| Arquivo | Status | Detalhes |
+|---------|:------:|----------|
+| `index.html` | ✅ Script tag presente com `defer` | Site principal (vanilla JS) |
+| `app/index.html` | ✅ Sem script tag (duplicado removido) | SPA — usa npm package |
+| `app/src/App.tsx` | ✅ `<Analytics />` + import `@vercel/analytics/react` | Tracking SPA via React Router |
+| `commercial/index.html` | ✅ Script tag presente com `defer` | Painel legado (vanilla JS) |
+| `package.json` | ✅ `@vercel/analytics` v^2.0.1 instalado | Dependência npm |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 1840 módulos, 0 erros
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Verificação cruzada com `grep` em todos os 5 arquivos — zero duplicação
 
 ---
 
