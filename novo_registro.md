@@ -46,14 +46,15 @@
 | [115](#etapa-115--pacote-vercel-analytics-npm-no-react-spa) | 24/07 | Pacote @vercel/analytics npm no React SPA | 📊 Analytics |
 | [116](#etapa-116--verificação-completa-do-vercel-analytics) | 24/07 | Verificação completa do Vercel Analytics + dashboard | 📊 Analytics |
 | [117](#etapa-117--high-end-visual-design-no-erp) | 24/07 | High-End Visual Design no ERP (login, dashboard, global) | 🎨 Design |
+| [118](#etapa-118--code-review-fixes-inner-radius--blur-dos-stagger-rows) | 24/07 | Code review fixes: inner radius + blur removido dos stagger-rows | 🔧 Fix |
 
 ---
 
-## Estatísticas do Período (Etapas 96–117)
+## Estatísticas do Período (Etapas 96–118)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 21 (96–117) |
+| **Etapas** | 22 (96–118) |
 | **Commits** | 36+ (total do projeto) |
 | **Período** | 19/07/2026 — 24/07/2026 (6 dias) |
 
@@ -836,6 +837,62 @@ arquivos CSS, seguindo as diretrizes de design agência ($150k+).
 - ✅ Code review — aprovado com notas cosméticas (inner radius ~2px subótimo, blur em stagger pode impactar dispositivos lentos)
 - ✅ Alinhamento com skill High-End Visual Design: Double-Bezel, custom cubic-bezier, GPU-safe animations
 
+---
+
+# ETAPA 118 — Code Review Fixes: Inner Radius + Blur dos Stagger Rows
+
+**Data:** 24/07/2026
+
+---
+
+## Objetivo
+
+Aplicar as duas correções sugeridas pelo code review da Etapa 117:
+1. Corrigir o inner radius do double-bezel para ser perfeitamente concêntrico
+2. Remover `filter: blur()` das animações usadas por múltiplos elementos (stagger-rows) para melhor performance em dispositivos menos potentes
+
+## Correções Aplicadas
+
+### 1. 🔧 Inner radius corrigido
+
+**Antes:** `--radius-bezel-inner: calc(2rem - 0.375rem)` — ~6px de subtração, mas o padding real é `var(--space-1)` = 4px → 2px de diferença, raio não concêntrico
+
+**Depois:** `--radius-bezel-inner: calc(2rem - var(--space-1))` — subtrai exatamente o padding do shell (4px), produzindo círculos perfeitamente concêntricos
+
+**Matemática:**
+- Outer radius: `2rem` = 32px
+- Padding: `var(--space-1)` = 4px
+- Inner radius ideal: `32px - 4px` = 28px ✅
+- Antes: `32px - 6px` = 26px ❌ (2px de diferença)
+
+### 2. 🔧 Blur removido dos stagger-rows
+
+**Motivação:** `filter: blur()` em animações de múltiplos elementos simultâneos (ex: 10 stagger-rows) força repaints GPU em paralelo, podendo causar queda de frames em dispositivos mais lentos.
+
+| Animação | Onde é usada | Blur? | Motivo |
+|----------|-------------|:-----:|--------|
+| `fadeInUp` | `.stagger-row` (10 elementos), `.page-content`, `.dash-page`, `.dash-kpi-grid` | ❌ Removido | Múltiplos elementos simultâneos |
+| `slideDown` | `.error-banner` (1 elemento) | ❌ Removido | Preventivo (baixo impacto) |
+| `scaleIn` | Modais (1 elemento) | ✅ Mantido | Elemento único, impacto mínimo |
+| `toastIn` | Toasts (1-2 elementos) | ✅ Mantido | Elemento único, impacto mínimo |
+| `modalContentIn` | Conteúdo modal (1 elemento) | ✅ Mantido | Elemento único, impacto mínimo |
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| `app/src/styles/global.css` | 🔧 `--radius-bezel-inner` corrigido + blur removido de `fadeInUp` e `slideDown` |
+
+## Testes & Validação
+
+- ✅ `npm run build` — 0 erros, 10.97s
+- ✅ `npx vitest run` — 38/38 passando
+- ✅ Code review — aprovado, ambas as correções confirmadas
+
+---
+
+# ETAPA 96 — Jogo do Piano com 4 Níveis Completos
+
 **Data:** 19/07/2026
 
 **Objetivo:** Corrigir o jogo do piano que tinha 3 níveis mas deveria ter 4, deixando 3 notas da melodia "Ode à Alegria" (Beethoven) sem nunca serem tocadas.
@@ -870,30 +927,27 @@ O usuário identificou que deveriam ser 4 partes.
 | 1 | 4 (E E F G) | 1000ms | 25% |
 | 2 | 8 (E E F G G F E D) | 800ms | 50% |
 | 3 | 12 (até D E) | 600ms | 75% |
-| **4** | **15 (E D D — MELODIA COMPLETA) ??** | **400ms** | **100%** |
+| **4** | **15 (E D D — MELODIA COMPLETA)** | **400ms** | **100%** |
 
 ### Por que funciona
 
 - `getCurrentLevelSequence()` faz `slice(0, currentLevel * 4)` — com level 4 faz `slice(0, 16)` que retorna as 15 notas (JS trunca no limite do array)
 - Velocidade `1200 - currentLevel * 200` produz automaticamente 400ms para nível 4
-- Condição `currentLevel < 4` faz níveis 1?2?3?4 avançarem e nível 4 completar o jogo
+- Condição `currentLevel < 4` faz níveis 1→2→3→4 avançarem e nível 4 completar o jogo
 
 ## Arquivos Alterados
 
 | Arquivo | Mudança |
 |---------|---------|
 | `public/game.js` | 4 constantes alteradas (limite, UI, progresso, comentário) |
-| `index.html` | Texto estático `1/3` ? `1/4` |
+| `index.html` | Texto estático `1/3` → `1/4` |
 
 ## Testes
 
-? `npm run build` — 5.46s, 1836 módulos | ? Code Review — aprovado sem issues
+- ✅ `npm run build` — 5.46s, 1836 módulos
+- ✅ Code Review — aprovado sem issues
 
-- Migração emoji?SVG nos botões de ação (?? ??? ?? ?) em Students, Teachers, Enrollments, Agenda, Financial
-- Tema claro (light mode)
-- Testes de acessibilidade automatizados
-
-> ?? **Nota de correção (Etapa 103, 20/07/2026):** esta etapa estava duplicada verbatim logo
+> ⚠️ **Nota de correção (Etapa 103, 20/07/2026):** esta etapa estava duplicada verbatim logo
 > abaixo (bloco idêntico repetido por engano por um agente anterior). A cópia redundante foi
 > removida; nenhum conteúdo novo foi perdido, pois os dois blocos eram idênticos.
 

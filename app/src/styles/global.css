@@ -64,7 +64,7 @@
     --radius-xl: 24px;
     --radius-full: 9999px;
     --radius-bezel-outer: 2rem;
-    --radius-bezel-inner: calc(2rem - 0.375rem);
+    --radius-bezel-inner: calc(2rem - var(--space-1));
 
     /* Spacing */
     --space-1: 4px;
@@ -818,8 +818,8 @@ h1 {
 
 /* ── Common Animations ──────────────────────────────────────── */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(32px) scale(0.98); filter: blur(8px); }
-    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    from { opacity: 0; transform: translateY(32px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes fadeIn {
@@ -833,8 +833,8 @@ h1 {
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); filter: blur(2px); }
-    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes toastIn {
