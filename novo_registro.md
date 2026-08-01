@@ -47,16 +47,17 @@
 | [116](#etapa-116--verificação-completa-do-vercel-analytics) | 24/07 | Verificação completa do Vercel Analytics + dashboard | 📊 Analytics |
 | [117](#etapa-117--high-end-visual-design-no-erp) | 24/07 | High-End Visual Design no ERP (login, dashboard, global) | 🎨 Design |
 | [118](#etapa-118--code-review-fixes-inner-radius--blur-dos-stagger-rows) | 24/07 | Code review fixes: inner radius + blur removido dos stagger-rows | 🔧 Fix |
+| [119](#etapa-119--atualização-das-fotos-do-estúdio-no-hero-e-seção-espaço) | 01/08 | Atualização das fotos do estúdio (hero + Espaço) | 🖼️ Design |
 
 ---
 
-## Estatísticas do Período (Etapas 96–118)
+## Estatísticas do Período (Etapas 96–119)
 
 | Métrica | Valor |
 |---------|-------|
-| **Etapas** | 22 (96–118) |
-| **Commits** | 36+ (total do projeto) |
-| **Período** | 19/07/2026 — 24/07/2026 (6 dias) |
+| **Etapas** | 23 (96–119) |
+| **Commits** | 37+ (total do projeto) |
+| **Período** | 19/07/2026 — 01/08/2026 (14 dias) |
 
 ---
 
@@ -890,6 +891,54 @@ Aplicar as duas correções sugeridas pelo code review da Etapa 117:
 - ✅ Code review — aprovado, ambas as correções confirmadas
 
 ---
+
+# ETAPA 119 — Atualização das Fotos do Estúdio no Hero e Seção Espaço
+
+**Data:** 01/08/2026 | **Commit:** `825d2e2`
+
+---
+
+## Objetivo
+
+Atualizar as fotos do estúdio usadas no **hero slideshow** e na seção **“Nosso Espaço”** da landing page (`index.html`), trocando as imagens antigas por novas fotos com maior resolução.
+
+## Implementações
+
+### 1. Fotos atualizadas (4 assets binários)
+
+| Arquivo | Tamanho anterior | Tamanho novo |
+|---------|:----------------:|:------------:|
+| `public/media/1.jpg` | 180 KB | 359 KB |
+| `public/media/2.jpg` | 146 KB | 383 KB |
+| `public/media/3.jpg` | 211 KB | 421 KB |
+| `public/media/4.jpg` | 161 KB | 352 KB |
+
+### 2. Onde as fotos são usadas (`index.html`)
+
+As fotos 1–4 alimentam os mesmos carrosséis em 3 pontos da página (números de linha na data do commit `825d2e2`):
+
+| Local | Linhas | Uso |
+|-------|:------:|-----|
+| `#hero-slideshow` | 364–381 | Slideshow rotativo do hero |
+| Galeria da seção Espaço | 629–644 | Grid de fotos do estúdio |
+| Seção “Nosso Espaço Completo” | 1934–1949 | Galeria inferior da página |
+
+Como os nomes dos arquivos foram mantidos (`1.jpg`–`4.jpg`), nenhum código precisou mudar — apenas os binários foram substituídos.
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| `public/media/1.jpg` | 🔧 Foto atualizada (180 KB → 359 KB) |
+| `public/media/2.jpg` | 🔧 Foto atualizada (146 KB → 383 KB) |
+| `public/media/3.jpg` | 🔧 Foto atualizada (211 KB → 421 KB) |
+| `public/media/4.jpg` | 🔧 Foto atualizada (161 KB → 352 KB) |
+
+## Testes & Validação
+
+- ✅ Sem alteração de código — apenas assets binários (0 insertions, 0 deletions)
+- ✅ `npm run build` — 0 erros (assets são copiados estaticamente)
+- ✅ Visual: hero slideshow e galeria “Nosso Espaço” exibem as novas fotos
 
 # ETAPA 96 — Jogo do Piano com 4 Níveis Completos
 
